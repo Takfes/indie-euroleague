@@ -19,6 +19,7 @@
 - [EuroLeague Players Advanced Stats (BasketNews)](https://basketnews.com/advanced-stats/leaders/players/25-euroleague/2025?leaders_mode=offensive&leaders_sort=offensive_rating_lineup&leaders_sort_desc=0&leaders_min_gp=20)
 - [Euroleague On/Off Stats (BasketNews)](https://basketnews.com/advanced-stats/on-off/25-euroleague/2025/33-panathinaikos-aktor-athens)
 - [Dunkest Table](https://www.dunkest.com/it/eurolega/statistiche/giocatori/tabellone?season_id=23&mode=nba&stats_type=avg&date_from=2025-09-30&date_to=2026-05-24&teams[]=32&teams[]=33&teams[]=34&teams[]=35&teams[]=36&teams[]=37&teams[]=38&teams[]=39&teams[]=40&teams[]=41&teams[]=42&teams[]=43&teams[]=44&teams[]=45&teams[]=46&teams[]=47&teams[]=48&teams[]=56&teams[]=60&teams[]=75&positions[]=1&positions[]=2&positions[]=3&player_search=&min_cr=4&max_cr=35&sort_by=pdk&sort_order=desc)
+- [Player Prices (BasketballSphere)](https://basketballsphere.com/en/euroleague-fantasy-player-prices/)
 - [Euroleague API](https://github.com/giasemidis/euroleague_api)
 
 ## Conversations
