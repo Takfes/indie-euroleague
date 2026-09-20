@@ -142,6 +142,8 @@ cython_debug/
 # Data
 data/*
 *.csv
+*.xlsx
+~$*.xlsx
 !data/basketnews-players-stats/
 !data/basketnews-players-stats/**
 !data/dunkest-data/
@@ -152,6 +154,9 @@ data/*
 !data/euroleague-fantasy/**
 !data/player-master-table/
 !data/player-master-table/**
+
+# Claude Code worktrees
+.claude/worktrees/
 
 # macOS
 .DS_Store
