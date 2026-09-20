@@ -141,6 +141,13 @@ cython_debug/
 
 # Data
 data/*
+*.csv
 !data/basketnews-players-stats/
+!data/basketnews-players-stats/**
 !data/dunkest-data/
+!data/dunkest-data/**
 !data/basketnews-onoff-stats/
+!data/basketnews-onoff-stats/**
+
+# macOS
+.DS_Store
