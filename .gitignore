@@ -140,4 +140,5 @@ cython_debug/
 #.idea/
 
 # Data
-data/
+data/*
+!data/basketnews-players-stats/
