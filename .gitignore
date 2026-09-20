@@ -143,3 +143,4 @@ cython_debug/
 data/*
 !data/basketnews-players-stats/
 !data/dunkest-data/
+!data/basketnews-onoff-stats/
