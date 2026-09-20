@@ -53,14 +53,7 @@ dev = [
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["elfantasy"]
-# packages = "find:"
-package-dir = { "" = "src" }
-# py-modules = ["src"]
-
 [tool.mypy]
-files = ["src"]
 disallow_untyped_defs = true
 disallow_any_unimported = true
 no_implicit_optional = true
