@@ -1,0 +1,683 @@
+season,league_id,mode,player_id,player_name,player_name_short,team_id,team_name,team_short_name,positions,games_played,minutes_per_game,minutes_per_game_raw,offensive_rating_lineup,offensive_rating_ind,points,3p_percentage,2p_percentage,ft_percentage,ts_percentage,3p_attempted,2p_attempted,ft_attempted,3p_attempted_rate,created_points,assists,assist_percentage,turnovers,turnover_percentage,offensive_rebounds,offensive_rebound_percentage,fouls_received,blocks_received,usage_percentage,defensive_rating_lineup,defensive_rating_ind,stops,stop_percentage,defensive_rebounds,defensive_rebound_percentage,steals,steal_percentage,blocks,block_percentage,foul_stops
+2025,25,offensive,10026,Aleksandr Vezenkov,A. Vezenkov,460,Olympiacos Piraeus,Olympiacos,PF,39,27:51,1671.7,123.6,138.4,19,40,62,89,68,4.4,7.8,4.4,36.3,22.3,1.2,3,1.1,8,1.4,6,3.1,0.2,25.1,,,,,,,,,,,
+2025,25,defensive,10026,Aleksandr Vezenkov,A. Vezenkov,460,Olympiacos Piraeus,Olympiacos,PF,39,27:51,1671.7,,,,,,,,,,,,,,,,,,,,,,113.3,114.1,5.15,50,5,20,0.6,1.1,0.1,0.2,0.1
+2025,25,offensive,36942,Nadir Hifi,N. Hifi,3292,Paris Basketball,Paris,SG,37,22:15,1335.9,115.7,121.7,18.9,35,47,84,57,6.7,7.5,5.6,47.2,28.2,3.8,14,2.4,13,0.3,1,5.6,0.5,36.6,,,,,,,,,,,
+2025,25,defensive,36942,Nadir Hifi,N. Hifi,3292,Paris Basketball,Paris,SG,37,22:15,1335.9,,,,,,,,,,,,,,,,,,,,,,117.9,119,3.99,46,2,10,0.9,2.2,0,0.1,0.1
+2025,25,offensive,24328,Kendrick Nunn,K. Nunn,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,37,29:43,1783.8,119.9,119.8,18.3,38,58,89,62,5.4,8.3,2.7,39.4,26,3.5,9,2.9,17,0.6,2,3.3,0.4,28,,,,,,,,,,,
+2025,25,defensive,24328,Kendrick Nunn,K. Nunn,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,37,29:43,1783.8,,,,,,,,,,,,,,,,,,,,,,116.8,119.5,4.72,43,2.1,8,1,1.8,0.1,0.1,0.3
+2025,25,offensive,19141,Timothe Luwawu-Cabarrot,T. Luwawu-Cabarrot,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,36,25:22,1522.9,116.7,120.6,18.3,41,55,90,65,6.5,5.8,4.4,52.8,22.7,1.9,6,1.8,11,0.6,3,3.7,0.5,29.4,,,,,,,,,,,
+2025,25,defensive,19141,Timothe Luwawu-Cabarrot,T. Luwawu-Cabarrot,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,36,25:22,1522.9,,,,,,,,,,,,,,,,,,,,,,122.6,124,4.24,44,2.9,13,0.6,1.3,0.1,0.2,0.2
+2025,25,offensive,24404,Carsen Edwards,C. Edwards,90,Virtus Segafredo Bologna,Virtus,PG,36,25:12,1512.4,109.9,108.6,17.3,32,47,80,51,7.8,8,2.9,49.4,22.6,2.3,8,2.6,13,0.3,1,3.8,1.1,36.1,,,,,,,,,,,
+2025,25,defensive,24404,Carsen Edwards,C. Edwards,90,Virtus Segafredo Bologna,Virtus,PG,36,25:12,1512.4,,,,,,,,,,,,,,,,,,,,,,121.1,123.6,3.95,43,1.9,9,0.9,1.9,0.1,0.2,0.1
+2025,25,offensive,23675,Jordan Nwora,J. Nwora,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,34,27:07,1627.8,115.3,112.5,16.9,36,55,81,60,5.1,7.6,3.9,40.4,20.4,1.6,4,2.2,14,0.7,3,3.5,0.3,27.2,,,,,,,,,,,
+2025,25,defensive,23675,Jordan Nwora,J. Nwora,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,34,27:07,1627.8,,,,,,,,,,,,,,,,,,,,,,115.9,114.5,5.4,53,3.7,16,1.1,2.2,0.3,0.5,0.2
+2025,25,offensive,21280,Sylvain Francisco,S. Francisco,265,Zalgiris Kaunas,Zalgiris,"PG,SG",42,27:46,1666.6,123,127.1,16.5,39,51,80,62,7,4.5,4.9,61,31.7,6.5,18,2.8,17,0.5,2,4.7,0.5,27.6,,,,,,,,,,,
+2025,25,defensive,21280,Sylvain Francisco,S. Francisco,265,Zalgiris Kaunas,Zalgiris,"PG,SG",42,27:46,1666.6,,,,,,,,,,,,,,,,,,,,,,113.7,112.9,5.06,51,2.4,10,1,2,0.3,0.7,0.2
+2025,25,offensive,17917,Mike James,M. James,2222,AS Monaco,Monaco,PG,39,29:56,1796.2,118.8,125.4,16.4,33,48,86,57,4.3,7.8,5.5,35.5,31.4,6.4,16,2.5,15,0.4,1,4.4,0.5,26.4,,,,,,,,,,,
+2025,25,defensive,17917,Mike James,M. James,2222,AS Monaco,Monaco,PG,39,29:56,1796.2,,,,,,,,,,,,,,,,,,,,,,119.2,122.5,4.6,41,3.1,12,0.9,1.6,0.1,0.2,0.2
+2025,25,offensive,21574,Dwayne Bacon,D. Bacon,3359,Dubai Basketball,Dubai,"SG,SF",29,29:22,1762.8,122.1,113.1,16.2,31,47,79,53,4.1,9.3,4.6,30.3,22,2.4,6,2.2,13,0.6,3,4.3,0.6,28.4,,,,,,,,,,,
+2025,25,defensive,21574,Dwayne Bacon,D. Bacon,3359,Dubai Basketball,Dubai,"SG,SF",29,29:22,1762.8,,,,,,,,,,,,,,,,,,,,,,118.6,119.9,4.92,46,3.5,13,0.8,1.4,0.2,0.3,0.4
+2025,25,offensive,21572,Tyler Dorsey,T. Dorsey,460,Olympiacos Piraeus,Olympiacos,SG,43,25:11,1511.4,121.6,123,15.9,39,52,79,60,6.4,5.2,3.7,55.2,21.8,2.6,8,1.9,13,0.5,2,3.6,0.5,27.9,,,,,,,,,,,
+2025,25,defensive,21572,Tyler Dorsey,T. Dorsey,460,Olympiacos Piraeus,Olympiacos,SG,43,25:11,1511.4,,,,,,,,,,,,,,,,,,,,,,113.2,117.7,3.9,42,1.8,8,0.7,1.6,0.1,0.2,0.1
+2025,25,offensive,24349,Talen Horton-Tucker,T. Horton-Tucker,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,41,23:50,1430.2,113.3,119.9,15.7,26,57,76,57,3.7,8.2,4.4,30.9,21,2.2,7,2.1,13,1.1,5,4.1,0.5,31.1,,,,,,,,,,,
+2025,25,defensive,24349,Talen Horton-Tucker,T. Horton-Tucker,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,41,23:50,1430.2,,,,,,,,,,,,,,,,,,,,,,109.3,110.3,4.28,50,2.7,12,0.7,1.7,0.5,1.2,0.2
+2025,25,offensive,35695,Carlik Jones,C. Jones,77,Partizan Mozzart Bet Belgrade,Partizan,PG,15,28:03,1683.9,120.3,125.5,15.4,29,52,90,57,2.8,9,4.1,23.7,26.3,4.6,12,1.8,12,0.9,4,4,1,26,,,,,,,,,,,
+2025,25,defensive,35695,Carlik Jones,C. Jones,77,Partizan Mozzart Bet Belgrade,Partizan,PG,15,28:03,1683.9,,,,,,,,,,,,,,,,,,,,,,110.1,113.6,4.49,44,2.3,10,0.8,1.6,0.3,0.5,0.2
+2025,25,offensive,23459,Elijah Bryant,E. Bryant,635,Hapoel Shlomo Tel Aviv,Hapoel,SG,38,29:30,1770.3,121.1,126.4,15.4,37,60,89,65,3.2,7.2,3.7,30.8,22.7,3.3,8,2.2,16,0.9,4,4.8,0.3,23.1,,,,,,,,,,,
+2025,25,defensive,23459,Elijah Bryant,E. Bryant,635,Hapoel Shlomo Tel Aviv,Hapoel,SG,38,29:30,1770.3,,,,,,,,,,,,,,,,,,,,,,113.8,113.4,5.53,52,4.3,17,0.7,1.2,0.1,0.2,0.1
+2025,25,offensive,24363,Braian Angola,B. Angola,700,LDLC ASVEL Villeurbanne,ASVEL,SG,15,24:22,1462.3,111.3,126.7,15.3,32,54,85,62,5,4.7,6.4,51.7,24.6,3.9,12,1.8,13,0.3,1,5.6,0.5,27.5,,,,,,,,,,,
+2025,25,defensive,24363,Braian Angola,B. Angola,700,LDLC ASVEL Villeurbanne,ASVEL,SG,15,24:22,1462.3,,,,,,,,,,,,,,,,,,,,,,114.8,114.3,4.6,51,2.7,14,1,2.2,0,,0.1
+2025,25,offensive,14015,Shane Larkin,S. Larkin,583,Anadolu Efes Istanbul,Efes,PG,12,30:16,1816.3,115.8,125.5,15.3,43,51,89,63,5.4,5.4,3.1,50,25.6,4.2,10,2.5,17,0.5,2,3.5,0.8,23.9,,,,,,,,,,,
+2025,25,defensive,14015,Shane Larkin,S. Larkin,583,Anadolu Efes Istanbul,Efes,PG,12,30:16,1816.3,,,,,,,,,,,,,,,,,,,,,,119,125.7,3.67,35,1.8,8,0.3,0.6,0,,0
+2025,25,offensive,22564,Lonnie Walker IV,L. Walker IV,636,Maccabi Playtika Tel Aviv,Maccabi,SG,28,22:42,1362.3,115.8,112.1,15.2,35,46,76,56,6.9,4.9,4.6,58.8,20.4,2.3,7,1.6,11,0.3,1,3.7,0.3,29.8,,,,,,,,,,,
+2025,25,defensive,22564,Lonnie Walker IV,L. Walker IV,636,Maccabi Playtika Tel Aviv,Maccabi,SG,28,22:42,1362.3,,,,,,,,,,,,,,,,,,,,,,124.1,125.2,3.79,43,2.3,11,0.8,1.9,0.3,0.6,0.2
+2025,25,offensive,35461,Duane Washington Jr.,D. Washington Jr.,77,Partizan Mozzart Bet Belgrade,Partizan,PG,23,21:55,1315.8,110.7,118.5,14.9,38,51,80,57,5.7,6.4,2.4,46.8,20.4,2.5,9,1.7,11,0.2,1,3.3,0.8,31.2,,,,,,,,,,,
+2025,25,defensive,35461,Duane Washington Jr.,D. Washington Jr.,77,Partizan Mozzart Bet Belgrade,Partizan,PG,23,21:55,1315.8,,,,,,,,,,,,,,,,,,,,,,120.9,122.1,3.59,45,1.3,8,0.6,1.5,0,,0.2
+2025,25,offensive,21591,Kevin Punter,K. Punter,60,FC Barcelona,Barcelona,SG,39,26:41,1601,119.1,126.1,14.8,41,49,87,61,4.9,6,3.3,44.9,20.9,2.6,7,1.7,12,0.4,2,3.3,0.4,25.4,,,,,,,,,,,
+2025,25,defensive,21591,Kevin Punter,K. Punter,60,FC Barcelona,Barcelona,SG,39,26:41,1601,,,,,,,,,,,,,,,,,,,,,,116.4,119.6,3.94,42,1.4,6,1,2.1,0,0.1,0.2
+2025,25,offensive,34942,Justin Robinson,J. Robinson,3292,Paris Basketball,Paris,PG,36,18:58,1138.4,117,126,14.6,34,49,83,58,5.5,5.1,4.7,51.8,25.7,4.5,19,2.1,14,0.3,2,4.2,0.5,33.3,,,,,,,,,,,
+2025,25,defensive,34942,Justin Robinson,J. Robinson,3292,Paris Basketball,Paris,PG,36,18:58,1138.4,,,,,,,,,,,,,,,,,,,,,,115.1,114.9,3.84,51,1.2,7,0.9,2.4,0.1,0.2,0.1
+2025,25,offensive,16936,Andreas Obst,A. Obst,1220,FC Bayern Munich,Bayern,SG,35,26:35,1595.2,114.5,117.6,14.5,38,49,89,59,7.6,3.8,2.4,66.8,19.3,2,6,1.5,11,0.3,1,2.8,0.4,24.9,,,,,,,,,,,
+2025,25,defensive,16936,Andreas Obst,A. Obst,1220,FC Bayern Munich,Bayern,SG,35,26:35,1595.2,,,,,,,,,,,,,,,,,,,,,,116.6,121.8,3.68,38,1.8,8,0.4,0.8,0.1,0.1,0
+2025,25,offensive,24673,Jean Montero,J. Montero,677,Valencia Basket,Valencia,"PG,SG",38,22:57,1377.9,121.1,134.3,14.4,32,52,88,58,5.5,5.3,4,51.1,25.8,4.8,15,1.4,10,0.8,4,4.1,0.3,27.3,,,,,,,,,,,
+2025,25,defensive,24673,Jean Montero,J. Montero,677,Valencia Basket,Valencia,"PG,SG",38,22:57,1377.9,,,,,,,,,,,,,,,,,,,,,,116.1,116,4.23,50,2.2,11,1.1,2.5,0.3,0.8,0
+2025,25,offensive,18643,Dzanan Musa,D. Musa,3359,Dubai Basketball,Dubai,"SG,SF",18,26:41,1601.2,120.4,127.2,14.3,36,54,88,62,4.2,5.6,4.2,42.6,21.7,3.2,8,1.6,12,1.3,6,3.4,0.4,23.3,,,,,,,,,,,
+2025,25,defensive,18643,Dzanan Musa,D. Musa,3359,Dubai Basketball,Dubai,"SG,SF",18,26:41,1601.2,,,,,,,,,,,,,,,,,,,,,,123.1,126.2,3.95,40,2.4,10,0.6,1.1,0.2,0.3,0.2
+2025,25,offensive,36490,Glynn Watson,G. Watson,700,LDLC ASVEL Villeurbanne,ASVEL,PG,30,25:34,1534.4,109.5,127.5,14.2,42,49,84,59,5.1,5.9,2.5,46.2,21.7,3.1,9,1.4,10,0.4,2,2.7,0.3,24.6,,,,,,,,,,,
+2025,25,defensive,36490,Glynn Watson,G. Watson,700,LDLC ASVEL Villeurbanne,ASVEL,PG,30,25:34,1534.4,,,,,,,,,,,,,,,,,,,,,,116.9,118.8,4.07,44,2,10,0.9,2,0.1,0.2,0.2
+2025,25,offensive,23521,Mfiondu Kabengele,M. Kabengele,3359,Dubai Basketball,Dubai,C,36,22:14,1334.9,122.2,128.2,14.2,32,62,82,64,1.8,7.9,3.3,18.6,17.2,1.2,4,1,8,2,11,3.2,0.3,26.4,,,,,,,,,,,
+2025,25,defensive,23521,Mfiondu Kabengele,M. Kabengele,3359,Dubai Basketball,Dubai,C,36,22:14,1334.9,,,,,,,,,,,,,,,,,,,,,,116.5,112.6,4.73,58,4.1,20,0.7,1.8,0.7,1.8,0.3
+2025,25,offensive,22353,Nigel Hayes-Davis,N. Hayes-Davis,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,16,28:33,1713.2,120.3,115.3,14.1,34,51,86,56,5.5,6.1,2.8,47.6,18.9,1.9,5,0.9,6,1.4,6,2.2,0.2,22.7,,,,,,,,,,,
+2025,25,defensive,22353,Nigel Hayes-Davis,N. Hayes-Davis,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,16,28:33,1713.2,,,,,,,,,,,,,,,,,,,,,,116.2,119.2,4.38,42,2,9,1.1,2.2,0.3,0.5,0.2
+2025,25,offensive,19142,Wade Baldwin IV,W. Baldwin IV,584,Fenerbahce Beko Istanbul,Fenerbahce,"PG,SG",42,25:50,1550.8,114.7,118.5,14,29,52,79,55,3.2,7.9,3.9,28.7,27.5,5.5,17,2.3,15,0.7,3,3.7,0.3,27.8,,,,,,,,,,,
+2025,25,defensive,19142,Wade Baldwin IV,W. Baldwin IV,584,Fenerbahce Beko Istanbul,Fenerbahce,"PG,SG",42,25:50,1550.8,,,,,,,,,,,,,,,,,,,,,,113.1,115.9,4.19,44,2.5,11,0.7,1.4,0.4,0.9,0
+2025,25,offensive,34849,Daniel Oturu,D. Oturu,635,Hapoel Shlomo Tel Aviv,Hapoel,C,42,23:55,1435,118,137,13.9,0,71,64,71,0,8.5,3,0.3,16.1,0.8,3,1.4,13,2.5,13,2.8,0.6,22.5,,,,,,,,,,,
+2025,25,defensive,34849,Daniel Oturu,D. Oturu,635,Hapoel Shlomo Tel Aviv,Hapoel,C,42,23:55,1435,,,,,,,,,,,,,,,,,,,,,,113.7,113.7,4.47,51,3.2,15,0.5,1.1,1.4,3.1,0.2
+2025,25,offensive,35325,Chima Moneke,C. Moneke,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PF,35,26:56,1616.2,120.1,123,13.9,34,62,77,65,1.9,6.1,5.6,23.9,18.8,2,5,1.8,15,1.7,8,4.3,0.4,20.8,,,,,,,,,,,
+2025,25,defensive,35325,Chima Moneke,C. Moneke,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PF,35,26:56,1616.2,,,,,,,,,,,,,,,,,,,,,,114.3,111.5,5.75,57,4.8,20,1,2,0.4,0.8,0.3
+2025,25,offensive,19540,Will Clyburn,W. Clyburn,60,FC Barcelona,Barcelona,SF,33,25:33,1533.8,117.7,116.7,13.8,39,54,73,59,5.1,5.1,3.2,49.9,17.7,1.6,5,1.8,13,0.9,4,3.9,0.1,25.1,,,,,,,,,,,
+2025,25,defensive,19540,Will Clyburn,W. Clyburn,60,FC Barcelona,Barcelona,SF,33,25:33,1533.8,,,,,,,,,,,,,,,,,,,,,,117.4,116.4,4.65,51,3.2,15,1.1,2.3,0.2,0.3,0.1
+2025,25,offensive,21639,Sterling Brown,S. Brown,77,Partizan Mozzart Bet Belgrade,Partizan,SG,37,28:09,1689.6,113.5,114.9,13.7,39,52,90,59,5.2,5.8,1.7,47.4,19.4,2.3,6,2,15,0.6,2,1.7,0.6,23.5,,,,,,,,,,,
+2025,25,defensive,21639,Sterling Brown,S. Brown,77,Partizan Mozzart Bet Belgrade,Partizan,SG,37,28:09,1689.6,,,,,,,,,,,,,,,,,,,,,,116.6,119.9,4.33,42,2.3,10,0.9,1.7,0.2,0.4,0.3
+2025,25,offensive,6540,Nando de Colo,N. de Colo,700,LDLC ASVEL Villeurbanne,ASVEL,PG,13,20:43,1243.6,113,128.3,13.6,40,63,98,75,4.2,3.2,4.6,57.3,24.9,4.7,16,2.8,23,0.2,1,4.7,0.2,26,,,,,,,,,,,
+2025,25,defensive,6540,Nando de Colo,N. de Colo,700,LDLC ASVEL Villeurbanne,ASVEL,PG,13,20:43,1243.6,,,,,,,,,,,,,,,,,,,,,,115.2,114.2,3.93,51,1.8,10,1,2.6,0.1,0.2,0
+2025,25,offensive,35087,Roman Sorkin,R. Sorkin,636,Maccabi Playtika Tel Aviv,Maccabi,C,38,22:54,1374.4,115.9,127.6,13.5,34,57,82,60,2.4,7.7,2.8,23.7,17.8,1.7,5,1.2,9,1.7,8,2.8,0.5,24.7,,,,,,,,,,,
+2025,25,defensive,35087,Roman Sorkin,R. Sorkin,636,Maccabi Playtika Tel Aviv,Maccabi,C,38,22:54,1374.4,,,,,,,,,,,,,,,,,,,,,,122.6,123.7,3.85,45,2.5,12,0.6,1.3,0.6,1.5,0.1
+2025,25,offensive,36996,Matthew Morgan,M. Morgan,90,Virtus Segafredo Bologna,Virtus,PG,34,19:56,1196.1,114.2,129.4,13.5,37,61,91,67,5,3.5,4.1,58.9,18.5,2.2,9,1.5,13,0.2,1,3.3,0.6,27.8,,,,,,,,,,,
+2025,25,defensive,36996,Matthew Morgan,M. Morgan,90,Virtus Segafredo Bologna,Virtus,PG,34,19:56,1196.1,,,,,,,,,,,,,,,,,,,,,,116.8,122.6,2.66,37,1.4,8,0.3,0.9,0,,0.1
+2025,25,offensive,17900,Trey Lyles,T. Lyles,368,Real Madrid,Real,PF,42,21:11,1271.4,122.7,126,13.5,46,55,79,64,3.5,5.2,3.7,40.2,16.9,1.5,5,1.3,11,1.1,6,3.2,0.5,25.9,,,,,,,,,,,
+2025,25,defensive,17900,Trey Lyles,T. Lyles,368,Real Madrid,Real,PF,42,21:11,1271.4,,,,,,,,,,,,,,,,,,,,,,113,112.2,4.11,53,3.5,18,0.5,1.4,0.5,1.2,0.3
+2025,25,offensive,35498,Jared Butler,J. Butler,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,32,20:04,1204,120.5,118.7,13.4,36,51,81,56,5.4,5.6,2.2,49.1,21.6,3.7,14,1.9,14,0.6,3,2.3,0.4,31.1,,,,,,,,,,,
+2025,25,defensive,35498,Jared Butler,J. Butler,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,32,20:04,1204,,,,,,,,,,,,,,,,,,,,,,117.3,118.5,3.5,48,1.6,9,0.7,1.8,0.1,0.2,0.3
+2025,25,offensive,9225,Mario Hezonja,M. Hezonja,368,Real Madrid,Real,SF,44,22:36,1356.7,120,111.3,13.3,31,52,81,53,5,6.4,2.6,44.2,19.4,2.4,8,1.7,12,0.6,3,2.5,0.4,29,,,,,,,,,,,
+2025,25,defensive,9225,Mario Hezonja,M. Hezonja,368,Real Madrid,Real,SF,44,22:36,1356.7,,,,,,,,,,,,,,,,,,,,,,115.2,115.6,4.08,49,3.4,17,0.8,2,0,0.1,0.2
+2025,25,offensive,35693,Moses Wright,M. Wright,265,Zalgiris Kaunas,Zalgiris,C,42,23:39,1419.6,121.1,125.2,13.2,31,63,73,66,0.9,7.7,3.6,10,15.2,0.8,3,1.5,13,2.4,12,3.4,0.4,23.6,,,,,,,,,,,
+2025,25,defensive,35693,Moses Wright,M. Wright,265,Zalgiris Kaunas,Zalgiris,C,42,23:39,1419.6,,,,,,,,,,,,,,,,,,,,,,116.1,113.4,4.58,54,4.1,21,0.6,1.5,0.9,2.1,0.2
+2025,25,offensive,21597,Antonio Blakeney,A. Blakeney,635,Hapoel Shlomo Tel Aviv,Hapoel,SG,41,22:37,1357.2,119.3,126,13.2,40,54,84,63,5.5,4.2,2.5,56.8,15.4,1,3,1,9,0.5,3,1.9,0.5,24.9,,,,,,,,,,,
+2025,25,defensive,21597,Antonio Blakeney,A. Blakeney,635,Hapoel Shlomo Tel Aviv,Hapoel,SG,41,22:37,1357.2,,,,,,,,,,,,,,,,,,,,,,115.4,120.9,3.09,37,1.8,9,0.4,0.9,0.3,0.6,0.1
+2025,25,offensive,22749,Zach LeDay,Z. LeDay,389,EA7 Emporio Armani Milan,EA7 Armani,PF,30,24:37,1477.4,118.4,127.5,13.1,50,51,82,66,3.4,4.9,3.6,41,15.1,0.9,3,0.9,9,0.8,4,3.6,0.2,21.5,,,,,,,,,,,
+2025,25,defensive,22749,Zach LeDay,Z. LeDay,389,EA7 Emporio Armani Milan,EA7 Armani,PF,30,24:37,1477.4,,,,,,,,,,,,,,,,,,,,,,123.5,122.8,4.3,48,3.3,16,0.5,1.1,0.3,0.7,0.2
+2025,25,offensive,34945,Armoni Brooks,A. Brooks,389,EA7 Emporio Armani Milan,EA7 Armani,"PG,SG",38,22:33,1353,120.4,129.9,13.1,42,51,82,61,6.4,3.8,1.3,63,16.5,1.4,5,0.9,8,0.7,4,1.3,0.4,25.1,,,,,,,,,,,
+2025,25,defensive,34945,Armoni Brooks,A. Brooks,389,EA7 Emporio Armani Milan,EA7 Armani,"PG,SG",38,22:33,1353,,,,,,,,,,,,,,,,,,,,,,120.2,120.6,3.81,47,2.8,15,0.6,1.5,0.3,0.7,0.2
+2025,25,offensive,15063,Cedi Osman,C. Osman,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,39,27:18,1638.5,118.6,121.8,12.9,38,56,82,62,4.3,4.4,3.7,49.4,15.8,1.2,3,0.8,7,0.5,2,3.2,0.3,19.3,,,,,,,,,,,
+2025,25,defensive,15063,Cedi Osman,C. Osman,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,39,27:18,1638.5,,,,,,,,,,,,,,,,,,,,,,116.1,116.8,4.86,48,3,13,0.7,1.4,0.1,0.2,0.2
+2025,25,offensive,35443,McKinley Wright IV,M. Wright IV,3359,Dubai Basketball,Dubai,PG,38,29:33,1773.1,122.1,134,12.7,38,56,85,63,1.9,6.8,3.4,22.2,27.3,6.1,14,2,16,0.4,2,3.1,0.6,19.8,,,,,,,,,,,
+2025,25,defensive,35443,McKinley Wright IV,M. Wright IV,3359,Dubai Basketball,Dubai,PG,38,29:33,1773.1,,,,,,,,,,,,,,,,,,,,,,117,118.5,5.04,47,2.3,8,1,1.8,0.2,0.3,0.3
+2025,25,offensive,19724,Shavon Shields,S. Shields,389,EA7 Emporio Armani Milan,EA7 Armani,SF,35,26:53,1613.8,119.2,124.7,12.7,37,52,88,60,5.1,4.5,2.5,53.1,19.6,2.7,7,1.4,12,0.7,3,2.8,0.3,22,,,,,,,,,,,
+2025,25,defensive,19724,Shavon Shields,S. Shields,389,EA7 Emporio Armani Milan,EA7 Armani,SF,35,26:53,1613.8,,,,,,,,,,,,,,,,,,,,,,122.3,123.5,4.34,44,2.5,11,0.7,1.5,0.1,0.2,0.2
+2025,25,offensive,23307,Codi Miller-McIntyre,C. Miller-McIntyre,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,39,30:56,1856.1,118.3,118.1,12.6,33,52,60,53,5.4,5.7,2.1,48.3,29.6,7.4,16,2.8,19,0.8,3,2.7,0.6,21.7,,,,,,,,,,,
+2025,25,defensive,23307,Codi Miller-McIntyre,C. Miller-McIntyre,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,39,30:56,1856.1,,,,,,,,,,,,,,,,,,,,,,115.4,117.1,5.39,47,3.6,13,1,1.7,0.1,0.1,0.2
+2025,25,offensive,8385,Tornike Shengelia,T. Shengelia,60,FC Barcelona,Barcelona,PF,34,24:56,1496.9,123,127.1,12.4,37,59,82,63,1.9,6.5,3.4,22.3,19,2.6,8,1.8,16,1.5,7,4.2,0.5,22.5,,,,,,,,,,,
+2025,25,defensive,8385,Tornike Shengelia,T. Shengelia,60,FC Barcelona,Barcelona,PF,34,24:56,1496.9,,,,,,,,,,,,,,,,,,,,,,113.9,113.8,4.5,50,3.1,15,0.8,1.7,0.3,0.7,0.1
+2025,25,offensive,17903,Cameron Payne,C. Payne,77,Partizan Mozzart Bet Belgrade,Partizan,PG,10,23:20,1400.1,109.2,117,12.4,33,53,86,58,6.3,3.4,2.9,64.9,21.4,3.9,13,2.2,17,0.4,2,2.8,0.5,26.5,,,,,,,,,,,
+2025,25,defensive,17903,Cameron Payne,C. Payne,77,Partizan Mozzart Bet Belgrade,Partizan,PG,10,23:20,1400.1,,,,,,,,,,,,,,,,,,,,,,118.4,117.2,4.49,52,1.9,10,1.2,2.8,0,,0.3
+2025,25,offensive,20837,Ąžuolas Tubelis,Ą. Tubelis,265,Zalgiris Kaunas,Zalgiris,PF,42,22:41,1361.6,121.7,127.6,12.1,41,63,71,65,1.9,6.5,2.2,22.4,14.1,0.8,3,1.2,11,1.5,8,2.3,0.3,22.1,,,,,,,,,,,
+2025,25,defensive,20837,Ąžuolas Tubelis,Ą. Tubelis,265,Zalgiris Kaunas,Zalgiris,PF,42,22:41,1361.6,,,,,,,,,,,,,,,,,,,,,,113.9,114.5,3.94,48,3,15,0.5,1.3,0.7,1.6,0.2
+2025,25,offensive,22968,Hamidou Diallo,H. Diallo,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SG,13,22:03,1323.5,114.1,107.8,12.1,14,56,69,55,1.7,7.3,4.7,18.8,16.5,1.8,6,2.2,16,1.2,6,4.2,0.4,27.3,,,,,,,,,,,
+2025,25,defensive,22968,Hamidou Diallo,H. Diallo,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SG,13,22:03,1323.5,,,,,,,,,,,,,,,,,,,,,,116.4,114.9,4.54,55,3.2,15,0.8,2,0.5,1.1,0.2
+2025,25,offensive,11192,Facundo Campazzo,F. Campazzo,368,Real Madrid,Real,PG,44,24:23,1463.3,120.3,128.1,12,42,46,84,63,5.2,3.1,3.1,62.6,24.6,5.1,15,2,18,0.3,1,3.8,0.2,22.3,,,,,,,,,,,
+2025,25,defensive,11192,Facundo Campazzo,F. Campazzo,368,Real Madrid,Real,PG,44,24:23,1463.3,,,,,,,,,,,,,,,,,,,,,,111.9,112.9,4.37,49,1.6,7,1.1,2.6,0,,0.1
+2025,25,offensive,35085,Alpha Diallo,A. Diallo,2222,AS Monaco,Monaco,SF,42,27:54,1674.8,120.1,120.6,11.9,31,59,80,59,3.3,5.8,2.5,36.6,14.9,1.4,3,1,9,1.5,6,3.3,0.6,18.8,,,,,,,,,,,
+2025,25,defensive,35085,Alpha Diallo,A. Diallo,2222,AS Monaco,Monaco,SF,42,27:54,1674.8,,,,,,,,,,,,,,,,,,,,,,116.6,114.4,5.62,54,2.9,12,1.4,2.6,0.5,0.9,0.2
+2025,25,offensive,24087,Kameron Taylor,K. Taylor,677,Valencia Basket,Valencia,SF,40,24:03,1443.1,120.3,123,11.8,39,60,82,63,3.8,4.7,2.1,44.4,16.5,2.1,6,1.5,14,1.1,5,2.6,0.3,20.5,,,,,,,,,,,
+2025,25,defensive,24087,Kameron Taylor,K. Taylor,677,Valencia Basket,Valencia,SF,40,24:03,1443.1,,,,,,,,,,,,,,,,,,,,,,111.8,110.7,4.87,54,3.4,16,0.9,2.1,0.3,0.7,0.2
+2025,25,offensive,24315,Jaylen Hoard,J. Hoard,636,Maccabi Playtika Tel Aviv,Maccabi,PF,35,28:50,1730.4,116,131,11.7,30,57,86,62,1.3,6.9,3.1,16.1,15.2,1.3,3,1.1,10,2.2,8,2.5,0.5,16.7,,,,,,,,,,,
+2025,25,defensive,24315,Jaylen Hoard,J. Hoard,636,Maccabi Playtika Tel Aviv,Maccabi,PF,35,28:50,1730.4,,,,,,,,,,,,,,,,,,,,,,124.7,124.2,5.18,47,4.8,19,0.8,1.5,0.3,0.5,0.2
+2025,25,offensive,17140,Spencer Dinwiddie,S. Dinwiddie,1220,FC Bayern Munich,Bayern,"PG,SG",11,23:03,1383.9,110.6,114.1,11.7,30,50,81,56,4.8,3.8,4.4,55.8,19.1,2.9,10,2.5,20,0.4,2,4.2,0,26.7,,,,,,,,,,,
+2025,25,defensive,17140,Spencer Dinwiddie,S. Dinwiddie,1220,FC Bayern Munich,Bayern,"PG,SG",11,23:03,1383.9,,,,,,,,,,,,,,,,,,,,,,112.1,113.2,4.2,50,1.6,8,0.3,0.6,0.2,0.5,0.4
+2025,25,offensive,11165,Evan Fournier,E. Fournier,460,Olympiacos Piraeus,Olympiacos,SG,39,21:56,1316.1,123.1,117.3,11.6,37,47,81,55,6.1,3.6,2,62.9,18.1,2.9,10,1.7,14,0.4,2,1.7,0.3,26.5,,,,,,,,,,,
+2025,25,defensive,11165,Evan Fournier,E. Fournier,460,Olympiacos Piraeus,Olympiacos,SG,39,21:56,1316.1,,,,,,,,,,,,,,,,,,,,,,110.6,113.6,3.72,47,1.6,8,0.8,1.9,0.1,0.1,0.2
+2025,25,offensive,35041,Filip Petrusev,F. Petrusev,3359,Dubai Basketball,Dubai,PF,38,23:31,1411.4,120.6,127.2,11.6,39,57,81,65,0.9,6.1,4.5,12.5,15,1.5,5,1.1,11,1.2,6,3.7,0.3,20.3,,,,,,,,,,,
+2025,25,defensive,35041,Filip Petrusev,F. Petrusev,3359,Dubai Basketball,Dubai,PF,38,23:31,1411.4,,,,,,,,,,,,,,,,,,,,,,119.4,119.2,4.27,49,3.6,17,0.6,1.4,0.4,1,0.2
+2025,25,offensive,21320,Nigel Williams-Goss,N. Williams-Goss,265,Zalgiris Kaunas,Zalgiris,PG,31,24:03,1443.7,113.1,120.2,11.5,38,49,79,54,2.5,7.3,2,25.7,20.3,3.8,12,1.5,12,0.4,2,2,0.5,24.3,,,,,,,,,,,
+2025,25,defensive,21320,Nigel Williams-Goss,N. Williams-Goss,265,Zalgiris Kaunas,Zalgiris,PG,31,24:03,1443.7,,,,,,,,,,,,,,,,,,,,,,113.7,115.8,3.89,45,2,10,0.9,2.2,0.1,0.2,0.1
+2025,25,offensive,14049,Vasilije Micic,V. Micic,635,Hapoel Shlomo Tel Aviv,Hapoel,"PG,SG",40,24:07,1447.2,116.8,112.1,11.5,31,54,89,55,5.1,4.3,2.4,54.1,21.1,4.2,13,2.7,20,0.2,1,3.4,0.6,25.8,,,,,,,,,,,
+2025,25,defensive,14049,Vasilije Micic,V. Micic,635,Hapoel Shlomo Tel Aviv,Hapoel,"PG,SG",40,24:07,1447.2,,,,,,,,,,,,,,,,,,,,,,115.2,116.4,4.23,47,2.6,12,0.9,2,0,,0.1
+2025,25,offensive,22997,Jordan Loyd,J. Loyd,583,Anadolu Efes Istanbul,Efes,SG,34,23:30,1410.2,111,119.1,11.4,35,47,86,57,4.6,4,3.3,53.4,15.8,1.9,6,1.2,11,0.6,3,3.9,0.3,23.2,,,,,,,,,,,
+2025,25,defensive,22997,Jordan Loyd,J. Loyd,583,Anadolu Efes Istanbul,Efes,SG,34,23:30,1410.2,,,,,,,,,,,,,,,,,,,,,,115,115.9,4.04,48,1.9,10,0.6,1.5,0.1,0.2,0.2
+2025,25,offensive,23413,Tarik Biberovic,T. Biberovic,584,Fenerbahce Beko Istanbul,Fenerbahce,SF,41,24:21,1461.7,114,116,11.3,42,52,95,62,5.3,3.5,1,60.3,14.4,1.3,4,1.3,13,0.6,3,0.7,0.2,21,,,,,,,,,,,
+2025,25,defensive,23413,Tarik Biberovic,T. Biberovic,584,Fenerbahce Beko Istanbul,Fenerbahce,SF,41,24:21,1461.7,,,,,,,,,,,,,,,,,,,,,,110.1,114,3.75,43,2.4,11,0.4,1,0.1,0.2,0.2
+2025,25,offensive,34872,Saben Lee,S. Lee,583,Anadolu Efes Istanbul,Efes,PG,16,20:28,1228.8,114.9,119.8,11.3,28,55,75,58,2.7,5.1,4.5,34.4,18.7,3.1,12,1.2,11,0.4,2,3.8,0.4,26.5,,,,,,,,,,,
+2025,25,defensive,34872,Saben Lee,S. Lee,583,Anadolu Efes Istanbul,Efes,PG,16,20:28,1228.8,,,,,,,,,,,,,,,,,,,,,,115.6,118.1,3.25,44,1.3,8,0.9,2.4,0,,0.1
+2025,25,offensive,23004,Elie Okobo,E. Okobo,2222,AS Monaco,Monaco,PG,42,25:34,1534,118.4,115.5,11.2,34,47,84,53,3.6,6.1,2.2,37.2,22.3,4.9,13,1.6,13,0.2,1,2.3,0.1,22.4,,,,,,,,,,,
+2025,25,defensive,23004,Elie Okobo,E. Okobo,2222,AS Monaco,Monaco,PG,42,25:34,1534,,,,,,,,,,,,,,,,,,,,,,119.5,120.7,4.31,46,2.2,10,0.9,2,0.1,0.2,0.3
+2025,25,offensive,23525,Brancou Badio,B. Badio,677,Valencia Basket,Valencia,SG,40,20:28,1228.3,118.5,120.6,11.2,34,55,86,56,5.3,3.9,1.8,57.7,16.5,2.3,8,1.6,13,0.8,4,2.2,0.2,25.5,,,,,,,,,,,
+2025,25,defensive,23525,Brancou Badio,B. Badio,677,Valencia Basket,Valencia,SG,40,20:28,1228.3,,,,,,,,,,,,,,,,,,,,,,113.7,114.5,3.78,49,1.8,9,0.6,1.6,0.2,0.5,0.2
+2025,25,offensive,36505,Jared Rhoden,J. Rhoden,3292,Paris Basketball,Paris,SG,26,21:20,1280,115.5,111.9,11.1,39,50,78,57,4.5,4.4,1.8,50.6,14.1,1.2,4,1.9,17,0.8,4,1.8,0.5,24,,,,,,,,,,,
+2025,25,defensive,36505,Jared Rhoden,J. Rhoden,3292,Paris Basketball,Paris,SG,26,21:20,1280,,,,,,,,,,,,,,,,,,,,,,118.6,119.5,3.86,47,2.2,11,1,2.3,0.4,0.9,0.2
+2025,25,offensive,21589,Kobi Simmons,K. Simmons,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,31,22:16,1336.5,113.3,123.5,11.1,29,64,91,61,3.3,4.7,2.5,41.1,18.6,3,10,1.5,14,0.2,1,2.8,0.2,22.1,,,,,,,,,,,
+2025,25,defensive,21589,Kobi Simmons,K. Simmons,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,31,22:16,1336.5,,,,,,,,,,,,,,,,,,,,,,122.8,125.1,3.53,42,1.1,6,0.7,1.7,0.1,0.2,0.1
+2025,25,offensive,6345,Nikola Mirotic,N. Mirotic,2222,AS Monaco,Monaco,PF,31,19:01,1141,124.6,130.6,11,39,57,82,63,3.8,3.6,3.1,51.3,14.4,1.4,5,0.7,8,1,6,2.6,0.2,23.2,,,,,,,,,,,
+2025,25,defensive,6345,Nikola Mirotic,N. Mirotic,2222,AS Monaco,Monaco,PF,31,19:01,1141,,,,,,,,,,,,,,,,,,,,,,114.1,112.4,3.87,54,3.3,19,0.7,2,0.3,0.9,0.1
+2025,25,offensive,23734,Nenad Dimitrijevic,N. Dimitrijevic,1220,FC Bayern Munich,Bayern,PG,16,20:55,1255.6,112.5,111.7,11,44,54,82,64,2.3,4.9,3.2,31.3,20.6,4.1,15,2.6,23,0.3,2,3.8,0.1,25.9,,,,,,,,,,,
+2025,25,defensive,23734,Nenad Dimitrijevic,N. Dimitrijevic,1220,FC Bayern Munich,Bayern,PG,16,20:55,1255.6,,,,,,,,,,,,,,,,,,,,,,110.9,110.5,3.96,53,2,11,0.8,2.2,0.1,0.2,0
+2025,25,offensive,24128,Gabriel Lundberg,G. Lundberg,636,Maccabi Playtika Tel Aviv,Maccabi,PG,16,24:23,1463.3,120.9,120.2,11,32,55,86,58,4.4,4,2.7,52.6,19.9,3.6,10,1.8,16,0.6,3,3.1,0.2,21.5,,,,,,,,,,,
+2025,25,defensive,24128,Gabriel Lundberg,G. Lundberg,636,Maccabi Playtika Tel Aviv,Maccabi,PG,16,24:23,1463.3,,,,,,,,,,,,,,,,,,,,,,118.5,123,3.58,40,1.4,6,0.8,1.7,0.1,0.3,0.1
+2025,25,offensive,22863,Ercan Osmani,E. Osmani,583,Anadolu Efes Istanbul,Efes,PF,36,24:26,1466.1,112.5,111.3,10.9,41,57,78,61,2.5,5.4,2.1,31.9,14.2,1.3,4,2,19,1.2,6,2.8,0.3,22.3,,,,,,,,,,,
+2025,25,defensive,22863,Ercan Osmani,E. Osmani,583,Anadolu Efes Istanbul,Efes,PF,36,24:26,1466.1,,,,,,,,,,,,,,,,,,,,,,114.8,116,4.06,48,3.4,17,0.5,1.2,0.2,0.4,0.2
+2025,25,offensive,34854,Trent Forrest,T. Forrest,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PG,SG",27,23:43,1423.4,116.8,140.5,10.9,28,50,86,59,2.1,5.1,4.5,29.1,21.9,4.4,13,1.4,13,0.6,3,3.5,0.3,20.5,,,,,,,,,,,
+2025,25,defensive,34854,Trent Forrest,T. Forrest,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PG,SG",27,23:43,1423.4,,,,,,,,,,,,,,,,,,,,,,125,126.2,3.86,43,2.1,11,0.8,1.7,0.3,0.7,0.2
+2025,25,offensive,23599,Eugene Omoruyi,E. Omoruyi,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,23,20:13,1213.6,117.1,105.6,10.7,32,50,78,56,2.9,4.7,4.2,37.7,14.7,1.9,7,2,17,1.5,8,3.7,0.5,26.2,,,,,,,,,,,
+2025,25,defensive,23599,Eugene Omoruyi,E. Omoruyi,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,23,20:13,1213.6,,,,,,,,,,,,,,,,,,,,,,128.5,128.8,3.41,44,2.2,14,0.6,1.6,0.2,0.5,0.2
+2025,25,offensive,35908,Tyrique Jones,T. Jones,77,Partizan Mozzart Bet Belgrade,Partizan,"C,PF",17,23:36,1416.4,115.1,130.4,10.6,,67,65,69,0,6.6,2.8,0,15.5,2.1,6,1.6,17,2.4,12,3.4,0.2,19,,,,,,,,,,,
+2025,25,defensive,35908,Tyrique Jones,T. Jones,77,Partizan Mozzart Bet Belgrade,Partizan,"C,PF",17,23:36,1416.4,,,,,,,,,,,,,,,,,,,,,,119.7,114.8,5.07,59,3.7,19,1.2,2.9,0.6,1.4,0.3
+2025,25,offensive,38101,Boogie Ellis,B. Ellis,3359,Dubai Basketball,Dubai,"PG,SG",5,17:46,1066.2,127.1,141.7,10.4,38,48,81,60,2.6,4.2,4.2,38.2,13.4,1.2,5,0.6,7,0.8,5,3.2,0.8,24.1,,,,,,,,,,,
+2025,25,defensive,38101,Boogie Ellis,B. Ellis,3359,Dubai Basketball,Dubai,"PG,SG",5,17:46,1066.2,,,,,,,,,,,,,,,,,,,,,,123.7,120.5,3.61,53,1.2,8,0.6,1.8,0,,0.2
+2025,25,offensive,34840,Markus Howard,M. Howard,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,23,20:38,1238.7,119.5,118.2,10.4,35,53,81,55,6.5,2.5,1.1,72,15.6,2.1,7,1.2,11,0.3,2,1.9,0.3,23.1,,,,,,,,,,,
+2025,25,defensive,34840,Markus Howard,M. Howard,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,23,20:38,1238.7,,,,,,,,,,,,,,,,,,,,,,124.8,128.6,2.95,38,1.3,7,0.4,1.1,0,,0.1
+2025,25,offensive,36114,Nate Reuvers,N. Reuvers,677,Valencia Basket,Valencia,C,44,19:03,1143.3,117.5,127.1,10.4,41,73,67,69,2.8,3.6,2.5,43.6,11.5,0.4,2,0.7,8,1.1,7,2.3,0.1,20,,,,,,,,,,,
+2025,25,defensive,36114,Nate Reuvers,N. Reuvers,677,Valencia Basket,Valencia,C,44,19:03,1143.3,,,,,,,,,,,,,,,,,,,,,,116.2,117,3.49,49,2.2,13,0.5,1.4,0.7,2,0.1
+2025,25,offensive,34954,Josh Nebo,J. Nebo,389,EA7 Emporio Armani Milan,EA7 Armani,C,26,21:32,1292.8,123.7,131.8,10.2,0,68,66,70,0,5.5,4,0.7,11.7,0.5,2,1.1,13,2.2,13,2.9,0.4,18.9,,,,,,,,,,,
+2025,25,defensive,34954,Josh Nebo,J. Nebo,389,EA7 Emporio Armani Milan,EA7 Armani,C,26,21:32,1292.8,,,,,,,,,,,,,,,,,,,,,,120.6,121.4,3.56,46,3.3,19,0.3,0.7,0.8,2.2,0.1
+2025,25,offensive,12245,Nikola Milutinov,N. Milutinov,460,Olympiacos Piraeus,Olympiacos,C,40,21:32,1292,122.3,149.4,10.2,0,68,78,72,0.1,5.2,4,1.4,13.6,1.4,4,0.7,9,3.2,17,3.8,0.3,16.7,,,,,,,,,,,
+2025,25,defensive,12245,Nikola Milutinov,N. Milutinov,460,Olympiacos Piraeus,Olympiacos,C,40,21:32,1292,,,,,,,,,,,,,,,,,,,,,,112,110.8,4.32,55,4,21,0.6,1.5,0.6,1.5,0
+2025,25,offensive,37796,Derrick Alston Jr.,D. Alston Jr.,90,Virtus Segafredo Bologna,Virtus,PF,37,22:25,1345.8,114,120.8,10,45,47,90,62,3.6,3.7,1.9,48.9,13.2,1.4,4,1.2,13,0.6,3,1.7,0.4,19.6,,,,,,,,,,,
+2025,25,defensive,37796,Derrick Alston Jr.,D. Alston Jr.,90,Virtus Segafredo Bologna,Virtus,PF,37,22:25,1345.8,,,,,,,,,,,,,,,,,,,,,,118.2,121.8,3.42,41,2.1,11,0.5,1.2,0.1,0.3,0.2
+2025,25,offensive,24698,Chris Jones,C. Jones,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,42,20:27,1227.2,118.7,127.1,10,42,52,88,61,3.3,4.3,1.5,43.1,19.7,4.2,15,1.6,16,0.2,1,2.1,0.2,23.6,,,,,,,,,,,
+2025,25,defensive,24698,Chris Jones,C. Jones,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,42,20:27,1227.2,,,,,,,,,,,,,,,,,,,,,,115.6,116.6,3.49,47,1.9,10,0.9,2.4,0,0.1,0.1
+2025,25,offensive,19722,Isaac Bonga,I. Bonga,77,Partizan Mozzart Bet Belgrade,Partizan,SF,38,27:47,1667,112.2,123.3,9.9,31,60,83,61,2.6,4.2,2.9,38.3,13.4,1.5,4,1.3,13,1.7,7,3.3,0.2,16.4,,,,,,,,,,,
+2025,25,defensive,19722,Isaac Bonga,I. Bonga,77,Partizan Mozzart Bet Belgrade,Partizan,SF,38,27:47,1667,,,,,,,,,,,,,,,,,,,,,,116.7,115.8,5.2,51,3.9,17,0.9,1.8,0.5,1.1,0.2
+2025,25,offensive,18642,Marko Guduric,M. Guduric,389,EA7 Emporio Armani Milan,EA7 Armani,SG,35,22:00,1320.7,115.1,121.9,9.9,38,58,90,66,3.4,2.9,2.9,54.1,18.9,3.7,12,2.2,23,0.3,2,2.9,0.2,21.6,,,,,,,,,,,
+2025,25,defensive,18642,Marko Guduric,M. Guduric,389,EA7 Emporio Armani Milan,EA7 Armani,SG,35,22:00,1320.7,,,,,,,,,,,,,,,,,,,,,,117.8,119.1,3.67,46,2.3,12,0.5,1.3,0,0.1,0.2
+2025,25,offensive,23301,Jaron Blossomgame,J. Blossomgame,2222,AS Monaco,Monaco,SF,43,23:45,1425.7,117.2,120.3,9.8,32,67,65,61,2.6,4.5,2.1,36.4,11.6,0.8,2,0.7,8,1.3,7,2.1,0.1,17.6,,,,,,,,,,,
+2025,25,defensive,23301,Jaron Blossomgame,J. Blossomgame,2222,AS Monaco,Monaco,SF,43,23:45,1425.7,,,,,,,,,,,,,,,,,,,,,,119.1,121.1,3.92,44,2.9,14,0.3,0.7,0.1,0.2,0.1
+2025,25,offensive,22918,Leandro Bolmaro,L. Bolmaro,389,EA7 Emporio Armani Milan,EA7 Armani,PG,29,22:36,1356.2,121.1,120.4,9.8,40,49,81,56,1.7,6,2.5,21.6,17,2.9,9,1.4,14,0.9,5,2.6,0.4,21.9,,,,,,,,,,,
+2025,25,defensive,22918,Leandro Bolmaro,L. Bolmaro,389,EA7 Emporio Armani Milan,EA7 Armani,PG,29,22:36,1356.2,,,,,,,,,,,,,,,,,,,,,,115.9,115.5,4.16,51,2.5,13,0.7,1.6,0.1,0.2,0.2
+2025,25,offensive,6540,Nando de Colo,N. de Colo,584,Fenerbahce Beko Istanbul,Fenerbahce,PG,17,17:24,1044.7,124.9,133.2,9.8,47,63,97,75,2.8,3.1,2.1,47.5,15.6,2.4,10,1.5,18,0.2,1,2.3,0.2,22,,,,,,,,,,,
+2025,25,defensive,6540,Nando de Colo,N. de Colo,584,Fenerbahce Beko Istanbul,Fenerbahce,PG,17,17:24,1044.7,,,,,,,,,,,,,,,,,,,,,,108.9,112,2.72,46,1.2,8,0.2,0.8,0,,0.2
+2025,25,offensive,21746,P.J. Dozier,P. Dozier,583,Anadolu Efes Istanbul,Efes,SG,26,21:58,1318.9,106.8,97.3,9.7,34,40,71,46,3.7,6,1.6,37.7,15.7,2.5,9,1.6,13,0.6,3,2.3,0.5,27.3,,,,,,,,,,,
+2025,25,defensive,21746,P.J. Dozier,P. Dozier,583,Anadolu Efes Istanbul,Efes,SG,26,21:58,1318.9,,,,,,,,,,,,,,,,,,,,,,119.4,118.1,4.01,52,1.8,11,1,2.7,0.2,0.4,0.2
+2025,25,offensive,13408,Daniel Theis,D. Theis,2222,AS Monaco,Monaco,C,38,20:29,1229.9,118.8,125.7,9.7,27,69,81,66,1.6,4.8,2.2,24.5,11.6,0.9,3,0.9,11,1.7,9,2.3,0.2,19.1,,,,,,,,,,,
+2025,25,defensive,13408,Daniel Theis,D. Theis,2222,AS Monaco,Monaco,C,38,20:29,1229.9,,,,,,,,,,,,,,,,,,,,,,120.4,118.8,3.85,52,3.4,19,0.4,1.2,0.8,2.3,0.2
+2025,25,offensive,6641,Kostas Sloukas,K. Sloukas,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,38,21:19,1279.7,123.2,138.3,9.6,38,49,91,60,3.4,3.6,2.5,48.1,21.3,5.1,16,1.3,14,0.4,2,2.8,0.3,20.5,,,,,,,,,,,
+2025,25,defensive,6641,Kostas Sloukas,K. Sloukas,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,38,21:19,1279.7,,,,,,,,,,,,,,,,,,,,,,115.3,118.5,3.28,43,1.6,9,0.7,1.9,0.1,0.1,0.1
+2025,25,offensive,36259,Isiaha Mike,I. Mike,1220,FC Bayern Munich,Bayern,SF,37,22:24,1344.6,111.9,114.5,9.6,42,50,73,57,3.3,4.7,1.1,41.4,13.1,1.5,5,1.1,11,0.9,5,1.9,0.2,20.7,,,,,,,,,,,
+2025,25,defensive,36259,Isiaha Mike,I. Mike,1220,FC Bayern Munich,Bayern,SF,37,22:24,1344.6,,,,,,,,,,,,,,,,,,,,,,116.5,115.6,4.15,51,3,16,0.8,1.9,0.4,0.9,0.3
+2025,25,offensive,16956,Walter Tavares,W. Tavares,368,Real Madrid,Real,C,39,22:45,1365.5,122.6,130.9,9.6,,69,73,72,0,5.3,3.1,0,11,0.6,2,1.6,20,2.5,13,3.2,0.3,17.3,,,,,,,,,,,
+2025,25,defensive,16956,Walter Tavares,W. Tavares,368,Real Madrid,Real,C,39,22:45,1365.5,,,,,,,,,,,,,,,,,,,,,,111.3,107.8,4.95,60,4.1,19,0.6,1.4,1.8,4.6,0.2
+2025,25,offensive,38471,Jimmy Clark,J. Clark,636,Maccabi Playtika Tel Aviv,Maccabi,PG,37,19:44,1184.8,120.3,114.2,9.5,31,50,80,52,3.9,4.7,1.5,45,19.9,4.3,15,2,18,0.6,3,1.7,0.2,25.6,,,,,,,,,,,
+2025,25,defensive,38471,Jimmy Clark,J. Clark,636,Maccabi Playtika Tel Aviv,Maccabi,PG,37,19:44,1184.8,,,,,,,,,,,,,,,,,,,,,,122.8,122.6,3.53,48,1.2,8,1.3,3.5,0.1,0.3,0.1
+2025,25,offensive,23741,Isaia Cordinier,I. Cordinier,583,Anadolu Efes Istanbul,Efes,SG,30,24:12,1452.2,114.5,110.9,9.4,30,54,84,56,3.5,3.9,2.5,47.5,14,1.9,6,1.5,15,0.6,3,2.4,0.3,20.4,,,,,,,,,,,
+2025,25,defensive,23741,Isaia Cordinier,I. Cordinier,583,Anadolu Efes Istanbul,Efes,SG,30,24:12,1452.2,,,,,,,,,,,,,,,,,,,,,,116.7,117.9,4.08,47,2.2,11,0.8,1.8,0.2,0.5,0.2
+2025,25,offensive,21364,Theo Maledon,T. Maledon,368,Real Madrid,Real,"PG,SG",38,17:00,1020.9,121.9,133.3,9.4,32,52,87,62,2,4,3.8,33.2,16.4,2.9,12,1.3,15,0.4,3,3.4,0.3,23.9,,,,,,,,,,,
+2025,25,defensive,21364,Theo Maledon,T. Maledon,368,Real Madrid,Real,"PG,SG",38,17:00,1020.9,,,,,,,,,,,,,,,,,,,,,,115.4,117.4,2.94,46,1.8,12,0.5,1.7,0.1,0.3,0.1
+2025,25,offensive,34870,Lamar Stevens,L. Stevens,3292,Paris Basketball,Paris,SF,23,19:57,1197.6,110.7,115.9,9.3,42,48,79,57,2.1,5.3,2,28.1,11.3,0.8,3,1,11,1,5,2,0.7,21.1,,,,,,,,,,,
+2025,25,defensive,34870,Lamar Stevens,L. Stevens,3292,Paris Basketball,Paris,SF,23,19:57,1197.6,,,,,,,,,,,,,,,,,,,,,,120.2,122.9,3.31,43,2.4,12,0.3,0.8,0.6,1.5,0.2
+2025,25,offensive,19603,Aleksa Avramovic,A. Avramovic,3359,Dubai Basketball,Dubai,PG,22,17:01,1021.3,115.4,121,9.3,34,54,78,57,4.2,3,2.3,57.9,16.3,3,12,1.3,14,0.6,4,2.2,0.2,26.2,,,,,,,,,,,
+2025,25,defensive,19603,Aleksa Avramovic,A. Avramovic,3359,Dubai Basketball,Dubai,PG,22,17:01,1021.3,,,,,,,,,,,,,,,,,,,,,,122.6,118.5,3.55,56,1.4,9,1.3,4,0.1,0.4,0.1
+2025,25,offensive,23745,Matthew Strazel,M. Strazel,2222,AS Monaco,Monaco,PG,43,24:17,1457.5,116.5,123.7,9.2,36,51,84,61,3.5,2.9,2.9,54.5,18.4,3.9,11,1.7,19,0.4,2,3.3,0.1,18.2,,,,,,,,,,,
+2025,25,defensive,23745,Matthew Strazel,M. Strazel,2222,AS Monaco,Monaco,PG,43,24:17,1457.5,,,,,,,,,,,,,,,,,,,,,,114.8,117.3,4.04,45,1.6,7,0.8,1.8,0,0.1,0.1
+2025,25,offensive,9534,Thomas Heurtel,T. Heurtel,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",25,19:28,1168.2,104.9,107.1,9.2,37,46,80,54,3.2,4.5,1.8,42,21.9,5.4,19,2.7,24,0.1,0,1.8,0.2,26,,,,,,,,,,,
+2025,25,defensive,9534,Thomas Heurtel,T. Heurtel,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",25,19:28,1168.2,,,,,,,,,,,,,,,,,,,,,,121.4,126.4,2.59,36,1.4,9,0.5,1.3,0,,0.1
+2025,25,offensive,20827,T.J. Leaf,T. Leaf,636,Maccabi Playtika Tel Aviv,Maccabi,PF,24,18:12,1092.3,122.4,152.5,9.1,42,63,85,68,0.5,5.4,2,8.5,11.7,1.1,4,0.5,6,2,12,1.5,0.1,18.3,,,,,,,,,,,
+2025,25,defensive,20827,T.J. Leaf,T. Leaf,636,Maccabi Playtika Tel Aviv,Maccabi,PF,24,18:12,1092.3,,,,,,,,,,,,,,,,,,,,,,117.3,116.5,3.41,51,2.7,17,0.5,1.4,0.5,1.4,0.3
+2025,25,offensive,24164,Darius Thompson,D. Thompson,677,Valencia Basket,Valencia,PG,44,18:48,1128.6,120.3,133,9,40,56,85,61,3.8,3.1,1.1,55.6,16.5,3.1,11,1,12,0.8,5,1.3,0.1,20.2,,,,,,,,,,,
+2025,25,defensive,24164,Darius Thompson,D. Thompson,677,Valencia Basket,Valencia,PG,44,18:48,1128.6,,,,,,,,,,,,,,,,,,,,,,112,115,3.19,45,1,6,1,2.7,0.3,0.8,0.1
+2025,25,offensive,21547,Dario Brizuela,D. Brizuela,60,FC Barcelona,Barcelona,SG,38,15:34,934.1,113.8,118.2,8.9,35,56,87,56,3.9,3.7,0.8,51,12.3,1.4,7,0.9,10,0.2,1,1.1,0.2,26.9,,,,,,,,,,,
+2025,25,defensive,21547,Dario Brizuela,D. Brizuela,60,FC Barcelona,Barcelona,SG,38,15:34,934.1,,,,,,,,,,,,,,,,,,,,,,116.1,118.9,2.37,43,0.9,8,0.6,2.2,0,,0.1
+2025,25,offensive,6340,Jan Vesely,J. Vesely,60,FC Barcelona,Barcelona,C,38,21:09,1269.9,117.1,117.2,8.7,29,58,77,58,0.9,6.1,1.2,12.9,12.4,1.4,5,0.8,10,1.3,7,1.5,0.1,19.4,,,,,,,,,,,
+2025,25,defensive,6340,Jan Vesely,J. Vesely,60,FC Barcelona,Barcelona,C,38,21:09,1269.9,,,,,,,,,,,,,,,,,,,,,,112.7,112.3,3.87,52,2.1,12,0.9,2.5,0.2,0.5,0.2
+2025,25,offensive,23518,Oshae Brissett,O. Brissett,636,Maccabi Playtika Tel Aviv,Maccabi,SF,36,24:35,1475.3,115.3,119,8.7,32,52,82,57,2.8,3.6,2.8,43.7,10.7,0.8,2,0.9,10,1.8,8,2.5,0,15.7,,,,,,,,,,,
+2025,25,defensive,23518,Oshae Brissett,O. Brissett,636,Maccabi Playtika Tel Aviv,Maccabi,SF,36,24:35,1475.3,,,,,,,,,,,,,,,,,,,,,,123.7,121.7,4.83,51,3.3,16,0.9,1.9,0.3,0.6,0.3
+2025,25,offensive,35449,Mamadi Diakite,M. Diakite,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PF,C",37,19:16,1156.6,118.1,119.4,8.4,34,66,83,65,2.1,3.8,1.6,35.6,11,1.1,4,1.5,19,1.4,8,1.8,0.2,19.4,,,,,,,,,,,
+2025,25,defensive,35449,Mamadi Diakite,M. Diakite,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PF,C",37,19:16,1156.6,,,,,,,,,,,,,,,,,,,,,,120.4,116.9,4.08,56,2.8,17,0.7,2,1.2,3.5,0.2
+2025,25,offensive,23503,Bruno Fernando,B. Fernando,77,Partizan Mozzart Bet Belgrade,Partizan,C,32,18:23,1103.3,107.4,110.3,8.4,50,63,74,66,0.1,5,2.7,1.2,10,0.7,3,1.6,20,1.7,11,2.8,0.2,21,,,,,,,,,,,
+2025,25,defensive,23503,Bruno Fernando,B. Fernando,77,Partizan Mozzart Bet Belgrade,Partizan,C,32,18:23,1103.3,,,,,,,,,,,,,,,,,,,,,,115.6,114.6,3.52,52,2.8,17,0.6,1.7,0.6,1.8,0.2
+2025,25,offensive,24309,Devon Hall,D. Hall,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,35,25:09,1509.3,109.8,106.5,8.3,29,53,85,54,3.1,3.7,2,46.2,14.7,2.6,7,1.9,20,1.1,5,2.7,0.1,18.5,,,,,,,,,,,
+2025,25,defensive,24309,Devon Hall,D. Hall,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,35,25:09,1509.3,,,,,,,,,,,,,,,,,,,,,,109.5,113.9,3.81,42,1.8,8,0.5,1,0.1,0.3,0.1
+2025,25,offensive,20975,Mathias Lessort,M. Lessort,33,Panathinaikos AKTOR Athens,Panathinaikos,C,14,22:43,1363.9,121.3,125.5,8.3,,59,67,62,0,5.7,2.4,0,11.6,1.2,4,1.6,20,2.5,13,3.9,0.5,17.7,,,,,,,,,,,
+2025,25,defensive,20975,Mathias Lessort,M. Lessort,33,Panathinaikos AKTOR Athens,Panathinaikos,C,14,22:43,1363.9,,,,,,,,,,,,,,,,,,,,,,116.6,116.3,4.01,49,3.1,17,0.7,1.7,0.3,0.7,0.1
+2025,25,offensive,21637,Johnathan Motley,J. Motley,635,Hapoel Shlomo Tel Aviv,Hapoel,C,35,14:38,878.4,117.2,125,8.3,49,65,73,69,1.2,3.8,2.2,23.6,10.5,0.9,5,1.1,16,0.7,7,2.3,0.2,23.6,,,,,,,,,,,
+2025,25,defensive,21637,Johnathan Motley,J. Motley,635,Hapoel Shlomo Tel Aviv,Hapoel,C,35,14:38,878.4,,,,,,,,,,,,,,,,,,,,,,117.3,120.7,2.23,41,1.6,13,0.3,1,0.2,0.6,0.1
+2025,25,offensive,36948,Quinn Ellis,Q. Ellis,389,EA7 Emporio Armani Milan,EA7 Armani,"SG,PG",36,25:21,1521.3,120.6,125.8,8.2,38,54,82,59,1.7,4.4,2,28,19.1,4.5,12,1.7,20,0.9,4,2.4,0.2,16.8,,,,,,,,,,,
+2025,25,defensive,36948,Quinn Ellis,Q. Ellis,389,EA7 Emporio Armani Milan,EA7 Armani,"SG,PG",36,25:21,1521.3,,,,,,,,,,,,,,,,,,,,,,121.8,123.6,3.91,43,2,9,0.8,1.7,0.1,0.2,0.1
+2025,25,offensive,19549,Devin Booker,D. Booker,389,EA7 Emporio Armani Milan,EA7 Armani,C,36,19:59,1199.8,117.6,118.4,8.2,29,57,76,58,1.6,4.4,2.4,26,10.8,0.9,3,0.9,11,1.5,9,3.1,0.3,19.7,,,,,,,,,,,
+2025,25,defensive,19549,Devin Booker,D. Booker,389,EA7 Emporio Armani Milan,EA7 Armani,C,36,19:59,1199.8,,,,,,,,,,,,,,,,,,,,,,121.9,124.8,2.97,41,2.1,12,0.3,0.9,0.1,0.4,0.1
+2025,25,offensive,36002,Justinian Jessup,J. Jessup,1220,FC Bayern Munich,Bayern,"SG,SF",37,19:17,1157.7,115,129.4,8.2,38,63,97,63,3.7,2.5,0.8,59.3,11.5,1.4,5,0.6,9,0.6,4,0.7,0.1,18.4,,,,,,,,,,,
+2025,25,defensive,36002,Justinian Jessup,J. Jessup,1220,FC Bayern Munich,Bayern,"SG,SF",37,19:17,1157.7,,,,,,,,,,,,,,,,,,,,,,108.6,111.1,3.36,48,1.8,11,0.8,2.2,0.2,0.6,0.1
+2025,25,offensive,36152,TJ Shorts II,T. Shorts II,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,43,16:06,966.1,114.4,116.5,8.1,29,49,72,52,1.1,5.8,2.1,16.2,15.3,2.9,13,1,11,0.1,1,2.2,0.4,25.7,,,,,,,,,,,
+2025,25,defensive,36152,TJ Shorts II,T. Shorts II,33,Panathinaikos AKTOR Athens,Panathinaikos,PG,43,16:06,966.1,,,,,,,,,,,,,,,,,,,,,,116.6,118.2,2.67,46,1.2,9,0.6,2.2,0,,0.1
+2025,25,offensive,35538,Jeff Dowtin Jr.,J. Dowtin Jr.,636,Maccabi Playtika Tel Aviv,Maccabi,PG,19,17:12,1032,113.2,128,8.1,40,43,71,54,2.9,3.8,1.8,43.3,13.9,2.4,9,0.9,11,0.2,1,1.7,0.2,21.5,,,,,,,,,,,
+2025,25,defensive,35538,Jeff Dowtin Jr.,J. Dowtin Jr.,636,Maccabi Playtika Tel Aviv,Maccabi,PG,19,17:12,1032,,,,,,,,,,,,,,,,,,,,,,121.2,123.4,2.67,42,0.8,6,0.6,1.8,0.1,0.2,0.1
+2025,25,offensive,6629,Vladimir Lucic,V. Lucic,1220,FC Bayern Munich,Bayern,SF,33,23:10,1390.2,107.7,117.7,8,35,56,87,61,2.4,3.2,2.3,42.6,11.5,1.5,4,0.8,11,0.8,4,3,0.2,15.4,,,,,,,,,,,
+2025,25,defensive,6629,Vladimir Lucic,V. Lucic,1220,FC Bayern Munich,Bayern,SF,33,23:10,1390.2,,,,,,,,,,,,,,,,,,,,,,116.3,117.6,3.94,47,3,16,0.5,1.2,0.1,0.1,0.2
+2025,25,offensive,20851,Vincent Poirier,V. Poirier,583,Anadolu Efes Istanbul,Efes,C,14,18:30,1110.5,113.4,116.1,8,,52,75,57,0,6,2.3,0,10.8,1.2,5,0.7,9,2.1,13,2.4,0.2,21.1,,,,,,,,,,,
+2025,25,defensive,20851,Vincent Poirier,V. Poirier,583,Anadolu Efes Istanbul,Efes,C,14,18:30,1110.5,,,,,,,,,,,,,,,,,,,,,,116.4,113.4,3.59,56,2.6,16,0.5,1.6,0.6,2,0.2
+2025,25,offensive,36112,Mouhamet Diouf,M. Diouf,90,Virtus Segafredo Bologna,Virtus,C,33,18:32,1112.1,112,118.3,8,,60,75,64,0,5.3,2.3,0,10.9,1.2,5,1.5,19,1.8,12,2.6,0.3,20,,,,,,,,,,,
+2025,25,defensive,36112,Mouhamet Diouf,M. Diouf,90,Virtus Segafredo Bologna,Virtus,C,33,18:32,1112.1,,,,,,,,,,,,,,,,,,,,,,116.5,116.3,3.45,51,2.4,14,0.5,1.6,0.7,2.2,0.2
+2025,25,offensive,34663,Leonardo Tote,L. Tote,389,EA7 Emporio Armani Milan,EA7 Armani,C,1,17:12,1032,144.8,175,8,,80,0,80,0,5,1,0,10,1,4,1,17,2,14,2,0,17.6,,,,,,,,,,,
+2025,25,defensive,34663,Leonardo Tote,L. Tote,389,EA7 Emporio Armani Milan,EA7 Armani,C,1,17:12,1032,,,,,,,,,,,,,,,,,,,,,,145.2,146.7,2.19,35,2,15,0,0,0,,0.5
+2025,25,offensive,6492,Davis Bertans,D. Bertans,3359,Dubai Basketball,Dubai,SF,29,18:38,1118.4,118.3,109.8,8,34,47,85,54,5.8,1.1,1.4,83.9,10.7,1.1,4,0.5,7,0.5,3,0.9,0,19.8,,,,,,,,,,,
+2025,25,defensive,6492,Davis Bertans,D. Bertans,3359,Dubai Basketball,Dubai,SF,29,18:38,1118.4,,,,,,,,,,,,,,,,,,,,,,117.4,121.3,2.82,42,1.9,11,0.1,0.4,0.4,1.2,0.2
+2025,25,offensive,11069,Tadas Sedekerskis,T. Sedekerskis,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PF,SF",13,23:52,1432.8,111.5,115.5,8,28,78,54,58,3.5,2.8,1,55.4,11.7,1.5,4,0.9,12,0.9,4,0.8,0.1,15.3,,,,,,,,,,,
+2025,25,defensive,11069,Tadas Sedekerskis,T. Sedekerskis,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"PF,SF",13,23:52,1432.8,,,,,,,,,,,,,,,,,,,,,,120.5,123.5,3.86,43,3.8,17,0.3,0.7,0.1,0.2,0
+2025,25,offensive,16024,Nicolas Laprovittola,N. Laprovittola,60,FC Barcelona,Barcelona,PG,20,16:47,1007.1,121.7,115.9,8,35,59,92,59,4.4,1.9,1.3,70.4,16.9,3.9,17,2.1,23,0.2,1,2,0.3,25.5,,,,,,,,,,,
+2025,25,defensive,16024,Nicolas Laprovittola,N. Laprovittola,60,FC Barcelona,Barcelona,PG,20,16:47,1007.1,,,,,,,,,,,,,,,,,,,,,,125.6,125.6,2.64,45,1,8,0.7,2.4,0,,0.1
+2025,25,offensive,34681,Ebuka Izundu,E. Izundu,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,33,14:21,861.6,123.6,149.7,8,,71,77,74,0,4.5,1.9,0,8.8,0.4,2,0.6,10,2.4,19,1.8,0.1,18.8,,,,,,,,,,,
+2025,25,defensive,34681,Ebuka Izundu,E. Izundu,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,33,14:21,861.6,,,,,,,,,,,,,,,,,,,,,,113.6,110.6,3.03,58,1.8,14,0.4,1.6,0.5,2.1,0.3
+2025,25,offensive,19143,Juan Hernangomez,J. Hernangomez,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,44,24:27,1467.5,120.1,130.5,8,36,66,75,61,3.4,2.6,1.1,56.2,9.8,0.7,2,0.5,8,2.1,10,1.4,0.1,13.7,,,,,,,,,,,
+2025,25,defensive,19143,Juan Hernangomez,J. Hernangomez,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,44,24:27,1467.5,,,,,,,,,,,,,,,,,,,,,,116.7,114.5,4.92,55,4.4,20,0.8,1.7,0.3,0.6,0.1
+2025,25,offensive,18834,Richaun Holmes,R. Holmes,33,Panathinaikos AKTOR Athens,Panathinaikos,C,19,18:44,1124.8,120.3,131.6,7.9,,64,68,68,0,4.7,2.6,0,8.7,0.4,1,0.8,12,2.1,13,2.3,0.3,17.5,,,,,,,,,,,
+2025,25,defensive,18834,Richaun Holmes,R. Holmes,33,Panathinaikos AKTOR Athens,Panathinaikos,C,19,18:44,1124.8,,,,,,,,,,,,,,,,,,,,,,115.2,118.1,3,45,2.2,13,0.3,0.8,0.5,1.4,0.3
+2025,25,offensive,22403,Shaquille Harrison,S. Harrison,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",29,18:53,1133,107.9,112.1,7.8,28,51,63,52,1.7,4.7,2.3,26.7,12.7,2,8,1.1,13,0.7,4,2.2,0.2,21.8,,,,,,,,,,,
+2025,25,defensive,22403,Shaquille Harrison,S. Harrison,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",29,18:53,1133,,,,,,,,,,,,,,,,,,,,,,116.3,113.7,3.86,55,2.1,14,1.3,3.7,0.1,0.3,0.1
+2025,25,offensive,15928,Jabari Parker,J. Parker,77,Partizan Mozzart Bet Belgrade,Partizan,PF,15,19:14,1154.5,113,100.7,7.7,29,45,95,50,2.7,4.6,1.3,37.3,9.4,0.7,2,0.9,10,0.7,4,1.6,0.3,21.3,,,,,,,,,,,
+2025,25,defensive,15928,Jabari Parker,J. Parker,77,Partizan Mozzart Bet Belgrade,Partizan,PF,15,19:14,1154.5,,,,,,,,,,,,,,,,,,,,,,123,125.1,2.97,43,1.8,13,0.3,0.8,0.1,0.2,0.4
+2025,25,offensive,24628,Nick Weiler-Babb,N. Weiler-Babb,583,Anadolu Efes Istanbul,Efes,SG,37,28:47,1727.9,112.8,119.4,7.7,37,48,75,56,3.8,2.2,1.8,63.1,19.3,4.8,12,1.6,19,0.8,3,2.2,0.1,15,,,,,,,,,,,
+2025,25,defensive,24628,Nick Weiler-Babb,N. Weiler-Babb,583,Anadolu Efes Istanbul,Efes,SG,37,28:47,1727.9,,,,,,,,,,,,,,,,,,,,,,114.9,114.3,5.08,51,2.6,12,1.2,2.4,0.1,0.1,0.2
+2025,25,offensive,36608,Mbaye Ndiaye,M. Ndiaye,700,LDLC ASVEL Villeurbanne,ASVEL,SF,32,23:39,1419,109.1,103.1,7.7,18,70,55,55,2.3,3.8,2.1,37.1,10.7,1.3,3,1.4,17,1.7,8,1.5,0.1,16.8,,,,,,,,,,,
+2025,25,defensive,36608,Mbaye Ndiaye,M. Ndiaye,700,LDLC ASVEL Villeurbanne,ASVEL,SF,32,23:39,1419,,,,,,,,,,,,,,,,,,,,,,116.1,111.9,5.04,58,3.1,15,1.2,2.7,1.4,3.3,0.2
+2025,25,offensive,18915,Scottie Wilbekin,S. Wilbekin,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,6,14:49,889.5,104.9,121.3,7.7,44,55,50,62,4.2,1.8,0.3,69.4,11.3,1.3,7,1,14,0.3,2,1.8,0,22.8,,,,,,,,,,,
+2025,25,defensive,18915,Scottie Wilbekin,S. Wilbekin,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,6,14:49,889.5,,,,,,,,,,,,,,,,,,,,,,115.9,110.2,3.37,62,0.3,4,0.8,3,0,,0.3
+2025,25,offensive,37492,Paul Eboua,P. Eboua,700,LDLC ASVEL Villeurbanne,ASVEL,PF,18,18:45,1125.7,109.6,116.8,7.6,40,54,65,59,2.6,2.7,2.4,49.5,8.5,0.3,1,0.8,11,1.6,9,2.6,0.4,18.8,,,,,,,,,,,
+2025,25,defensive,37492,Paul Eboua,P. Eboua,700,LDLC ASVEL Villeurbanne,ASVEL,PF,18,18:45,1125.7,,,,,,,,,,,,,,,,,,,,,,123,124.5,2.95,44,2.7,19,0.1,0.3,0.2,0.5,0.3
+2025,25,offensive,21015,Luca Vildoza,L. Vildoza,90,Virtus Segafredo Bologna,Virtus,PG,31,21:16,1276.7,117.9,127,7.6,35,58,83,58,3.3,2.7,1.1,54.8,18.2,4.4,14,1.5,18,0.4,2,1.7,0.3,18.3,,,,,,,,,,,
+2025,25,defensive,21015,Luca Vildoza,L. Vildoza,90,Virtus Segafredo Bologna,Virtus,PG,31,21:16,1276.7,,,,,,,,,,,,,,,,,,,,,,117.3,115.9,4.02,52,1.8,10,1.4,3.6,0,,0.1
+2025,25,offensive,21386,Amath M'Baye,A. M'Baye,3292,Paris Basketball,Paris,PF,34,17:18,1038.2,115.7,111.2,7.6,35,53,80,58,2.8,2.8,2,50.3,9.9,1,4,1.1,14,0.6,4,1.9,0.1,19.2,,,,,,,,,,,
+2025,25,defensive,21386,Amath M'Baye,A. M'Baye,3292,Paris Basketball,Paris,PF,34,17:18,1038.2,,,,,,,,,,,,,,,,,,,,,,123.6,127,2.58,39,0.9,6,0.6,1.7,0.1,0.4,0.2
+2025,25,offensive,35311,Sebastian Herrera,S. Herrera,3292,Paris Basketball,Paris,SG,36,16:25,985.2,116.2,125.7,7.6,37,51,90,58,5.1,1.1,0.8,81.6,10.1,1.1,4,0.6,8,0.4,3,0.9,0.2,18.7,,,,,,,,,,,
+2025,25,defensive,35311,Sebastian Herrera,S. Herrera,3292,Paris Basketball,Paris,SG,36,16:25,985.2,,,,,,,,,,,,,,,,,,,,,,110.5,115.2,2.73,42,1.1,7,0.6,1.7,0.1,0.2,0.1
+2025,25,offensive,38538,Omari Moore,O. Moore,677,Valencia Basket,Valencia,"SG,PG",43,17:16,1036.4,114.4,124,7.5,32,52,73,54,2.3,4,1.7,36.3,14.6,2.9,11,1.4,17,0.7,5,1.5,0.4,21.6,,,,,,,,,,,
+2025,25,defensive,38538,Omari Moore,O. Moore,677,Valencia Basket,Valencia,"SG,PG",43,17:16,1036.4,,,,,,,,,,,,,,,,,,,,,,112.6,116.8,2.73,42,1.3,9,0.5,1.6,0.1,0.2,0.1
+2025,25,offensive,21642,Alec Peters,A. Peters,460,Olympiacos Piraeus,Olympiacos,PF,43,15:09,909.7,123,126.6,7.5,42,67,84,70,2.3,2.3,1.8,49.5,10.1,1,5,0.8,13,0.6,5,1.8,0.1,19.5,,,,,,,,,,,
+2025,25,defensive,21642,Alec Peters,A. Peters,460,Olympiacos Piraeus,Olympiacos,PF,43,15:09,909.7,,,,,,,,,,,,,,,,,,,,,,110.1,109,3.03,55,2.3,17,0.5,1.7,0,0.1,0.2
+2025,25,offensive,21217,Tonye Jekiri,T. Jekiri,77,Partizan Mozzart Bet Belgrade,Partizan,C,15,19:16,1156.5,111.9,118.4,7.5,,55,70,57,0,5.9,1.5,0,11.5,1.4,5,0.9,12,2.1,12,2,0.3,18.7,,,,,,,,,,,
+2025,25,defensive,21217,Tonye Jekiri,T. Jekiri,77,Partizan Mozzart Bet Belgrade,Partizan,C,15,19:16,1156.5,,,,,,,,,,,,,,,,,,,,,,105.2,105.1,3.8,55,2.9,18,0.7,2.1,0.3,1,0.3
+2025,25,offensive,16906,Rodions Kurucs,R. Kurucs,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"SF,PF",26,21:11,1271.5,113.8,110.9,7.5,39,52,67,56,2.4,3.6,1.4,39.7,11.2,1.5,5,1.6,19,1.5,8,1.8,0.4,18.3,,,,,,,,,,,
+2025,25,defensive,16906,Rodions Kurucs,R. Kurucs,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"SF,PF",26,21:11,1271.5,,,,,,,,,,,,,,,,,,,,,,120,119.9,3.71,47,2.2,13,0.9,2.3,0,0.1,0.1
+2025,25,offensive,24449,Alen Smailagic,A. Smailagic,90,Virtus Segafredo Bologna,Virtus,"PF,C",31,16:29,989.2,109,115.3,7.4,35,59,76,59,2.7,2.8,1.6,48.5,9.9,0.9,4,0.8,11,0.7,5,1.6,0.2,20.5,,,,,,,,,,,
+2025,25,defensive,24449,Alen Smailagic,A. Smailagic,90,Virtus Segafredo Bologna,Virtus,"PF,C",31,16:29,989.2,,,,,,,,,,,,,,,,,,,,,,121.7,121.9,2.85,47,1.8,13,0.6,2,0.2,0.7,0.1
+2025,25,offensive,22416,Xavier Rathan-Mayes,X. Rathan-Mayes,1220,FC Bayern Munich,Bayern,"SG,PG",32,15:13,913.6,103.5,102,7.3,26,45,71,45,4,3.5,1.5,53.8,11.6,1.8,10,1.1,12,0.3,2,1.9,0.3,30,,,,,,,,,,,
+2025,25,defensive,22416,Xavier Rathan-Mayes,X. Rathan-Mayes,1220,FC Bayern Munich,Bayern,"SG,PG",32,15:13,913.6,,,,,,,,,,,,,,,,,,,,,,118,118.9,2.56,47,1.4,12,0.4,1.6,0.1,0.4,0.1
+2025,25,offensive,20829,Semi Ojeleye,S. Ojeleye,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PF,39,22:55,1375.7,111.3,125.5,7.2,36,54,76,58,2.1,3.3,2,38.9,9.2,0.8,2,0.7,10,1.7,8,1.7,0.3,13.8,,,,,,,,,,,
+2025,25,defensive,20829,Semi Ojeleye,S. Ojeleye,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PF,39,22:55,1375.7,,,,,,,,,,,,,,,,,,,,,,112.7,116.8,3.65,43,1.8,9,0.5,1.2,0.4,0.9,0.2
+2025,25,offensive,24744,Dylan Osetkowski,D. Osetkowski,77,Partizan Mozzart Bet Belgrade,Partizan,PF,35,20:04,1204.3,113.1,126.3,7.2,36,53,88,58,3,2.7,1.2,52.7,9.7,1,4,0.4,6,1,6,1.2,0.3,16,,,,,,,,,,,
+2025,25,defensive,24744,Dylan Osetkowski,D. Osetkowski,77,Partizan Mozzart Bet Belgrade,Partizan,PF,35,20:04,1204.3,,,,,,,,,,,,,,,,,,,,,,118.9,119.1,3.56,48,1.9,13,1,2.7,0.1,0.3,0.2
+2025,25,offensive,7240,Nicolo Melli,N. Melli,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,35,23:41,1421.3,114.7,113.7,7.2,42,53,55,59,3.1,2.7,0.8,53.2,10.8,1.6,5,1.3,18,1.5,8,2.1,0.1,15.4,,,,,,,,,,,
+2025,25,defensive,7240,Nicolo Melli,N. Melli,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,35,23:41,1421.3,,,,,,,,,,,,,,,,,,,,,,104.7,101,5.26,62,4.2,19,0.8,1.8,0.5,1.2,0.2
+2025,25,offensive,21168,Tamir Blatt,T. Blatt,636,Maccabi Playtika Tel Aviv,Maccabi,PG,38,19:25,1165.8,115.2,109.6,7.1,38,40,76,57,4.8,1.1,0.9,81.3,18.3,5.2,17,2.3,27,0.3,2,1.4,0.1,19.8,,,,,,,,,,,
+2025,25,defensive,21168,Tamir Blatt,T. Blatt,636,Maccabi Playtika Tel Aviv,Maccabi,PG,38,19:25,1165.8,,,,,,,,,,,,,,,,,,,,,,123.7,129.1,2.56,35,1.6,9,0.3,0.8,0,,0
+2025,25,offensive,22945,Bonzie Colson,B. Colson,584,Fenerbahce Beko Istanbul,Fenerbahce,SF,40,16:52,1012.4,115.4,135.4,7.1,49,49,90,66,2.5,2.3,1.2,52.1,9.1,0.8,3,0.5,9,0.8,6,1.3,0.1,16.4,,,,,,,,,,,
+2025,25,defensive,22945,Bonzie Colson,B. Colson,584,Fenerbahce Beko Istanbul,Fenerbahce,SF,40,16:52,1012.4,,,,,,,,,,,,,,,,,,,,,,113.5,113.6,3.05,49,2.2,15,0.6,1.9,0.4,1.2,0.1
+2025,25,offensive,19168,Gabriel Deck,G. Deck,368,Real Madrid,Real,"SF,PF",41,20:24,1224.2,122.6,136.7,7.1,34,67,83,65,1.7,3,1.5,36.4,10,1.2,4,0.8,12,1,6,1.6,0.2,14.5,,,,,,,,,,,
+2025,25,defensive,19168,Gabriel Deck,G. Deck,368,Real Madrid,Real,"SF,PF",41,20:24,1224.2,,,,,,,,,,,,,,,,,,,,,,112.3,116.4,3.2,43,2.5,14,0.4,1,0,0.1,0.1
+2025,25,offensive,36154,Tyson Ward,T. Ward,460,Olympiacos Piraeus,Olympiacos,SF,35,19:03,1143.6,127.3,124.5,7.1,26,57,68,55,2.1,3.4,2.3,37.5,12.5,2.3,8,1.1,15,0.7,5,2.3,0.3,18.8,,,,,,,,,,,
+2025,25,defensive,36154,Tyson Ward,T. Ward,460,Olympiacos Piraeus,Olympiacos,SF,35,19:03,1143.6,,,,,,,,,,,,,,,,,,,,,,110.4,110.5,3.65,53,2.2,13,0.5,1.6,0.1,0.4,0.1
+2025,25,offensive,36950,Saliou Niang,S. Niang,90,Virtus Segafredo Bologna,Virtus,SF,38,21:38,1298.7,110,122.7,7.1,33,65,79,67,0.3,4.2,1.7,7.1,11.6,1.9,6,1.4,22,2,11,1.8,0.2,14.8,,,,,,,,,,,
+2025,25,defensive,36950,Saliou Niang,S. Niang,90,Virtus Segafredo Bologna,Virtus,SF,38,21:38,1298.7,,,,,,,,,,,,,,,,,,,,,,116.3,114.1,4.4,55,3,16,0.9,2.2,0.4,1,0.3
+2025,25,offensive,17940,Maodo Lo,M. Lo,265,Zalgiris Kaunas,Zalgiris,PG,41,18:02,1082.8,124.9,127.7,7,39,50,80,59,2.8,2.5,1.5,52.5,13,2.4,9,1.3,18,0.5,3,1.5,0.5,19.4,,,,,,,,,,,
+2025,25,defensive,17940,Maodo Lo,M. Lo,265,Zalgiris Kaunas,Zalgiris,PG,41,18:02,1082.8,,,,,,,,,,,,,,,,,,,,,,118.7,121.9,2.52,39,1.5,10,0.5,1.5,0,0.2,0
+2025,25,offensive,13238,Tomas Satoransky,T. Satoransky,60,FC Barcelona,Barcelona,PG,37,24:54,1494.7,118.8,128.4,7,49,49,73,64,2.5,2.4,1.2,51.4,17,4.3,11,1.4,20,0.8,4,1.8,0.2,13.4,,,,,,,,,,,
+2025,25,defensive,13238,Tomas Satoransky,T. Satoransky,60,FC Barcelona,Barcelona,PG,37,24:54,1494.7,,,,,,,,,,,,,,,,,,,,,,111.4,113.8,4.1,46,2.5,12,0.7,1.6,0.1,0.3,0.1
+2025,25,offensive,22805,Luka Samanic,L. Samanic,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,5,13:48,828.2,116.5,102.7,7,25,60,92,60,1.6,3,2.4,34.8,9,0.8,4,1.2,17,0.2,2,2.2,0.4,23.8,,,,,,,,,,,
+2025,25,defensive,22805,Luka Samanic,L. Samanic,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,5,13:48,828.2,,,,,,,,,,,,,,,,,,,,,,127.7,130.9,2.15,39,2.4,16,0,0,0.2,0.7,0.1
+2025,25,offensive,36658,Marcio Santos,M. Santos,636,Maccabi Playtika Tel Aviv,Maccabi,C,37,14:03,843.9,121.6,118.7,6.9,40,55,80,64,1.6,2.5,2.8,39.5,8.5,0.6,3,1,16,0.7,6,2.8,0.1,20.9,,,,,,,,,,,
+2025,25,defensive,36658,Marcio Santos,M. Santos,636,Maccabi Playtika Tel Aviv,Maccabi,C,37,14:03,843.9,,,,,,,,,,,,,,,,,,,,,,119.8,117.5,2.84,54,0.9,8,0.6,2.2,0.3,1.3,0.3
+2025,25,offensive,17907,Jerian Grant,J. Grant,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,42,23:39,1419,116.7,127.9,6.9,34,52,81,55,2.2,3.5,1.3,39.1,15.6,3.5,10,1,14,0.5,3,1.9,0.1,14.8,,,,,,,,,,,
+2025,25,defensive,17907,Jerian Grant,J. Grant,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,42,23:39,1419,,,,,,,,,,,,,,,,,,,,,,114.2,115.3,4.24,49,1.2,6,1.1,2.5,0,0.1,0.3
+2025,25,offensive,35024,Andres Feliz,A. Feliz,368,Real Madrid,Real,PG,39,16:39,999.1,124.6,127.4,6.9,41,53,73,59,2.2,3.3,0.9,39.7,11.6,2,8,0.9,14,0.9,7,1.1,0.4,19.1,,,,,,,,,,,
+2025,25,defensive,35024,Andres Feliz,A. Feliz,368,Real Madrid,Real,PG,39,16:39,999.1,,,,,,,,,,,,,,,,,,,,,,114,116.1,2.87,47,1.7,11,0.6,1.9,0,0.1,0.1
+2025,25,offensive,22972,Shake Milton,S. Milton,77,Partizan Mozzart Bet Belgrade,Partizan,SG,23,18:37,1117.6,106.7,110,6.9,26,49,85,52,1.5,4.3,1.7,26.1,12.6,2.4,9,1.3,16,0.5,3,2.1,0.4,21,,,,,,,,,,,
+2025,25,defensive,22972,Shake Milton,S. Milton,77,Partizan Mozzart Bet Belgrade,Partizan,SG,23,18:37,1117.6,,,,,,,,,,,,,,,,,,,,,,116.2,120.8,2.56,38,0.9,6,0.5,1.4,0.1,0.4,0.2
+2025,25,offensive,37266,David McCormack,D. McCormack,1220,FC Bayern Munich,Bayern,C,28,15:28,928.9,112.9,107.3,6.9,0,61,71,64,0.1,4.6,1.7,2.3,8.8,0.8,4,1.3,19,1,8,2.2,0.1,21.2,,,,,,,,,,,
+2025,25,defensive,37266,David McCormack,D. McCormack,1220,FC Bayern Munich,Bayern,C,28,15:28,928.9,,,,,,,,,,,,,,,,,,,,,,112.6,109.5,3.24,57,2.1,17,0.8,2.8,0.2,0.7,0.1
+2025,25,offensive,24603,Donta Hall,D. Hall,460,Olympiacos Piraeus,Olympiacos,C,38,15:15,915.6,123.8,159.5,6.8,0,77,76,80,0,3.4,2,0.8,8.4,0.6,3,0.5,11,1.7,14,1.8,0.1,15.3,,,,,,,,,,,
+2025,25,defensive,24603,Donta Hall,D. Hall,460,Olympiacos Piraeus,Olympiacos,C,38,15:15,915.6,,,,,,,,,,,,,,,,,,,,,,114.1,110.5,3.27,59,2.9,21,0.4,1.6,0.9,3.1,0.2
+2025,25,offensive,36151,Collin Malcolm,C. Malcolm,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,40,24:50,1490.4,118.9,126.9,6.8,42,57,76,61,2.1,3,1,41.2,9.2,1,3,0.5,8,0.9,5,1.3,0.3,11.9,,,,,,,,,,,
+2025,25,defensive,36151,Collin Malcolm,C. Malcolm,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,40,24:50,1490.4,,,,,,,,,,,,,,,,,,,,,,117.4,117.7,4.44,49,2.7,12,0.8,1.7,0.4,0.9,0.1
+2025,25,offensive,24693,Jaime Pradilla,J. Pradilla,677,Valencia Basket,Valencia,C,44,19:31,1171.8,119.9,119.9,6.8,36,64,74,62,2,3.2,0.6,38.8,11.7,1.9,6,1.3,19,1.3,7,1.4,0.3,15.9,,,,,,,,,,,
+2025,25,defensive,24693,Jaime Pradilla,J. Pradilla,677,Valencia Basket,Valencia,C,44,19:31,1171.8,,,,,,,,,,,,,,,,,,,,,,117.7,118.5,3.5,48,2.8,17,0.6,1.8,0.1,0.4,0.1
+2025,25,offensive,35897,Dustin Sleva,D. Sleva,265,Zalgiris Kaunas,Zalgiris,PF,42,18:17,1097.6,122.5,120.7,6.7,41,43,75,56,2.9,2.4,1.5,54.1,9.4,1,4,0.6,9,1.3,8,1.4,0.1,17.1,,,,,,,,,,,
+2025,25,defensive,35897,Dustin Sleva,D. Sleva,265,Zalgiris Kaunas,Zalgiris,PF,42,18:17,1097.6,,,,,,,,,,,,,,,,,,,,,,115.4,114.5,3.24,51,2.1,14,0.6,1.8,0.1,0.3,0.2
+2025,25,offensive,37773,Zac Seljaas,Z. Seljaas,700,LDLC ASVEL Villeurbanne,ASVEL,SF,36,20:10,1210.9,108.7,113.5,6.7,30,53,91,51,4.7,1.5,1,76.1,9.3,1.1,4,0.3,4,0.9,5,1.3,0.2,16,,,,,,,,,,,
+2025,25,defensive,37773,Zac Seljaas,Z. Seljaas,700,LDLC ASVEL Villeurbanne,ASVEL,SF,36,20:10,1210.9,,,,,,,,,,,,,,,,,,,,,,114.9,117.3,3.18,44,2.1,13,0.4,1.1,0,0.1,0.2
+2025,25,offensive,34625,Kamar Baldwin,K. Baldwin,1220,FC Bayern Munich,Bayern,PG,9,16:19,979.1,113.9,111.6,6.7,27,44,91,48,2.4,4,1.2,37.9,12.4,2.4,11,1.1,14,0.3,2,1.3,0.3,24.3,,,,,,,,,,,
+2025,25,defensive,34625,Kamar Baldwin,K. Baldwin,1220,FC Bayern Munich,Bayern,PG,9,16:19,979.1,,,,,,,,,,,,,,,,,,,,,,117.9,120,2.71,46,1.6,11,0.9,3.1,0,,0
+2025,25,offensive,19569,Rolands Smits,R. Smits,583,Anadolu Efes Istanbul,Efes,PF,35,18:57,1137.1,109.1,111,6.7,33,62,73,59,2.1,2.9,1.3,41.5,8.6,0.7,3,0.8,12,0.9,6,1.6,0.1,16.9,,,,,,,,,,,
+2025,25,defensive,19569,Rolands Smits,R. Smits,583,Anadolu Efes Istanbul,Efes,PF,35,18:57,1137.1,,,,,,,,,,,,,,,,,,,,,,119,121.1,2.92,43,2.1,14,0.3,1,0.1,0.3,0.2
+2025,25,offensive,35908,Tyrique Jones,T. Jones,460,Olympiacos Piraeus,Olympiacos,"C,PF",16,14:58,898,125.3,131,6.6,,68,68,70,0,3.3,3.1,0,9.4,1.1,5,1,17,1.6,14,2.5,0.1,18.4,,,,,,,,,,,
+2025,25,defensive,35908,Tyrique Jones,T. Jones,460,Olympiacos Piraeus,Olympiacos,"C,PF",16,14:58,898,,,,,,,,,,,,,,,,,,,,,,103.7,100,3.49,64,2.1,16,1,3.7,0.4,1.8,0.2
+2025,25,offensive,6913,Edwin Jackson,E. Jackson,700,LDLC ASVEL Villeurbanne,ASVEL,SG,21,15:43,943.5,115.9,109.1,6.5,41,40,67,53,2.9,2.9,1,50.4,9.4,1.3,6,1,13,0.2,1,2,0.1,21.8,,,,,,,,,,,
+2025,25,defensive,6913,Edwin Jackson,E. Jackson,700,LDLC ASVEL Villeurbanne,ASVEL,SG,21,15:43,943.5,,,,,,,,,,,,,,,,,,,,,,123.9,126.3,2.25,40,0.9,7,0,0.2,0,0.2,0.2
+2025,25,offensive,35726,Braxton Key,B. Key,677,Valencia Basket,Valencia,SF,34,17:04,1024.9,116.4,105.5,6.3,25,57,65,53,1.6,3.5,1.8,30.8,8.9,1.1,4,1,14,1.1,7,1.7,0.3,18.3,,,,,,,,,,,
+2025,25,defensive,35726,Braxton Key,B. Key,677,Valencia Basket,Valencia,SF,34,17:04,1024.9,,,,,,,,,,,,,,,,,,,,,,111.7,107.6,3.89,60,2.4,15,0.7,2.3,0.5,1.6,0.3
+2025,25,offensive,24711,Kevarrius Hayes,K. Hayes,2222,AS Monaco,Monaco,C,40,17:27,1047.2,117.5,125.3,6.3,0,61,72,64,0,4.2,1.6,0.6,7.6,0.6,2,0.8,14,1.7,12,1.4,0.3,15.7,,,,,,,,,,,
+2025,25,defensive,24711,Kevarrius Hayes,K. Hayes,2222,AS Monaco,Monaco,C,40,17:27,1047.2,,,,,,,,,,,,,,,,,,,,,,110.5,109,3.54,55,1.7,11,0.7,2.2,0.9,2.7,0.3
+2025,25,offensive,17121,Bruno Caboclo,B. Caboclo,3359,Dubai Basketball,Dubai,C,11,12:43,763.8,121.8,146.4,6.3,80,72,69,84,0.9,2.3,1.2,28.6,7.4,0.5,2,0.5,11,1.1,9,1.1,0.1,15.3,,,,,,,,,,,
+2025,25,defensive,17121,Bruno Caboclo,B. Caboclo,3359,Dubai Basketball,Dubai,C,11,12:43,763.8,,,,,,,,,,,,,,,,,,,,,,120.9,119,2.47,52,2,16,0,0,0.7,2.9,0.3
+2025,25,offensive,17649,Omer Yurtseven,O. Yurtseven,33,Panathinaikos AKTOR Athens,Panathinaikos,C,19,12:39,759.1,115,123.8,6.3,,64,81,68,0,3.9,1.6,0,7.8,0.6,3,0.7,14,1.3,12,1.5,0.1,20.4,,,,,,,,,,,
+2025,25,defensive,17649,Omer Yurtseven,O. Yurtseven,33,Panathinaikos AKTOR Athens,Panathinaikos,C,19,12:39,759.1,,,,,,,,,,,,,,,,,,,,,,110.4,106.2,2.88,61,2.2,19,0.4,1.8,0.6,2.7,0.2
+2025,25,offensive,20035,Matthew Costello,M. Costello,677,Valencia Basket,Valencia,PF,40,16:32,992.2,120,120.2,6.2,39,62,47,59,3,1.6,1.5,64.7,8.3,0.9,3,0.6,11,1,6,1.2,0.1,15.8,,,,,,,,,,,
+2025,25,defensive,20035,Matthew Costello,M. Costello,677,Valencia Basket,Valencia,PF,40,16:32,992.2,,,,,,,,,,,,,,,,,,,,,,109.2,107.3,3.49,57,2.8,18,0.5,1.7,0.5,1.6,0.2
+2025,25,offensive,34749,Yoan Makoundou,Y. Makoundou,2222,AS Monaco,Monaco,PF,5,07:29,449.8,137.3,167.1,6.2,0,77,92,82,0.2,2.6,2.4,7.1,6.2,0,0,0.4,10,0.2,3,1.4,0,24.7,,,,,,,,,,,
+2025,25,defensive,34749,Yoan Makoundou,Y. Makoundou,2222,AS Monaco,Monaco,PF,5,07:29,449.8,,,,,,,,,,,,,,,,,,,,,,101.3,101.8,1.73,56,1.6,20,0.4,2.6,0.2,1.4,0.1
+2025,25,offensive,35182,Oscar da Silva,O. da Silva,1220,FC Bayern Munich,Bayern,PF,35,15:54,954.9,114.5,139.4,6.2,19,64,92,65,0.5,3.9,1,10.6,8.2,0.9,4,0.8,14,1.7,12,1,0.5,16.3,,,,,,,,,,,
+2025,25,defensive,35182,Oscar da Silva,O. da Silva,1220,FC Bayern Munich,Bayern,PF,35,15:54,954.9,,,,,,,,,,,,,,,,,,,,,,110.4,110.7,2.99,52,1.9,14,0.5,1.9,0.3,1.2,0.2
+2025,25,offensive,5507,Donatas Motiejūnas,D. Motiejūnas,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,27,12:33,753,114.2,118.4,6.1,36,63,60,62,0.5,3.3,2.3,13.5,7.8,0.8,4,0.7,12,0.8,7,2.8,0.1,20.6,,,,,,,,,,,
+2025,25,defensive,5507,Donatas Motiejūnas,D. Motiejūnas,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,27,12:33,753,,,,,,,,,,,,,,,,,,,,,,110.7,110.3,2.49,53,1,9,0.3,1.3,0,,0.1
+2025,25,offensive,18820,Justin Anderson,J. Anderson,3359,Dubai Basketball,Dubai,SF,33,23:30,1410.7,118.8,132.2,6.1,41,55,88,63,2.7,1.8,1,59.5,9,1.3,3,0.6,12,0.8,4,0.7,0.1,11.2,,,,,,,,,,,
+2025,25,defensive,18820,Justin Anderson,J. Anderson,3359,Dubai Basketball,Dubai,SF,33,23:30,1410.7,,,,,,,,,,,,,,,,,,,,,,118.2,121.5,3.61,42,2.2,11,0.4,1,0.5,1.3,0.1
+2025,25,offensive,11213,Nemanja Nedovic,N. Nedovic,2222,AS Monaco,Monaco,SG,35,13:26,806.4,114.9,119.4,6.1,41,56,87,62,2.8,1.7,0.9,61.6,9.1,1.4,7,0.7,12,0.2,2,1,0.1,19.7,,,,,,,,,,,
+2025,25,defensive,11213,Nemanja Nedovic,N. Nedovic,2222,AS Monaco,Monaco,SG,35,13:26,806.4,,,,,,,,,,,,,,,,,,,,,,115.7,116.8,2.34,48,1,8,0.5,2.2,0.1,0.5,0.2
+2025,25,offensive,23011,Wenyen Gabriel,W. Gabriel,1220,FC Bayern Munich,Bayern,C,36,16:55,1015,108.8,103,6.1,18,57,45,55,0.3,4.6,1.4,6.2,8.1,0.8,3,1.5,21,1.8,12,1.7,0.5,20.1,,,,,,,,,,,
+2025,25,defensive,23011,Wenyen Gabriel,W. Gabriel,1220,FC Bayern Munich,Bayern,C,36,16:55,1015,,,,,,,,,,,,,,,,,,,,,,118.3,116.9,3.2,52,1.8,13,0.6,2,0.7,2.3,0.2
+2025,25,offensive,37628,Melvin Ajinca,M. Ajinca,700,LDLC ASVEL Villeurbanne,ASVEL,SF,31,17:41,1061.2,106.1,104.1,6,33,40,80,48,3.5,2.3,0.8,60.4,7.1,0.5,2,0.7,10,0.8,5,1,0.2,18.1,,,,,,,,,,,
+2025,25,defensive,37628,Melvin Ajinca,M. Ajinca,700,LDLC ASVEL Villeurbanne,ASVEL,SF,31,17:41,1061.2,,,,,,,,,,,,,,,,,,,,,,121.1,124.6,2.56,39,1,7,0.5,1.5,0,0.1,0.2
+2025,25,offensive,12220,Yakuba Ouattara,Y. Ouattara,3292,Paris Basketball,Paris,PG,34,16:50,1010.3,114.2,113,6,40,37,75,51,2.9,2.6,0.8,52.4,8.9,1.1,4,0.8,12,0.7,4,0.6,0.4,17.1,,,,,,,,,,,
+2025,25,defensive,12220,Yakuba Ouattara,Y. Ouattara,3292,Paris Basketball,Paris,PG,34,16:50,1010.3,,,,,,,,,,,,,,,,,,,,,,120.3,126.8,2.33,35,1.2,8,0.4,1.1,0.1,0.4,0.1
+2025,25,offensive,16598,Vanja Marinkovic,V. Marinkovic,77,Partizan Mozzart Bet Belgrade,Partizan,"SG,SF",19,20:26,1226.4,105.7,101.4,5.9,33,47,78,52,3.6,1.7,0.9,68.3,7.9,0.8,3,0.6,9,0.4,2,1.1,0,14.5,,,,,,,,,,,
+2025,25,defensive,16598,Vanja Marinkovic,V. Marinkovic,77,Partizan Mozzart Bet Belgrade,Partizan,"SG,SF",19,20:26,1226.4,,,,,,,,,,,,,,,,,,,,,,121.5,125.7,3.01,39,1.3,8,0.5,1.4,0.1,0.1,0.1
+2025,25,offensive,15384,Lorenzo Brown,L. Brown,389,EA7 Emporio Armani Milan,EA7 Armani,PG,12,14:28,868.5,122.4,110.8,5.8,35,50,100,53,1.7,3.7,0.4,31.3,12.2,2.7,13,1.3,20,0.3,2,1.5,0.2,23.1,,,,,,,,,,,
+2025,25,defensive,15384,Lorenzo Brown,L. Brown,389,EA7 Emporio Armani Milan,EA7 Armani,PG,12,14:28,868.5,,,,,,,,,,,,,,,,,,,,,,117.9,116.1,2.8,54,1.3,12,0.9,3.5,0.1,0.3,0.2
+2025,25,offensive,23786,Derek Willis,D. Willis,3292,Paris Basketball,Paris,PF,28,16:13,973.1,118,129.7,5.8,37,55,81,59,2.3,2.1,1.1,52,8.9,1.2,5,0.5,9,1.3,8,1.1,0.2,14.4,,,,,,,,,,,
+2025,25,defensive,23786,Derek Willis,D. Willis,3292,Paris Basketball,Paris,PF,28,16:13,973.1,,,,,,,,,,,,,,,,,,,,,,112.2,113.1,3.23,51,2.6,16,0.4,1.2,0.4,1.2,0.2
+2025,25,offensive,14047,Nikola Kalinic,N. Kalinic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,39,23:06,1386.6,114.7,111.3,5.8,40,50,67,57,2.3,2.2,1.3,51.1,9.9,1.8,5,1.5,22,1.1,5,1.6,0.2,13.2,,,,,,,,,,,
+2025,25,defensive,14047,Nikola Kalinic,N. Kalinic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,39,23:06,1386.6,,,,,,,,,,,,,,,,,,,,,,115.5,117,3.99,47,2.4,12,0.5,1.2,0.3,0.6,0.2
+2025,25,offensive,35048,Armel Traore,A. Traore,700,LDLC ASVEL Villeurbanne,ASVEL,SF,36,15:53,953.7,103.6,114.4,5.8,35,70,67,64,1.7,2.6,0.7,39.2,7,0.5,2,1,18,1.3,10,0.8,0.2,16.9,,,,,,,,,,,
+2025,25,defensive,35048,Armel Traore,A. Traore,700,LDLC ASVEL Villeurbanne,ASVEL,SF,36,15:53,953.7,,,,,,,,,,,,,,,,,,,,,,115.8,116.1,2.76,48,2.2,16,0.4,1.6,0.4,1.3,0.1
+2025,25,offensive,8305,Kenneth Faried,K. Faried,33,Panathinaikos AKTOR Athens,Panathinaikos,C,35,13:08,788.7,120.6,123.2,5.8,0,61,66,64,0,3.8,1.7,0.7,6.4,0.3,1,0.9,17,1.9,17,1.5,0.1,20.1,,,,,,,,,,,
+2025,25,defensive,8305,Kenneth Faried,K. Faried,33,Panathinaikos AKTOR Athens,Panathinaikos,C,35,13:08,788.7,,,,,,,,,,,,,,,,,,,,,,123.8,118.5,2.73,59,2.1,19,0.3,1.5,0.6,2.7,0.2
+2025,25,offensive,37319,Markquis Nowell,M. Nowell,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,28,14:23,863.3,114.3,119.1,5.7,31,60,81,55,3,1.7,1.1,64.4,12.9,3,15,1,16,0.2,2,1.7,0.3,20.2,,,,,,,,,,,
+2025,25,defensive,37319,Markquis Nowell,M. Nowell,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,28,14:23,863.3,,,,,,,,,,,,,,,,,,,,,,119,118.3,2.75,50,0.9,7,0.6,2.3,0,,0.1
+2025,25,offensive,38539,Bastien Vautier,B. Vautier,700,LDLC ASVEL Villeurbanne,ASVEL,C,38,12:45,765,105.4,113.1,5.7,,52,67,56,0,4.1,2.2,0,7.9,0.7,4,0.9,16,1.2,10,1.9,0.3,22.2,,,,,,,,,,,
+2025,25,defensive,38539,Bastien Vautier,B. Vautier,700,LDLC ASVEL Villeurbanne,ASVEL,C,38,12:45,765,,,,,,,,,,,,,,,,,,,,,,119.6,117.9,2.38,52,1.5,15,0.4,1.9,0.2,0.8,0.4
+2025,25,offensive,22132,Sehmus Hazer,S. Hazer,583,Anadolu Efes Istanbul,Efes,SG,33,13:11,791.2,113.3,103.9,5.6,30,48,76,51,1.8,3.1,1.4,37.2,8.3,1.1,6,0.9,14,0.2,2,1.5,0.2,24.2,,,,,,,,,,,
+2025,25,defensive,22132,Sehmus Hazer,S. Hazer,583,Anadolu Efes Istanbul,Efes,SG,33,13:11,791.2,,,,,,,,,,,,,,,,,,,,,,121.8,126.2,1.76,37,0.7,7,0.4,1.5,0,,0
+2025,25,offensive,34860,Chuma Okeke,C. Okeke,368,Real Madrid,Real,PF,43,17:54,1074.3,119.8,136.6,5.6,39,64,68,61,3,1.5,0.4,66.5,7.7,0.8,3,0.3,7,1.5,9,0.5,0.1,13.1,,,,,,,,,,,
+2025,25,defensive,34860,Chuma Okeke,C. Okeke,368,Real Madrid,Real,PF,43,17:54,1074.3,,,,,,,,,,,,,,,,,,,,,,114.3,114.1,3.34,52,2.4,15,0.6,1.8,0.5,1.5,0.2
+2025,25,offensive,23735,Joel Parra,J. Parra,60,FC Barcelona,Barcelona,PF,40,18:39,1119.1,111.6,123.7,5.6,29,61,79,58,1.7,2.7,1.1,38.9,7.8,1,3,0.6,10,1.2,8,1.1,0.2,13.9,,,,,,,,,,,
+2025,25,defensive,23735,Joel Parra,J. Parra,60,FC Barcelona,Barcelona,PF,40,18:39,1119.1,,,,,,,,,,,,,,,,,,,,,,116.3,117.4,3.16,47,2.2,15,0.5,1.6,0.1,0.4,0.2
+2025,25,offensive,12318,Willy Hernangomez,W. Hernangomez,60,FC Barcelona,Barcelona,C,39,13:32,812.4,114.5,108.7,5.6,25,52,66,56,0.1,3.7,2.6,2.7,6.7,0.5,2,1.1,17,1.4,12,2.5,0.3,21.4,,,,,,,,,,,
+2025,25,defensive,12318,Willy Hernangomez,W. Hernangomez,60,FC Barcelona,Barcelona,C,39,13:32,812.4,,,,,,,,,,,,,,,,,,,,,,120.1,118,2.53,53,2.4,23,0.3,1.4,0.4,1.5,0.1
+2025,25,offensive,24143,Nikos Rogkavopoulos,N. Rogkavopoulos,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,34,12:17,737.5,120.1,117.5,5.6,32,63,89,59,2.4,2,0.8,54.4,6.7,0.5,3,0.3,6,0.6,6,0.6,0.2,19.6,,,,,,,,,,,
+2025,25,defensive,24143,Nikos Rogkavopoulos,N. Rogkavopoulos,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,34,12:17,737.5,,,,,,,,,,,,,,,,,,,,,,112.2,116.2,1.91,44,1.4,13,0.2,0.9,0.1,0.4,0.1
+2025,25,offensive,8318,Cory Joseph,C. Joseph,460,Olympiacos Piraeus,Olympiacos,"PG,SG",16,15:34,934.1,128.2,116.5,5.5,34,55,81,59,2,1.9,1.6,50.8,11.1,2.3,10,1.2,20,0.4,3,2.1,0,17.7,,,,,,,,,,,
+2025,25,defensive,8318,Cory Joseph,C. Joseph,460,Olympiacos Piraeus,Olympiacos,"PG,SG",16,15:34,934.1,,,,,,,,,,,,,,,,,,,,,,106.5,107.1,3.03,54,1.4,10,0.5,1.8,0.1,0.2,0.3
+2025,25,offensive,6815,Edgaras Ulanovas,E. Ulanovas,265,Zalgiris Kaunas,Zalgiris,PF,42,18:33,1113.1,116,139.8,5.5,41,47,81,61,1.5,2.1,2.1,41.7,8.9,1.5,5,0.4,9,0.8,5,1.9,0.1,12.6,,,,,,,,,,,
+2025,25,defensive,6815,Edgaras Ulanovas,E. Ulanovas,265,Zalgiris Kaunas,Zalgiris,PF,42,18:33,1113.1,,,,,,,,,,,,,,,,,,,,,,117.1,121.9,2.48,37,1.4,9,0.3,0.9,0.1,0.2,0.2
+2025,25,offensive,23401,Ikenna Iroegbu,I. Iroegbu,677,Valencia Basket,Valencia,PG,2,12:20,740.5,110.2,121.5,5.5,67,33,75,79,1.5,1.5,2,50,7,0.5,3,1.5,30,0,,1.5,0,16.4,,,,,,,,,,,
+2025,25,defensive,23401,Ikenna Iroegbu,I. Iroegbu,677,Valencia Basket,Valencia,PG,2,12:20,740.5,,,,,,,,,,,,,,,,,,,,,,126.5,134.1,1.39,28,0,,0,0,0,,0.3
+2025,25,offensive,20049,Joel Bolomboy,J. Bolomboy,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,15,14:27,867.1,112.3,120.2,5.5,60,59,69,65,0.3,3.6,0.9,8.5,6.2,0.3,1,1.1,21,2,15,1.4,0.5,17.4,,,,,,,,,,,
+2025,25,defensive,20049,Joel Bolomboy,J. Bolomboy,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,15,14:27,867.1,,,,,,,,,,,,,,,,,,,,,,121,119.2,2.77,54,2.5,23,0.4,1.6,0.5,2.2,0.1
+2025,25,offensive,35840,Matteo Spagnolo,M. Spagnolo,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,37,15:29,929.9,115.4,119.8,5.4,34,52,79,57,1.1,2.9,1.5,27.3,10,1.9,8,0.8,15,0.3,2,1.5,0.2,17,,,,,,,,,,,
+2025,25,defensive,35840,Matteo Spagnolo,M. Spagnolo,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,37,15:29,929.9,,,,,,,,,,,,,,,,,,,,,,121.4,123.3,2.54,43,1.4,10,0.5,1.6,0.1,0.3,0.1
+2025,25,offensive,36305,Cole Swider,C. Swider,583,Anadolu Efes Istanbul,Efes,PF,30,09:00,540.8,112.6,131.9,5.3,48,61,95,74,2.6,0.8,0.6,77.5,6,0.3,2,0.2,6,0.2,2,0.4,0.1,20.5,,,,,,,,,,,
+2025,25,defensive,36305,Cole Swider,C. Swider,583,Anadolu Efes Istanbul,Efes,PF,30,09:00,540.8,,,,,,,,,,,,,,,,,,,,,,122.1,124.9,1.3,40,0.9,12,0.2,1.2,0,,0.1
+2025,25,offensive,21300,Thomas Walkup,T. Walkup,460,Olympiacos Piraeus,Olympiacos,PG,37,24:01,1441.3,123.4,128.5,5.3,37,47,77,54,2.6,1.9,0.7,57.6,18.8,5.7,15,1.5,23,0.6,3,1.8,0.1,12.5,,,,,,,,,,,
+2025,25,defensive,21300,Thomas Walkup,T. Walkup,460,Olympiacos Piraeus,Olympiacos,PG,37,24:01,1441.3,,,,,,,,,,,,,,,,,,,,,,109.8,109.3,4.79,54,2,9,0.9,2,0,0.1,0.2
+2025,25,offensive,38677,Brice Dessert,B. Dessert,583,Anadolu Efes Istanbul,Efes,C,17,12:55,775.4,101.3,116.2,5.3,,68,53,67,0,3.5,0.9,0,6.1,0.4,2,0.9,18,1.4,13,0.8,0.4,18.6,,,,,,,,,,,
+2025,25,defensive,38677,Brice Dessert,B. Dessert,583,Anadolu Efes Istanbul,Efes,C,17,12:55,775.4,,,,,,,,,,,,,,,,,,,,,,116.8,116,2.3,50,1.2,12,0.4,1.8,0.5,2.5,0.1
+2025,25,offensive,18343,Karim Jallow,K. Jallow,90,Virtus Segafredo Bologna,Virtus,SG,37,21:00,1260.7,112.9,106.9,5.3,30,53,60,53,1.2,3.2,1.3,28.2,7.7,1,3,0.9,16,0.8,5,1.6,0.4,13.6,,,,,,,,,,,
+2025,25,defensive,18343,Karim Jallow,K. Jallow,90,Virtus Segafredo Bologna,Virtus,SG,37,21:00,1260.7,,,,,,,,,,,,,,,,,,,,,,120.5,123.4,3.23,42,1.9,11,0.5,1.2,0.1,0.3,0.1
+2025,25,offensive,15936,Stefan Jovic,S. Jovic,1220,FC Bayern Munich,Bayern,PG,19,18:28,1108.6,112.4,115,5.3,38,57,75,58,1.5,2.7,0.6,36.3,15.3,4.3,16,1.7,27,0.4,2,1.4,0.3,16.2,,,,,,,,,,,
+2025,25,defensive,15936,Stefan Jovic,S. Jovic,1220,FC Bayern Munich,Bayern,PG,19,18:28,1108.6,,,,,,,,,,,,,,,,,,,,,,116.5,114.7,3.57,52,1.5,10,1.1,3.1,0,,0.2
+2025,25,offensive,6943,Arnas Butkevičius,A. Butkevičius,265,Zalgiris Kaunas,Zalgiris,SF,38,18:02,1082,122.7,139.3,5.3,51,63,83,72,2,1.3,0.6,60.2,8,1.2,4,0.4,10,0.6,4,1.4,0.1,11.1,,,,,,,,,,,
+2025,25,defensive,6943,Arnas Butkevičius,A. Butkevičius,265,Zalgiris Kaunas,Zalgiris,SF,38,18:02,1082,,,,,,,,,,,,,,,,,,,,,,115.6,112.9,3.62,54,2,13,0.9,2.7,0.2,0.7,0.1
+2025,25,offensive,24649,Jeremy Morgan,J. Morgan,3292,Paris Basketball,Paris,SG,32,17:42,1062.7,120.6,132.8,5.3,42,47,79,61,3,1.1,0.4,72.9,9.2,1.5,5,0.8,15,1,6,0.9,0.1,12.6,,,,,,,,,,,
+2025,25,defensive,24649,Jeremy Morgan,J. Morgan,3292,Paris Basketball,Paris,SG,32,17:42,1062.7,,,,,,,,,,,,,,,,,,,,,,115.3,115.3,3.42,50,1.5,9,0.8,2.4,0.2,0.6,0.2
+2025,25,offensive,23792,Usman Garuba,U. Garuba,368,Real Madrid,Real,PF,40,12:29,749.7,125.4,126.9,5.3,60,63,66,66,0.1,3.4,1.2,3.6,6.5,0.5,3,0.7,15,1.2,12,1,0.3,17.9,,,,,,,,,,,
+2025,25,defensive,23792,Usman Garuba,U. Garuba,368,Real Madrid,Real,PF,40,12:29,749.7,,,,,,,,,,,,,,,,,,,,,,112.6,107.9,2.76,61,1.6,14,0.8,3.3,0.7,3,0.2
+2025,25,offensive,35271,Mikael Jantunen,M. Jantunen,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,36,18:35,1115.1,116.5,112.6,5.3,32,48,87,55,2.5,1.6,1.5,60.8,6.9,0.7,2,0.7,12,1.1,7,1.9,0.1,14.1,,,,,,,,,,,
+2025,25,defensive,35271,Mikael Jantunen,M. Jantunen,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,36,18:35,1115.1,,,,,,,,,,,,,,,,,,,,,,113.8,111.5,3.56,54,2.1,13,0.4,1.3,0.2,0.7,0.4
+2025,25,offensive,18511,Vassilis Toliopoulos,V. Toliopoulos,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,10,09:32,572.5,123.2,119.6,5.2,34,33,100,51,3.2,1.5,0.9,68.1,7.8,1.1,8,0.2,4,0.2,2,1.1,0.3,26.9,,,,,,,,,,,
+2025,25,defensive,18511,Vassilis Toliopoulos,V. Toliopoulos,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,10,09:32,572.5,,,,,,,,,,,,,,,,,,,,,,103,109.7,1.38,42,0.4,5,0.2,1.2,0,,0
+2025,25,offensive,19020,Josep Puerto,J. Puerto,677,Valencia Basket,Valencia,"SG,SF",38,15:43,943.3,118.9,128.5,5.2,40,54,73,60,2.6,1.5,0.7,63.4,6.6,0.6,2,0.4,9,0.7,5,0.8,0.1,13.5,,,,,,,,,,,
+2025,25,defensive,19020,Josep Puerto,J. Puerto,677,Valencia Basket,Valencia,"SG,SF",38,15:43,943.3,,,,,,,,,,,,,,,,,,,,,,115.8,118.6,2.59,44,1.8,13,0.3,1.2,0.1,0.2,0.1
+2025,25,offensive,6702,Rodrigue Beaubois,R. Beaubois,583,Anadolu Efes Istanbul,Efes,SG,21,12:24,744.3,101.4,114.7,5.1,36,57,100,58,2,2.4,0.2,45.2,7.8,1.1,6,0.5,10,0.1,1,0.2,0.1,19.5,,,,,,,,,,,
+2025,25,defensive,6702,Rodrigue Beaubois,R. Beaubois,583,Anadolu Efes Istanbul,Efes,SG,21,12:24,744.3,,,,,,,,,,,,,,,,,,,,,,118,118.7,2.08,47,1.1,11,0.6,2.6,0.2,0.9,0
+2025,25,offensive,37156,Alan Dokossi,A. Dokossi,3292,Paris Basketball,Paris,PF,34,16:10,970.5,115.4,107.5,5,,72,41,67,0,3.1,1.3,0,9,1.6,6,1.8,33,2,13,1.3,0.2,14.8,,,,,,,,,,,
+2025,25,defensive,37156,Alan Dokossi,A. Dokossi,3292,Paris Basketball,Paris,PF,34,16:10,970.5,,,,,,,,,,,,,,,,,,,,,,112.3,105.1,4.32,67,3.5,24,1.2,3.8,0.1,0.5,0.2
+2025,25,offensive,19539,Ognjen Dobric,O. Dobric,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,25,12:30,750,116.7,131.1,5,45,46,100,61,2.5,1.4,0.3,63.9,5.6,0.3,2,0.2,5,0.8,6,0.8,0.1,15.1,,,,,,,,,,,
+2025,25,defensive,19539,Ognjen Dobric,O. Dobric,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,25,12:30,750,,,,,,,,,,,,,,,,,,,,,,113.9,114.1,2.34,50,1,9,0.4,1.7,0,,0.1
+2025,25,offensive,35282,Tyson Carter,T. Carter,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,11,14:41,881.3,111.4,96.7,4.9,31,35,100,44,2.6,2.8,0.5,48.3,7.9,1.5,7,1.2,18,0.5,4,0.7,0.1,21.3,,,,,,,,,,,
+2025,25,defensive,35282,Tyson Carter,T. Carter,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,11,14:41,881.3,,,,,,,,,,,,,,,,,,,,,,110.7,115.5,2.23,41,0.9,7,0.4,1.3,0,,0
+2025,25,offensive,23435,Ignas Brazdeikis,I. Brazdeikis,265,Zalgiris Kaunas,Zalgiris,SG,38,14:46,886.8,116.4,106.7,4.8,34,38,77,45,1.7,3.4,0.7,33.7,6.6,0.8,4,0.5,8,0.6,4,0.7,0.1,18.8,,,,,,,,,,,
+2025,25,defensive,23435,Ignas Brazdeikis,I. Brazdeikis,265,Zalgiris Kaunas,Zalgiris,SG,38,14:46,886.8,,,,,,,,,,,,,,,,,,,,,,111.7,115.8,2.15,41,1.3,10,0.2,0.9,0.1,0.2,0.1
+2025,25,offensive,35544,Brandon Boston Jr.,B. Boston Jr.,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,28,11:40,700.1,116,120.4,4.8,33,55,77,55,1.6,2.3,0.9,41.8,5.5,0.3,2,0.4,8,0.7,7,0.7,0.2,18.9,,,,,,,,,,,
+2025,25,defensive,35544,Brandon Boston Jr.,B. Boston Jr.,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,28,11:40,700.1,,,,,,,,,,,,,,,,,,,,,,111.5,113,2.11,47,0.9,9,0.5,2.1,0.2,0.8,0.1
+2025,25,offensive,35500,Daulton Hommes,D. Hommes,3292,Paris Basketball,Paris,"SF,PF",21,13:35,815.1,111.2,119.7,4.8,45,50,76,66,2.4,0.8,1,76.1,6.3,0.6,3,0.6,14,0.6,4,1,0,13.8,,,,,,,,,,,
+2025,25,defensive,35500,Daulton Hommes,D. Hommes,3292,Paris Basketball,Paris,"SF,PF",21,13:35,815.1,,,,,,,,,,,,,,,,,,,,,,122.8,125.2,2.28,43,1.4,12,0.3,1.1,0.2,0.9,0.2
+2025,25,offensive,24103,Jasiel Rivero,J. Rivero,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,9,09:49,589.7,109.1,118,4.8,,61,69,63,0,3.1,1.4,0,4.9,0.1,1,0.3,8,0.7,8,1,0.1,20,,,,,,,,,,,
+2025,25,defensive,24103,Jasiel Rivero,J. Rivero,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,9,09:49,589.7,,,,,,,,,,,,,,,,,,,,,,124.8,129.7,1.3,36,1,14,0.1,0.6,0,,0
+2025,25,offensive,20995,Konstantinos Mitoglou,K. Mitoglou,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,31,12:56,776.1,114.8,109.6,4.8,23,55,81,53,1.4,2.7,1,33.9,6.3,0.5,3,0.5,11,0.9,8,1.3,0.2,18.1,,,,,,,,,,,
+2025,25,defensive,20995,Konstantinos Mitoglou,K. Mitoglou,33,Panathinaikos AKTOR Athens,Panathinaikos,PF,31,12:56,776.1,,,,,,,,,,,,,,,,,,,,,,115.8,116.3,2.32,48,1.9,17,0.4,1.6,0.3,1.1,0.1
+2025,25,offensive,8704,Gytis Radzevičius,G. Radzevičius,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,25,17:43,1063.1,115.6,131.6,4.7,35,63,86,61,1.6,2,0.6,44,6.3,0.6,2,0.3,8,0.9,6,0.8,0,10.9,,,,,,,,,,,
+2025,25,defensive,8704,Gytis Radzevičius,G. Radzevičius,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,25,17:43,1063.1,,,,,,,,,,,,,,,,,,,,,,119.9,124.8,2.42,37,1.5,10,0.3,0.8,0.1,0.2,0.1
+2025,25,offensive,24753,Neal Sako,N. Sako,677,Valencia Basket,Valencia,C,42,13:23,803.7,119.1,111.6,4.7,,59,38,55,0,3.4,1.9,0,6.4,0.6,3,0.8,15,1.8,15,1.8,0.2,17.4,,,,,,,,,,,
+2025,25,defensive,24753,Neal Sako,N. Sako,677,Valencia Basket,Valencia,C,42,13:23,803.7,,,,,,,,,,,,,,,,,,,,,,112.7,111.9,2.55,52,2,18,0.3,1.2,0.4,1.7,0.2
+2025,25,offensive,37789,Mouhamed Faye,M. Faye,3292,Paris Basketball,Paris,C,38,17:10,1030.4,115.6,127.3,4.6,,65,49,63,0,3,1.3,0,5.3,0.2,1,0.8,19,2.2,13,1.3,0.4,11.5,,,,,,,,,,,
+2025,25,defensive,37789,Mouhamed Faye,M. Faye,3292,Paris Basketball,Paris,C,38,17:10,1030.4,,,,,,,,,,,,,,,,,,,,,,119.4,116.6,3.59,55,2.8,17,0.4,1.1,1,3,0.4
+2025,25,offensive,24197,Zach Hankins,Z. Hankins,636,Maccabi Playtika Tel Aviv,Maccabi,C,10,10:18,618.1,118.3,136.2,4.6,,77,67,77,0,2.6,0.9,0,5.5,0.4,2,0.5,14,1.3,12,0.8,0.3,14.6,,,,,,,,,,,
+2025,25,defensive,24197,Zach Hankins,Z. Hankins,636,Maccabi Playtika Tel Aviv,Maccabi,C,10,10:18,618.1,,,,,,,,,,,,,,,,,,,,,,110,114.6,1.65,43,1,11,0,0,0.4,2.2,0.1
+2025,25,offensive,21026,Alberto Abalde,A. Abalde,368,Real Madrid,Real,SF,42,15:34,934.3,119.5,123.3,4.6,47,46,80,60,1.9,1.7,0.4,52.9,7.6,1.3,5,0.6,14,0.5,4,0.6,0.1,13.9,,,,,,,,,,,
+2025,25,defensive,21026,Alberto Abalde,A. Abalde,368,Real Madrid,Real,SF,42,15:34,934.3,,,,,,,,,,,,,,,,,,,,,,115.4,120.4,2.25,40,1,7,0.4,1.5,0,0.1,0
+2025,25,offensive,35892,Juhann Begarin,J. Begarin,2222,AS Monaco,Monaco,SG,23,13:28,808.4,115.7,110.4,4.6,25,57,81,51,2.1,2,0.9,51.1,6.2,0.7,3,0.4,9,0.8,7,0.7,0.2,17.2,,,,,,,,,,,
+2025,25,defensive,35892,Juhann Begarin,J. Begarin,2222,AS Monaco,Monaco,SG,23,13:28,808.4,,,,,,,,,,,,,,,,,,,,,,122.4,122.2,2.46,48,1.6,12,0.3,1.2,0.2,0.8,0.3
+2025,25,offensive,14073,Niels Giffey,N. Giffey,1220,FC Bayern Munich,Bayern,SF,32,13:15,795,112.2,117.4,4.6,35,55,85,57,1.7,1.9,0.8,47.8,6.4,0.8,4,0.5,11,0.6,5,0.8,0.1,16.3,,,,,,,,,,,
+2025,25,defensive,14073,Niels Giffey,N. Giffey,1220,FC Bayern Munich,Bayern,SF,32,13:15,795,,,,,,,,,,,,,,,,,,,,,,119.6,121.1,2.18,46,0.8,8,0.4,1.9,0,0.1,0.2
+2025,25,offensive,18387,Frank Ntilikina,F. Ntilikina,460,Olympiacos Piraeus,Olympiacos,PG,24,16:24,984.6,122.3,107.5,4.5,37,40,84,52,2.2,1.9,0.8,53.6,8.3,1.6,7,1.3,22,0.5,4,1.4,0.2,16.2,,,,,,,,,,,
+2025,25,defensive,18387,Frank Ntilikina,F. Ntilikina,460,Olympiacos Piraeus,Olympiacos,PG,24,16:24,984.6,,,,,,,,,,,,,,,,,,,,,,111.9,115.7,2.6,44,0.6,4,0.5,1.5,0.4,1.4,0.2
+2025,25,offensive,17091,Tyler Ennis,T. Ennis,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,10,08:22,502.4,117.7,117.8,4.5,50,27,80,63,1.8,1.1,1.5,62.1,5.9,0.6,5,0.6,14,0.2,3,1.3,0.2,24.1,,,,,,,,,,,
+2025,25,defensive,17091,Tyler Ennis,T. Ennis,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,10,08:22,502.4,,,,,,,,,,,,,,,,,,,,,,118.5,120.5,1.42,44,0.6,8,0.3,1.9,0,,0.1
+2025,25,offensive,38823,Aliou Diarra,A. Diarra,90,Virtus Segafredo Bologna,Virtus,C,28,10:38,638.6,115.9,134.9,4.5,,69,55,69,0,2.9,1,0,6.2,0.7,5,0.6,15,1.3,15,1.2,0.1,17.4,,,,,,,,,,,
+2025,25,defensive,38823,Aliou Diarra,A. Diarra,90,Virtus Segafredo Bologna,Virtus,C,28,10:38,638.6,,,,,,,,,,,,,,,,,,,,,,121.2,116.9,2.16,57,1.8,20,0.3,1.3,0.6,3.1,0.1
+2025,25,offensive,23479,Giampaolo Ricci,G. Ricci,389,EA7 Emporio Armani Milan,EA7 Armani,PF,38,16:23,983.4,121.5,146,4.5,42,62,75,63,2.5,1,0.1,70.9,5.9,0.6,3,0.2,6,0.8,6,0.3,0,11.5,,,,,,,,,,,
+2025,25,defensive,23479,Giampaolo Ricci,G. Ricci,389,EA7 Emporio Armani Milan,EA7 Armani,PF,38,16:23,983.4,,,,,,,,,,,,,,,,,,,,,,117.9,118.1,2.87,49,1.8,13,0.5,1.8,0.2,0.7,0.1
+2025,25,offensive,34639,Kosta Kondic,K. Kondic,3359,Dubai Basketball,Dubai,PG,16,11:45,705.1,111.2,120.1,4.4,32,63,88,57,2.4,1,1.1,70.4,6.9,1.1,6,0.4,10,0.3,3,1.1,0.2,17.3,,,,,,,,,,,
+2025,25,defensive,34639,Kosta Kondic,K. Kondic,3359,Dubai Basketball,Dubai,PG,16,11:45,705.1,,,,,,,,,,,,,,,,,,,,,,121,121,2.07,48,0.9,9,0.8,3.4,0,,0.1
+2025,25,offensive,23503,Bruno Fernando,B. Fernando,368,Real Madrid,Real,C,5,10:25,625,108,123.1,4.4,,67,67,69,0,3,0.6,0,6.4,0.8,6,1.2,27,1,11,1.2,0,21,,,,,,,,,,,
+2025,25,defensive,23503,Bruno Fernando,B. Fernando,368,Real Madrid,Real,C,5,10:25,625,,,,,,,,,,,,,,,,,,,,,,118,111.3,2.21,62,2.4,29,0.2,1.1,0.2,1.1,0.3
+2025,25,offensive,24340,Chris Silva,C. Silva,584,Fenerbahce Beko Istanbul,Fenerbahce,C,16,08:42,522.1,105.6,112.6,4.4,,61,89,70,0,2.8,1.1,0,5.4,0.4,3,0.9,23,0.8,10,1.5,0.1,22.3,,,,,,,,,,,
+2025,25,defensive,24340,Chris Silva,C. Silva,584,Fenerbahce Beko Istanbul,Fenerbahce,C,16,08:42,522.1,,,,,,,,,,,,,,,,,,,,,,116.4,112.2,1.81,56,0.9,12,0.3,2,0.1,0.8,0.3
+2025,25,offensive,36143,Bodian Massa,B. Massa,700,LDLC ASVEL Villeurbanne,ASVEL,C,34,15:51,951.1,110,91.9,4.4,50,50,54,51,0.1,3.9,0.7,1.5,6,0.6,3,1.2,22,1.4,10,1.4,0.1,16.3,,,,,,,,,,,
+2025,25,defensive,36143,Bodian Massa,B. Massa,700,LDLC ASVEL Villeurbanne,ASVEL,C,34,15:51,951.1,,,,,,,,,,,,,,,,,,,,,,117.7,116.6,2.9,50,2.4,18,0.4,1.5,0.4,1.6,0.2
+2025,25,offensive,6526,Nick Calathes,N. Calathes,77,Partizan Mozzart Bet Belgrade,Partizan,PG,31,19:10,1150.1,108.3,111.2,4.3,29,43,56,44,1.9,2.8,0.5,40,14.6,4.2,15,1.5,23,0.4,3,1.1,0.1,16.3,,,,,,,,,,,
+2025,25,defensive,6526,Nick Calathes,N. Calathes,77,Partizan Mozzart Bet Belgrade,Partizan,PG,31,19:10,1150.1,,,,,,,,,,,,,,,,,,,,,,116.4,116.2,3.42,49,2,13,0.9,2.5,0.1,0.2,0.2
+2025,25,offensive,19613,Shaquielle McKissic,S. McKissic,460,Olympiacos Piraeus,Olympiacos,SG,27,11:32,692.7,120.5,125.5,4.3,26,62,64,55,1.4,1.7,1.6,45.3,7.8,1.4,8,0.4,9,0.3,3,1.3,0.1,17.6,,,,,,,,,,,
+2025,25,defensive,19613,Shaquielle McKissic,S. McKissic,460,Olympiacos Piraeus,Olympiacos,SG,27,11:32,692.7,,,,,,,,,,,,,,,,,,,,,,113.5,113.8,2.22,52,0.9,9,0.7,3.3,0,,0.1
+2025,25,offensive,34680,Clement Frisch,C. Frisch,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"SF,PF",37,12:07,727.2,118.4,134.4,4.3,42,71,100,68,1.8,1.3,0.2,57.9,5.4,0.5,2,0.3,9,0.5,5,0.4,0.1,13.2,,,,,,,,,,,
+2025,25,defensive,34680,Clement Frisch,C. Frisch,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,"SF,PF",37,12:07,727.2,,,,,,,,,,,,,,,,,,,,,,117.5,117.7,2.3,49,1.9,18,0.3,1.4,0.1,0.5,0.2
+2025,25,offensive,9540,David Lighty,D. Lighty,700,LDLC ASVEL Villeurbanne,ASVEL,SF,33,18:34,1114.2,103.2,108.8,4.2,33,50,72,51,1.9,1.9,0.5,50,6.8,1.2,4,0.5,12,0.8,5,1,0.1,11.9,,,,,,,,,,,
+2025,25,defensive,9540,David Lighty,D. Lighty,700,LDLC ASVEL Villeurbanne,ASVEL,SF,33,18:34,1114.2,,,,,,,,,,,,,,,,,,,,,,122.1,125.2,2.66,39,1.1,8,0.4,1.1,0.1,0.2,0.2
+2025,25,offensive,34847,Niccolo Mannion,N. Mannion,389,EA7 Emporio Armani Milan,EA7 Armani,PG,22,11:32,692.7,114,97.2,4.2,36,42,56,49,2,2.2,0.4,47.8,8.5,2,13,1.1,20,0,0,1.3,0.1,23.2,,,,,,,,,,,
+2025,25,defensive,34847,Niccolo Mannion,N. Mannion,389,EA7 Emporio Armani Milan,EA7 Armani,PG,22,11:32,692.7,,,,,,,,,,,,,,,,,,,,,,120.1,122.1,1.76,43,0.6,6,0.1,0.4,0,,0.1
+2025,25,offensive,36509,Sergio De Larrea,S. De Larrea,677,Valencia Basket,Valencia,SG,31,11:09,669,117.4,114.2,4.2,40,47,72,57,1.5,1.6,1.2,48.5,9.5,2.2,13,1.2,25,0.5,5,1.2,0.1,20.6,,,,,,,,,,,
+2025,25,defensive,36509,Sergio De Larrea,S. De Larrea,677,Valencia Basket,Valencia,SG,31,11:09,669,,,,,,,,,,,,,,,,,,,,,,120.3,120.8,1.94,47,0.9,9,0.4,2,0.2,0.8,0
+2025,25,offensive,18673,Deividas Sirvydis,D. Sirvydis,265,Zalgiris Kaunas,Zalgiris,SG,27,12:16,736.2,116,102.8,4.2,30,50,93,50,2.7,1.3,0.6,68.5,6,0.9,5,0.6,12,0.3,3,0.8,0.1,18.7,,,,,,,,,,,
+2025,25,defensive,18673,Deividas Sirvydis,D. Sirvydis,265,Zalgiris Kaunas,Zalgiris,SG,27,12:16,736.2,,,,,,,,,,,,,,,,,,,,,,108.1,110.2,1.99,46,1.1,10,0.3,1.5,0.1,0.3,0.1
+2025,25,offensive,24121,Ishmail Wainright,I. Wainright,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,42,23:04,1384.1,118.6,120.8,4.2,30,55,73,49,3,1.1,0.4,73.1,6.8,1.1,3,0.3,6,0.8,4,1,0.1,9.8,,,,,,,,,,,
+2025,25,defensive,24121,Ishmail Wainright,I. Wainright,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,42,23:04,1384.1,,,,,,,,,,,,,,,,,,,,,,114.3,115,4.13,49,1.9,9,0.9,2,0.1,0.2,0.3
+2025,25,offensive,35913,Kenan Kamenjas,K. Kamenjas,3359,Dubai Basketball,Dubai,C,28,10:51,651.7,114,116.7,4.1,0,56,68,58,0.1,2.9,1.3,2.4,5.5,0.5,3,0.6,15,1.3,13,1.3,0.2,18.3,,,,,,,,,,,
+2025,25,defensive,35913,Kenan Kamenjas,K. Kamenjas,3359,Dubai Basketball,Dubai,C,28,10:51,651.7,,,,,,,,,,,,,,,,,,,,,,127.6,125.1,1.98,51,2.1,24,0.3,1.7,0,0.2,0.1
+2025,25,offensive,14028,Laurynas Birutis,L. Birutis,265,Zalgiris Kaunas,Zalgiris,C,41,09:59,599.6,116.1,124.1,4.1,,69,41,64,0,2.5,1.4,0,4.7,0.3,2,0.3,9,1,11,1.1,0.2,16.7,,,,,,,,,,,
+2025,25,defensive,14028,Laurynas Birutis,L. Birutis,265,Zalgiris Kaunas,Zalgiris,C,41,09:59,599.6,,,,,,,,,,,,,,,,,,,,,,113.1,113.6,1.76,48,1.3,15,0.2,1.2,0.3,1.7,0.1
+2025,25,offensive,21024,John Dibartolomeo,J. Dibartolomeo,636,Maccabi Playtika Tel Aviv,Maccabi,PG,27,14:17,857.6,125.2,133.8,4,38,43,86,60,2.5,0.5,0.8,82.9,6.1,0.9,4,0.3,9,0.7,5,1.1,0,11.2,,,,,,,,,,,
+2025,25,defensive,21024,John Dibartolomeo,J. Dibartolomeo,636,Maccabi Playtika Tel Aviv,Maccabi,PG,27,14:17,857.6,,,,,,,,,,,,,,,,,,,,,,113.9,112.1,2.99,55,1.1,9,0.9,3.3,0,,0.1
+2025,25,offensive,37284,Miles Norris,M. Norris,60,FC Barcelona,Barcelona,PF,36,12:02,722.3,111.7,125.4,4,38,62,89,61,2,1.3,0.3,61.2,4.9,0.3,2,0.3,8,0.8,8,0.2,0.2,14.6,,,,,,,,,,,
+2025,25,defensive,37284,Miles Norris,M. Norris,60,FC Barcelona,Barcelona,PF,36,12:02,722.3,,,,,,,,,,,,,,,,,,,,,,119.1,115.4,2.38,56,1.8,18,0.5,2.5,0.3,1.5,0.2
+2025,25,offensive,22738,Alessandro Pajola,A. Pajola,90,Virtus Segafredo Bologna,Virtus,PG,24,19:05,1145.1,115.6,117.6,4,27,52,67,48,2.5,1.2,1.1,67,14.4,4.2,14,1.2,22,0.4,2,1.5,0,13.4,,,,,,,,,,,
+2025,25,defensive,22738,Alessandro Pajola,A. Pajola,90,Virtus Segafredo Bologna,Virtus,PG,24,19:05,1145.1,,,,,,,,,,,,,,,,,,,,,,116,112.9,4.03,57,2.3,13,1.1,3.1,0.3,0.7,0.1
+2025,25,offensive,23439,Khalifa Diop,K. Diop,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,28,16:46,1006.1,114.9,122.6,4,,69,56,67,0,2.4,1.1,0,5.8,0.6,2,0.9,24,1.9,13,1.2,0.1,11.1,,,,,,,,,,,
+2025,25,defensive,23439,Khalifa Diop,K. Diop,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,28,16:46,1006.1,,,,,,,,,,,,,,,,,,,,,,123,121,3.09,51,2.3,17,0.5,1.7,0.6,2,0.2
+2025,25,offensive,35776,Matt Ryan,M. Ryan,3359,Dubai Basketball,Dubai,SF,2,06:23,383.5,73.9,78.2,4,33,100,,57,3,0.5,0,85.7,4,0,0,1,22,0.5,8,0,0,33.3,,,,,,,,,,,
+2025,25,defensive,35776,Matt Ryan,M. Ryan,3359,Dubai Basketball,Dubai,SF,2,06:23,383.5,,,,,,,,,,,,,,,,,,,,,,150,147.2,0.93,42,0,,0.5,4.5,0,,0
+2025,25,offensive,38534,Gur Lavi,G. Lavi,636,Maccabi Playtika Tel Aviv,Maccabi,SF,15,11:15,675.2,120.2,110.9,3.9,42,69,80,69,0.8,1.7,0.7,31.6,4.9,0.3,2,0.8,22,0.6,6,0.7,0.2,14.5,,,,,,,,,,,
+2025,25,defensive,38534,Gur Lavi,G. Lavi,636,Maccabi Playtika Tel Aviv,Maccabi,SF,15,11:15,675.2,,,,,,,,,,,,,,,,,,,,,,119.4,123.2,1.79,42,1.1,12,0.3,1.6,0.1,0.3,0
+2025,25,offensive,19553,Khem Birch,K. Birch,584,Fenerbahce Beko Istanbul,Fenerbahce,C,43,16:32,992.6,110,111.2,3.9,,63,68,65,0,2.3,1.5,0,5,0.4,2,1,25,1.5,11,1.5,0.1,11.7,,,,,,,,,,,
+2025,25,defensive,19553,Khem Birch,K. Birch,584,Fenerbahce Beko Istanbul,Fenerbahce,C,43,16:32,992.6,,,,,,,,,,,,,,,,,,,,,,109.7,108.6,3.27,55,2.5,16,0.3,1.1,0.4,1.3,0.3
+2025,25,offensive,35541,Kessler Edwards,K. Edwards,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,13,13:07,787.4,111.9,113.9,3.8,53,41,79,64,1.2,1.3,1.1,46.9,5.1,0.5,3,0.5,14,0.3,3,0.9,0.2,12.1,,,,,,,,,,,
+2025,25,defensive,35541,Kessler Edwards,K. Edwards,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,13,13:07,787.4,,,,,,,,,,,,,,,,,,,,,,111.1,107.2,3.07,60,3.1,25,0.3,1.2,0.4,1.5,0.1
+2025,25,offensive,23436,Aleksej Pokusevski,A. Pokusevski,77,Partizan Mozzart Bet Belgrade,Partizan,"SF,PF",27,12:03,723.7,105.3,97.8,3.7,30,54,100,51,1.9,1.8,0.1,51,4.7,0.5,3,0.4,11,0.4,4,0.2,0.1,16.7,,,,,,,,,,,
+2025,25,defensive,23436,Aleksej Pokusevski,A. Pokusevski,77,Partizan Mozzart Bet Belgrade,Partizan,"SF,PF",27,12:03,723.7,,,,,,,,,,,,,,,,,,,,,,116.2,115.8,2.23,51,1.7,17,0.4,1.9,0.3,1.4,0.1
+2025,25,offensive,17944,Johannes Voigtmann,J. Voigtmann,1220,FC Bayern Munich,Bayern,PF,23,13:00,780.3,116.5,110.5,3.7,37,55,75,57,1.8,1.3,0.3,56.9,8,1.7,9,0.9,21,0.7,6,0.8,0,15.3,,,,,,,,,,,
+2025,25,defensive,17944,Johannes Voigtmann,J. Voigtmann,1220,FC Bayern Munich,Bayern,PF,23,13:00,780.3,,,,,,,,,,,,,,,,,,,,,,114.7,112.9,2.63,55,2.7,25,0.3,1.5,0.2,0.8,0.1
+2025,25,offensive,35585,Kai Jones,K. Jones,583,Anadolu Efes Istanbul,Efes,C,36,15:27,927.6,110.3,156.2,3.6,,92,67,92,0,1.8,0.6,0,4.9,0.5,2,0.5,19,1.1,9,0.5,0,8,,,,,,,,,,,
+2025,25,defensive,35585,Kai Jones,K. Jones,583,Anadolu Efes Istanbul,Efes,C,36,15:27,927.6,,,,,,,,,,,,,,,,,,,,,,120,115.4,3.24,58,2.4,19,0.5,1.9,1.3,4.5,0.2
+2025,25,offensive,12229,Klemen Prepelic,K. Prepelic,3359,Dubai Basketball,Dubai,"PG,SG",27,13:22,802.4,117.1,118,3.6,32,57,79,58,2.1,0.5,1.3,80,7.7,1.8,9,0.7,19,0.1,1,1.5,0,13.7,,,,,,,,,,,
+2025,25,defensive,12229,Klemen Prepelic,K. Prepelic,3359,Dubai Basketball,Dubai,"PG,SG",27,13:22,802.4,,,,,,,,,,,,,,,,,,,,,,112.8,112.2,2.59,52,1,8,0.4,1.8,0,,0.2
+2025,25,offensive,35314,Tai Odiase,T. Odiase,635,Hapoel Shlomo Tel Aviv,Hapoel,C,29,11:53,713.4,116.5,119.3,3.5,,60,74,64,0,2.3,0.9,0,4.4,0.3,2,0.4,13,0.5,5,1.1,0.2,13.1,,,,,,,,,,,
+2025,25,defensive,35314,Tai Odiase,T. Odiase,635,Hapoel Shlomo Tel Aviv,Hapoel,C,29,11:53,713.4,,,,,,,,,,,,,,,,,,,,,,116.2,114.7,2.3,53,1.2,12,0.4,1.7,0.2,1.1,0.1
+2025,25,offensive,23736,Arturs Zagars,A. Zagars,584,Fenerbahce Beko Istanbul,Fenerbahce,PG,5,11:16,676.4,123.4,109.8,3.4,25,43,80,53,0.8,1.4,2,36.4,7.4,1.6,11,1,24,0,,2.2,0.2,19.6,,,,,,,,,,,
+2025,25,defensive,23736,Arturs Zagars,A. Zagars,584,Fenerbahce Beko Istanbul,Fenerbahce,PG,5,11:16,676.4,,,,,,,,,,,,,,,,,,,,,,120.6,125.2,1.4,36,0.2,2,0.6,3.1,0,,0.1
+2025,25,offensive,34872,Saben Lee,S. Lee,460,Olympiacos Piraeus,Olympiacos,PG,11,11:24,684.4,107.9,90.8,3.4,36,44,82,54,1,1.6,1,37.9,7,1.4,8,1.3,29,0,,0.6,0.2,18.3,,,,,,,,,,,
+2025,25,defensive,34872,Saben Lee,S. Lee,460,Olympiacos Piraeus,Olympiacos,PG,11,11:24,684.4,,,,,,,,,,,,,,,,,,,,,,127.2,131.8,1.57,37,0.4,4,0.4,1.7,0.1,0.4,0.1
+2025,25,offensive,8354,Daniel Hackett,D. Hackett,90,Virtus Segafredo Bologna,Virtus,PG,34,14:40,880.1,108.7,115.7,3.4,40,42,75,56,1.5,1.1,0.8,59.1,6.6,1.4,6,0.8,21,0.5,4,1.2,0,12.3,,,,,,,,,,,
+2025,25,defensive,8354,Daniel Hackett,D. Hackett,90,Virtus Segafredo Bologna,Virtus,PG,34,14:40,880.1,,,,,,,,,,,,,,,,,,,,,,117.9,117.8,2.74,51,1.8,14,0.4,1.5,0,0.1,0.1
+2025,25,offensive,24758,Tomer Ginat,T. Ginat,635,Hapoel Shlomo Tel Aviv,Hapoel,PF,14,09:48,588.2,103.5,99.9,3.3,10,59,38,48,0.7,2.3,0.9,23.8,4.8,0.6,5,0.4,11,0.2,3,0.8,0.1,18.6,,,,,,,,,,,
+2025,25,defensive,24758,Tomer Ginat,T. Ginat,635,Hapoel Shlomo Tel Aviv,Hapoel,PF,14,09:48,588.2,,,,,,,,,,,,,,,,,,,,,,114.9,109.7,2.29,61,1.6,19,0.4,2.3,0.1,0.4,0.1
+2025,25,offensive,37642,Myles Cale,M. Cale,60,FC Barcelona,Barcelona,SF,34,15:10,910.4,114.8,127,3.3,29,51,76,50,1.6,1.4,0.5,52.9,4.9,0.7,3,0.3,7,0.8,6,0.9,0.1,11.4,,,,,,,,,,,
+2025,25,defensive,37642,Myles Cale,M. Cale,60,FC Barcelona,Barcelona,SF,34,15:10,910.4,,,,,,,,,,,,,,,,,,,,,,114.5,114.4,2.75,50,1.1,9,0.5,1.8,0.1,0.6,0.1
+2025,25,offensive,24482,Mehdy Ngouama,M. Ngouama,700,LDLC ASVEL Villeurbanne,ASVEL,PG,12,10:45,645.3,89.6,83.9,3.3,17,23,87,32,2,2.5,1.3,44.4,4.8,0.7,5,0.7,12,0.3,4,1,0.6,25.7,,,,,,,,,,,
+2025,25,defensive,24482,Mehdy Ngouama,M. Ngouama,700,LDLC ASVEL Villeurbanne,ASVEL,PG,12,10:45,645.3,,,,,,,,,,,,,,,,,,,,,,119.7,119.4,1.81,47,0.7,7,0.8,3.9,0.1,0.4,0
+2025,25,offensive,35489,David Mutaf,D. Mutaf,583,Anadolu Efes Istanbul,Efes,SG,8,06:13,373.3,107.2,113.5,3.3,45,56,50,62,1.4,1.1,0.3,55,4.4,0.5,7,0.4,13,0.1,3,0.1,0,25,,,,,,,,,,,
+2025,25,defensive,35489,David Mutaf,D. Mutaf,583,Anadolu Efes Istanbul,Efes,SG,8,06:13,373.3,,,,,,,,,,,,,,,,,,,,,,140.7,145.4,0.6,28,0.1,3,0,0,0,,0.1
+2025,25,offensive,12276,Awudu Abass,A. Abass,3359,Dubai Basketball,Dubai,SF,31,16:22,982.7,117.4,125.8,3.2,33,54,64,53,1.5,1.3,0.5,55.2,4.5,0.5,2,0.3,8,0.7,5,0.4,0.1,9.6,,,,,,,,,,,
+2025,25,defensive,12276,Awudu Abass,A. Abass,3359,Dubai Basketball,Dubai,SF,31,16:22,982.7,,,,,,,,,,,,,,,,,,,,,,119.7,125.7,2.19,36,0.8,5,0.3,1.1,0.1,0.4,0.1
+2025,25,offensive,24259,Yankuba Sima,Y. Sima,677,Valencia Basket,Valencia,C,6,08:14,494.5,119,114.6,3.2,33,50,50,50,0.5,2,1.3,20,3.7,0.2,1,0.7,17,1,12,1,0.3,19.3,,,,,,,,,,,
+2025,25,defensive,24259,Yankuba Sima,Y. Sima,677,Valencia Basket,Valencia,C,6,08:14,494.5,,,,,,,,,,,,,,,,,,,,,,114.4,118.6,1.3,40,0.5,7,0.2,1,0.2,1.1,0.2
+2025,25,offensive,35551,Yam Madar,Y. Madar,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,16,09:46,586.1,112.5,103.5,3.1,16,39,84,40,1.6,1.8,1.2,47.2,6.4,1.4,9,0.4,9,0.3,3,1.3,0.3,19.8,,,,,,,,,,,
+2025,25,defensive,35551,Yam Madar,Y. Madar,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,16,09:46,586.1,,,,,,,,,,,,,,,,,,,,,,112.9,116.6,1.53,43,0.8,11,0.6,3.1,0.1,0.4,0
+2025,25,offensive,24149,Leo Cavaliere,L. Cavaliere,3292,Paris Basketball,Paris,SF,36,13:59,839.2,113.9,122.7,3.1,26,57,56,53,0.8,2,0.4,27.3,5.1,0.8,3,0.5,14,1.1,8,0.9,0.2,10.9,,,,,,,,,,,
+2025,25,defensive,24149,Leo Cavaliere,L. Cavaliere,3292,Paris Basketball,Paris,SF,36,13:59,839.2,,,,,,,,,,,,,,,,,,,,,,107.7,106.7,3.04,55,2.1,16,0.5,1.7,0.1,0.2,0.2
+2025,25,offensive,36812,Will Rayman,W. Rayman,636,Maccabi Playtika Tel Aviv,Maccabi,PF,38,11:56,716.8,123.1,125.3,3.1,38,36,66,54,1.3,0.9,1.4,58.1,3.8,0.3,1,0.2,6,0.9,8,1.6,0.2,11.9,,,,,,,,,,,
+2025,25,defensive,36812,Will Rayman,W. Rayman,636,Maccabi Playtika Tel Aviv,Maccabi,PF,38,11:56,716.8,,,,,,,,,,,,,,,,,,,,,,117,115.9,2.39,53,1.2,12,0.3,1.2,0.2,0.7,0.2
+2025,25,offensive,35909,Nathan Sestina,N. Sestina,389,EA7 Emporio Armani Milan,EA7 Armani,PF,10,08:09,489.2,123,109.7,3.1,16,91,100,50,1.9,1.1,0.2,63.3,3.8,0.3,2,0,0,0.3,4,0.1,0,17.7,,,,,,,,,,,
+2025,25,defensive,35909,Nathan Sestina,N. Sestina,389,EA7 Emporio Armani Milan,EA7 Armani,PF,10,08:09,489.2,,,,,,,,,,,,,,,,,,,,,,122.2,124.5,1.31,43,0.5,7,0.4,2.6,0,,0
+2025,25,offensive,4913,Sergio Llull,S. Llull,368,Real Madrid,Real,"PG,SG",40,10:39,639.4,114,106.6,3.1,27,36,67,42,2.4,1.1,0.6,69.8,6.7,1.5,10,0.5,13,0.2,2,0.7,0.1,18.6,,,,,,,,,,,
+2025,25,defensive,4913,Sergio Llull,S. Llull,368,Real Madrid,Real,"PG,SG",40,10:39,639.4,,,,,,,,,,,,,,,,,,,,,,117.2,122.9,1.37,36,0.6,6,0.2,0.8,0,,0
+2025,25,offensive,22957,Devonte Graham,D. Graham,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,7,11:22,682.7,102.8,87.1,3,25,17,20,33,3.4,0.9,0.7,80,6,1.1,7,0.9,16,0.3,3,0.7,0.1,22.4,,,,,,,,,,,
+2025,25,defensive,22957,Devonte Graham,D. Graham,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,7,11:22,682.7,,,,,,,,,,,,,,,,,,,,,,111.4,117.5,1.71,43,1,9,0.3,1.4,0.1,0.7,0
+2025,25,offensive,14004,Alex Len,A. Len,368,Real Madrid,Real,C,23,09:10,550,105.2,106.8,3,0,52,77,59,0,1.9,1.3,2.2,3.7,0.3,2,0.6,19,1,11,1,0.3,15.9,,,,,,,,,,,
+2025,25,defensive,14004,Alex Len,A. Len,368,Real Madrid,Real,C,23,09:10,550,,,,,,,,,,,,,,,,,,,,,,118.7,117.3,1.75,51,1,12,0.1,0.8,0.9,5,0.1
+2025,25,offensive,38888,Juom Bol,J. Bol,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,1,02:38,158,120,100,3,100,0,,50,1,2,0,33.3,3,0,0,0,0,0,,0,0,60,,,,,,,,,,,
+2025,25,defensive,38888,Juom Bol,J. Bol,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,C,1,02:38,158,,,,,,,,,,,,,,,,,,,,,,0,,1.4,175,1,33,0,0,0,,0
+2025,25,offensive,35518,Justus Hollatz,J. Hollatz,1220,FC Bayern Munich,Bayern,SG,26,16:37,997.9,108.8,117.8,3,45,39,73,56,1.2,1.2,0.6,50,10.1,2.8,11,1,27,0.7,5,0.7,0.1,10.7,,,,,,,,,,,
+2025,25,defensive,35518,Justus Hollatz,J. Hollatz,1220,FC Bayern Munich,Bayern,SG,26,16:37,997.9,,,,,,,,,,,,,,,,,,,,,,115.9,116,3.07,51,1.5,11,0.9,3,0,,0.1
+2025,25,offensive,6639,Kostas Papanikolaou,K. Papanikolaou,460,Olympiacos Piraeus,Olympiacos,SF,36,14:18,858.7,121.7,103.4,2.9,31,64,29,49,2.5,0.4,0.2,86.5,6.6,1.6,7,1,25,0.3,3,0.3,0.1,13.2,,,,,,,,,,,
+2025,25,defensive,6639,Kostas Papanikolaou,K. Papanikolaou,460,Olympiacos Piraeus,Olympiacos,SF,36,14:18,858.7,,,,,,,,,,,,,,,,,,,,,,113.1,116.2,2.37,46,1.4,11,0.4,1.4,0.1,0.2,0
+2025,25,offensive,18566,Youssoupha Fall,Y. Fall,60,FC Barcelona,Barcelona,C,18,07:29,449.5,130.5,146,2.9,,69,62,68,0,1.8,0.7,0,3.4,0.2,2,0.2,7,0.8,14,1.1,0.1,14.3,,,,,,,,,,,
+2025,25,defensive,18566,Youssoupha Fall,Y. Fall,60,FC Barcelona,Barcelona,C,18,07:29,449.5,,,,,,,,,,,,,,,,,,,,,,114.5,112.7,1.45,54,1.4,21,0.1,0.8,0.2,1.3,0.1
+2025,25,offensive,14020,Bryant Dunston,B. Dunston,389,EA7 Emporio Armani Milan,EA7 Armani,C,17,10:56,656.9,112.8,144.1,2.9,0,64,74,66,0.1,1.5,1.4,3.8,3.9,0.4,2,0.2,8,0.9,9,1.1,0.1,10.8,,,,,,,,,,,
+2025,25,defensive,14020,Bryant Dunston,B. Dunston,389,EA7 Emporio Armani Milan,EA7 Armani,C,17,10:56,656.9,,,,,,,,,,,,,,,,,,,,,,108.3,106.6,2.13,55,1.2,12,0.3,1.5,0.7,3.6,0.1
+2025,25,offensive,37474,Arijan Lakic,A. Lakic,77,Partizan Mozzart Bet Belgrade,Partizan,SG,25,13:10,790.3,112.6,123.6,2.8,35,50,75,54,1.7,0.7,0.3,70.5,4.2,0.6,3,0.3,10,0.5,4,0.6,0,10.9,,,,,,,,,,,
+2025,25,defensive,37474,Arijan Lakic,A. Lakic,77,Partizan Mozzart Bet Belgrade,Partizan,SG,25,13:10,790.3,,,,,,,,,,,,,,,,,,,,,,115,113.6,2.55,53,1.2,11,0.6,2.5,0.1,0.3,0.1
+2025,25,offensive,21014,Onuralp Bitim,O. Bitim,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,29,10:36,636.4,116.2,111.2,2.7,36,68,54,60,1.1,0.9,0.4,56.9,3.3,0.3,2,0.4,15,0.2,3,0.7,0,12.5,,,,,,,,,,,
+2025,25,defensive,21014,Onuralp Bitim,O. Bitim,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,29,10:36,636.4,,,,,,,,,,,,,,,,,,,,,,111.6,109.3,2.29,57,1.1,11,0.4,1.9,0.2,1.2,0.2
+2025,25,offensive,21890,Dejan Davidovac,D. Davidovac,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,21,14:14,854.3,114.3,140.6,2.6,42,62,73,64,0.6,1.2,0.5,31.6,3.5,0.4,2,0.2,10,0.8,6,0.7,0,7.3,,,,,,,,,,,
+2025,25,defensive,21890,Dejan Davidovac,D. Davidovac,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SF,21,14:14,854.3,,,,,,,,,,,,,,,,,,,,,,116.8,118.4,2.53,48,1.3,10,0.4,1.6,0.1,0.4,0.2
+2025,25,offensive,35967,Alexandros Samodurov,A. Samodurov,33,Panathinaikos AKTOR Athens,Panathinaikos,C,13,06:10,370.8,109.4,124.4,2.6,33,91,67,71,0.9,0.8,0.2,52.2,3.2,0.3,4,0.2,11,0.2,3,0.2,0.1,17.6,,,,,,,,,,,
+2025,25,defensive,35967,Alexandros Samodurov,A. Samodurov,33,Panathinaikos AKTOR Athens,Panathinaikos,C,13,06:10,370.8,,,,,,,,,,,,,,,,,,,,,,118.2,120,1.04,46,0.5,11,0.1,0.7,0.5,4.2,0
+2025,25,offensive,23555,Yago dos Santos,Y. dos Santos,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,25,10:45,645.9,106.9,91.7,2.6,21,29,89,36,2.1,1.1,0.7,65.4,7.8,2.2,14,1.2,25,0.2,2,0.9,0.1,20.2,,,,,,,,,,,
+2025,25,defensive,23555,Yago dos Santos,Y. dos Santos,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,25,10:45,645.9,,,,,,,,,,,,,,,,,,,,,,115.1,119.5,1.61,41,0.6,7,0.2,1.2,0,,0.2
+2025,25,offensive,20847,Ismael Bako,I. Bako,3292,Paris Basketball,Paris,C,9,09:15,555.1,108.8,96.9,2.6,,62,44,55,0,1.4,1.8,0,2.9,0.1,1,0.7,22,0.8,9,0.9,0,14.1,,,,,,,,,,,
+2025,25,defensive,20847,Ismael Bako,I. Bako,3292,Paris Basketball,Paris,C,9,09:15,555.1,,,,,,,,,,,,,,,,,,,,,,122.7,121.8,1.89,52,1.1,13,0.3,1.8,0.6,3.1,0.1
+2025,25,offensive,35591,Joel Ayayi,J. Ayayi,3292,Paris Basketball,Paris,SG,13,10:31,631.7,107.6,103.3,2.5,23,60,,45,1.7,1.2,0,59.5,4.5,0.8,5,0.7,20,1.1,9,0.3,0.1,14.2,,,,,,,,,,,
+2025,25,defensive,35591,Joel Ayayi,J. Ayayi,3292,Paris Basketball,Paris,SG,13,10:31,631.7,,,,,,,,,,,,,,,,,,,,,,110.1,110.6,2.06,50,1.3,13,0.5,2.6,0,,0.1
+2025,25,offensive,34931,David Kramer,D. Kramer,368,Real Madrid,Real,"SG,SF",14,11:20,680.2,119.8,103.9,2.5,32,36,50,46,1.8,0.8,0.4,69.4,4.2,0.9,5,0.4,14,0.4,4,0.6,0.2,13,,,,,,,,,,,
+2025,25,defensive,34931,David Kramer,D. Kramer,368,Real Madrid,Real,"SG,SF",14,11:20,680.2,,,,,,,,,,,,,,,,,,,,,,113.3,113.6,2.08,51,0.9,8,0.2,1.1,0,,0.3
+2025,25,offensive,38480,Sayon Keita,S. Keita,60,FC Barcelona,Barcelona,C,6,08:35,515.7,111.4,95.3,2.5,,58,50,58,0,2,0.3,0,3,0.2,1,0.7,24,0.7,8,0.7,0.2,16.3,,,,,,,,,,,
+2025,25,defensive,38480,Sayon Keita,S. Keita,60,FC Barcelona,Barcelona,C,6,08:35,515.7,,,,,,,,,,,,,,,,,,,,,,119.8,116.4,1.57,52,0.8,12,0.5,3.3,0.2,1.1,0
+2025,25,offensive,18459,David Kraemer,D. Kraemer,368,Real Madrid,Real,SG,8,12:57,777.5,227.8,183,2.5,35,25,0,45,2.1,0.5,0.3,81,4.1,0.9,9,0.4,12,0.3,2,0.6,0.1,19.5,,,,,,,,,,,
+2025,25,defensive,18459,David Kraemer,D. Kraemer,368,Real Madrid,Real,SG,8,12:57,777.5,,,,,,,,,,,,,,,,,,,,,,220.2,,2.23,106,1.4,11,0.3,2.4,0,,0
+2025,25,offensive,36804,Kajus Mikalauskas,K. Mikalauskas,265,Zalgiris Kaunas,Zalgiris,PG,2,09:04,544.5,141.2,116.1,2.5,33,50,,50,1.5,1,0,60,8,2.5,16,0.5,17,0,,1,0,14.6,,,,,,,,,,,
+2025,25,defensive,36804,Kajus Mikalauskas,K. Mikalauskas,265,Zalgiris Kaunas,Zalgiris,PG,2,09:04,544.5,,,,,,,,,,,,,,,,,,,,,,110.8,108.6,2.08,56,0.5,5,1,5.4,0,,0
+2025,25,offensive,35207,Nicola Akele,N. Akele,90,Virtus Segafredo Bologna,Virtus,PF,27,09:54,594,107.9,126.7,2.5,33,66,50,63,0.2,1.6,0.2,12,4.1,0.7,4,0.3,13,0.7,8,0.4,0,11.3,,,,,,,,,,,
+2025,25,defensive,35207,Nicola Akele,N. Akele,90,Virtus Segafredo Bologna,Virtus,PF,27,09:54,594,,,,,,,,,,,,,,,,,,,,,,114.4,116.7,1.66,46,1.3,15,0.2,1.2,0.1,0.4,0.1
+2025,25,offensive,37036,Brandon Taylor,B. Taylor,90,Virtus Segafredo Bologna,Virtus,PG,11,07:30,450.5,93.8,102.3,2.5,47,20,100,61,1.5,0.5,0.1,77.3,5.7,1.5,15,0.9,31,0,,0.3,0.1,19.5,,,,,,,,,,,
+2025,25,defensive,37036,Brandon Taylor,B. Taylor,90,Virtus Segafredo Bologna,Virtus,PG,11,07:30,450.5,,,,,,,,,,,,,,,,,,,,,,114,118.7,1,38,0.5,8,0.2,1.4,0,,0
+2025,25,offensive,8327,Sertac Sanli,S. Sanli,3359,Dubai Basketball,Dubai,C,7,07:50,470.4,127.8,122.8,2.4,67,67,100,85,0.4,0.9,0.4,33.3,2.4,0,0,0.4,23,0.3,5,0.7,0,11.7,,,,,,,,,,,
+2025,25,defensive,8327,Sertac Sanli,S. Sanli,3359,Dubai Basketball,Dubai,C,7,07:50,470.4,,,,,,,,,,,,,,,,,,,,,,122.7,125.1,1.11,40,0.7,12,0,0,0,,0.2
+2025,25,offensive,38816,Armando Bacot,A. Bacot,584,Fenerbahce Beko Istanbul,Fenerbahce,C,26,10:07,607,109,92.4,2.4,31,44,81,50,0.6,1.5,0.6,29.1,4,0.6,4,1,29,0.8,9,0.7,0.3,16,,,,,,,,,,,
+2025,25,defensive,38816,Armando Bacot,A. Bacot,584,Fenerbahce Beko Istanbul,Fenerbahce,C,26,10:07,607,,,,,,,,,,,,,,,,,,,,,,118.4,119,1.78,48,1,12,0.3,1.5,0.3,1.7,0.1
+2025,25,offensive,12213,Metecan Birsen,M. Birsen,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,24,11:14,674.5,112.9,114.4,2.4,35,42,84,54,0.8,1,0.8,45.5,3.3,0.3,2,0.5,17,0.6,7,0.8,0,11.3,,,,,,,,,,,
+2025,25,defensive,12213,Metecan Birsen,M. Birsen,584,Fenerbahce Beko Istanbul,Fenerbahce,PF,24,11:14,674.5,,,,,,,,,,,,,,,,,,,,,,118.5,117.3,2.1,51,1.5,16,0.3,1.6,0.1,0.4,0.1
+2025,25,offensive,38702,Francesco Ferrari,F. Ferrari,90,Virtus Segafredo Bologna,Virtus,PF,12,09:35,575.5,98.6,116.4,2.3,18,56,85,54,0.9,0.8,1.1,55,3.5,0.5,3,0.3,11,0.8,9,0.9,0,11.1,,,,,,,,,,,
+2025,25,defensive,38702,Francesco Ferrari,F. Ferrari,90,Virtus Segafredo Bologna,Virtus,PF,12,09:35,575.5,,,,,,,,,,,,,,,,,,,,,,121.1,122.1,1.65,45,1.3,16,0,0,0.2,0.9,0.1
+2025,25,offensive,38889,Stefan Miljenovic,S. Miljenovic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,13,06:53,413.2,107.9,110.3,2.2,30,33,82,54,0.8,0.7,1.3,52.6,3.7,0.7,7,0.3,13,0.1,1,1.2,0.2,16.1,,,,,,,,,,,
+2025,25,defensive,38889,Stefan Miljenovic,S. Miljenovic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,PG,13,06:53,413.2,,,,,,,,,,,,,,,,,,,,,,117.4,115.6,1.41,55,0.7,12,0.2,1.8,0.1,0.6,0.2
+2025,25,offensive,18433,Georgios Papagiannis,G. Papagiannis,583,Anadolu Efes Istanbul,Efes,C,5,14:46,886.6,118.5,98.2,2.2,20,40,,37,1,2,0,33.3,4.6,1,4,0.4,12,1,8,1.2,0,11.3,,,,,,,,,,,
+2025,25,defensive,18433,Georgios Papagiannis,G. Papagiannis,583,Anadolu Efes Istanbul,Efes,C,5,14:46,886.6,,,,,,,,,,,,,,,,,,,,,,113.7,112,2.66,54,2.4,19,0.4,1.6,0.6,2.4,0.2
+2025,25,offensive,14693,Melih Mahmutoglu,M. Mahmutoglu,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,7,05:58,358.1,112.3,118.9,2.1,31,25,100,44,1.9,0.6,0.1,76.5,2.4,0.1,2,0.3,11,0.1,3,0,0.1,21.6,,,,,,,,,,,
+2025,25,defensive,14693,Melih Mahmutoglu,M. Mahmutoglu,584,Fenerbahce Beko Istanbul,Fenerbahce,SG,7,05:58,358.1,,,,,,,,,,,,,,,,,,,,,,149.3,154.5,0.48,23,0.3,7,0,0,0,,0
+2025,25,offensive,35909,Nathan Sestina,N. Sestina,677,Valencia Basket,Valencia,PF,3,09:38,578.7,121.1,115.1,2,20,0,,23,3.3,1,0,76.9,4.3,1,7,0,0,0.7,7,0.3,0,18.3,,,,,,,,,,,
+2025,25,defensive,35909,Nathan Sestina,N. Sestina,677,Valencia Basket,Valencia,PF,3,09:38,578.7,,,,,,,,,,,,,,,,,,,,,,133.9,136.1,1.41,36,1.7,19,0,0,0,,0
+2025,25,offensive,37042,Juani Marcos,J. Marcos,60,FC Barcelona,Barcelona,SG,31,08:35,515.5,108.3,99.5,2,32,33,,44,1.6,0.7,0,70.4,5.2,1.3,10,0.6,20,0.3,3,0.3,0,16.4,,,,,,,,,,,
+2025,25,defensive,37042,Juani Marcos,J. Marcos,60,FC Barcelona,Barcelona,SG,31,08:35,515.5,,,,,,,,,,,,,,,,,,,,,,115.1,116.1,1.42,48,0.6,10,0.4,2.4,0,,0.1
+2025,25,offensive,14046,Danilo Andjusic,D. Andjusic,3359,Dubai Basketball,Dubai,SG,1,04:00,240,71.4,66.7,2,0,,100,33,2,0,2,100,2,0,0,0,0,0,,2,1,42.9,,,,,,,,,,,
+2025,25,defensive,14046,Danilo Andjusic,D. Andjusic,3359,Dubai Basketball,Dubai,SG,1,04:00,240,,,,,,,,,,,,,,,,,,,,,,88.9,97.8,0.6,33,0,,0,0,0,,0
+2025,25,offensive,18424,Diego Flaccadori,D. Flaccadori,389,EA7 Emporio Armani Milan,EA7 Armani,SG,7,05:54,354,110.4,82.9,2,50,67,57,70,0.6,0.4,1,57.1,2.7,0.4,5,0.7,33,0,,0.6,0,18.3,,,,,,,,,,,
+2025,25,defensive,18424,Diego Flaccadori,D. Flaccadori,389,EA7 Emporio Armani Milan,EA7 Armani,SG,7,05:54,354,,,,,,,,,,,,,,,,,,,,,,115.7,121.5,0.98,41,0.3,4,0.1,1.2,0,,0
+2025,25,offensive,19763,Levi Randolph,L. Randolph,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,12,10:15,615.4,116.6,85,2,33,33,57,40,0.5,1.8,0.6,22.2,2.8,0.3,2,0.4,14,0.4,4,0.7,0,13.9,,,,,,,,,,,
+2025,25,defensive,19763,Levi Randolph,L. Randolph,635,Hapoel Shlomo Tel Aviv,Hapoel,SF,12,10:15,615.4,,,,,,,,,,,,,,,,,,,,,,116.5,115.7,2.03,51,0.7,7,0.4,2.1,0,,0.3
+2025,25,offensive,22683,Uros Trifunovic,U. Trifunovic,636,Maccabi Playtika Tel Aviv,Maccabi,SF,1,03:10,190,166.7,80,2,0,100,,50,1,1,0,50,2,0,0,0,0,0,,0,0,28.6,,,,,,,,,,,
+2025,25,defensive,22683,Uros Trifunovic,U. Trifunovic,636,Maccabi Playtika Tel Aviv,Maccabi,SF,1,03:10,190,,,,,,,,,,,,,,,,,,,,,,185.7,185.7,0.2,14,0,,0,0,0,,0
+2025,25,offensive,16872,Bar Timor,B. Timor,635,Hapoel Shlomo Tel Aviv,Hapoel,"PG,SG",10,05:46,346.9,115.6,137.9,2,60,50,100,67,0.5,1,0.1,33.3,3.5,0.6,7,0.2,12,0,,0.1,0.2,14,,,,,,,,,,,
+2025,25,defensive,16872,Bar Timor,B. Timor,635,Hapoel Shlomo Tel Aviv,Hapoel,"PG,SG",10,05:46,346.9,,,,,,,,,,,,,,,,,,,,,,125.2,123.3,1.13,51,0.5,9,0.5,4.5,0,,0
+2025,25,offensive,23803,Mario Nakic,M. Nakic,77,Partizan Mozzart Bet Belgrade,Partizan,SF,1,06:13,373,100,200,2,,100,,100,0,1,0,0,2,0,0,0,0,0,,0,0,7.1,,,,,,,,,,,
+2025,25,defensive,23803,Mario Nakic,M. Nakic,77,Partizan Mozzart Bet Belgrade,Partizan,SF,1,06:13,373,,,,,,,,,,,,,,,,,,,,,,127.3,129.9,1.1,50,1,13,0,0,0,,0
+2025,25,offensive,22859,Terry Tarpey,T. Tarpey,2222,AS Monaco,Monaco,SF,36,07:41,461.3,117.5,145.3,2,46,68,63,68,0.7,0.7,0.2,49,3,0.4,3,0.2,10,0.7,10,0.4,0,10,,,,,,,,,,,
+2025,25,defensive,22859,Terry Tarpey,T. Tarpey,2222,AS Monaco,Monaco,SF,36,07:41,461.3,,,,,,,,,,,,,,,,,,,,,,108.5,107.2,1.65,58,1.1,16,0.4,2.7,0.1,0.6,0.1
+2025,25,offensive,20931,Mantas Rubštavičius,M. Rubštavičius,265,Zalgiris Kaunas,Zalgiris,SG,17,04:19,259.3,129.5,125.3,1.8,44,22,100,57,0.9,0.5,0.4,64,2.2,0.2,3,0.2,13,0.1,3,0.4,0.2,19.5,,,,,,,,,,,
+2025,25,defensive,20931,Mantas Rubštavičius,M. Rubštavičius,265,Zalgiris Kaunas,Zalgiris,SG,17,04:19,259.3,,,,,,,,,,,,,,,,,,,,,,115,118.8,0.67,41,0.5,11,0.1,0.7,0,,0
+2025,25,offensive,20529,Dovydas Giedraitis,D. Giedraitis,265,Zalgiris Kaunas,Zalgiris,SG,20,12:26,746,115.3,109.5,1.8,29,50,50,46,1.1,0.8,0.2,56.8,4.7,1.2,6,0.6,22,0.6,6,0.5,0.1,10.1,,,,,,,,,,,
+2025,25,defensive,20529,Dovydas Giedraitis,D. Giedraitis,265,Zalgiris Kaunas,Zalgiris,SG,20,12:26,746,,,,,,,,,,,,,,,,,,,,,,117.1,120.8,1.86,41,0.8,7,0.4,1.6,0,,0.1
+2025,25,offensive,23730,Xabi Lopez-Arostegui,X. Lopez-Arostegui,677,Valencia Basket,Valencia,"SF,PF",10,08:28,508.4,128.1,96.3,1.7,21,29,80,39,1.4,0.7,0.5,66.7,3.4,0.7,5,0.6,21,0.2,3,0.4,0.2,14.9,,,,,,,,,,,
+2025,25,defensive,23730,Xabi Lopez-Arostegui,X. Lopez-Arostegui,677,Valencia Basket,Valencia,"SF,PF",10,08:28,508.4,,,,,,,,,,,,,,,,,,,,,,117.8,121.8,1.25,38,0.7,10,0.2,1.2,0,,0.1
+2025,25,offensive,21604,Monte Morris,M. Morris,460,Olympiacos Piraeus,Olympiacos,PG,8,11:32,692.5,115.4,88.5,1.6,0,30,58,30,0.9,1.3,1.5,41.2,4.9,1.4,8,0.5,15,0.3,3,0.9,0.3,13.5,,,,,,,,,,,
+2025,25,defensive,21604,Monte Morris,M. Morris,460,Olympiacos Piraeus,Olympiacos,PG,8,11:32,692.5,,,,,,,,,,,,,,,,,,,,,,129.6,131.4,1.67,42,1,10,0.1,0.6,0.1,0.6,0.1
+2025,25,offensive,35875,Gabriele Procida,G. Procida,368,Real Madrid,Real,SF,8,04:59,299.3,98.7,129.7,1.6,40,40,100,59,0.6,0.6,0.4,50,1.9,0.1,2,0.1,8,0.3,6,0.1,0.1,14.3,,,,,,,,,,,
+2025,25,defensive,35875,Gabriele Procida,G. Procida,368,Real Madrid,Real,SF,8,04:59,299.3,,,,,,,,,,,,,,,,,,,,,,127.8,137,0.58,29,0.3,5,0,0,0,,0
+2025,25,offensive,38819,Adam Atamna,A. Atamna,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",17,10:24,624.3,96.2,70.4,1.6,13,15,75,22,2.2,1.2,0.5,65.5,4.5,1.2,8,0.6,14,0.5,5,0.9,0.2,19.3,,,,,,,,,,,
+2025,25,defensive,38819,Adam Atamna,A. Atamna,700,LDLC ASVEL Villeurbanne,ASVEL,"PG,SG",17,10:24,624.3,,,,,,,,,,,,,,,,,,,,,,112.3,113.2,1.75,48,0.7,8,0.5,2.9,0.1,0.7,0.1
+2025,25,offensive,22987,Kostas Antetokounmpo,K. Antetokounmpo,460,Olympiacos Piraeus,Olympiacos,C,4,05:40,340.3,97.6,133.7,1.5,,75,0,60,0,1,0.5,0,3.8,1,11,0.3,17,0.8,14,0.5,0,12.2,,,,,,,,,,,
+2025,25,defensive,22987,Kostas Antetokounmpo,K. Antetokounmpo,460,Olympiacos Piraeus,Olympiacos,C,4,05:40,340.3,,,,,,,,,,,,,,,,,,,,,,126.8,127.4,0.93,45,0.8,13,0,0,0,,0.1
+2025,25,offensive,36943,Enzo Shahrvin,E. Shahrvin,3292,Paris Basketball,Paris,SF,11,08:37,517.4,107.9,95.6,1.5,,62,0,57,0,1.2,0.3,0,2.6,0.5,3,0.6,33,0.6,8,0.5,0.1,9.8,,,,,,,,,,,
+2025,25,defensive,36943,Enzo Shahrvin,E. Shahrvin,3292,Paris Basketball,Paris,SF,11,08:37,517.4,,,,,,,,,,,,,,,,,,,,,,110.1,105.9,2.05,60,1.8,25,0.2,1.1,0.5,2.8,0.1
+2025,25,offensive,18607,Erkan Yilmaz,E. Yilmaz,583,Anadolu Efes Istanbul,Efes,SF,23,08:51,531.7,104.2,87.9,1.2,8,60,68,45,0.5,0.4,0.8,54.5,2.4,0.5,4,0.5,28,0.3,5,0.6,0,10.6,,,,,,,,,,,
+2025,25,defensive,18607,Erkan Yilmaz,E. Yilmaz,583,Anadolu Efes Istanbul,Efes,SF,23,08:51,531.7,,,,,,,,,,,,,,,,,,,,,,111.5,106.3,1.98,62,1.2,17,0.6,3.6,0.2,1.4,0.1
+2025,25,offensive,22650,Aleksa Radanov,A. Radanov,77,Partizan Mozzart Bet Belgrade,Partizan,SG,10,06:48,408.4,77.9,80.7,1.2,29,50,,46,0.7,0.6,0,53.8,2.2,0.4,4,0.5,28,0.3,5,0.5,0,13.3,,,,,,,,,,,
+2025,25,defensive,22650,Aleksa Radanov,A. Radanov,77,Partizan Mozzart Bet Belgrade,Partizan,SG,10,06:48,408.4,,,,,,,,,,,,,,,,,,,,,,126.4,130.3,0.94,36,0.6,13,0.1,0.8,0,,0
+2025,25,offensive,16636,Nemanja Dangubic,N. Dangubic,3359,Dubai Basketball,Dubai,SF,14,07:40,460.1,109.6,95.9,1.1,20,40,33,38,0.4,1.1,0.2,25,1.9,0.4,3,0.1,9,0.8,11,0.4,0.1,10.6,,,,,,,,,,,
+2025,25,defensive,16636,Nemanja Dangubic,N. Dangubic,3359,Dubai Basketball,Dubai,SF,14,07:40,460.1,,,,,,,,,,,,,,,,,,,,,,126.2,126.1,1.3,47,0.9,13,0,0,0,,0.1
+2025,25,offensive,37475,Uros Plavsic,U. Plavsic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,7,05:04,304.7,95.5,76.2,1,,29,50,35,0,1,0.9,0,1.9,0.4,6,0.6,29,0.7,14,0.6,0,17.5,,,,,,,,,,,
+2025,25,defensive,37475,Uros Plavsic,U. Plavsic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,C,7,05:04,304.7,,,,,,,,,,,,,,,,,,,,,,130.9,126.2,1.05,54,0.9,21,0.1,1.5,0,,0.3
+2025,25,offensive,35352,Ousmane Diop,O. Diop,389,EA7 Emporio Armani Milan,EA7 Armani,PF,2,06:39,399.5,79.2,86,1,,0,100,50,0,0.5,1,0,1.5,0.5,6,0,0,0,,1,0,8,,,,,,,,,,,
+2025,25,defensive,35352,Ousmane Diop,O. Diop,389,EA7 Emporio Armani Milan,EA7 Armani,PF,2,06:39,399.5,,,,,,,,,,,,,,,,,,,,,,117.4,107.2,1.68,73,1,13,0,0,0.5,3.8,0
+2025,25,offensive,6826,Marius Grigonis,M. Grigonis,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,19,05:48,348.6,117.3,98.5,1,31,40,,45,0.8,0.3,0,76.2,1.8,0.3,3,0.3,19,0.2,4,0.4,0,11.5,,,,,,,,,,,
+2025,25,defensive,6826,Marius Grigonis,M. Grigonis,33,Panathinaikos AKTOR Athens,Panathinaikos,SG,19,05:48,348.6,,,,,,,,,,,,,,,,,,,,,,128.1,131.5,0.77,37,0.5,9,0.1,0.5,0,,0.1
+2025,25,offensive,38875,Matteo Accorsi,M. Accorsi,90,Virtus Segafredo Bologna,Virtus,PG,6,04:13,253.3,133.3,93.8,1,0,100,,38,0.8,0.5,0,62.5,1.3,0.2,2,0,0,0.2,4,0,0,14.3,,,,,,,,,,,
+2025,25,defensive,38875,Matteo Accorsi,M. Accorsi,90,Virtus Segafredo Bologna,Virtus,PG,6,04:13,253.3,,,,,,,,,,,,,,,,,,,,,,98,96.2,1.03,62,0.3,8,0.3,4,0,,0
+2025,25,offensive,21239,Panagiotis Kalaitzakis,P. Kalaitzakis,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,26,05:06,306.5,117.6,120.4,1,23,67,33,50,0.5,0.5,0.1,52,1.8,0.3,4,0.1,10,0.1,2,0.3,0,11.8,,,,,,,,,,,
+2025,25,defensive,21239,Panagiotis Kalaitzakis,P. Kalaitzakis,33,Panathinaikos AKTOR Athens,Panathinaikos,SF,26,05:06,306.5,,,,,,,,,,,,,,,,,,,,,,114.8,116.5,1.04,48,0.5,11,0.2,2.1,0,,0.1
+2025,25,offensive,18487,Stefano Tonut,S. Tonut,389,EA7 Emporio Armani Milan,EA7 Armani,SG,10,08:58,538.2,115.6,120.1,0.9,0,75,75,50,0.4,0.4,0.4,50,2.2,0.5,4,0.1,10,0.2,3,0.5,0,5.8,,,,,,,,,,,
+2025,25,defensive,18487,Stefano Tonut,S. Tonut,389,EA7 Emporio Armani Milan,EA7 Armani,SG,10,08:58,538.2,,,,,,,,,,,,,,,,,,,,,,124.2,121.1,1.69,51,0.7,11,0.5,3,0,,0.1
+2025,25,offensive,39598,Matteo Baiocchi,M. Baiocchi,90,Virtus Segafredo Bologna,Virtus,SG,5,09:54,594.2,111.8,43.2,0.8,0,40,,33,0.2,1,0,16.7,1.8,0.4,3,1.4,54,0,,0.4,0,12.6,,,,,,,,,,,
+2025,25,defensive,39598,Matteo Baiocchi,M. Baiocchi,90,Virtus Segafredo Bologna,Virtus,SG,5,09:54,594.2,,,,,,,,,,,,,,,,,,,,,,96.9,104.3,1.63,42,0.6,6,0.2,1,0,,0
+2025,25,offensive,35185,Rafa Villar,R. Villar,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,27,06:16,376.1,112.1,132.4,0.7,0,67,100,53,0.2,0.4,0.1,29.4,2,0.6,5,0.1,14,0.1,3,0.4,0,6.2,,,,,,,,,,,
+2025,25,defensive,35185,Rafa Villar,R. Villar,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,27,06:16,376.1,,,,,,,,,,,,,,,,,,,,,,114.2,114.7,1.16,51,0.4,8,0.3,2.3,0,0.3,0
+2025,25,offensive,38817,Izan Almansa,I. Almansa,368,Real Madrid,Real,"PF,C",3,03:12,192.7,93.8,63,0.7,,100,,100,0,0.3,0,0,0.7,0,0,0.3,50,0,,0,0,11.1,,,,,,,,,,,
+2025,25,defensive,38817,Izan Almansa,I. Almansa,368,Real Madrid,Real,"PF,C",3,03:12,192.7,,,,,,,,,,,,,,,,,,,,,,110.5,114.7,0.47,37,0,,0,0,0,,0
+2025,25,offensive,38820,Clifford Omoruyi,C. Omoruyi,636,Maccabi Playtika Tel Aviv,Maccabi,C,3,05:22,322,125.9,104.4,0.7,,0,100,33,0,0.7,0.7,0,0.7,0,0,0.3,25,1.3,24,0.3,0,11.1,,,,,,,,,,,
+2025,25,defensive,38820,Clifford Omoruyi,C. Omoruyi,636,Maccabi Playtika Tel Aviv,Maccabi,C,3,05:22,322,,,,,,,,,,,,,,,,,,,,,,157.1,161.4,0.51,27,0.3,8,0,0,0,,0
+2025,25,offensive,38963,Stefan Joksimovic,S. Joksimovic,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,11,05:56,356.5,109.8,47.5,0.6,13,33,,25,0.7,0.5,0,57.1,1.5,0.3,3,0.5,30,0,,0.2,0,14,,,,,,,,,,,
+2025,25,defensive,38963,Stefan Joksimovic,S. Joksimovic,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,PG,11,05:56,356.5,,,,,,,,,,,,,,,,,,,,,,121.2,120.5,1.05,49,0.5,13,0.3,2.5,0,,0
+2025,25,offensive,39134,Taran Armstrong,T. Armstrong,3359,Dubai Basketball,Dubai,PG,7,05:42,342.9,88.6,58.2,0.6,0,67,,40,0.3,0.4,0,40,1.3,0.3,3,0.6,44,0.1,2,0.1,0,10.3,,,,,,,,,,,
+2025,25,defensive,39134,Taran Armstrong,T. Armstrong,3359,Dubai Basketball,Dubai,PG,7,05:42,342.9,,,,,,,,,,,,,,,,,,,,,,119.4,118.7,0.98,48,0.6,12,0.1,1.4,0,,0.2
+2025,25,offensive,37417,Vit Hrabar,V. Hrabar,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,4,02:33,153.3,76.2,114.3,0.5,0,50,,33,0.3,0.5,0,33.3,0.5,0,0,0,0,0.5,18,0,0,13,,,,,,,,,,,
+2025,25,defensive,37417,Vit Hrabar,V. Hrabar,709,Kosner Baskonia Vitoria-Gasteiz,Baskonia,SF,4,02:33,153.3,,,,,,,,,,,,,,,,,,,,,,163.6,162.2,0.29,26,0,,0,0,0,,0.3
+2025,25,offensive,37246,Omiros Netzipoglou,O. Netzipoglou,460,Olympiacos Piraeus,Olympiacos,SG,4,03:38,218,115.4,89.6,0.5,0,25,,20,0.3,1,0,20,0.5,0,0,0,0,0.5,18,0,0,16.7,,,,,,,,,,,
+2025,25,defensive,37246,Omiros Netzipoglou,O. Netzipoglou,460,Olympiacos Piraeus,Olympiacos,SG,4,03:38,218,,,,,,,,,,,,,,,,,,,,,,110.7,117.4,0.49,35,0,,0,0,0,,0.1
+2025,25,offensive,24752,David Michineau,D. Michineau,2222,AS Monaco,Monaco,PG,4,02:14,134,145,73.9,0.5,0,33,,25,0.3,0.8,0,25,1.8,0.5,15,0.5,33,0,,0,0,28.6,,,,,,,,,,,
+2025,25,defensive,24752,David Michineau,D. Michineau,2222,AS Monaco,Monaco,PG,4,02:14,134,,,,,,,,,,,,,,,,,,,,,,85,94.4,0.46,46,0,,0.3,5,0,,0
+2025,25,offensive,18611,Leon Kratzer,L. Kratzer,1220,FC Bayern Munich,Bayern,C,9,06:26,386.6,87.4,67.3,0.4,,67,,67,0,0.3,0,0,1.6,0.4,4,0.6,63,0.2,4,0.2,0,7,,,,,,,,,,,
+2025,25,defensive,18611,Leon Kratzer,L. Kratzer,1220,FC Bayern Munich,Bayern,C,9,06:26,386.6,,,,,,,,,,,,,,,,,,,,,,121.6,119.9,1.19,52,0.9,17,0.1,1,0,,0.2
+2025,25,offensive,23364,Guy Palatin,G. Palatin,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,10,02:10,130,81.1,76.7,0.3,100,0,,75,0.1,0.1,0,50,0.6,0.1,3,0.2,50,0.2,10,0,0,9.3,,,,,,,,,,,
+2025,25,defensive,23364,Guy Palatin,G. Palatin,635,Hapoel Shlomo Tel Aviv,Hapoel,PG,10,02:10,130,,,,,,,,,,,,,,,,,,,,,,122.2,126.2,0.34,38,0.3,12,0,0,0,,0
+2025,25,offensive,19687,Giannoulis Larentzakis,G. Larentzakis,460,Olympiacos Piraeus,Olympiacos,SG,7,02:59,179.4,105.3,56.6,0.3,0,100,,17,0.7,0.1,0,83.3,2.3,0.9,18,0.3,25,0,,0.3,0,17.8,,,,,,,,,,,
+2025,25,defensive,19687,Giannoulis Larentzakis,G. Larentzakis,460,Olympiacos Piraeus,Olympiacos,SG,7,02:59,179.4,,,,,,,,,,,,,,,,,,,,,,133.3,134.9,0.47,39,0.1,5,0,0,0,,0.1
+2025,25,offensive,37526,Miikka Muurinen,M. Muurinen,77,Partizan Mozzart Bet Belgrade,Partizan,"PF,SF",6,01:49,109.5,88.9,40.7,0.2,0,,50,25,0.2,0,0.3,100,0.2,0,0,0,0,0,,0.3,0,8.7,,,,,,,,,,,
+2025,25,defensive,37526,Miikka Muurinen,M. Muurinen,77,Partizan Mozzart Bet Belgrade,Partizan,"PF,SF",6,01:49,109.5,,,,,,,,,,,,,,,,,,,,,,166.7,173.8,0.13,19,0,,0,0,0,,0
+2025,25,offensive,16597,Ioannis Kouzeloglou,I. Kouzeloglou,33,Panathinaikos AKTOR Athens,Panathinaikos,"SF,PF",3,05:38,338.3,78.8,30.4,0,,,,,0,0,0,,1,0.3,3,1,100,0.3,5,0,0,7.9,,,,,,,,,,,
+2025,25,defensive,16597,Ioannis Kouzeloglou,I. Kouzeloglou,33,Panathinaikos AKTOR Athens,Panathinaikos,"SF,PF",3,05:38,338.3,,,,,,,,,,,,,,,,,,,,,,130.3,124.8,1.09,50,0.7,12,0.3,3,0,,0
+2025,25,offensive,18406,Vlatko Cancar,V. Cancar,389,EA7 Emporio Armani Milan,EA7 Armani,SF,2,07:43,463.5,134.5,0,0,,0,,0,0,0.5,0,0,0,0,0,1,67,0,,0,0,9.4,,,,,,,,,,,
+2025,25,defensive,18406,Vlatko Cancar,V. Cancar,389,EA7 Emporio Armani Milan,EA7 Armani,SF,2,07:43,463.5,,,,,,,,,,,,,,,,,,,,,,92.6,100.9,0.96,36,0,,0,0,0,,0
+2025,25,offensive,12194,Itay Segev,I. Segev,635,Hapoel Shlomo Tel Aviv,Hapoel,PF,1,02:59,179,33.3,0,0,,0,,0,0,1,0,0,0,0,0,0,0,0,,1,0,16.7,,,,,,,,,,,
+2025,25,defensive,12194,Itay Segev,I. Segev,635,Hapoel Shlomo Tel Aviv,Hapoel,PF,1,02:59,179,,,,,,,,,,,,,,,,,,,,,,112.5,101.5,1.19,74,0,,0,0,0,,0
+2025,25,offensive,39296,Uros Mijailovic,U. Mijailovic,77,Partizan Mozzart Bet Belgrade,Partizan,SF,5,02:23,143.8,60.9,0,0,,0,,0,0,0.2,0,0,0,0,0,0.2,50,0,,0,0,8,,,,,,,,,,,
+2025,25,defensive,39296,Uros Mijailovic,U. Mijailovic,77,Partizan Mozzart Bet Belgrade,Partizan,SF,5,02:23,143.8,,,,,,,,,,,,,,,,,,,,,,153.8,157.7,0.32,31,0.2,33,0,0,0,,0
+2025,25,offensive,39343,Nikola Kusturica,N. Kusturica,60,FC Barcelona,Barcelona,SF,1,01:08,68,0,0,0,,0,,0,0,1,0,0,0,0,0,0,0,0,,0,1,50,,,,,,,,,,,
+2025,25,defensive,39343,Nikola Kusturica,N. Kusturica,60,FC Barcelona,Barcelona,SF,1,01:08,68,,,,,,,,,,,,,,,,,,,,,,200,200,0,0,0,,0,0,0,,0
+2025,25,offensive,35178,Juan Nunez,J. Nunez,60,FC Barcelona,Barcelona,PG,1,05:16,316,77.8,23.3,0,,0,,0,0,2,0,0,2,1,17,1,33,0,,1,1,27.3,,,,,,,,,,,
+2025,25,defensive,35178,Juan Nunez,J. Nunez,60,FC Barcelona,Barcelona,PG,1,05:16,316,,,,,,,,,,,,,,,,,,,,,,85.7,91.4,0.6,43,0,,0,0,0,,0
+2025,25,offensive,22948,Keenan Evans,K. Evans,460,Olympiacos Piraeus,Olympiacos,PG,1,02:01,121,166.7,,0,,,,,0,0,0,,0,0,0,0,,0,,0,0,0,,,,,,,,,,,
+2025,25,defensive,22948,Keenan Evans,K. Evans,460,Olympiacos Piraeus,Olympiacos,PG,1,02:01,121,,,,,,,,,,,,,,,,,,,,,,66.7,93.3,0,0,0,,0,0,0,,0
+2025,25,offensive,39004,Gunars Grinvalds,G. Grinvalds,368,Real Madrid,Real,SF,1,00:48,48,0,,0,,,,,0,0,0,,0,0,0,0,,0,,0,0,0,,,,,,,,,,,
+2025,25,defensive,39004,Gunars Grinvalds,G. Grinvalds,368,Real Madrid,Real,SF,1,00:48,48,,,,,,,,,,,,,,,,,,,,,,200,200,0,0,0,,0,0,0,,0
+2025,25,offensive,36031,Ognjen Radosic,O. Radosic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,1,00:51,51,0,,0,,,,,0,0,0,,0,0,0,0,,0,,0,0,0,,,,,,,,,,,
+2025,25,defensive,36031,Ognjen Radosic,O. Radosic,74,Crvena Zvezda Meridianbet Belgrade,C.Zvezda,SG,1,00:51,51,,,,,,,,,,,,,,,,,,,,,,0,,0.2,50,0,,0,0,0,,0
+2025,25,offensive,37625,Mitar Bosnjakovic,M. Bosnjakovic,77,Partizan Mozzart Bet Belgrade,Partizan,SG,3,03:08,188,100,228.6,0,,,,,0,0,0,,0,0,0,0,,0.3,13,0,0,0,,,,,,,,,,,
+2025,25,defensive,37625,Mitar Bosnjakovic,M. Bosnjakovic,77,Partizan Mozzart Bet Belgrade,Partizan,SG,3,03:08,188,,,,,,,,,,,,,,,,,,,,,,128.6,136.6,0.44,31,0,,0,0,0,,0
+2025,25,offensive,22666,Moustapha Fall,M. Fall,460,Olympiacos Piraeus,Olympiacos,C,2,06:43,403,112.5,221.1,0,,,,,0,0,0,,5.5,2.5,18,0,,0.5,7,0.5,0,0,,,,,,,,,,,
+2025,25,defensive,22666,Moustapha Fall,M. Fall,460,Olympiacos Piraeus,Olympiacos,C,2,06:43,403,,,,,,,,,,,,,,,,,,,,,,140.9,124.5,1.7,77,1,20,0,0,1,9.1,0
+2025,25,offensive,38775,Isaac Nogues,I. Nogues,677,Valencia Basket,Valencia,SF,13,03:15,195.2,97.4,55.6,0,0,0,,0,0.2,0.2,0,50,0.9,0.5,8,0.2,33,0.2,5,0.5,0,6.4,,,,,,,,,,,
+2025,25,defensive,38775,Isaac Nogues,I. Nogues,677,Valencia Basket,Valencia,SF,13,03:15,195.2,,,,,,,,,,,,,,,,,,,,,,101.3,88.8,1,83,0.5,22,0.4,6.4,0,,0.1
