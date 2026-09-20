@@ -17,5 +17,3 @@ ADD . /app
 
 # Sync the project
 RUN uv sync --frozen
-
-CMD [ "python", "src/foo.py"]

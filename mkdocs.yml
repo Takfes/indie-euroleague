@@ -9,13 +9,8 @@ copyright: Maintained by <a href="https://Takfes.com">Takfes</a>.
 
 nav:
   - Home: index.md
-  - Modules: modules.md
 plugins:
   - search
-  - mkdocstrings:
-      handlers:
-        python:
-          paths: [src]
 theme:
   name: material
   feature:

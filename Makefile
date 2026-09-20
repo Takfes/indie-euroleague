@@ -11,39 +11,7 @@ check: ## Run code quality tools.
 	@uv lock --locked
 	@echo "🚀 Linting code: Running pre-commit"
 	@uv run pre-commit run -a
-	@echo "🚀 Static type checking: Running mypy"
-	@uv run mypy
-
-.PHONY: run-all
-run-all: ## Run all data processing and modeling steps
-	@echo "🌱 Data Acquisition"
-	@uv run flow/data_acquisition.py
-	@echo "🚀 Feature Engineering"
-	@uv run flow/feature_engineering.py
-	@echo "🎯 Predictive Modeling"
-	@uv run flow/predictive_modeling.py
-	@echo "💥 Squad Optimization"
-	@uv run flow/squad_optimization.py
-
-.PHONY: get-data
-get-data: ## Get data
-	@echo "🌱 Data Acquisition"
-	@uv run flow/data_acquisition.py
-
-.PHONY: features
-features: ## Create features
-	@echo "🚀 Feature Engineering"
-	@uv run flow/feature_engineering.py
-	
-.PHONY: predictions
-predictions: ## Train predictive model
-	@echo "🎯 Predictive Modeling"
-	@uv run flow/predictive_modeling.py
-
-.PHONY: optimization
-optimization: ## Run optimization
-	@echo "💥 Squad Optimization"
-	@uv run flow/squad_optimization.py
+	# @uv run mypy  # re-enable once tool.mypy.files is set for the new source layout
 
 .PHONY: clean-data
 clean-data: # Clean data folders
