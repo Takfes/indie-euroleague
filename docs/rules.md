@@ -103,9 +103,36 @@ The coach scores even if dismissed, absent or disqualified.
 
 ## Prices
 
-- After each Round a player's credit value rises or falls (capital gain / loss), driven by two factors: the **score obtained** and the **starting value** — for the same score, a low-priced player gains more than a high-priced one.
+- After each Round a player's credit value rises or falls (capital gain / loss). The official algorithm is not published; the mechanics below combine the official rules with a community reverse-engineered formula.
+- **Single-round rule:** the change depends only on the player's most recent Round. Earlier Rounds and longer-term averages have no effect on the next price update.
+- **Two inputs:** the **score obtained** in that Round (PIR-based, see [Player score](#player-score)) and the player's **starting value** (his price going into the Round).
+- **Price bracket scale:** for the same score, a low-priced player gains more than a high-priced one. Cheap players need a low score to gain value; expensive stars must keep posting big scores just to stop their price dropping.
 - The change adjusts your team's credit budget, i.e. your purchasing power. Example: a 20.5cr player gains +1.5cr and reaches 22cr; the team value goes 100 → 101.5cr, so selling him buys a 22cr replacement.
-- Ways to capture gains (GitBook tips): buy injured stars back cheaply on their return, pick mid-priced replacements of injured stars, and find underrated players before their price rises.
+- Ways to capture gains (GitBook tips): buy injured stars back cheaply on their return (a player loses value for every game he misses), pick mid-priced replacements of injured stars, and find underrated players before their price rises.
+
+### Estimated price formula (unofficial)
+
+Reverse-engineered by the community account @ELFantasist together with a mathematician; it is reported to predict gains and losses across several price brackets.
+
+```text
+Price change = (Round score − 0.9 × Starting value) / 10
+```
+
+- **Breakeven score = 0.9 × starting value.** Above it the price rises, below it the price falls, by 0.1cr per point of difference.
+
+| Starting value | Breakeven score | Round score | Price change |
+| -------------- | --------------- | ----------- | ------------ |
+| 10cr           | 9               | 19          | +1.0cr       |
+| 20cr           | 18              | 19          | +0.1cr       |
+| 20cr           | 18              | 8           | −1.0cr       |
+
+The third row is derived from the formula; the first two are the community's worked examples.
+
+- **Cap (unconfirmed):** the game is believed to cap the gain or loss in a single Round, reported as roughly ±15% of the player's value or a flat ~1.5cr. The official GitBook example (+1.5cr) is consistent with a flat cap, but neither cap is documented.
+- **Round score (unconfirmed):** the [Player score](#player-score) table is the standard PIR formula plus the team win bonus. It is not documented whether the price formula uses the score with or without the win bonus.
+- Neither the formula nor the cap appears in the official rules — treat predictions as estimates.
+
+References: [official rules GitBook — Quotations and price variations](https://fantaking.gitbook.io/euroleague-fantasy-challenge-rules/classic-mode/quotations-and-price-variations) (two inputs, no formula); [EuroLeague — Dynamic new player price changes](https://www.euroleaguebasketball.net/euroleague/news/euroleague-fantasy-challenge-dynamic-new-player-price-changes/); [Google search for price-formula hints](https://www.google.com/search?q=are+there+any+hints+online+concerning+the+euroleague+fantasy+credit+score%2Fprice+update+formula%3F) (where the community formula was found; search results, not a primary source).
 
 ## Suspended or changed games
 
