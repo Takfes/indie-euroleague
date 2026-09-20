@@ -148,6 +148,8 @@ data/*
 !data/dunkest-data/**
 !data/basketnews-onoff-stats/
 !data/basketnews-onoff-stats/**
+!data/euroleague-fantasy/
+!data/euroleague-fantasy/**
 
 # macOS
 .DS_Store
