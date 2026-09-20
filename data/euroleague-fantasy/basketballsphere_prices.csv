@@ -1,0 +1,347 @@
+rank,name,club,position,price,role
+1,Sasha Vezenkov,Olympiacos,F,17.0,player
+2,Mike James,Anadolu Efes,G,16.0,player
+3,Chima Moneke,Crvena Zvezda,F,15.5,player
+4,Elijah Bryant,Hapoel Tel Aviv,G,15.5,player
+5,Jonas Valanciunas,Zalgiris,C,15.5,player
+6,Nikola Milutinov,Olympiacos,C,15.3,player
+7,TJ Shorts,Valencia,G,14.9,player
+8,Jaylen Hoard,Maccabi Tel Aviv,F,14.8,player
+9,Nadir Hifi,Paris,G,14.8,player
+10,Sylvain Francisco,Panathinaikos,G,14.8,player
+11,Walter Tavares,Real Madrid,C,14.7,player
+12,Kendrick Nunn,Panathinaikos,G,14.6,player
+13,Mfiondu Kabengele,Dubai,C,14.6,player
+14,Dario Saric,Anadolu Efes,F,14.5,player
+15,Mathias Lessort,Panathinaikos,C,14.4,player
+16,Guerschon Yabusele,Panathinaikos,F,14.3,player
+17,Wade Baldwin,Fenerbahce,G,14.3,player
+18,Dan Oturu,Hapoel Tel Aviv,C,14.2,player
+19,Moses Wright,Milano,C,14.0,player
+20,Tornike Shengelia,Dubai,F,13.8,player
+21,Facundo Campazzo,Real Madrid,G,13.7,player
+22,Carlik Jones,Partizan,G,13.6,player
+23,Kevin Punter,Barcelona,G,13.6,player
+24,McKinley Wright,Dubai,G,13.5,player
+25,Shane Larkin,Fenerbahce,G,13.5,player
+26,Nigel Hayes-Davis,Panathinaikos,F,13.4,player
+27,Roman Sorkin,Maccabi Tel Aviv,C,13.4,player
+28,Dzanan Musa,Dubai,G,13.3,player
+29,Zach LeDay,Hapoel Tel Aviv,F,13.3,player
+30,Jordan Nwora,Crvena Zvezda,F,13.0,player
+31,Jean Montero,Olympiacos,G,12.8,player
+32,Timothe Luwawu-Cabarrot,Real Madrid,F,12.8,player
+33,Dwayne Bacon,Dubai,F,12.7,player
+34,Filip Petrusev,Dubai,F,12.7,player
+35,Talen Horton-Tucker,Fenerbahce,G,12.7,player
+36,Tyler Dorsey,Olympiacos,G,12.6,player
+37,Amir Coffey,Hapoel Tel Aviv,F,12.5,player
+38,Josh Nebo,Barcelona,C,12.5,player
+39,Kameron Taylor,Valencia,F,12.4,player
+40,Shavon Shields,Fenerbahce,F,12.4,player
+41,Will Clyburn,Fenerbahce,F,12.4,player
+42,Patty Mills,ASVEL,G,12.3,player
+43,Daniel Theis,Maccabi Tel Aviv,C,12.2,player
+44,Elie Okobo,Dubai,G,12.2,player
+45,Justin Robinson,Barcelona,G,12.2,player
+46,Chris Jones,Crvena Zvezda,G,12.1,player
+47,Ante Zizic,Besiktas,C,12.0,player
+48,Tyrique Jones,Olympiacos,C,12.0,player
+49,Vasilije Micic,Hapoel Tel Aviv,G,12.0,player
+50,Alec Peters,Milano,F,11.7,player
+51,Isaac Bonga,Panathinaikos,F,11.5,player
+52,TJ Warren,Paris,F,11.5,player
+53,Carsen Edwards,Zalgiris,G,11.4,player
+54,Juancho Hernangomez,Panathinaikos,F,11.4,player
+55,Bonzie Colson,Maccabi Tel Aviv,F,11.3,player
+56,Marcus Bingham,Fenerbahce,C,11.3,player
+57,Marjon Beauchamp,Bayern Munich,F,11.3,player
+58,Azuolas Tubelis,Zalgiris,F,11.1,player
+59,Tyson Etienne,Paris,G,11.1,player
+60,Austin Wiley,Bayern Munich,C,11.0,player
+61,Codi Miller-McIntyre,Olympiacos,G,11.0,player
+62,Johnathan Motley,Crvena Zvezda,C,11.0,player
+63,Rasheed Bello,Virtus Bologna,G,11.0,player
+64,Donta Hall,Olympiacos,C,10.9,player
+65,Keaton Wallace,Maccabi Tel Aviv,G,10.8,player
+66,Daron Russell,Anadolu Efes,G,10.7,player
+67,Kostas Sloukas,Panathinaikos,G,10.7,player
+68,Johannes Thiemann,Bayern Munich,C,10.6,player
+69,Patrick Baldwin Jr.,Crvena Zvezda,C,10.6,player
+70,Sterling Brown,Zalgiris,G,10.6,player
+71,Trent Forrest,Fenerbahce,G,10.6,player
+72,Eugene Omoruyi,Besiktas,F,10.5,player
+73,TJ Leaf,Maccabi Tel Aviv,F,10.5,player
+74,Trent Frazier,Virtus Bologna,G,10.5,player
+75,Joel Bolomboy,ASVEL,C,10.4,player
+76,Tadas Sedekerskis,Baskonia,F,10.4,player
+77,Armoni Brooks,Valencia,G,10.3,player
+78,Bruno Fernando,Anadolu Efes,C,10.3,player
+79,Matthew Strazel,Anadolu Efes,G,10.3,player
+80,Nathan Reuvers,Valencia,F,10.3,player
+81,Andreas Obst,Bayern Munich,G,10.2,player
+82,Jordan Loyd,Anadolu Efes,G,10.2,player
+83,Oshae Brissett,Maccabi Tel Aviv,F,10.2,player
+84,Umoja Gibson,Barcelona,G,10.2,player
+85,Duane Washington,Bayern Munich,G,10.1,player
+86,Ethan Thompson,Partizan,G,10.1,player
+87,Jared Butler,Crvena Zvezda,G,10.1,player
+88,Kyle Allman,Partizan,G,10.1,player
+89,Mamadi Diakite,Dubai,C,10.1,player
+90,Chris Duarte,Baskonia,G,10.0,player
+91,Georgios Bartzokas,Olympiacos,HC,10.0,head_coach
+92,Johnny Juzang,Fenerbahce,F,10.0,player
+93,Kessler Edwards,Virtus Bologna,F,10.0,player
+94,Nick Weiler-Babb,Crvena Zvezda,G,10.0,player
+95,Zeljko Obradovic,Panathinaikos,HC,10.0,head_coach
+96,Bobi Klintman,Virtus Bologna,C,9.9,player
+97,David DeJulius,Besiktas,G,9.9,player
+98,Devon Dotson,Besiktas,G,9.9,player
+99,Marcus Carr,Virtus Bologna,G,9.9,player
+100,Tremont Waters,ASVEL,G,9.9,player
+101,Alize Johnson,Paris,F,9.8,player
+102,Jacob Toppin,Hapoel Tel Aviv,F,9.8,player
+103,Theo Maledon,Real Madrid,G,9.8,player
+104,Anthony Brown,Besiktas,F,9.7,player
+105,Devin Booker,Milano,C,9.7,player
+106,Jaylen Nowell,Besiktas,G,9.7,player
+107,Nigel Williams-Goss,Zalgiris,G,9.7,player
+108,Antonio Blakeney,Hapoel Tel Aviv,G,9.6,player
+109,Ercan Osmani,Anadolu Efes,F,9.6,player
+110,Kobi Simmons,Baskonia,G,9.6,player
+111,Marko Guduric,Milano,G,9.6,player
+112,Tomas Satoransky,Hapoel Tel Aviv,G,9.6,player
+113,Jae Crowder,ASVEL,F,9.5,player
+114,Jimmy Clark III,Maccabi Tel Aviv,G,9.5,player
+115,Kenneth Faried,Baskonia,C,9.5,player
+116,Marek Blazevic,Zalgiris,C,9.5,player
+117,Ebuka Izundu,Crvena Zvezda,C,9.4,player
+118,Evan Fournier,Olympiacos,G,9.4,player
+119,Jaron Blossomgame,Dubai,F,9.4,player
+120,Mathis Dossou-Yovo,ASVEL,F,9.4,player
+121,Tosan Evbuomwan,Barcelona,F,9.4,player
+122,Maozinha Pereira,Paris,F,9.3,player
+123,Mouhamet Diouf,Virtus Bologna,C,9.3,player
+124,TyTy Washington,ASVEL,G,9.3,player
+125,Jason Burnell,Milano,F,9.2,player
+126,Damian Jones,Real Madrid,C,9.1,player
+127,Isaia Cordinier,Anadolu Efes,G,9.1,player
+128,Joffrey Lauvergne,Partizan,C,9.1,player
+129,Olivier Sarr,Real Madrid,C,9.1,player
+130,Stanley Umude,Barcelona,G,9.1,player
+131,Chuma Okeke,Real Madrid,F,9.0,player
+132,Gabriel Deck,Real Madrid,F,9.0,player
+133,Garrison Mathews,Milano,G,9.0,player
+134,Gonzalo Corbalan,Valencia,G,9.0,player
+135,Jared Rhoden,Paris,G,9.0,player
+136,Pedro Martinez,Real Madrid,HC,9.0,head_coach
+137,Saras Jasikevicius,Fenerbahce,HC,9.0,head_coach
+138,Vladimir Lucic,Bayern Munich,F,9.0,player
+139,Kevin Kokila,Virtus Bologna,C,8.9,player
+140,Miles Norris,Bayern Munich,F,8.9,player
+141,AJ Lawson,Baskonia,G,8.8,player
+142,DJ Stewart,Baskonia,G,8.8,player
+143,Hugo Besson,ASVEL,G,8.8,player
+144,Jerian Grant,Panathinaikos,G,8.8,player
+145,Kai Jones,Anadolu Efes,C,8.8,player
+146,Neal Sako,Valencia,C,8.8,player
+147,Tyrese Martin,Barcelona,F,8.8,player
+148,Yam Madar,Maccabi Tel Aviv,G,8.8,player
+149,Both Gach,ASVEL,F,8.7,player
+150,Darius Thompson,Milano,G,8.7,player
+151,Jaime Pradilla,Real Madrid,F,8.7,player
+152,Leandro Bolmaro,Milano,G,8.7,player
+153,Mo Gueye,Valencia,F,8.7,player
+154,Santi Yusta,Anadolu Efes,F,8.7,player
+155,Wendell Moore Jr.,Virtus Bologna,G,8.7,player
+156,Mady Sissoko,Besiktas,C,8.6,player
+157,Rokas Jokubaitis,Bayern Munich,G,8.6,player
+158,Saben Lee,Zalgiris,G,8.6,player
+159,Conor Morgan,Besiktas,F,8.5,player
+160,Dimitris Itoudis,Hapoel Tel Aviv,HC,8.5,head_coach
+161,Omari Moore,Valencia,G,8.5,player
+162,RJ Cole,Milano,G,8.5,player
+163,Damion Baugh,Baskonia,G,8.4,player
+164,Derrick Alston Jr.,Virtus Bologna,F,8.4,player
+165,Wenyen Gabriel,Besiktas,C,8.4,player
+166,Brancou Badio,Panathinaikos,G,8.3,player
+167,Furkan Korkmaz,Besiktas,F,8.3,player
+168,Iffe Lundberg,Maccabi Tel Aviv,G,8.3,player
+169,Markus Howard,Baskonia,G,8.3,player
+170,Tonye Jekiri,Partizan,C,8.3,player
+171,Devon Hall,Milano,G,8.2,player
+172,Moustapha Fall,Panathinaikos,C,8.2,player
+173,Nicolo Melli,Fenerbahce,F,8.2,player
+174,Thomas Walkup,Dubai,G,8.2,player
+175,Collin Malcolm,Anadolu Efes,F,8.1,player
+176,Derek Willis,Partizan,F,8.1,player
+177,Aleksander Balcerowski,Barcelona,C,8.0,player
+178,Aleksander Sekulic,Barcelona,HC,8.0,head_coach
+179,Allan Dokossi,Paris,C,8.0,player
+180,Braxton Key,Fenerbahce,F,8.0,player
+181,Dylan Osetkowski,Valencia,F,8.0,player
+182,Eugene German,Hapoel Tel Aviv,G,8.0,player
+183,Lamar Stevens,Partizan,F,8.0,player
+184,Max Shulga,Real Madrid,G,8.0,player
+185,Xavi Pascual,Dubai,HC,8.0,head_coach
+186,Chris Silva,Fenerbahce,C,7.9,player
+187,Nathan Sestina,ASVEL,F,7.9,player
+188,Frank Ntilikina,Paris,G,7.8,player
+189,Nikola Tanaskovic,Partizan,C,7.8,player
+190,Olivier Nkamboua,Barcelona,F,7.8,player
+191,Justinian Jessup,Bayern Munich,G,7.7,player
+192,Luca Vildoza,Partizan,G,7.7,player
+193,PJ Dozier,Anadolu Efes,G,7.7,player
+194,Tamir Blatt,Hapoel Tel Aviv,G,7.7,player
+195,Georgios Papagiannis,Anadolu Efes,C,7.5,player
+196,Johannes Voigtmann,Bayern Munich,C,7.5,player
+197,Justin Minaya,Barcelona,F,7.5,player
+198,Khadeen Carrington,Hapoel Tel Aviv,G,7.5,player
+199,Mbaye Ndiaye,Olympiacos,F,7.5,player
+200,Pablo Laso,Anadolu Efes,HC,7.5,head_coach
+201,Scottie Wilbekin,Besiktas,G,7.5,player
+202,Semi Ojeleye,Crvena Zvezda,F,7.5,player
+203,Tomas Masiulis,Zalgiris,HC,7.5,head_coach
+204,Tyson Ward,Olympiacos,F,7.5,player
+205,Yves Pons,ASVEL,F,7.5,player
+206,Alessandro Pajola,Partizan,G,7.3,player
+207,Kevarrius Hayes,Partizan,C,7.3,player
+208,Oscar Da Silva,Bayern Munich,F,7.3,player
+209,Armando Bacot,Maccabi Tel Aviv,C,7.2,player
+210,Elias Valtonen,Valencia,F,7.2,player
+211,Maodo Lo,Zalgiris,G,7.2,player
+212,Kamar Baldwin,Bayern Munich,G,7.1,player
+213,Myles Cale,ASVEL,G,7.1,player
+214,Arnas Butkevicius,Zalgiris,F,7.0,player
+215,Cory Joseph,Olympiacos,G,7.0,player
+216,Giuseppe Poeta,Milano,HC,7.0,head_coach
+217,Ibon Navarro,Crvena Zvezda,HC,7.0,head_coach
+218,Joel Parra,Barcelona,F,7.0,player
+219,Mouhamed Faye,Paris,C,7.0,player
+220,Terry Tarpey,Paris,G,7.0,player
+221,Vitto Brown,Besiktas,F,7.0,player
+222,Xavier Albert,Valencia,HC,7.0,head_coach
+223,Yoan Makoundou,Barcelona,C,7.0,player
+224,Mam Jaiteh,Dubai,C,6.8,player
+225,Tobias Jensen,Bayern Munich,G,6.8,player
+226,Tyson Carter,Crvena Zvezda,G,6.8,player
+227,Kaodirichi Akobundu-Ehiogu,Zalgiris,C,6.7,player
+228,Davion Mintz,Dubai,G,6.6,player
+229,Aliou Diarra,Virtus Bologna,C,6.5,player
+230,Antonis Karagiannidis,Olympiacos,C,6.5,player
+231,David Kramer,Crvena Zvezda,G,6.5,player
+232,Ish Wainright,Hapoel Tel Aviv,F,6.5,player
+233,Joan Penarroya,Partizan,HC,6.5,head_coach
+234,Justin Anderson,Dubai,F,6.5,player
+235,Oded Kattash,Maccabi Tel Aviv,HC,6.5,head_coach
+236,Rodions Kurucs,Baskonia,F,6.5,player
+237,Yankuba Sima,Valencia,C,6.5,player
+238,Amath M'Baye,Paris,F,6.4,player
+239,Dario Brizuela,Barcelona,G,6.4,player
+240,Edgaras Ulanovas,Zalgiris,F,6.4,player
+241,Matteo Spagnolo,Baskonia,G,6.4,player
+242,Bodian Massa,ASVEL,F,6.3,player
+243,Dustin Sleva,Zalgiris,F,6.3,player
+244,Ignas Sargiunas,Fenerbahce,G,6.3,player
+245,Jeremy Morgan,Paris,F,6.3,player
+246,Marius Grigonis,Zalgiris,F,6.3,player
+247,Tai Odiase,Hapoel Tel Aviv,C,6.3,player
+248,Andres Feliz,Real Madrid,G,6.2,player
+249,Daulton Hommes,Paris,F,6.2,player
+250,Agustin Ubal,Barcelona,G,6.1,player
+251,Usman Garuba,Real Madrid,C,6.1,player
+252,Dusan Alimpijevic,Besiktas,HC,6.0,head_coach
+253,Mikael Jantunen,Real Madrid,F,6.0,player
+254,Tony Parker,ASVEL,HC,6.0,head_coach
+255,Kenan Kamenjas,Dubai,C,5.9,player
+256,Shane Hunter,Maccabi Tel Aviv,C,5.9,player
+257,Khalifa Diop,Baskonia,C,5.8,player
+258,Nobel Boungou-Colo,Paris,F,5.7,player
+259,Tyler Ennis,Hapoel Tel Aviv,G,5.7,player
+260,Brice Dessert,Anadolu Efes,C,5.5,player
+261,Davide Casarin,Virtus Bologna,G,5.5,player
+262,Davis Bertans,Dubai,F,5.5,player
+263,Josep Puerto,Valencia,G,5.5,player
+264,Konstantinos Mitoglou,Panathinaikos,F,5.5,player
+265,Mario Nakic,Partizan,F,5.5,player
+266,Metecan Birsen,Besiktas,F,5.5,player
+267,Francesco Ferrari,Virtus Bologna,F,5.2,player
+268,Clement Frisch,Baskonia,F,5.1,player
+269,Justus Hollatz,Bayern Munich,G,5.1,player
+270,Alex Mumbru,Virtus Bologna,HC,5.0,head_coach
+271,Anton Gavel,Bayern Munich,HC,5.0,head_coach
+272,Deividas Sirvydis,Zalgiris,G,5.0,player
+273,Eli Ndiaye,Real Madrid,F,5.0,player
+274,Frederic Bourdillon,Hapoel Tel Aviv,G,5.0,player
+275,Joel Ayayi,Paris,G,5.0,player
+276,Maxime Lefevre,Paris,HC,5.0,head_coach
+277,Ognjen Dobric,Crvena Zvezda,F,5.0,player
+278,Onuralp Bitim,Fenerbahce,F,5.0,player
+279,Paolo Galbiati,Baskonia,HC,5.0,head_coach
+280,Sebastian Herrera,Paris,G,5.0,player
+281,Vanja Marinkovic,Partizan,G,5.0,player
+282,Daniel Hackett,Virtus Bologna,G,4.8,player
+283,David Lighty,ASVEL,F,4.8,player
+284,Leopold Cavaliere,Paris,F,4.8,player
+285,Marc-Owen Fodzo Dada,ASVEL,G,4.8,player
+286,Nikola Djurisic,Crvena Zvezda,G,4.8,player
+287,Yakuba Ouattara,Paris,G,4.8,player
+288,Mario Saint-Supery,Valencia,G,4.7,player
+289,Edwin Jackson,ASVEL,F,4.6,player
+290,Giannoulis Larentzakis,Olympiacos,G,4.6,player
+291,Juan Nunez,Barcelona,G,4.6,player
+292,Alberto Abalde,Real Madrid,F,4.5,player
+293,Alvaro Cardenas,Valencia,G,4.5,player
+294,Amit Ebo,Maccabi Tel Aviv,G,4.5,player
+295,Dovydas Giedraitis,Zalgiris,G,4.5,player
+296,Eleftherios Mantzoukas,Panathinaikos,F,4.5,player
+297,Giampaolo Ricci,Milano,F,4.5,player
+298,Gur Lavy,Maccabi Tel Aviv,F,4.5,player
+299,Izan Almansa,Real Madrid,F,4.5,player
+300,John DiBartolomeo,Maccabi Tel Aviv,G,4.5,player
+301,Klemen Prepelic,Dubai,G,4.5,player
+302,Nikos Rogkavopoulos,Panathinaikos,F,4.5,player
+303,Sergio Llull,Real Madrid,G,4.5,player
+304,Sertac Sanli,Fenerbahce,C,4.5,player
+305,Tomer Ginat,Hapoel Tel Aviv,F,4.5,player
+306,Berk Ugurlu,Besiktas,G,4.4,player
+307,Dejan Davidovac,Crvena Zvezda,F,4.4,player
+308,Erkan Yilmaz,Anadolu Efes,F,4.4,player
+309,Niels Giffey,Bayern Munich,F,4.4,player
+310,Nikolaos Plotas,Olympiacos,G,4.4,player
+311,Tommaso Baldasso,Virtus Bologna,G,4.4,player
+312,Kostas Papanikolaou,Olympiacos,F,4.3,player
+313,William Rayman,Maccabi Tel Aviv,F,4.3,player
+314,Awudu Abass,Dubai,F,4.2,player
+315,Dimitris Moraitis,Panathinaikos,G,4.2,player
+316,Kosta Kondic,Dubai,G,4.2,player
+317,Lucas Mari,Valencia,G,4.2,player
+318,Stefano Tonut,Milano,G,4.2,player
+319,Gabriele Procida,Real Madrid,F,4.1,player
+320,Aleksej Nedeljkovic,Crvena Zvezda,F,4.0,player
+321,Andrej Bjelic,Crvena Zvezda,G,4.0,player
+322,Arijan Lakic,Partizan,F,4.0,player
+323,Bar Timor,Hapoel Tel Aviv,G,4.0,player
+324,Burakcan Yildizli,Anadolu Efes,F,4.0,player
+325,David Mutaf,Anadolu Efes,G,4.0,player
+326,Diego Flaccadori,Milano,G,4.0,player
+327,Enzo Shahrvin,Paris,C,4.0,player
+328,Guy Palatin,Hapoel Tel Aviv,G,4.0,player
+329,Ioannis Kouzeloglou,Panathinaikos,F,4.0,player
+330,Itay Segev,Hapoel Tel Aviv,C,4.0,player
+331,Kilian Fischer,Bayern Munich,F,4.0,player
+332,Matteo Baiocchi,Virtus Bologna,G,4.0,player
+333,Melih Mahmutoglu,Fenerbahce,G,4.0,player
+334,Mert Eksioglu,Fenerbahce,G,4.0,player
+335,Mitar Bosnjakovic,Partizan,G,4.0,player
+336,Nemanja Dangubic,Dubai,F,4.0,player
+337,Nicola Akele,Milano,F,4.0,player
+338,Omiros Netzipoglou,Olympiacos,G,4.0,player
+339,Ousmane Diop,Milano,C,4.0,player
+340,Oz Blayzer,Hapoel Tel Aviv,F,4.0,player
+341,Panagiotis Kalaitzakis,Panathinaikos,G,4.0,player
+342,Ruzgar Fenemen,Anadolu Efes,G,4.0,player
+343,Stefan Joksimovic,Baskonia,F,4.0,player
+344,Stefan Miljenovic,Crvena Zvezda,G,4.0,player
+345,Uros Mijailovic,Partizan,F,4.0,player
+346,Vojin Medarevic,Crvena Zvezda,C,4.0,player
