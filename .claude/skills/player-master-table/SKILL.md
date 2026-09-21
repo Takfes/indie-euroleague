@@ -40,7 +40,9 @@ extending it:
   column-disjoint per mode so a plain "first non-null value" collapse is
   safe, but the on/off rows share column names across views with genuinely
   *different* values per view, so those get a `_tot`/`_off`/`_def` suffix
-  instead of being collapsed. A handful of players (5 out of 336) have
+  instead of being collapsed (five metrics happen to be identical across two
+  views, e.g. `offensive_rating_lineup` in total and offense; they are kept per
+  view anyway). A handful of players (5 out of 336) have
   rows for two teams because they were traded mid-season; only the
   team-stint with the most games played is kept.
 - **Matching players across sources.** There's no shared player ID across
@@ -51,10 +53,10 @@ extending it:
   "Wade Baldwin IV" (basketnews, Dunkest) and "Wade Baldwin" (price list)
   share one key. Rows with no exact match are resolved against the
   still-unclaimed rows of the other source, and only when the rule yields
-  exactly one candidate: (1) same surname (suffix excluded) + compatible first
-  name (identical, prefix such as Zac/Zachary, near-identical spelling, or a
-  known nickname group such as Sasha/Aleksandr), with the team as tie-breaker
-  when several remain; (2) same team + near-identical full name (Gur Lavi /
+  exactly one candidate: (1) same surname (suffix excluded) + equivalent first
+  name (identical or a known nickname group such as Sasha/Aleksandr), or a
+  loosely compatible one (prefix such as Zac/Zachary, near-identical spelling)
+  on the same team, with the team as tie-breaker when several remain; (2) same team + near-identical full name (Gur Lavi /
   Gur Lavy); (3) for Dunkest vs basketnews only: same surname + compatible
   team + identical games played, for nicknames no name rule can link (Iffe /
   Gabriel Lundberg). A price row spelled like a Dunkest row that was linked
@@ -76,7 +78,9 @@ extending it:
   in this order: Dunkest columns (`dunk_*`), basketnews advanced (`player_id`,
   then `bnadv_*`), basketnews on/off (`bnoo_*`: total `_tot`, then offense
   `_off`, then defense `_def`, source order inside each group), and last the
-  fantasy `price`, `price_rank`. Source prefixes stay because these are
+  fantasy `price`, `price_rank`. `season` exists only in basketnews (blank for
+  players missing there) and traded players' `bnadv_*`/`bnoo_*` values come from
+  their max-games stint while the identity columns follow Dunkest. Source prefixes stay because these are
   genuinely distinct measurements (e.g. `dunk_fouls_received` is Dunkest's own
   count, not the same field as `bnadv_fouls_received`).
 - **Head coaches are excluded.** basketballsphere's price list includes a
