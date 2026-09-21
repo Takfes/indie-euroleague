@@ -2,16 +2,19 @@
 
 One short explanation per source-dataset column (plus the derived Master columns under `Master (derived)`), based on the fetch scripts and
 SKILL.md files under `.claude/skills/*` plus standard basketball-analytics
-definitions. Entries marked "(unverified)" could not be confirmed from those
+definitions. The "Kaggle KPIs" texts come from src/kaggle_column_guide.py. Entries marked "(unverified)" could not be confirmed from those
 sources. Keys are the column names exactly as they appear in each source CSV.
 """
 
 from __future__ import annotations
 
+from build_player_kpis import GUIDE as _KAGGLE_KPIS_COLUMNS
+
 DUNKEST = "Dunkest"
 BN_ADVANCED = "BN Advanced"
 BN_ONOFF = "BN On-Off"
 FANTASY_PRICES = "Fantasy Prices"
+KAGGLE_KPIS = "Kaggle KPIs"
 
 DERIVED = "Master (derived)"
 
@@ -21,6 +24,7 @@ FOUND_IN_SOURCES = {
     "dunk": "Dunkest",
     "bnadv": "BN advanced",
     "bnoo": "BN on/off",
+    "kag": "Kaggle KPIs",
     "elf": "Fantasy prices",
 }
 FOUND_IN_SEPARATOR = ", "
@@ -196,7 +200,11 @@ _FANTASY_PRICES_GUIDE = {
 _DERIVED_GUIDE = {
     "found_in": "Sources with the player: " + FOUND_IN_SEPARATOR.join(f"{c}={n}" for c, n in FOUND_IN_SOURCES.items()),
     "found_in_count": "Number of sources in found_in",
+    "pir_per_credit": "Expected PIR per credit: kag_pir_avg_recent / price; blank if price is 0",
+    "pir_per_min_per_credit": "Season PIR/min per credit: kag_pir_per_min / price; blank if price is 0",
 }
+
+_KAGGLE_KPIS_GUIDE = {column: text for column, (_, text) in _KAGGLE_KPIS_COLUMNS.items()}
 
 GUIDE: dict[str, dict[str, str]] = {
     DERIVED: _DERIVED_GUIDE,
@@ -204,4 +212,5 @@ GUIDE: dict[str, dict[str, str]] = {
     BN_ADVANCED: _BN_ADVANCED_GUIDE,
     BN_ONOFF: _BN_ONOFF_GUIDE,
     FANTASY_PRICES: _FANTASY_PRICES_GUIDE,
+    KAGGLE_KPIS: _KAGGLE_KPIS_GUIDE,
 }

@@ -154,8 +154,56 @@ def first_names_compatible(key_a: str, key_b: str) -> bool:
     return SequenceMatcher(None, first_a, first_b).ratio() >= FIRST_NAME_MIN_RATIO
 
 
+def surname_extends(key_a: str, key_b: str) -> bool:
+    """Whether one surname is the other's start, e.g. "hayes" vs "hayes davis" (compound surname).
+
+    Only the tokens after the first name are compared; identical surnames do not count.
+    """
+    rest_a, rest_b = key_a.split()[1:], key_b.split()[1:]
+    shorter, longer = sorted((rest_a, rest_b), key=len)
+    return bool(shorter) and shorter != longer and longer[: len(shorter)] == shorter
+
+
+def map_alternate_spellings(base: pd.DataFrame, other: pd.DataFrame, spelling_cols: list[str]) -> pd.Series:
+    """Map `other` rows spelled like another source's spelling of a `base` row onto that row's key.
+
+    The master's `name_key` follows the first source a player came through, so a later
+    source may spell the player exactly like a different source did ("Iffe" Lundberg is
+    "Gabriel" in basketnews). Only unambiguous spellings are used (one base row), and if
+    two `other` rows land on the same base row both stay unmapped.
+
+    Args:
+        base: Frame with a `name_key` column and the raw-name columns in `spelling_cols`.
+        other: Frame with a `name_key` column.
+        spelling_cols: Raw full-name columns of `base` (e.g. Dunkest, basketnews, price names).
+
+    Returns:
+        Series aligned to `other.index` with the mapped name keys (unchanged where no rule applied).
+    """
+    aliases: dict[str, set[str]] = {}
+    for column in spelling_cols:
+        for key, own in zip(base[column].map(name_key), base["name_key"], strict=True):
+            if key and key != own:
+                aliases.setdefault(key, set()).add(own)
+    own_keys = set(base["name_key"])
+    proposals = {
+        idx: next(iter(aliases[key]))
+        for idx, key in other["name_key"].items()
+        if key not in own_keys and len(aliases.get(key, ())) == 1
+    }
+    targets = pd.Series(proposals, dtype=object)
+    result = other["name_key"].copy()
+    for idx, target in targets[~targets.duplicated(keep=False)].items():
+        result.at[idx] = target
+    return result
+
+
 def resolve_names(
-    base: pd.DataFrame, other: pd.DataFrame, other_team_col: str, other_games_col: str | None = None
+    base: pd.DataFrame,
+    other: pd.DataFrame,
+    other_team_col: str,
+    other_games_col: str | None = None,
+    extend_surnames: bool = False,
 ) -> pd.Series:
     """Map each row of `other` onto a `base` name key where it is safely the same player.
 
@@ -173,6 +221,10 @@ def resolve_names(
        `other_games_col` is given, since a surname and team alone would also merge
        teammates who merely share a surname.
 
+    4. same team, an equivalent or compatible first name and a surname that is the
+       other's start ("Nigel Hayes" vs "Nigel Hayes-Davis"). Only used when
+       `extend_surnames` is True.
+
     If two `other` rows resolve onto the same base row, both resolutions are reverted
     so two different players are never merged.
 
@@ -182,6 +234,7 @@ def resolve_names(
         other: Frame with a `name_key` column and the team column named below.
         other_team_col: Name of the team/club column in `other`.
         other_games_col: Optional games-played column in `other`, enabling rule 3.
+        extend_surnames: Enable rule 4.
 
     Returns:
         Series aligned to `other.index` with the resolved name keys.
@@ -216,7 +269,12 @@ def resolve_names(
             if other_games_col
             else []
         )
-        for candidates in (by_name, by_name_and_team, by_spelling, by_games):
+        by_surname_extension = (
+            [i for i in same_team if surname_extends(key, pool_keys[i]) and first_names_compatible(key, pool_keys[i])]
+            if extend_surnames
+            else []
+        )
+        for candidates in (by_name, by_name_and_team, by_spelling, by_games, by_surname_extension):
             if len(candidates) == 1:
                 resolved[idx] = pool_keys[candidates[0]]
                 break

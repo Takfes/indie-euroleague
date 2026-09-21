@@ -5,7 +5,14 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from player_name_matching import kaggle_display_name, name_key, resolve_names, surname_key, teams_compatible
+from player_name_matching import (
+    kaggle_display_name,
+    map_alternate_spellings,
+    name_key,
+    resolve_names,
+    surname_key,
+    teams_compatible,
+)
 
 
 @pytest.mark.parametrize(
@@ -147,3 +154,64 @@ def test_loose_first_name_on_another_team_is_not_merged() -> None:
 
     assert resolve_names(base, _frame([("Chris Duarte", "Baskonia")], "club"), "club").tolist() == ["chris duarte"]
     assert resolve_names(base, _frame([("Chris Duarte", "Madrid")], "club"), "club").tolist() == ["christian duarte"]
+
+
+def test_surname_extension_rule_is_opt_in_and_needs_the_same_team() -> None:
+    base = _frame([("Nigel Hayes-Davis", "Panathinaikos AKTOR Athens")], "team_name")
+    kaggle = _frame([("Nigel Hayes", "Panathinaikos AKTOR Athens")], "kag_team")
+    elsewhere = _frame([("Nigel Hayes", "Real Madrid")], "kag_team")
+
+    assert resolve_names(base, kaggle, "kag_team").tolist() == ["nigel hayes"]
+    assert resolve_names(base, kaggle, "kag_team", extend_surnames=True).tolist() == ["nigel hayes davis"]
+    assert resolve_names(base, elsewhere, "kag_team", extend_surnames=True).tolist() == ["nigel hayes"]
+
+
+def test_kaggle_baldwin_trio_stays_three_rows_with_all_rules_on() -> None:
+    base = _frame([*BASE_BALDWINS, ("Patrick Baldwin Jr.", "Crvena Zvezda")], "team_name")
+    kaggle = _frame(
+        [
+            (kaggle_display_name("BALDWIN IV, WADE"), "Fenerbahce Beko Istanbul"),
+            (kaggle_display_name("BALDWIN JR., PATRICK"), "Crvena Zvezda Meridianbet Belgrade"),
+            (kaggle_display_name("BALDWIN, KAMAR"), "FC Bayern Munich"),
+        ],
+        "kag_team",
+    )
+    base = base.assign(
+        dunk_player_name=["Wade Baldwin Iv", "Kamar Baldwin", "Patrick Baldwin Jr."],
+        bn_player_name=None,
+        price_name_raw=None,
+    )
+
+    aliased = map_alternate_spellings(base, kaggle, ["dunk_player_name", "bn_player_name", "price_name_raw"])
+    resolved = resolve_names(base, kaggle.assign(name_key=aliased), "kag_team", extend_surnames=True)
+
+    assert resolved.tolist() == ["wade baldwin", "patrick baldwin", "kamar baldwin"]
+
+
+def test_alternate_spelling_links_to_the_row_that_holds_it() -> None:
+    """Master key follows basketnews ("gabriel"); Kaggle spells like Dunkest ("iffe")."""
+    base = pd.DataFrame({
+        "name_key": ["gabriel lundberg", "gur lavi"],
+        "dunk_player_name": ["Iffe Lundberg", None],
+        "bn_player_name": ["Gabriel Lundberg", "Gur Lavi"],
+    })
+    other = pd.DataFrame({"name_key": ["iffe lundberg", "gur lavi", "kamar baldwin"]})
+
+    mapped = map_alternate_spellings(base, other, ["dunk_player_name", "bn_player_name"])
+
+    assert mapped.tolist() == ["gabriel lundberg", "gur lavi", "kamar baldwin"]
+
+
+def test_alternate_spelling_leaves_ambiguous_and_colliding_rows_alone() -> None:
+    base = pd.DataFrame({
+        "name_key": ["ann lee", "anna lee", "bob roy"],
+        "dunk_player_name": ["Sam Lee", "Sam Lee", "Robert Roy"],
+    })
+    other = pd.DataFrame({"name_key": ["sam lee", "robert roy", "rob roy"]})
+    mapped = map_alternate_spellings(base, other, ["dunk_player_name"])
+    assert mapped.tolist() == ["sam lee", "bob roy", "rob roy"]
+
+    two_spellings = base.assign(bn_player_name=[None, None, "Rob Roy"])
+    colliding = pd.DataFrame({"name_key": ["robert roy", "rob roy"]})
+    mapped = map_alternate_spellings(two_spellings, colliding, ["dunk_player_name", "bn_player_name"])
+    assert mapped.tolist() == ["robert roy", "rob roy"]
