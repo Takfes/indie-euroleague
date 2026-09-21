@@ -16,6 +16,7 @@ from difflib import SequenceMatcher
 import pandas as pd
 
 GENERATIONAL_SUFFIXES = {"jr", "sr", "ii", "iii", "iv", "v"}
+ROMAN_SUFFIXES = {"ii", "iii", "iv", "v"}
 TEAM_ALIASES = {"milano": "milan"}
 MIN_SHARED_TEAM_TOKENS = 3
 FIRST_NAME_MIN_RATIO = 0.8
@@ -69,6 +70,32 @@ def name_key(name: object) -> str:
     while len(tokens) > 1 and tokens[-1] in GENERATIONAL_SUFFIXES:
         tokens.pop()
     return " ".join(tokens)
+
+
+def kaggle_display_name(raw: str) -> str:
+    """Convert a Kaggle `LAST, FIRST` name in capitals to "First Last" in title case.
+
+    Suffixes stay attached to the surname and roman numerals stay upper-case, so
+    "BALDWIN IV, WADE" becomes "Wade Baldwin IV". Multi-word surnames, particles and
+    hyphens are kept ("DE COLO, NANDO" -> "Nando De Colo"); `name_key` normalises the
+    result like every other source, so the suffix is ignored when matching.
+
+    Args:
+        raw: Kaggle player name, `LAST, FIRST` (a name without a comma is only title-cased).
+
+    Returns:
+        The cleaned display name.
+    """
+    last, _, first = raw.partition(",")
+    tokens = [_title_token(token) for token in [*first.split(), *last.split()]]
+    return " ".join(tokens)
+
+
+def _title_token(token: str) -> str:
+    """Title-case one name token, keeping roman-numeral generational suffixes upper-case."""
+    if token.strip(".").lower() in ROMAN_SUFFIXES:
+        return token.upper()
+    return token.title()
 
 
 def surname_key(key: str) -> str:

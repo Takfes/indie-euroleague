@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from player_name_matching import name_key, resolve_names, surname_key, teams_compatible
+from player_name_matching import kaggle_display_name, name_key, resolve_names, surname_key, teams_compatible
 
 
 @pytest.mark.parametrize(
@@ -28,6 +28,29 @@ from player_name_matching import name_key, resolve_names, surname_key, teams_com
 )
 def test_name_key(raw: object, expected: str) -> None:
     assert name_key(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("raw", "display", "key"),
+    [
+        ("MOTIEJUNAS, DONATAS", "Donatas Motiejunas", "donatas motiejunas"),
+        ("BALDWIN IV, WADE", "Wade Baldwin IV", "wade baldwin"),
+        ("BALDWIN JR., PATRICK", "Patrick Baldwin Jr.", "patrick baldwin"),
+        ("BALDWIN, KAMAR", "Kamar Baldwin", "kamar baldwin"),
+        ("DE COLO, NANDO", "Nando De Colo", "nando de colo"),
+        ("HAYES-DAVIS, NIGEL", "Nigel Hayes-Davis", "nigel hayes davis"),
+        ("O'NEALE, ROYCE", "Royce O'Neale", "royce oneale"),
+        ("ŠKELE, ŽAN", "Žan Škele", "zan skele"),
+    ],
+)
+def test_kaggle_display_name_swaps_last_first_and_keeps_suffixes(raw: str, display: str, key: str) -> None:
+    assert kaggle_display_name(raw) == display
+    assert name_key(display) == key
+
+
+def test_kaggle_baldwin_trio_keeps_three_distinct_keys() -> None:
+    raw = ["BALDWIN IV, WADE", "BALDWIN JR., PATRICK", "BALDWIN, KAMAR"]
+    assert len({name_key(kaggle_display_name(n)) for n in raw}) == 3
 
 
 def test_surname_key_excludes_generational_suffix() -> None:
