@@ -7,7 +7,7 @@ every matching player in a single response -- there is no server-side pagination
 over. This script issues one GET request and writes the full result set to CSV.
 
 Usage:
-    python fetch_player_stats.py [--out PATH] [--season-id ID] ...
+    python src/fetch_dunkest_player_stats.py [--out PATH] [--season-id ID] ...
 
 Re-run this any time to refresh data/dunkest-data/player_stats.csv with current-season
 averages (the output file is overwritten each run).
@@ -29,7 +29,7 @@ DEFAULT_TEAMS = [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
 # 1=Guard, 2=Forward, 3=Center
 DEFAULT_POSITIONS = [1, 2, 3]
 
-DEFAULT_OUT = Path(__file__).resolve().parents[3] / "data" / "dunkest-data" / "player_stats.csv"
+DEFAULT_OUT = Path(__file__).resolve().parents[1] / "data" / "dunkest-data" / "player_stats.csv"
 
 
 def build_params(args: argparse.Namespace) -> list[tuple[str, str]]:
@@ -60,7 +60,9 @@ def fetch_players(params: list[tuple[str, str]]) -> list[dict]:
     result set for the given filters in one JSON array, so no pagination loop is needed.
     """
     url = f"{API_URL}?{urllib.parse.urlencode(params)}"
-    request = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0"})
+    request = urllib.request.Request(  # noqa: S310
+        url, headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
+    )
     with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
         data = json.load(response)
     if not isinstance(data, list):

@@ -63,41 +63,81 @@ OUTPUT_RELATIVE_PATH = Path("data/basketnews-onoff-stats/onoff_stats.csv")
 # object from the page source (search for "onoffStats:") and update below.
 ONOFF_STATS: dict[str, list[str]] = {
     "total": [
-        "time_played", "offensive_rating_lineup", "offensive_rating_lineup_diff",
-        "defensive_rating_lineup", "defensive_rating_lineup_diff",
-        "net_rating_lineup", "net_rating_lineup_diff", "possessions_lineup",
-        "possession_percentage_lineup", "points_lineup", "points_opponent_lineup",
-        "net_points_lineup", "rebound_percentage_lineup", "rebound_percentage_lineup_diff",
+        "time_played",
+        "offensive_rating_lineup",
+        "offensive_rating_lineup_diff",
+        "defensive_rating_lineup",
+        "defensive_rating_lineup_diff",
+        "net_rating_lineup",
+        "net_rating_lineup_diff",
+        "possessions_lineup",
+        "possession_percentage_lineup",
+        "points_lineup",
+        "points_opponent_lineup",
+        "net_points_lineup",
+        "rebound_percentage_lineup",
+        "rebound_percentage_lineup_diff",
     ],
     "offensive": [
-        "time_played", "offensive_rating_lineup", "offensive_rating_lineup_wo",
-        "offensive_rating_lineup_diff", "possession_percentage_lineup",
-        "offensive_rebound_percentage_lineup", "offensive_rebound_percentage_lineup_diff",
-        "2p_attempted_lineup", "2p_percentage_lineup", "2p_percentage_lineup_diff",
-        "3p_attempted_lineup", "3p_attempted_rate_lineup", "3p_attempted_rate_lineup_diff",
-        "3p_percentage_lineup", "3p_percentage_lineup_diff",
-        "fouls_received_rate_lineup", "fouls_received_rate_lineup_diff",
-        "assist_percentage_lineup", "assist_percentage_lineup_diff",
-        "turnover_percentage_lineup", "turnover_percentage_lineup_diff",
+        "time_played",
+        "offensive_rating_lineup",
+        "offensive_rating_lineup_wo",
+        "offensive_rating_lineup_diff",
+        "possession_percentage_lineup",
+        "offensive_rebound_percentage_lineup",
+        "offensive_rebound_percentage_lineup_diff",
+        "2p_attempted_lineup",
+        "2p_percentage_lineup",
+        "2p_percentage_lineup_diff",
+        "3p_attempted_lineup",
+        "3p_attempted_rate_lineup",
+        "3p_attempted_rate_lineup_diff",
+        "3p_percentage_lineup",
+        "3p_percentage_lineup_diff",
+        "fouls_received_rate_lineup",
+        "fouls_received_rate_lineup_diff",
+        "assist_percentage_lineup",
+        "assist_percentage_lineup_diff",
+        "turnover_percentage_lineup",
+        "turnover_percentage_lineup_diff",
     ],
     "defensive": [
-        "time_played", "defensive_rating_lineup", "defensive_rating_lineup_wo",
-        "defensive_rating_lineup_diff", "possession_percentage_opponent_lineup",
-        "defensive_rebound_percentage_lineup", "defensive_rebound_percentage_lineup_diff",
-        "2p_attempted_opponent_lineup", "2p_percentage_opponent_lineup",
-        "2p_percentage_opponent_lineup_diff", "3p_attempted_opponent_lineup",
-        "3p_attempted_rate_opponent_lineup", "3p_attempted_rate_opponent_lineup_diff",
-        "3p_percentage_opponent_lineup", "3p_percentage_opponent_lineup_diff",
-        "fouls_rate_lineup", "fouls_rate_lineup_diff",
-        "assist_percentage_opponent_lineup", "assist_percentage_opponent_lineup_diff",
-        "turnover_percentage_opponent_lineup", "turnover_percentage_opponent_lineup_diff",
+        "time_played",
+        "defensive_rating_lineup",
+        "defensive_rating_lineup_wo",
+        "defensive_rating_lineup_diff",
+        "possession_percentage_opponent_lineup",
+        "defensive_rebound_percentage_lineup",
+        "defensive_rebound_percentage_lineup_diff",
+        "2p_attempted_opponent_lineup",
+        "2p_percentage_opponent_lineup",
+        "2p_percentage_opponent_lineup_diff",
+        "3p_attempted_opponent_lineup",
+        "3p_attempted_rate_opponent_lineup",
+        "3p_attempted_rate_opponent_lineup_diff",
+        "3p_percentage_opponent_lineup",
+        "3p_percentage_opponent_lineup_diff",
+        "fouls_rate_lineup",
+        "fouls_rate_lineup_diff",
+        "assist_percentage_opponent_lineup",
+        "assist_percentage_opponent_lineup_diff",
+        "turnover_percentage_opponent_lineup",
+        "turnover_percentage_opponent_lineup_diff",
     ],
 }
 
 BASE_COLUMNS = [
-    "league", "league_id", "season", "view",
-    "team_id", "team_name", "team_short_name",
-    "player_id", "player_name", "position", "games_played",
+    "league",
+    "league_id",
+    "season",
+    "view",
+    "team_id",
+    "team_name",
+    "team_short_name",
+    "player_id",
+    "player_name",
+    "position",
+    "games_played",
     "time_played_formatted",
 ]
 
@@ -106,15 +146,17 @@ def find_repo_root() -> Path:
     """Locate the repo root so the CSV always lands at <repo>/data/... no
     matter where this script is invoked from."""
     try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
+        out = subprocess.run(  # noqa: S603
+            ["git", "rev-parse", "--show-toplevel"],  # noqa: S607
             cwd=Path(__file__).resolve().parent,
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return Path(out.stdout.strip())
     except Exception:
-        # Fallback: scripts/fetch_onoff_stats.py -> scripts -> <skill> -> skills -> .claude -> repo root
-        return Path(__file__).resolve().parents[4]
+        # Fallback: src/fetch_basketnews_onoff_stats.py -> src -> repo root
+        return Path(__file__).resolve().parents[1]
 
 
 def fetch_payload(season: int = SEASON, league_id: int = LEAGUE_ID) -> dict:
@@ -198,8 +240,7 @@ def main() -> None:
     n_teams = len({r["team_id"] for r in rows})
     n_player_team_pairs = len(rows) // 3
     print(
-        f"Wrote {len(rows)} rows ({n_player_team_pairs} player-team pairs x 3 views, "
-        f"{n_teams} teams) to {output_path}",
+        f"Wrote {len(rows)} rows ({n_player_team_pairs} player-team pairs x 3 views, {n_teams} teams) to {output_path}",
         file=sys.stderr,
     )
 

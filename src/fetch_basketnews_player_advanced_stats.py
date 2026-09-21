@@ -4,8 +4,8 @@ all positions, all stages) from basketnews.com and write a combined
 long-format CSV.
 
 Usage (from the repo root):
-    python .claude/skills/basketnews-player-advanced-stats/scripts/fetch_player_advanced_stats.py
-    python .claude/skills/basketnews-player-advanced-stats/scripts/fetch_player_advanced_stats.py \
+    python src/fetch_basketnews_player_advanced_stats.py
+    python src/fetch_basketnews_player_advanced_stats.py \
         --league-id 25 --season 2025 --out data/basketnews-players-stats/basketnews_players_advanced_stats.csv
 
 How this was reverse-engineered
@@ -81,23 +81,45 @@ API_URL = "https://basketnews.com/advanced-stats/team-profile/players.json"
 # Exactly the column sets the site itself uses for each leaderboard mode
 # (lifted from the page's inline `leadersPlayersStats` Alpine data).
 OFFENSIVE_STATS = [
-    "offensive_rating_lineup", "offensive_rating_ind", "points",
-    "3p_percentage", "2p_percentage", "ft_percentage", "ts_percentage",
-    "3p_attempted", "2p_attempted", "ft_attempted", "3p_attempted_rate",
-    "created_points", "assists", "assist_percentage", "turnovers",
-    "turnover_percentage", "offensive_rebounds", "offensive_rebound_percentage",
-    "fouls_received", "blocks_received", "usage_percentage",
+    "offensive_rating_lineup",
+    "offensive_rating_ind",
+    "points",
+    "3p_percentage",
+    "2p_percentage",
+    "ft_percentage",
+    "ts_percentage",
+    "3p_attempted",
+    "2p_attempted",
+    "ft_attempted",
+    "3p_attempted_rate",
+    "created_points",
+    "assists",
+    "assist_percentage",
+    "turnovers",
+    "turnover_percentage",
+    "offensive_rebounds",
+    "offensive_rebound_percentage",
+    "fouls_received",
+    "blocks_received",
+    "usage_percentage",
 ]
 
 DEFENSIVE_STATS = [
-    "defensive_rating_lineup", "defensive_rating_ind", "stops", "stop_percentage",
-    "defensive_rebounds", "defensive_rebound_percentage", "steals",
-    "steal_percentage", "blocks", "block_percentage", "foul_stops",
+    "defensive_rating_lineup",
+    "defensive_rating_ind",
+    "stops",
+    "stop_percentage",
+    "defensive_rebounds",
+    "defensive_rebound_percentage",
+    "steals",
+    "steal_percentage",
+    "blocks",
+    "block_percentage",
+    "foul_stops",
 ]
 
 USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 )
 
 
@@ -107,7 +129,7 @@ def fetch_payload(league_id: int, season: int, stage_id: int | None = None) -> d
         params["stage_id"] = stage_id
     body = "&".join(f"{k}={v}" for k, v in params.items()).encode()
 
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310
         API_URL,
         data=body,
         method="POST",
@@ -118,7 +140,7 @@ def fetch_payload(league_id: int, season: int, stage_id: int | None = None) -> d
             "User-Agent": USER_AGENT,
         },
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
         payload = json.load(resp)
     if not payload.get("success"):
         raise RuntimeError(f"basketnews API call failed: {payload}")
@@ -141,9 +163,7 @@ def build_rows(data: dict, league_id: int, season: int) -> list[dict]:
     for stat in data["stats"]:
         player = players_by_id.get(stat["player_id"], {})
         team = teams_by_id.get(stat["team_id"], {})
-        positions = ",".join(
-            positions_by_id.get(pid, str(pid)) for pid in player.get("positions", [])
-        )
+        positions = ",".join(positions_by_id.get(pid, str(pid)) for pid in player.get("positions", []))
         time_played = stat.get("time_played") or {}
 
         common = {
@@ -161,7 +181,7 @@ def build_rows(data: dict, league_id: int, season: int) -> list[dict]:
             "minutes_per_game_raw": time_played.get("value", ""),
         }
 
-        for mode, stat_keys in (("offensive", OFFENSIVE_STATS), ("defensive", DEFENSIVE_STATS)):
+        for mode, _stat_keys in (("offensive", OFFENSIVE_STATS), ("defensive", DEFENSIVE_STATS)):
             row = dict(common)
             row["mode"] = mode
             for key in OFFENSIVE_STATS:
@@ -189,10 +209,21 @@ def main():
     rows = build_rows(data, args.league_id, args.season)
 
     fieldnames = [
-        "season", "league_id", "mode", "player_id", "player_name",
-        "player_name_short", "team_id", "team_name", "team_short_name",
-        "positions", "games_played", "minutes_per_game", "minutes_per_game_raw",
-        *OFFENSIVE_STATS, *DEFENSIVE_STATS,
+        "season",
+        "league_id",
+        "mode",
+        "player_id",
+        "player_name",
+        "player_name_short",
+        "team_id",
+        "team_name",
+        "team_short_name",
+        "positions",
+        "games_played",
+        "minutes_per_game",
+        "minutes_per_game_raw",
+        *OFFENSIVE_STATS,
+        *DEFENSIVE_STATS,
     ]
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

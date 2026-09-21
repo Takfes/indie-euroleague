@@ -14,7 +14,7 @@ GET, then a regex pass over the embedded `<tr data-pos=... data-club=... data-pr
 rows.
 
 Usage:
-    python fetch_prices.py [--out PATH]
+    python src/fetch_basketballsphere_prices.py [--out PATH]
 
 Re-run this any time to refresh data/euroleague-fantasy/basketballsphere_prices.csv --
 prices change after every round, so the output is fully overwritten each run.
@@ -31,9 +31,7 @@ from pathlib import Path
 
 URL = "https://basketballsphere.com/en/euroleague-fantasy-player-prices/"
 
-DEFAULT_OUT = (
-    Path(__file__).resolve().parents[4] / "data" / "euroleague-fantasy" / "basketballsphere_prices.csv"
-)
+DEFAULT_OUT = Path(__file__).resolve().parents[1] / "data" / "euroleague-fantasy" / "basketballsphere_prices.csv"
 
 # Row markup is stable and simple enough to regex directly rather than pulling in an
 # HTML-parsing dependency. Each `<tr>` carries the position/club/price as data
@@ -52,7 +50,7 @@ ROW_RE = re.compile(
 
 def fetch_html(url: str) -> str:
     """Download the page HTML with a desktop User-Agent (the site 403s bare urllib UAs)."""
-    request = urllib.request.Request(
+    request = urllib.request.Request(  # noqa: S310
         url,
         headers={
             "User-Agent": (
@@ -75,16 +73,14 @@ def parse_rows(page_html: str) -> list[dict[str, str]]:
     rows = []
     for match in ROW_RE.finditer(page_html):
         pos = match.group("pos")
-        rows.append(
-            {
-                "rank": match.group("rank"),
-                "name": html.unescape(match.group("name")).strip(),
-                "club": html.unescape(match.group("club")).strip(),
-                "position": pos,
-                "price": match.group("price"),
-                "role": "head_coach" if pos == "HC" else "player",
-            }
-        )
+        rows.append({
+            "rank": match.group("rank"),
+            "name": html.unescape(match.group("name")).strip(),
+            "club": html.unescape(match.group("club")).strip(),
+            "position": pos,
+            "price": match.group("price"),
+            "role": "head_coach" if pos == "HC" else "player",
+        })
     return rows
 
 
