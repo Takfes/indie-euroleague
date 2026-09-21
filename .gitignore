@@ -156,6 +156,8 @@ data/*
 !data/player-master-table/**
 !data/basketnews-team-stats/
 !data/basketnews-team-stats/**
+!data/dunkest-defense-positions/
+!data/dunkest-defense-positions/**
 
 # Claude Code worktrees
 .claude/worktrees/
