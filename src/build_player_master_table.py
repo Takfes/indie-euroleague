@@ -57,10 +57,8 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
-from openpyxl.styles import Font
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.worksheet import Worksheet
 
+from master_workbook import write_workbook
 from player_master_column_guide import (
     BN_ADVANCED,
     BN_ONOFF,
@@ -89,7 +87,6 @@ SOURCE_PATHS = {
 }
 # Views in the order their columns/rows appear: total, then offense, then defense.
 VIEW_ABBREV = {"total": "tot", "offensive": "off", "defensive": "def"}
-MAX_COLUMN_WIDTH = 45
 FOUND_PREFIX = "_found_"
 FOUND_IN_COLUMNS = ["found_in", "found_in_count"]
 
@@ -373,28 +370,6 @@ def check_column_guide(guide: pd.DataFrame, sources: dict[str, pd.DataFrame], ma
         raise ValueError(f"Column Guide rows under '{DERIVED}' must be unique columns of the Master sheet")
 
 
-def _style_sheet(ws: Worksheet, freeze_cell: str) -> None:
-    """Bold header, freeze panes, autofilter and content-based column widths."""
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
-    ws.freeze_panes = freeze_cell
-    ws.auto_filter.ref = ws.dimensions
-    for column_cells in ws.iter_cols():
-        longest = max(len(str(c.value)) for c in column_cells if c.value is not None)
-        ws.column_dimensions[get_column_letter(column_cells[0].column)].width = min(longest + 2, MAX_COLUMN_WIDTH)
-
-
-def write_workbook(out: Path, guide: pd.DataFrame, master: pd.DataFrame, sources: dict[str, pd.DataFrame]) -> None:
-    """Write the workbook: Column Guide, Master, then the raw source sheets."""
-    sheets = {"Column Guide": guide, "Master": master, **sources}
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with pd.ExcelWriter(out, engine="openpyxl") as writer:
-        for name, df in sheets.items():
-            df.to_excel(writer, sheet_name=name, index=False)
-            # Master keeps the player name column visible while scrolling right.
-            _style_sheet(writer.sheets[name], "B2" if name == "Master" else "A2")
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="Output xlsx path")
@@ -404,7 +379,7 @@ def main() -> None:
     master, stats = build_master_table(sources)
     guide = build_column_guide(sources)
     check_column_guide(guide, sources, master)
-    write_workbook(args.out, guide, master, sources)
+    write_workbook(args.out, {"Column Guide": guide, "Master": master, **sources})
     print(f"Wrote {len(master)} players x {len(master.columns)} columns to {args.out}")
     print("Join stats:", ", ".join(f"{k}={v}" for k, v in stats.items()))
     undocumented = int((guide["Explanation"] == UNDOCUMENTED).sum())
