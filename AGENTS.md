@@ -4,6 +4,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Code lives only in `src/` (data-acquisition scripts `src/fetch_*.py`, plus the master-table builders `src/build_*_master_table.py` and their shared helpers).
 - Data: raw source datasets live in `data/<source>/`; produced master tables live in `data/curated/`.
+- Pipeline order: raw csvs (incl. the git-ignored `data/kaggle-euroleague-data/`, see the `player-game-stats` skill) -> `src/build_game_player_stats.py` -> `src/build_player_kpis.py` -> `src/build_player_master_table.py`; outputs in `data/curated/`.
 - Skills (`.claude/skills/<name>/SKILL.md`) are documentation only: no code, no script copies; they reference scripts by `src/` path.
 - A skill's run command is `uv run python src/<script>.py` (repo root as cwd).
 - `tests/test_skill_script_paths.py` enforces both rules: every `src/*.py` path named in a SKILL.md exists, and no `.py` files sit under `.claude/skills/`.
