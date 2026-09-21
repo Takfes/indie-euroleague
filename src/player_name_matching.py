@@ -106,15 +106,21 @@ def teams_compatible(team_a: object, team_b: object) -> bool:
     return same_first_word and len(tokens_a & tokens_b) >= MIN_SHARED_TEAM_TOKENS
 
 
+def first_names_equivalent(key_a: str, key_b: str) -> bool:
+    """Whether the first names are identical or members of one nickname group ("Sasha"/"Aleksandr")."""
+    first_a, first_b = key_a.split()[0], key_b.split()[0]
+    return first_a == first_b or any(first_a in group and first_b in group for group in NICKNAME_GROUPS)
+
+
 def first_names_compatible(key_a: str, key_b: str) -> bool:
     """Whether the first names of two name keys look like spellings of one name.
 
-    True for identical names, prefixes of at least three letters ("Zac"/"Zachary"),
-    near-identical spellings, and members of a known nickname group ("Sasha"/"Aleksandr").
+    True for equivalent names (see `first_names_equivalent`), prefixes of at least
+    three letters ("Zac"/"Zachary") and near-identical spellings.
     """
-    first_a, first_b = key_a.split()[0], key_b.split()[0]
-    if first_a == first_b or any(first_a in group and first_b in group for group in NICKNAME_GROUPS):
+    if first_names_equivalent(key_a, key_b):
         return True
+    first_a, first_b = key_a.split()[0], key_b.split()[0]
     shorter = min(len(first_a), len(first_b))
     if shorter >= 3 and (first_a.startswith(first_b) or first_b.startswith(first_a)):
         return True
@@ -131,8 +137,9 @@ def resolve_names(
     rows with progressively looser rules, each applied only when it yields exactly
     one candidate:
 
-    1. same surname (suffix excluded) and compatible first name (team narrows the
-       candidates when several remain; this also covers players traded between sources);
+    1. same surname (suffix excluded) and an equivalent first name (identical or a
+       nickname group), or a compatible first name (prefix, near-identical spelling)
+       on a compatible team; team narrows the candidates when several remain;
     2. same team and near-identical full name (covers spelling variants);
     3. same surname, compatible team and identical games played, for nicknames no
        name rule can link ("Iffe" vs "Gabriel" Lundberg). Only used when
@@ -167,7 +174,14 @@ def resolve_names(
         same_surname = [i for i, s in enumerate(pool_surnames) if s == surname_key(key)]
         same_team = [i for i, t in enumerate(pool_teams) if teams_compatible(t, team)]
 
-        by_name = [i for i in same_surname if first_names_compatible(key, pool_keys[i])]
+        # A loose first-name match (prefix/similar spelling) is only trusted on the same
+        # team; across teams (traded players) the first name must be equivalent.
+        by_name = [
+            i
+            for i in same_surname
+            if first_names_equivalent(key, pool_keys[i])
+            or (i in same_team and first_names_compatible(key, pool_keys[i]))
+        ]
         by_name_and_team = [i for i in by_name if i in same_team]
         by_spelling = [i for i in same_team if SequenceMatcher(None, key, pool_keys[i]).ratio() >= FULL_NAME_MIN_RATIO]
         by_games = (

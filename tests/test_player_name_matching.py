@@ -116,3 +116,11 @@ def test_colliding_resolutions_are_reverted() -> None:
     other = _frame([("Allan Dokossi", "Paris"), ("Alann Dokossi", "Paris")], "club")
 
     assert resolve_names(base, other, "club").tolist() == ["allan dokossi", "alann dokossi"]
+
+
+def test_loose_first_name_on_another_team_is_not_merged() -> None:
+    """'Chris' vs 'Christian' Duarte on different clubs are different players."""
+    base = _frame([("Christian Duarte", "Real Madrid")], "team_name")
+
+    assert resolve_names(base, _frame([("Chris Duarte", "Baskonia")], "club"), "club").tolist() == ["chris duarte"]
+    assert resolve_names(base, _frame([("Chris Duarte", "Madrid")], "club"), "club").tolist() == ["christian duarte"]
