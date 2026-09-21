@@ -152,8 +152,8 @@ data/*
 !data/basketnews-onoff-stats/**
 !data/euroleague-fantasy/
 !data/euroleague-fantasy/**
-!data/player-master-table/
-!data/player-master-table/**
+!data/curated/
+!data/curated/**
 !data/basketnews-team-stats/
 !data/basketnews-team-stats/**
 !data/dunkest-defense-positions/

@@ -7,7 +7,7 @@ Combines four EuroLeague datasets into one row per player:
   - data/basketnews-onoff-stats/onoff_stats.csv (on/off lineup impact stats)
   - data/euroleague-fantasy/basketballsphere_prices.csv (fantasy prices)
 
-Output: data/player-master-table/player_master_table.xlsx with sheets, in order:
+Output: data/curated/player_master_table.xlsx with sheets, in order:
   - Column Guide: one row per column of every source dataset (Source dataset,
     Column name, Explanation), plus the derived Master columns under the label
     "Master (derived)"; texts live in src/player_master_column_guide.py
@@ -79,7 +79,7 @@ BN_ADV_PATH = REPO_ROOT / "data/basketnews-players-stats/basketnews_players_adva
 BN_ONOFF_PATH = REPO_ROOT / "data/basketnews-onoff-stats/onoff_stats.csv"
 DUNKEST_PATH = REPO_ROOT / "data/dunkest-data/player_stats.csv"
 PRICE_PATH = REPO_ROOT / "data/euroleague-fantasy/basketballsphere_prices.csv"
-DEFAULT_OUT = REPO_ROOT / "data/player-master-table/player_master_table.xlsx"
+DEFAULT_OUT = REPO_ROOT / "data/curated/player_master_table.xlsx"
 
 SOURCE_PATHS = {
     DUNKEST: DUNKEST_PATH,

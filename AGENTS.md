@@ -3,6 +3,7 @@
 This file is the project's committed home for project-intrinsic agent knowledge: build, test, release, architecture, and sharp-edge notes that should travel with the code.
 
 - Code lives only in `src/` (data-acquisition scripts `src/fetch_*.py`, plus `src/build_player_master_table.py`).
+- Data: raw source datasets live in `data/<source>/`; produced master tables live in `data/curated/`.
 - Skills (`.claude/skills/<name>/SKILL.md`) are documentation only: no code, no script copies; they reference scripts by `src/` path.
 - A skill's run command is `uv run python src/<script>.py` (repo root as cwd).
 - `tests/test_skill_script_paths.py` enforces both rules: every `src/*.py` path named in a SKILL.md exists, and no `.py` files sit under `.claude/skills/`.

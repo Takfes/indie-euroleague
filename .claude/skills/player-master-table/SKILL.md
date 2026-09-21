@@ -1,11 +1,11 @@
 ---
 name: player-master-table
-description: Rebuild the unified EuroLeague player master table that joins basketnews advanced stats, basketnews on/off stats, Dunkest fantasy stats, and basketballsphere fantasy prices into one row per player. Use this whenever the user asks to combine/merge/consolidate the separate EuroLeague datasets into a single table, rebuild data/player-master-table/player_master_table.xlsx, or wants an all-in-one player dataframe with stats and price after any of the four source datasets (basketnews-players-stats, basketnews-onoff-stats, dunkest-data, euroleague-fantasy) has been refreshed.
+description: Rebuild the unified EuroLeague player master table that joins basketnews advanced stats, basketnews on/off stats, Dunkest fantasy stats, and basketballsphere fantasy prices into one row per player. Use this whenever the user asks to combine/merge/consolidate the separate EuroLeague datasets into a single table, rebuild data/curated/player_master_table.xlsx, or wants an all-in-one player dataframe with stats and price after any of the four source datasets (basketnews-players-stats, basketnews-onoff-stats, dunkest-data, euroleague-fantasy) has been refreshed.
 ---
 
 # EuroLeague player master table
 
-Rebuilds `data/player-master-table/player_master_table.xlsx`: a workbook whose
+Rebuilds `data/curated/player_master_table.xlsx`: a workbook whose
 `Master` sheet has one row per player, joining together the stats/price data
 collected by four other skills in this repo (the raw source datasets and a
 column guide ride along as extra sheets).
@@ -104,7 +104,7 @@ uv run python src/build_player_master_table.py
 
 (`uv run` picks up `pandas` and `openpyxl` from this repo's
 `pyproject.toml`/`uv.lock`.) Pass `--out PATH` to write elsewhere; by default
-it overwrites `data/player-master-table/player_master_table.xlsx`. The run
+it overwrites `data/curated/player_master_table.xlsx`. The run
 prints join statistics (players per source, players in all four, fallback name
 matches, position-fallback players) and warns if a source column has no entry
 in `src/player_master_column_guide.py`.
@@ -139,11 +139,11 @@ script rather than trusting this table after any source update.
 ## Committing the refreshed data
 
 `.gitignore` has an explicit exception for this folder
-(`!data/player-master-table/` + `!data/player-master-table/**`), so a
+(`!data/curated/` + `!data/curated/**`), so a
 normal `git add` picks up the workbook without needing `-f`
 (`git check-ignore -v` on the xlsx reports that exception, not an ignore):
 
 ```bash
-git add data/player-master-table/player_master_table.xlsx
+git add data/curated/player_master_table.xlsx
 git commit -m "chore(data): refresh player master table"
 ```
