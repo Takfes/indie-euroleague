@@ -132,7 +132,7 @@ The third row is derived from the formula; the first two are the community's wor
 - **Round score (unconfirmed):** the [Player score](#player-score) table is the standard PIR formula plus the team win bonus. It is not documented whether the price formula uses the score with or without the win bonus.
 - Neither the formula nor the cap appears in the official rules — treat predictions as estimates.
 
-References: [official rules GitBook — Quotations and price variations](https://fantaking.gitbook.io/euroleague-fantasy-challenge-rules/classic-mode/quotations-and-price-variations) (two inputs, no formula); [EuroLeague — Dynamic new player price changes](https://www.euroleaguebasketball.net/euroleague/news/euroleague-fantasy-challenge-dynamic-new-player-price-changes/); [Google search for price-formula hints](https://www.google.com/search?q=are+there+any+hints+online+concerning+the+euroleague+fantasy+credit+score%2Fprice+update+formula%3F) (where the community formula was found; search results, not a primary source).
+References: [official rules GitBook — Quotations and price variations](https://fantaking.gitbook.io/euroleague-fantasy-challenge-rules/classic-mode/quotations-and-price-variations) (two inputs, no formula); [EuroLeague — Dynamic new player price changes](https://www.euroleaguebasketball.net/euroleague/news/euroleague-fantasy-challenge-dynamic-new-player-price-changes/); [Google search for price-formula hints](https://www.google.com/search?q=are+there+any+hints+online+concerning+the+euroleague+fantasy+credit+score%2Fprice+update+formula%3F)(where the community formula was found; search results, not a primary source); [@ELFantasist X/Twitter Post](https://x.com/ELFantasist/status/2015451800300654732)
 
 ## Suspended or changed games
 
