@@ -18,16 +18,21 @@ Output: data/player-master-table/player_master_table.xlsx with sheets, in order:
 Matching strategy: players are joined primarily by normalised name (accents,
 casing, hyphens, apostrophes and generational suffixes jr/sr/ii/iii/iv/v are
 ignored, so "Wade Baldwin IV" == "Wade Baldwin"). Rows with no exact match are
-resolved by src/player_name_matching.py: same surname (suffix excluded) + a
-compatible first name, with team as tie-breaker, or same team + near-identical
-full name. A fallback is only applied when it resolves to exactly one
-unambiguous candidate, so different players (e.g. the three Baldwins) never merge.
+resolved by src/player_name_matching.py: same surname (suffix excluded) + an
+equivalent/compatible first name, with team as tie-breaker; or same team +
+near-identical full name; or (Dunkest vs basketnews only) same surname + team +
+identical games played, for nicknames such as Iffe/Gabriel Lundberg. A fallback
+is only applied when it resolves to exactly one unambiguous candidate, so
+different players (e.g. the three Baldwins) never merge.
 
 Master column layout:
   1. identity: player_name, team_name, position, season, games_played - Dunkest is
      preferred, then basketnews, then the price list (position: Dunkest, then
      basketnews `positions`, then the price list `position`, so it is never blank
-     for players missing from Dunkest)
+     for players missing from Dunkest). `season` only exists in basketnews, so it is
+     blank for players missing there, as is `games_played` when Dunkest is also missing.
+     Players traded mid-season keep only their max-games stint in the bnadv/bnoo
+     columns, while the identity columns follow Dunkest (current team, season games).
   2. Dunkest columns (dunk_*)
   3. basketnews advanced: player_id, then bnadv_* columns
   4. basketnews on/off (bnoo_*): total (_tot), then offensive (_off), then
@@ -293,7 +298,7 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     bn_cols = ["player_id"] + [c for c in bn_adv.columns if c.startswith("bnadv_")]
     onoff_cols = [c for c in bn_onoff.columns if c.startswith("bnoo_")]
     master = master[lead_cols + dunkest_cols + bn_cols + onoff_cols + ["price", "price_rank"]]
-    return master.sort_values("player_name").reset_index(drop=True), stats
+    return master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True), stats
 
 
 def build_column_guide(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
