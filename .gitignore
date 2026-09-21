@@ -154,6 +154,8 @@ data/*
 !data/euroleague-fantasy/**
 !data/player-master-table/
 !data/player-master-table/**
+!data/basketnews-team-stats/
+!data/basketnews-team-stats/**
 
 # Claude Code worktrees
 .claude/worktrees/
