@@ -71,11 +71,18 @@ extending it:
   `tests/test_player_name_matching.py` cover the rules).
 - **Column layout.** Leading identity columns: `player_name`, `team_name`,
   `position`, `season`, `games_played`, taken from Dunkest first, then
-  basketnews, then the price list. `position` is Dunkest's value for every
+  basketnews, then the price list. Right after them come two provenance columns:
+  `found_in` (the sources holding the player, as codes joined with `", "` in fixed
+  order, e.g. `dunk, elf`) and `found_in_count` (integer, 1-4). Codes: `dunk` =
+  Dunkest, `bnadv` = basketnews advanced, `bnoo` = basketnews on/off, `elf` =
+  fantasy prices; defined once in `FOUND_IN_SOURCES` in
+  `src/player_master_column_guide.py` (edit there to rename). They come from the join
+  provenance, not from non-null values; the run prints
+  `found_in_null_disagreements` (0 = agrees with a null-based inference). `position` is Dunkest's value for every
   player present in Dunkest; players missing from Dunkest fall back to
   basketnews `positions` (e.g. `PG`, `SG,SF`), then the price list's `G`/`F`/`C`,
   so the cell is never blank (the run prints how many used the fallback). Then,
-  in this order: Dunkest columns (`dunk_*`), basketnews advanced (`player_id`,
+  in this order: `found_in`, `found_in_count`, Dunkest columns (`dunk_*`), basketnews advanced (`player_id`,
   then `bnadv_*`), basketnews on/off (`bnoo_*`: total `_tot`, then offense
   `_off`, then defense `_def`, source order inside each group), and last the
   fantasy `price`, `price_rank`. `season` exists only in basketnews (blank for
@@ -108,14 +115,14 @@ The workbook has these sheets, in order:
 
 | Sheet            | Content                                                                                                                                                                                              |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Column Guide`   | One row per column of every source dataset: `Source dataset`, `Column name` (as in that source), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)") |
+| `Column Guide`   | One row per column of every source dataset, plus `found_in`/`found_in_count` under `Master (derived)`: `Source dataset`, `Column name` (as in that source), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)") |
 | `Master`         | The joined table, one row per player (layout above); header frozen along with `player_name`                                                                                                          |
 | `Dunkest`        | Raw `player_stats.csv`, as-is                                                                                                                                                                        |
 | `BN Advanced`    | Raw `basketnews_players_advanced_stats.csv`, as-is                                                                                                                                                   |
 | `BN On-Off`      | Raw `onoff_stats.csv`, long format, rows ordered total, offensive, defensive                                                                                                                         |
 | `Fantasy Prices` | Raw `basketballsphere_prices.csv`, as-is (head coaches included; `Master` excludes them)                                                                                                             |
 
-As of the last run: 436 unique players, 125 `Master` columns. Coverage per
+As of the last run: 436 unique players, 127 `Master` columns. Coverage per
 source (a player can be missing from some sources and still appear, since the
 join is an outer join throughout):
 
