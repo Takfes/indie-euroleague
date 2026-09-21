@@ -45,13 +45,13 @@ Each row is a `<tr>` with the data already on it:
 coaches - there's no separate coaches page or endpoint, just rows with `pos="HC"` mixed
 into the same table. That's how the script derives the `role` column. The name cell
 sometimes links to a per-player/coach profile page and sometimes doesn't (no link) -
-`scripts/fetch_prices.py`'s regex handles both.
+`src/fetch_basketballsphere_prices.py`'s regex handles both.
 
 ## Running it
 
 ```bash
 cd <repo root>
-python3 .claude/skills/basketballsphere-fantasy-prices/scripts/fetch_prices.py
+uv run python src/fetch_basketballsphere_prices.py
 ```
 
 No dependencies beyond the Python standard library. This overwrites
@@ -80,7 +80,7 @@ refresh, a reasonable check is: `role` splits into two non-trivial groups, `posi
 only ever takes the 4 expected values, and prices are numeric and roughly in that
 range - a big deviation (e.g. `head_coach` rows disappearing, or one club missing
 entirely) likely means the page's markup changed and the regex in
-`scripts/fetch_prices.py` needs updating to match.
+`src/fetch_basketballsphere_prices.py` needs updating to match.
 
 ## Committing the refreshed data
 

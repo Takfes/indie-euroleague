@@ -56,7 +56,7 @@ shown as text, so it's dropped), plus `data.teams`, `data.players`, and
 
 Which fields belong to which toggle state (total/offensive/defensive) is
 taken from the page's own `onoffStats` JS config object - see the
-`ONOFF_STATS` dict at the top of `scripts/fetch_onoff_stats.py`. If
+`ONOFF_STATS` dict at the top of `src/fetch_basketnews_onoff_stats.py`. If
 basketnews changes the page's columns, search the page source for
 `onoffStats:` to find the updated field lists and update that dict.
 
@@ -70,7 +70,7 @@ the original task (total/offense/defense).
 
 ```bash
 cd <repo root>
-uv run python .claude/skills/basketnews-onoff-stats/scripts/fetch_onoff_stats.py
+uv run python src/fetch_basketnews_onoff_stats.py
 ```
 
 (`uv run` picks up the `requests` dependency already declared in this repo's

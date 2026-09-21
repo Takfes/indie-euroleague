@@ -27,7 +27,7 @@ one request already has everything.
 ## How to run it
 
 ```bash
-python .claude/skills/dunkest-player-stats/scripts/fetch_player_stats.py
+uv run python src/fetch_dunkest_player_stats.py
 ```
 
 This overwrites `data/dunkest-data/player_stats.csv` with a fresh pull using the default

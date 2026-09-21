@@ -26,7 +26,7 @@ there's nothing to click through.
 From the repo root:
 
 ```bash
-python .claude/skills/basketnews-player-advanced-stats/scripts/fetch_player_advanced_stats.py
+uv run python src/fetch_basketnews_player_advanced_stats.py
 ```
 
 This writes `data/basketnews-players-stats/basketnews_players_advanced_stats.csv`
@@ -36,7 +36,7 @@ of when this skill was built -- row count grows as the season progresses).
 To target a different season or league, pass flags (see `--help`):
 
 ```bash
-python .claude/skills/basketnews-player-advanced-stats/scripts/fetch_player_advanced_stats.py \
+uv run python src/fetch_basketnews_player_advanced_stats.py \
     --league-id 25 --season 2024 --out data/basketnews-players-stats/basketnews_players_advanced_stats_2024.csv
 ```
 
