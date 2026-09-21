@@ -46,8 +46,8 @@ autofilter, widths) is shared with the player builder in `src/master_workbook.py
 - **New season / a renamed team (sponsor change).** Re-run the build. If it fails with
   `Team matching failed. Only in BN Team Stats: [...]. Only in Dunkest Defense vs Position: [...]`,
   pair the two spellings and add or correct one line in `TEAM_NAME_CROSSWALK`
-  (`"<Dunkest name>": "<Basketnews name>"`). Stale entries are harmless (they simply
-  never match). A new team needs nothing if both sources spell it the same way.
+  (`"<Dunkest name>": "<Basketnews name>"`). Stale entries are harmless (an entry is ignored once both
+  sources spell the team the same way). A new team needs nothing if both sources spell it the same way.
   Sanity check: for players in both player datasets the (Basketnews team, Dunkest team)
   pair should agree with the team match (only traded players differ).
 - **Column prefixes.** Every source column in `Master` carries a short source prefix,

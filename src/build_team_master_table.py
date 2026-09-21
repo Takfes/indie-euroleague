@@ -94,7 +94,10 @@ def match_teams(bn: pd.DataFrame, dunkest: pd.DataFrame) -> pd.DataFrame:
     """
     crosswalk = {team_key(dunk): team_key(bn_name) for dunk, bn_name in TEAM_NAME_CROSSWALK.items()}
     bn_keys = bn["team_name"].map(team_key)
-    dunkest_keys = dunkest["team_name"].map(team_key).map(lambda key: crosswalk.get(key, key))
+    # A crosswalk entry only applies while the Dunkest name is not already a Basketnews name (stale entries stay inert).
+    dunkest_keys = (
+        dunkest["team_name"].map(team_key).map(lambda key: key if key in set(bn_keys) else crosswalk.get(key, key))
+    )
     fix = (
         "Add or correct an entry in TEAM_NAME_CROSSWALK in src/build_team_master_table.py "
         '(Dunkest name -> Basketnews name, e.g. "Virtus Bologna": "Virtus Segafredo Bologna").'
@@ -147,8 +150,12 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
     lead = [*BN_IDENTITY, BN_ID, DVP_ID, *[f"{bn_prefix}{c}" for c in BN_GAMES]]
     master = master[lead + [f"{bn_prefix}{c}" for c in bn_cols] + [f"{dvp_prefix}{c}" for c in dvp_cols]]
     master = master.sort_values("team_name", key=lambda names: names.str.lower()).reset_index(drop=True)
-    if master.isna().any().any() or master["team_name"].duplicated().any():
-        raise ValueError("Team master table must have one row per team and no blank cells; check the source CSVs.")
+    blanks = master.columns[master.isna().any()].tolist()
+    if blanks or master["team_name"].duplicated().any():
+        raise ValueError(
+            f"Team master table must have one row per team and no blank cells. Columns with blanks: {blanks}. "
+            "Check the source CSVs (re-run the fetch skill) before rebuilding."
+        )
     return master
 
 

@@ -20,6 +20,12 @@ def test_match_teams_one_to_one_with_crosswalk_and_accents() -> None:
     assert dict(zip(matched[BN_ID], matched[DVP_ID], strict=True)) == {368: 45, 90: 47, 60: 37}
 
 
+def test_match_teams_ignores_stale_crosswalk_entry() -> None:
+    bn = _teams((90, "Virtus Bologna"))
+    dunkest = _teams((47, "Virtus Bologna"))
+    assert match_teams(bn, dunkest)[DVP_ID].tolist() == [47]
+
+
 def test_match_teams_names_unmatched_teams_on_each_side() -> None:
     bn = _teams((1, "Real Madrid"), (2, "Zalgiris Kaunas"))
     dunkest = _teams((10, "Real Madrid"), (11, "Zalgiris Kaunas Sponsor"))
