@@ -9,7 +9,8 @@ Combines four EuroLeague datasets into one row per player:
 
 Output: data/player-master-table/player_master_table.xlsx with sheets, in order:
   - Column Guide: one row per column of every source dataset (Source dataset,
-    Column name, Explanation); texts live in src/player_master_column_guide.py
+    Column name, Explanation), plus the derived Master columns under the label
+    "Master (derived)"; texts live in src/player_master_column_guide.py
   - Master: one row per player (layout below)
   - Dunkest, BN Advanced, BN On-Off, Fantasy Prices: the raw source datasets as-is
     (BN On-Off stays long format, rows ordered total, offensive, defensive; Fantasy
@@ -33,11 +34,16 @@ Master column layout:
      blank for players missing there, as is `games_played` when Dunkest is also missing.
      Players traded mid-season keep only their max-games stint in the bnadv/bnoo
      columns, while the identity columns follow Dunkest (current team, season games).
-  2. Dunkest columns (dunk_*)
-  3. basketnews advanced: player_id, then bnadv_* columns
-  4. basketnews on/off (bnoo_*): total (_tot), then offensive (_off), then
+  2. provenance: found_in (source codes, comma-separated, e.g. "dunk, elf") and
+     found_in_count (how many); codes are defined once in
+     `FOUND_IN_SOURCES` (src/player_master_column_guide.py): dunk, bnadv, bnoo, elf.
+     Computed from the join provenance (which source rows the player came from),
+     not from non-null values; the run reports any disagreement with that inference.
+  3. Dunkest columns (dunk_*)
+  4. basketnews advanced: player_id, then bnadv_* columns
+  5. basketnews on/off (bnoo_*): total (_tot), then offensive (_off), then
      defensive (_def) columns, each in source CSV order
-  5. fantasy price columns: price, price_rank
+  6. fantasy price columns: price, price_rank
 
 Usage:
     python src/build_player_master_table.py [--out PATH]
@@ -55,7 +61,17 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
-from player_master_column_guide import BN_ADVANCED, BN_ONOFF, DUNKEST, FANTASY_PRICES, GUIDE, UNDOCUMENTED
+from player_master_column_guide import (
+    BN_ADVANCED,
+    BN_ONOFF,
+    DERIVED,
+    DUNKEST,
+    FANTASY_PRICES,
+    FOUND_IN_SEPARATOR,
+    FOUND_IN_SOURCES,
+    GUIDE,
+    UNDOCUMENTED,
+)
 from player_name_matching import name_key, resolve_names
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +90,8 @@ SOURCE_PATHS = {
 # Views in the order their columns/rows appear: total, then offense, then defense.
 VIEW_ABBREV = {"total": "tot", "offensive": "off", "defensive": "def"}
 MAX_COLUMN_WIDTH = 45
+FOUND_PREFIX = "_found_"
+FOUND_IN_COLUMNS = ["found_in", "found_in_count"]
 
 
 def read_sources() -> dict[str, pd.DataFrame]:
@@ -233,6 +251,20 @@ def _require_unique_names(df: pd.DataFrame, source: str) -> None:
         )
 
 
+def found_in_columns(found: pd.DataFrame) -> pd.DataFrame:
+    """Turn per-source provenance flags into the `found_in` and `found_in_count` columns.
+
+    Args:
+        found: Boolean frame, one column per code of `FOUND_IN_SOURCES`, one row per player.
+
+    Returns:
+        Frame with `found_in` (codes joined in `FOUND_IN_SOURCES` order) and integer `found_in_count`.
+    """
+    codes = list(FOUND_IN_SOURCES)
+    labels = found[codes].apply(lambda row: FOUND_IN_SEPARATOR.join(c for c in codes if row[c]), axis=1)
+    return pd.DataFrame({"found_in": labels, "found_in_count": found[codes].sum(axis=1).astype(int)})
+
+
 def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, int]]:
     """Join the four sources into the Master table.
 
@@ -249,6 +281,10 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     prices = load_prices(sources[FANTASY_PRICES])
     for df, source in ((bn_adv, BN_ADVANCED), (dunkest, DUNKEST), (prices, FANTASY_PRICES)):
         _require_unique_names(df, source)
+
+    # Provenance: a marker column per source, carried through the joins (NaN where the row has no source row).
+    for df, code in ((dunkest, "dunk"), (bn_adv, "bnadv"), (bn_onoff, "bnoo"), (prices, "elf")):
+        df[f"{FOUND_PREFIX}{code}"] = True
 
     master = bn_adv.merge(bn_onoff, on="player_id", how="left")
 
@@ -268,10 +304,17 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     _require_unique_names(prices, FANTASY_PRICES)
     master = master.merge(prices, on="name_key", how="outer")
 
-    in_bn = master["player_id"].notna()
-    in_onoff = master.filter(like="bnoo_").notna().any(axis=1)
-    in_dunkest = master["dunk_player_name"].notna()
-    in_price = master["price_name_raw"].notna()
+    found = pd.DataFrame({code: master[f"{FOUND_PREFIX}{code}"].notna() for code in FOUND_IN_SOURCES})
+    master = master.drop(columns=[f"{FOUND_PREFIX}{code}" for code in FOUND_IN_SOURCES])
+    master = master.join(found_in_columns(found))
+    in_bn, in_dunkest, in_price, in_onoff = found["bnadv"], found["dunk"], found["elf"], found["bnoo"]
+    # Cross-check: provenance versus "has any non-null value" inference, per source.
+    inferred = {
+        "dunk": master["dunk_slug"].notna(),
+        "bnadv": master["player_id"].notna(),
+        "bnoo": master.filter(like="bnoo_").notna().any(axis=1),
+        "elf": master["price_rank"].notna(),
+    }
     stats = {
         "players": len(master),
         "in_bn_advanced": int(in_bn.sum()),
@@ -282,6 +325,7 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
         "fallback_matches_dunkest": int((exact_dunkest != dunkest["name_key"]).sum()),
         "fallback_matches_prices": int((exact_prices != prices["name_key"]).sum()),
         "position_fallback": int((~in_dunkest).sum()),
+        "found_in_null_disagreements": int(sum((found[c] != inferred[c]).sum() for c in FOUND_IN_SOURCES)),
     }
 
     master["player_name"] = master["dunk_player_name"].fillna(master["bn_player_name"]).fillna(master["price_name_raw"])
@@ -289,7 +333,7 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     master["position"] = master["dunk_position"].fillna(master["bn_position"]).fillna(master["price_position"])
     master["games_played"] = master["dunk_gp"].fillna(master["bn_games_played"])
 
-    lead_cols = ["player_name", "team_name", "position", "season", "games_played"]
+    lead_cols = ["player_name", "team_name", "position", "season", "games_played", *FOUND_IN_COLUMNS]
     dunkest_cols = [
         c
         for c in dunkest.columns
@@ -302,13 +346,31 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
 
 
 def build_column_guide(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """One row per column of every source dataset, in workbook sheet order."""
+    """One row per source column in workbook sheet order, then the derived Master columns."""
     rows = [
         (sheet, column, GUIDE[sheet].get(column, UNDOCUMENTED))
         for sheet, df in sources.items()
         for column in df.columns
     ]
+    rows += [(DERIVED, column, text) for column, text in GUIDE[DERIVED].items()]
     return pd.DataFrame(rows, columns=["Source dataset", "Column name", "Explanation"])
+
+
+def check_column_guide(guide: pd.DataFrame, sources: dict[str, pd.DataFrame], master: pd.DataFrame) -> None:
+    """Raise if the guide is not: every source column exactly once, plus derived Master columns only.
+
+    Args:
+        guide: The Column Guide frame from `build_column_guide`.
+        sources: Raw source frames keyed by sheet name.
+        master: The Master table; derived columns must exist in it.
+    """
+    listed = list(zip(guide["Source dataset"], guide["Column name"], strict=True))
+    expected = [(sheet, column) for sheet, df in sources.items() for column in df.columns]
+    derived = [(label, column) for label, column in listed if label == DERIVED]
+    if sorted(item for item in listed if item[0] != DERIVED) != sorted(expected):
+        raise ValueError("Column Guide must list every source column exactly once and nothing else")
+    if len(set(derived)) != len(derived) or any(column not in master.columns for _, column in derived):
+        raise ValueError(f"Column Guide rows under '{DERIVED}' must be unique columns of the Master sheet")
 
 
 def _style_sheet(ws: Worksheet, freeze_cell: str) -> None:
@@ -341,6 +403,7 @@ def main() -> None:
     sources = read_sources()
     master, stats = build_master_table(sources)
     guide = build_column_guide(sources)
+    check_column_guide(guide, sources, master)
     write_workbook(args.out, guide, master, sources)
     print(f"Wrote {len(master)} players x {len(master.columns)} columns to {args.out}")
     print("Join stats:", ", ".join(f"{k}={v}" for k, v in stats.items()))

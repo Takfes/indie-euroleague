@@ -1,6 +1,6 @@
 """Column explanations for the `Column Guide` sheet of the player master workbook.
 
-One short explanation per source-dataset column, based on the fetch scripts and
+One short explanation per source-dataset column (plus the derived Master columns under `Master (derived)`), based on the fetch scripts and
 SKILL.md files under `.claude/skills/*` plus standard basketball-analytics
 definitions. Entries marked "(unverified)" could not be confirmed from those
 sources. Keys are the column names exactly as they appear in each source CSV.
@@ -12,6 +12,18 @@ DUNKEST = "Dunkest"
 BN_ADVANCED = "BN Advanced"
 BN_ONOFF = "BN On-Off"
 FANTASY_PRICES = "Fantasy Prices"
+
+DERIVED = "Master (derived)"
+
+# Single definition of the `found_in` source codes (code -> short label, in output order).
+# The builder, the Column Guide text and the docs all follow this mapping.
+FOUND_IN_SOURCES = {
+    "dunk": "Dunkest",
+    "bnadv": "BN advanced",
+    "bnoo": "BN on/off",
+    "elf": "Fantasy prices",
+}
+FOUND_IN_SEPARATOR = ", "
 
 UNDOCUMENTED = "(undocumented: new column, add to player_master_column_guide.py)"
 
@@ -180,7 +192,14 @@ _FANTASY_PRICES_GUIDE = {
     "role": "player or head_coach (derived from position)",
 }
 
+# Columns computed by the builder that exist only on the Master sheet (not in any source CSV).
+_DERIVED_GUIDE = {
+    "found_in": "Sources with the player: " + FOUND_IN_SEPARATOR.join(f"{c}={n}" for c, n in FOUND_IN_SOURCES.items()),
+    "found_in_count": "Number of sources in found_in",
+}
+
 GUIDE: dict[str, dict[str, str]] = {
+    DERIVED: _DERIVED_GUIDE,
     DUNKEST: _DUNKEST_GUIDE,
     BN_ADVANCED: _BN_ADVANCED_GUIDE,
     BN_ONOFF: _BN_ONOFF_GUIDE,
