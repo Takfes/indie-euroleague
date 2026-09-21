@@ -1,4 +1,4 @@
-## how to get data
+## how to get player data
 
 - visit this link https://euroleaguefantasy.euroleaguebasketball.net/10/fantasy/2880875/team and parse the dataset with all players that appears on the right. keep track of player name, position, avg fpt, pop and the value in the box (which is price). so you need to focus on the right hand-side and scroll. you don't need to open (click) every item, you just need to capture whatever is readily available in the list (before clicking in the item). you also don't need to worry about the various selectros (position G/F/C/HC nor the rounds T1/T2). keep it generic and all the results will show. save the results in data/euroleague-fantasy folder in a csv format. after successful capture of the data, you may turn the above in a skill using the skill-creator skill and saving that in the local `.claude/skills` folder.
 
@@ -12,6 +12,14 @@
 
 - visit this link https://www.kaggle.com/datasets/babissamothrakis/euroleague-datasets/data and download all data (i am mostly interested in euroleague and not eurocap). you may use the kaggle cli. save the results in data/kaggle folder in a csv format. after successful capture of the data, you may turn the above in a skill using the skill-creator skill and saving that in the local `.claude/skills` folder.
 
-## how to merge data
+## how to merge player data
 
 - we now have data from basketnews-players-stats, basketnews-onoff-stats, dunkest-data and euroleague-fantasy - all in the data folder. the idea is to bring all these data together in a single dataframe/table. the connecting entity across datasets is the player. the first three quote player stats, whilst the euroleague-fantasy one price per player. the resulting dataframe should collect all the datapoints for a player, by source - one line per player. after mergin all the info from each of the three datasets, there might exist duplicated info - remove that. then at the rightmost part, bring in the data for the price. create a skill (.claude/skills) for repeating the above through an agent. also create the resprective python script in the /src folder.
+
+## how to get team data
+
+- visit this link https://basketnews.com/advanced-stats/overview/25-euroleague/2025/368-real-madrid . the scope is to collect data for all the team - so iterate through the team selector at the top. for each of the teams, you need to pull the offense and defense statistics and also maintain the splits within the above categories (i.e. all games vs home vs away games). every line is a team and the kpis/columns are in order offense_all, offense_home, offense_away, defense_all, defense_home, defense_away. you need to prefer API calls vs DOM scraping. save the results in csv format under data/basketnews-team-stats. after successful extraction you may turn this into skill. if you managed to find an API way to extract these, also turn this into a script in the /src folder.
+
+- visit the https://www.dunkest.com/en/euroleague/stats/teams/defense-vs-position?season_id=23&stats_id=25&position_id=1&sort_by=all&sort_order=desc . the scope is to collect data for all the teams. the variables under consideration are the stats (list of stats to pick from) and position (three different positions to pick from). we need to collect all the data, so you need to do all combos - imagine an outer loop over positions and an inner loop over stats. you keep the season focused on 2025-2026. every line in the final dataset is a team, whilst the various columns appear in a sensible order e.g. guards_points, guards_rebounds .... centers_3point_field_goals_made, centers_fantasy_points. you need to prefer API calls vs DOM scraping. save the results in csv format under data/dunkest-defense-positions. after successful extraction you may turn this into skill. if you managed to find an API way to extract these, also turn this into a script in the /src folder.
+
+## how to merge team data
