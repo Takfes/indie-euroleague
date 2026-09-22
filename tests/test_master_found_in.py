@@ -34,6 +34,7 @@ def guide_inputs() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
         columns=[
             "found_in",
             "found_in_count",
+            "canonical_team_name",
             "pir_per_credit",
             "pir_per_min_per_credit",
             "breakeven_pir",
@@ -51,6 +52,7 @@ def test_guide_accepts_source_columns_plus_derived(guide_inputs: tuple[dict[str,
     assert set(guide.loc[guide["Source dataset"] == DERIVED, "Column name"]) == {
         "found_in",
         "found_in_count",
+        "canonical_team_name",
         "pir_per_credit",
         "pir_per_min_per_credit",
         "breakeven_pir",
@@ -86,6 +88,7 @@ def test_guide_lists_every_kaggle_kpi_column_once_under_its_own_label() -> None:
         columns=[
             "found_in",
             "found_in_count",
+            "canonical_team_name",
             "pir_per_credit",
             "pir_per_min_per_credit",
             "breakeven_pir",

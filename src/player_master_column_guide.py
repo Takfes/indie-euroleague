@@ -200,6 +200,10 @@ _FANTASY_PRICES_GUIDE = {
 _DERIVED_GUIDE = {
     "found_in": "Sources with the player: " + FOUND_IN_SEPARATOR.join(f"{c}={n}" for c, n in FOUND_IN_SOURCES.items()),
     "found_in_count": "Number of sources in found_in",
+    "canonical_team_name": (
+        "team_name resolved onto one of the 20 canonical team_kpis.xlsx names (see resolve_team_name "
+        "in build_player_master_table.py); blank if team_name has no current match (e.g. Besiktas)"
+    ),
     "pir_per_credit": "Expected PIR per credit: kag_pir_avg_recent / price; blank if price is 0",
     "pir_per_min_per_credit": "Season PIR/min per credit: kag_pir_per_min / price; blank if price is 0",
     "breakeven_pir": (

@@ -74,6 +74,7 @@ Re-run any time a source is refreshed (rebuild player_kpis.xlsx first when the K
 from __future__ import annotations
 
 import argparse
+from difflib import SequenceMatcher
 from pathlib import Path
 
 import pandas as pd
@@ -91,7 +92,7 @@ from player_master_column_guide import (
     KAGGLE_KPIS,
     UNDOCUMENTED,
 )
-from player_name_matching import map_alternate_spellings, name_key, resolve_names
+from player_name_matching import map_alternate_spellings, name_key, normalize_name, resolve_names, teams_compatible
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BN_ADV_PATH = REPO_ROOT / "data/basketnews-players-stats/basketnews_players_advanced_stats.csv"
@@ -99,7 +100,21 @@ BN_ONOFF_PATH = REPO_ROOT / "data/basketnews-onoff-stats/onoff_stats.csv"
 DUNKEST_PATH = REPO_ROOT / "data/dunkest-data/player_stats.csv"
 PRICE_PATH = REPO_ROOT / "data/euroleague-fantasy/basketballsphere_prices.csv"
 KAGGLE_KPIS_PATH = REPO_ROOT / "data/curated/player_kpis.xlsx"
+TEAM_KPIS_PATH = REPO_ROOT / "data/curated/team_kpis.xlsx"
 DEFAULT_OUT = REPO_ROOT / "data/curated/player_master_table.xlsx"
+
+# Tier 3 (manual) of team-name resolution: player-master `team_name` values that Tier 1
+# (exact/teams_compatible) and Tier 2 (fuzzy) leave unresolved against the 20 canonical
+# team_kpis.xlsx names. Value is the canonical name, or None when verified to have no
+# current match (e.g. a club not fielding a team in this season's EuroLeague). Add a line
+# here when `resolve_team_name` raises for a new unmatched value.
+TEAM_NAME_OVERRIDES: dict[str, str | None] = {
+    # Not one of this season's 20 EuroLeague teams: all 10 rows carrying this value come
+    # only from the fantasy price list (found_in == "elf"), absent from every other source.
+    "Besiktas": None,
+}
+# Consistent with FULL_NAME_MIN_RATIO in player_name_matching.py (comparing full names).
+TEAM_NAME_FUZZY_MIN_RATIO = 0.85
 
 SOURCE_PATHS = {
     DUNKEST: DUNKEST_PATH,
@@ -305,6 +320,68 @@ def load_prices(df: pd.DataFrame) -> pd.DataFrame:
     df["name_key"] = df["name"].map(name_key)
     df = df.rename(columns={"club": "price_club", "position": "price_position", "rank": "price_rank"})
     return df[["name_key", "price_name_raw", "price_club", "price_position", "price_rank", "price"]]
+
+
+def load_canonical_team_names(path: Path = TEAM_KPIS_PATH) -> list[str]:
+    """Read the 20 canonical team names from the `Team KPIs` sheet of team_kpis.xlsx.
+
+    Args:
+        path: Path to team_kpis.xlsx.
+
+    Returns:
+        The canonical team names, in file order.
+    """
+    return pd.read_excel(path, sheet_name="Team KPIs")["team_name"].tolist()
+
+
+def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | None:
+    """Resolve a player-master `team_name` value onto exactly one canonical team name.
+
+    Three tiers, each tried only once the previous one fails to yield exactly one match:
+
+    1. Deterministic: an exact normalised-name match, then `teams_compatible()` (subset-of-
+       tokens or shared-first-word-plus-3-shared-tokens; reused from player_name_matching.py).
+    2. Fuzzy: a `SequenceMatcher` ratio against every canonical name; the top ratio is used
+       only if it clears `TEAM_NAME_FUZZY_MIN_RATIO` and no other candidate ties it (a single
+       clear winner, same discipline as `resolve_names`).
+    3. Manual: `TEAM_NAME_OVERRIDES`, keyed by the raw `team_name` value.
+
+    Args:
+        team_name: Raw `team_name` value from the player master table.
+        canonical_teams: The 20 canonical team names (see `load_canonical_team_names`).
+
+    Returns:
+        The matched canonical team name, or None if `team_name` is missing or is verified
+        (via `TEAM_NAME_OVERRIDES`) to have no current match.
+
+    Raises:
+        ValueError: If `team_name` resolves to zero or several candidates at every tier and
+            has no entry in `TEAM_NAME_OVERRIDES`.
+    """
+    if not isinstance(team_name, str):
+        return None
+    exact = [c for c in canonical_teams if normalize_name(c) == normalize_name(team_name)]
+    if len(exact) == 1:
+        return exact[0]
+    compatible = [c for c in canonical_teams if teams_compatible(team_name, c)]
+    if len(compatible) == 1:
+        return compatible[0]
+    if not compatible:
+        ratios = sorted(
+            (SequenceMatcher(None, normalize_name(team_name), normalize_name(c)).ratio(), c) for c in canonical_teams
+        )
+        best_ratio, best_team = ratios[-1]
+        runner_up_ratio = ratios[-2][0] if len(ratios) > 1 else 0.0
+        if best_ratio >= TEAM_NAME_FUZZY_MIN_RATIO and best_ratio > runner_up_ratio:
+            return best_team
+    if team_name in TEAM_NAME_OVERRIDES:
+        return TEAM_NAME_OVERRIDES[team_name]
+    raise ValueError(
+        f"team_name {team_name!r} does not resolve to exactly one of the 20 canonical teams in "
+        "data/curated/team_kpis.xlsx via exact match, teams_compatible(), or fuzzy match. Add an "
+        "entry to TEAM_NAME_OVERRIDES in src/build_player_master_table.py (canonical name, or None "
+        "if verified to have no current match)."
+    )
 
 
 def map_kaggle_teams(codes: pd.Series) -> pd.Series:
@@ -518,8 +595,18 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     )
     master["position"] = master["dunk_position"].fillna(master["bn_position"]).fillna(master["price_position"])
     master["games_played"] = master["dunk_gp"].fillna(master["bn_games_played"])
+    canonical_teams = load_canonical_team_names()
+    master["canonical_team_name"] = master["team_name"].map(lambda t: resolve_team_name(t, canonical_teams))
 
-    lead_cols = ["player_name", "team_name", "position", "season", "games_played", *FOUND_IN_COLUMNS]
+    lead_cols = [
+        "player_name",
+        "team_name",
+        "canonical_team_name",
+        "position",
+        "season",
+        "games_played",
+        *FOUND_IN_COLUMNS,
+    ]
     dunkest_cols = [
         c
         for c in dunkest.columns
