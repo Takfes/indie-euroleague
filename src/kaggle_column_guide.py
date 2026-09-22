@@ -70,6 +70,11 @@ KPI_DERIVED = "Player KPIs (derived)"
 def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
     """Column -> (source dataset, explanation) for the `Player KPIs` sheet, in sheet order.
 
+    Columns are grouped by base metric (PIR, PIR/min, minutes, one group per contribution
+    stat, shooting, usage), identity columns first. Within a group, aggregates follow one
+    sequence: recent-then-season average, trend/median, percentiles, spread (sd/cv). See
+    the `player-kpis` skill for the convention a future column addition should follow.
+
     Args:
         recent_games: Size of the recent window (games played), quoted in the texts.
 
@@ -78,6 +83,7 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
     """
     n = recent_games
     return {
+        # Identity / context.
         "player_id": (GAME_STATS_SHEET, "Kaggle player id"),
         "player_name_raw": (GAME_STATS_SHEET, "Raw name, LAST, FIRST in capitals"),
         "player_name": (KPI_DERIVED, "Cleaned First Last name (suffix kept, e.g. Wade Baldwin IV)"),
@@ -86,32 +92,43 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "games_dnp": (KPI_DERIVED, "Games listed with DNP (did not play)"),
         "dnp_rate": (KPI_DERIVED, "DNP games / (games played + DNP games)"),
         "recent_games": (KPI_DERIVED, f"Games used by the recent window: min({n}, games played)"),
-        "pir_avg": (KPI_DERIVED, "Mean PIR per game played, season"),
-        "pir_per_min": (KPI_DERIVED, "Season total PIR / season total minutes"),
+        # PIR.
         "pir_avg_recent": (KPI_DERIVED, f"Mean PIR over the last {n} games played (expected PIR)"),
+        "pir_avg": (KPI_DERIVED, "Mean PIR per game played, season"),
         "pir_median_recent": (KPI_DERIVED, f"Median PIR over the last {n} games played"),
-        "minutes_avg": (KPI_DERIVED, "Mean minutes per game played, season"),
-        "minutes_avg_recent": (KPI_DERIVED, f"Mean minutes over the last {n} games played"),
-        "minutes_trend": (KPI_DERIVED, "Recent mean minutes minus season mean minutes (role change)"),
-        "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
-        "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
-        "pir_per_min_sd": (KPI_DERIVED, "Std dev of per-game PIR/min; blank under 2 games"),
-        "pir_per_min_cv": (KPI_DERIVED, "PIR/min std dev / mean of per-game PIR/min; blank if mean <= 0"),
         "pir_p10": (KPI_DERIVED, "10th percentile of game PIR, season (floor)"),
         "pir_p50": (KPI_DERIVED, "Median game PIR, season (typical outcome)"),
         "pir_p90": (KPI_DERIVED, "90th percentile of game PIR, season (ceiling)"),
         "pir_range": (KPI_DERIVED, "pir_p90 - pir_p10 (outcome spread)"),
+        # PIR / minute.
+        "pir_per_min": (KPI_DERIVED, "Season total PIR / season total minutes"),
+        "pir_per_min_sd": (KPI_DERIVED, "Std dev of per-game PIR/min; blank under 2 games"),
+        "pir_per_min_cv": (KPI_DERIVED, "PIR/min std dev / mean of per-game PIR/min; blank if mean <= 0"),
+        # Minutes.
+        "minutes_avg_recent": (KPI_DERIVED, f"Mean minutes over the last {n} games played"),
+        "minutes_avg": (KPI_DERIVED, "Mean minutes per game played, season"),
+        "minutes_trend": (KPI_DERIVED, "Recent mean minutes minus season mean minutes (role change)"),
+        "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
+        "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
+        # Points contribution.
         "pts_contrib": (KPI_DERIVED, "Season points / season PIR; blank if PIR <= 0; shares can sum above 1"),
+        # Rebounds contribution.
         "reb_contrib": (KPI_DERIVED, "Season total rebounds / season PIR; blank if PIR <= 0"),
+        # Assists contribution.
         "ast_contrib": (KPI_DERIVED, "Season assists / season PIR; blank if PIR <= 0"),
+        # Steals contribution.
         "stl_contrib": (KPI_DERIVED, "Season steals / season PIR; blank if PIR <= 0"),
+        # Blocks contribution.
         "blk_contrib": (KPI_DERIVED, "Season blocks made / season PIR; blank if PIR <= 0"),
+        # Fouls drawn contribution and rate.
         "fdr_contrib": (KPI_DERIVED, "Season fouls drawn / season PIR; blank if PIR <= 0"),
+        "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
+        # Shooting.
         "fg_pct": (KPI_DERIVED, "Season FGM / FGA"),
         "fg3_pct": (KPI_DERIVED, "Season three-pointers made / attempted"),
         "ft_pct": (KPI_DERIVED, "Season FTM / FTA"),
         "ts_pct": (KPI_DERIVED, "Season points / (2 x (FGA + 0.44 x FTA))"),
-        "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
+        # Usage.
         "usage_proxy_avg": (KPI_DERIVED, "Mean per game played of FGA + 0.44 x FTA + TO + 0.5 x AST"),
         "usage_per_min": (KPI_DERIVED, "Season usage proxy total / season minutes"),
     }

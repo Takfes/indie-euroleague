@@ -40,6 +40,14 @@ Players who only have DNP rows keep a row (`games_played` 0, blank KPIs). A play
 all games in the KPIs and the most recent team in `team_id`. The value KPIs (PIR/credit, PIR/min/credit)
 need the fantasy price and are computed in the master stage, not here.
 
+## Column order
+
+Columns are grouped by base metric (PIR, PIR/min, minutes, one group per contribution stat, shooting,
+usage), identity columns first, in `player_kpis_guide()` (`src/kaggle_column_guide.py`) - the KPI builder
+takes its column order from that dict's key order. Within a group, follow: recent-window average before
+season average, then any trend/median, then percentiles low-to-high, then spread (sd, cv). A new KPI slots
+into the group of the metric it describes, in that position, not appended at the end.
+
 ## Verification
 
 Recompute several KPIs for several players with independent code from the game rows (or the raw csv) and
