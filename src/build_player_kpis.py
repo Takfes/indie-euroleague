@@ -19,9 +19,13 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
   - Stability, over all games played: SD and CV of per-game PIR/min (CV = SD / mean of the
     per-game series), PIR P10/P50/P90 (linear interpolation) and range P90 - P10. SD and CV
     need 2 games, otherwise blank.
-  - Profile: contributions (season total of a component / season total PIR, blank when the
-    total PIR is not positive; they can sum above 1 because PIR subtracts negatives),
-    shooting percentages from season totals, `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
+  - Profile: contribution shares are computed per game in src/build_game_player_stats.py
+    (`{prefix}_share_of_pir` = that stat / that row's pir, blank unless the row's pir > 0),
+    then aggregated here per player: `{prefix}_contribution_pct` is the mean share of the
+    rows where it is defined, renormalized across the six stats to sum to 100% (means alone
+    don't sum to 100% - the renormalization is the normalization); `{prefix}_contribution_std`
+    is the sample std (ddof=1) of the same shares, left unscaled. Also shooting percentages
+    from season totals, `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
   Players who only have DNP rows keep a row with blank KPIs and `games_played` 0.
 
 Usage:
@@ -37,8 +41,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from build_game_player_stats import CONTRIBUTION_STATS, FT_ATTEMPT_WEIGHT
 from build_game_player_stats import DEFAULT_OUT as GAME_STATS_PATH
-from build_game_player_stats import FT_ATTEMPT_WEIGHT
 from kaggle_column_guide import player_kpis_guide
 from master_workbook import write_workbook
 from player_name_matching import kaggle_display_name
@@ -49,14 +53,6 @@ DEFAULT_OUT = REPO_ROOT / "data/curated/player_kpis.xlsx"
 RECENT_GAMES = 5
 MIN_GAMES_FOR_SPREAD = 2
 PERCENTILES = {"pir_p10": 0.1, "pir_p50": 0.5, "pir_p90": 0.9}
-CONTRIBUTIONS = {
-    "pts_contrib": "points",
-    "reb_contrib": "total_rebounds",
-    "ast_contrib": "assists",
-    "stl_contrib": "steals",
-    "blk_contrib": "blocks_favour",
-    "fdr_contrib": "fouls_received",
-}
 GUIDE = player_kpis_guide(RECENT_GAMES)
 KPI_COLUMNS = list(GUIDE)
 IDENTITY_COLUMNS = ["player_id", "player_name_raw", "player_name", "team_id", "games_played", "games_dnp", "dnp_rate"]
@@ -64,10 +60,6 @@ _SEASON_TOTALS = [
     "minutes",
     "pir",
     "points",
-    "total_rebounds",
-    "assists",
-    "steals",
-    "blocks_favour",
     "fouls_received",
     "fgm",
     "fga",
@@ -126,8 +118,12 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
         "pir_p90": p90,
         "pir_range": p90 - p10,
     }
-    for column, component in CONTRIBUTIONS.items():
-        out[column] = _ratio(total[component], total["pir"])
+    contribution_means = {prefix: games[f"{prefix}_share_of_pir"].mean() for prefix in CONTRIBUTION_STATS}
+    contribution_stds = {prefix: games[f"{prefix}_share_of_pir"].std() for prefix in CONTRIBUTION_STATS}
+    mean_total = sum(contribution_means.values())
+    for prefix in CONTRIBUTION_STATS:
+        out[f"{prefix}_contribution_pct"] = _ratio(contribution_means[prefix], mean_total) * 100
+        out[f"{prefix}_contribution_std"] = contribution_stds[prefix]
     out |= {
         "fg_pct": _ratio(total["fgm"], total["fga"]),
         "fg3_pct": _ratio(total["three_points_made"], total["three_points_attempted"]),

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from build_game_player_stats import (
+    CONTRIBUTION_STATS,
     GAME_COLUMNS,
     add_game_number,
     add_row_metrics,
@@ -126,6 +127,28 @@ def test_pir_and_usage_proxy_on_a_row() -> None:
     assert out["fg_pct"] == pytest.approx(0.5)
     assert out["ft_pct"] == pytest.approx(0.5)
     assert out["ts_pct"] == pytest.approx(10 / (2 * (8 + 0.88)))
+
+
+def test_contribution_shares_divide_by_row_pir_and_blank_when_pir_not_positive() -> None:
+    box, _ = _game_frames()
+    row = box.iloc[[0]].copy()  # pir 12, points 10, total_rebounds 4, fouls_received 3
+    row["minutes"] = 20.5
+    row["played"] = True
+    out = add_row_metrics(row).iloc[0]
+    assert out["pts_share_of_pir"] == pytest.approx(10 / 12)
+    assert out["reb_share_of_pir"] == pytest.approx(4 / 12)
+    assert out["fdr_share_of_pir"] == pytest.approx(3 / 12)
+    assert out["ast_share_of_pir"] == pytest.approx(2 / 12)
+    assert out["stl_share_of_pir"] == pytest.approx(1 / 12)
+    assert out["blk_share_of_pir"] == pytest.approx(1 / 12)
+
+    # Zero out every make (keep the attempts): pir drops from 12 to -5, without touching the
+    # counting stats (rebounds, assists, steals, blocks, fouls drawn) used above.
+    row.loc[row.index[0], ["two_points_made", "three_points_made", "free_throws_made", "points"]] = 0
+    zero_pir_out = add_row_metrics(row).iloc[0]
+    assert zero_pir_out["pir"] <= 0
+    share_columns = [f"{prefix}_share_of_pir" for prefix in CONTRIBUTION_STATS]
+    assert zero_pir_out[share_columns].isna().all()
 
 
 def test_percentages_blank_when_denominator_is_zero_and_dnp_rows_blank() -> None:

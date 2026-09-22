@@ -61,6 +61,12 @@ GAME_STATS_GUIDE: dict[str, tuple[str, str]] = {
     "fg_pct": (GAME_DERIVED, "FGM / FGA; blank if no attempts"),
     "ft_pct": (GAME_DERIVED, "FTM / FTA; blank if no attempts"),
     "ts_pct": (GAME_DERIVED, "True shooting: points / (2 x (FGA + 0.44 x FTA)); blank if no attempts"),
+    "pts_share_of_pir": (GAME_DERIVED, "Points / pir this row; blank unless this row's pir > 0"),
+    "reb_share_of_pir": (GAME_DERIVED, "Total rebounds / pir this row; blank unless this row's pir > 0"),
+    "ast_share_of_pir": (GAME_DERIVED, "Assists / pir this row; blank unless this row's pir > 0"),
+    "stl_share_of_pir": (GAME_DERIVED, "Steals / pir this row; blank unless this row's pir > 0"),
+    "blk_share_of_pir": (GAME_DERIVED, "Blocks made / pir this row; blank unless this row's pir > 0"),
+    "fdr_share_of_pir": (GAME_DERIVED, "Fouls drawn / pir this row; blank unless this row's pir > 0"),
 }
 
 GAME_STATS_SHEET = "Game Stats"
@@ -110,18 +116,42 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "minutes_trend": (KPI_DERIVED, "Recent mean minutes minus season mean minutes (role change)"),
         "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
         "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
-        # Points contribution.
-        "pts_contrib": (KPI_DERIVED, "Season points / season PIR; blank if PIR <= 0; shares can sum above 1"),
+        # Points contribution (mean and spread of pts_share_of_pir over games with pir > 0).
+        "pts_contribution_pct": (
+            KPI_DERIVED,
+            "Mean pts_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "pts_contribution_std": (KPI_DERIVED, "Std dev of pts_share_of_pir (unscaled); blank under 2 games"),
         # Rebounds contribution.
-        "reb_contrib": (KPI_DERIVED, "Season total rebounds / season PIR; blank if PIR <= 0"),
+        "reb_contribution_pct": (
+            KPI_DERIVED,
+            "Mean reb_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "reb_contribution_std": (KPI_DERIVED, "Std dev of reb_share_of_pir (unscaled); blank under 2 games"),
         # Assists contribution.
-        "ast_contrib": (KPI_DERIVED, "Season assists / season PIR; blank if PIR <= 0"),
+        "ast_contribution_pct": (
+            KPI_DERIVED,
+            "Mean ast_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "ast_contribution_std": (KPI_DERIVED, "Std dev of ast_share_of_pir (unscaled); blank under 2 games"),
         # Steals contribution.
-        "stl_contrib": (KPI_DERIVED, "Season steals / season PIR; blank if PIR <= 0"),
+        "stl_contribution_pct": (
+            KPI_DERIVED,
+            "Mean stl_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "stl_contribution_std": (KPI_DERIVED, "Std dev of stl_share_of_pir (unscaled); blank under 2 games"),
         # Blocks contribution.
-        "blk_contrib": (KPI_DERIVED, "Season blocks made / season PIR; blank if PIR <= 0"),
+        "blk_contribution_pct": (
+            KPI_DERIVED,
+            "Mean blk_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "blk_contribution_std": (KPI_DERIVED, "Std dev of blk_share_of_pir (unscaled); blank under 2 games"),
         # Fouls drawn contribution and rate.
-        "fdr_contrib": (KPI_DERIVED, "Season fouls drawn / season PIR; blank if PIR <= 0"),
+        "fdr_contribution_pct": (
+            KPI_DERIVED,
+            "Mean fdr_share_of_pir, renormalized across the 6 stats to sum to 100%",
+        ),
+        "fdr_contribution_std": (KPI_DERIVED, "Std dev of fdr_share_of_pir (unscaled); blank under 2 games"),
         "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
         # Shooting.
         "fg_pct": (KPI_DERIVED, "Season FGM / FGA"),

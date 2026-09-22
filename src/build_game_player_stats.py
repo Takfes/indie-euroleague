@@ -14,7 +14,9 @@ Steps: keep the season, drop the two team-total rows per game (dorsal "TOTAL"; t
 not players), keep the chosen phases, parse `minutes` (MM:SS text, or DNP) to a decimal
 number, join date/time/teams from the header, then add per-row metrics: `pir`,
 `pir_per_min`, `usage_proxy`, `usage_per_min`, `fgm`, `fga`, `fg_pct`, `ft_pct`, `ts_pct`,
-`fdr_per_min` and a per-player chronological `game_number` (games played only).
+`fdr_per_min`, the per-row PIR contribution shares (`CONTRIB_SHARE_COLUMNS`, e.g.
+`pts_share_of_pir` = points / pir for that row, blank unless that row's pir > 0) and a
+per-player chronological `game_number` (games played only).
 
 A player played a game when minutes > 0. DNP rows (did not play) stay in the dataset with
 `played` False and blank derived values, so a DNP count is possible; every stat KPI later
@@ -50,7 +52,30 @@ TEAM_TOTAL_ROWS_PER_GAME = 2
 FT_ATTEMPT_WEIGHT = 0.44
 ASSIST_WEIGHT = 0.5
 
-DERIVED_COLUMNS = ["pir", "pir_per_min", "usage_proxy", "usage_per_min", "fdr_per_min", "fg_pct", "ft_pct", "ts_pct"]
+# Prefix -> box score column, for the per-row PIR contribution shares. Shared with
+# src/build_player_kpis.py, which aggregates `{prefix}_share_of_pir` into
+# `{prefix}_contribution_pct` / `{prefix}_contribution_std` per player.
+CONTRIBUTION_STATS = {
+    "pts": "points",
+    "reb": "total_rebounds",
+    "ast": "assists",
+    "stl": "steals",
+    "blk": "blocks_favour",
+    "fdr": "fouls_received",
+}
+CONTRIB_SHARE_COLUMNS = [f"{prefix}_share_of_pir" for prefix in CONTRIBUTION_STATS]
+
+DERIVED_COLUMNS = [
+    "pir",
+    "pir_per_min",
+    "usage_proxy",
+    "usage_per_min",
+    "fdr_per_min",
+    "fg_pct",
+    "ft_pct",
+    "ts_pct",
+    *CONTRIB_SHARE_COLUMNS,
+]
 GAME_COLUMNS = [
     "game_id",
     "game",
@@ -129,7 +154,7 @@ def add_row_metrics(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
         A copy with `fgm`, `fga`, `pir`, `pir_per_min`, `usage_proxy`, `usage_per_min`,
-        `fdr_per_min`, `fg_pct`, `ft_pct` and `ts_pct` added.
+        `fdr_per_min`, `fg_pct`, `ft_pct`, `ts_pct` and the `CONTRIB_SHARE_COLUMNS` added.
     """
     out = df.copy()
     out["fgm"] = out["two_points_made"] + out["three_points_made"]
@@ -159,6 +184,8 @@ def add_row_metrics(df: pd.DataFrame) -> pd.DataFrame:
     out["fg_pct"] = safe_divide(out["fgm"], out["fga"])
     out["ft_pct"] = safe_divide(out["free_throws_made"], out["free_throws_attempted"])
     out["ts_pct"] = safe_divide(out["points"], 2 * (out["fga"] + FT_ATTEMPT_WEIGHT * out["free_throws_attempted"]))
+    for prefix, stat in CONTRIBUTION_STATS.items():
+        out[f"{prefix}_share_of_pir"] = safe_divide(out[stat], out["pir"])
     out[DERIVED_COLUMNS] = out[DERIVED_COLUMNS].where(out["played"])
     return out
 
