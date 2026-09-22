@@ -56,6 +56,13 @@ extending it:
   view anyway). A handful of players (5 out of 336) have
   rows for two teams because they were traded mid-season; only the
   team-stint with the most games played is kept.
+- **Player identity.** The join is keyed off a stable `player_key`
+  (`src/player_identity.py`), minted once per player and looked up (never
+  re-derived) from the checked-in `data/curated/player_alias_table.xlsx`
+  (`Alias Table`: one row per source row resolved to a player_key, plus a
+  wide `Identity View` for eyeballing every source's raw name/id side by
+  side). The underlying matching decisions below (which rows are the same
+  player) are unchanged; `player_key` just persists and joins on the result.
 - **Matching players across sources.** There's no shared player ID across
   basketnews / Dunkest / basketballsphere, so players are matched by a
   normalized name key (`src/player_name_matching.py`): accents stripped,
@@ -95,18 +102,27 @@ extending it:
   variants the rules cannot link (the unit tests in
   `tests/test_player_name_matching.py` cover the rules).
 - **Column layout.** Leading identity columns: `player_name`, `team_name`,
-  `position`, `season`, `games_played`, taken from Dunkest first, then
-  basketnews, then the price list. Right after them come two provenance columns:
+  `canonical_team_name`, `position`, `season`, `games_played`, taken from
+  Dunkest first, then basketnews, then the price list.
+  `canonical_team_name` resolves `team_name` onto one of the 20 canonical
+  names in `data/curated/team_kpis.xlsx` (`resolve_team_name`: exact/
+  `teams_compatible()` match, then fuzzy, then the manual
+  `TEAM_NAME_OVERRIDES`); blank if there is no current match (e.g.
+  "Besiktas", not a EuroLeague team this season). `position` is Dunkest's
+  value for every player present in Dunkest; players missing from Dunkest
+  fall back to basketnews `positions`, normalised from its 5-position
+  scheme (PG/SG/SF/PF/C, multi-position combos take the first-listed token)
+  onto the Dunkest/price-list G/F/C buckets (`normalize_bn_positions`),
+  then the price list's `G`/`F`/`C`, so the cell is never blank unless all
+  three sources lack it. Right after them come two provenance columns:
   `found_in` (the sources holding the player, as codes joined with `", "` in fixed
   order, e.g. `dunk, elf`) and `found_in_count` (integer, 1-5). Codes: `dunk` =
   Dunkest, `bnadv` = basketnews advanced, `bnoo` = basketnews on/off, `kag` = Kaggle KPIs, `elf` =
   fantasy prices (fixed order `dunk, bnadv, bnoo, kag, elf`); defined once in `FOUND_IN_SOURCES` in
   `src/player_master_column_guide.py` (edit there to rename). They come from the join
   provenance, not from non-null values; the run prints
-  `found_in_null_disagreements` (0 = agrees with a null-based inference). `position` is Dunkest's value for every
-  player present in Dunkest; players missing from Dunkest fall back to
-  basketnews `positions` (e.g. `PG`, `SG,SF`), then the price list's `G`/`F`/`C`,
-  so the cell is never blank (the run prints how many used the fallback). Then,
+  `found_in_null_disagreements` (0 = agrees with a null-based inference; the run also prints
+  how many players used the position fallback). Then,
   in this order: `found_in`, `found_in_count`, Dunkest columns (`dunk_*`), basketnews advanced (`player_id`,
   then `bnadv_*`), basketnews on/off (`bnoo_*`: total `_tot`, then offense
   `_off`, then defense `_def`, source order inside each group), the Kaggle KPIs
@@ -159,9 +175,10 @@ The workbook has these sheets, in order:
 | `Fantasy Prices` | Raw `basketballsphere_prices.csv`, as-is (head coaches included; `Master` excludes them)                                                                                                             |
 | `Player KPIs`    | The KPI workbook's table (`data/curated/player_kpis.xlsx`), as-is                                                                                                                                    |
 
-As of the last run: 446 unique players, 175 `Master` columns (the earlier four-source
-master had 436 players; 341 of the 351 Kaggle players joined an existing row, 10 added a new
-row). Coverage per source (a player can be missing from some sources and still appear, since
+As of the last run: 446 unique players, 176 `Master` columns; 341 of the 351 Kaggle players
+joined an existing row, 10 added a new row (see the increment-2 adjudication in
+`KAGGLE_PLAYER_IDENTITY_OVERRIDES`/`src/build_player_master_table.py` for why those 10 stay
+unmatched). Coverage per source (a player can be missing from some sources and still appear, since
 the join is an outer join throughout):
 
 | Source                                            | Players present |
@@ -178,12 +195,17 @@ script rather than trusting this table after any source update.
 
 ## Committing the refreshed data
 
+The run also updates `data/curated/player_alias_table.xlsx` (the checked-in
+`player_key` alias table + identity view; see "Player identity" above) -
+commit it alongside the master table, since it is what the next run looks
+`player_key` up from.
+
 `.gitignore` has an explicit exception for this folder
 (`!data/curated/` + `!data/curated/**`), so a
-normal `git add` picks up the workbook without needing `-f`
-(`git check-ignore -v` on the xlsx reports that exception, not an ignore):
+normal `git add` picks up both workbooks without needing `-f`
+(`git check-ignore -v` on an xlsx reports that exception, not an ignore):
 
 ```bash
-git add data/curated/player_master_table.xlsx
+git add data/curated/player_master_table.xlsx data/curated/player_alias_table.xlsx
 git commit -m "chore(data): refresh player master table"
 ```
