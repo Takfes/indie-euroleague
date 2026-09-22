@@ -11,6 +11,7 @@ import pytest
 import build_player_master_table as master_build
 from build_player_master_table import (
     KAGGLE_TEAM_CROSSWALK,
+    add_price_projection_kpis,
     add_value_kpis,
     load_kaggle_kpis,
     map_kaggle_teams,
@@ -77,6 +78,25 @@ def test_value_kpis_divide_by_price_and_stay_blank_without_one() -> None:
     assert out.loc[3, "pir_per_min_per_credit"] == pytest.approx(0.0625)
     assert out.loc[4, "pir_per_credit"] == pytest.approx(2.4)
     assert "pir_per_credit" not in frame.columns  # input untouched
+
+
+def test_price_projection_kpis_match_the_docs_formula_and_stay_blank_without_inputs() -> None:
+    frame = pd.DataFrame({
+        "price": [10.0, 20.0, 20.0, 0.0, np.nan, 8.0],
+        "kag_pir_avg": [19.0, 19.0, 8.0, 15.0, 15.0, np.nan],
+    })
+    out = add_price_projection_kpis(frame)
+    assert out["breakeven_pir"].tolist() == pytest.approx(
+        [9.0, 18.0, 18.0, float("nan"), float("nan"), 7.2], nan_ok=True
+    )
+    # Worked examples from docs/rules.md: (10cr, 19) -> +1.0cr; (20cr, 19) -> +0.1cr; (20cr, 8) -> -1.0cr.
+    assert out["expected_price_change"].tolist() == pytest.approx(
+        [1.0, 0.1, -1.0, float("nan"), float("nan"), float("nan")], nan_ok=True
+    )
+    assert out.loc[0, "capital_yield_pct"] == pytest.approx(10.0)
+    assert out.loc[1, "capital_yield_pct"] == pytest.approx(0.5)
+    assert out["capital_yield_pct"].isna().tolist() == [False, False, False, True, True, True]
+    assert "breakeven_pir" not in frame.columns  # input untouched
 
 
 def test_read_sources_stops_with_the_commands_that_build_the_kpi_workbook(

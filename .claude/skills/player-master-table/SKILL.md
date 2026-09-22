@@ -111,10 +111,16 @@ extending it:
   then `bnadv_*`), basketnews on/off (`bnoo_*`: total `_tot`, then offense
   `_off`, then defense `_def`, source order inside each group), the Kaggle KPIs
   (`kag_*`, every column of the `Player KPIs` sheet), the fantasy `price`,
-  `price_rank`, and last the derived value KPIs `pir_per_credit` (`kag_pir_avg_recent`
+  `price_rank`, then the derived value KPIs `pir_per_credit` (`kag_pir_avg_recent`
   / `price`, the recent-5-games average PIR as expected PIR) and `pir_per_min_per_credit`
   (`kag_pir_per_min` / `price`), blank when the KPI or the price is missing or the price
-  is 0. The price columns moved from last to second-to-last block on purpose: the
+  is 0, and last the unofficial price-projection KPIs `breakeven_pir` (`0.9 x price`),
+  `expected_price_change` (`(kag_pir_avg - breakeven_pir) / 10`) and `capital_yield_pct`
+  (`expected_price_change / price x 100`) - the community-reverse-engineered price formula
+  from `docs/rules.md`, treating `kag_pir_avg` (season average, not recent-5) as the Round
+  score; an ESTIMATE only (open question: whether the real Round score includes a 10%
+  team-win bonus that `kag_pir_avg` does not), blank under the same conditions as the value
+  KPIs. The price columns moved from last to before these derived blocks on purpose: the
   derived KPIs depend on the price. `season` exists only in basketnews (blank for
   players missing there) and traded players' `bnadv_*`/`bnoo_*` values come from
   their max-games stint while the identity columns follow Dunkest. Source prefixes stay because these are
@@ -145,7 +151,7 @@ The workbook has these sheets, in order:
 
 | Sheet            | Content                                                                                                                                                                                              |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Column Guide`   | One row per column of every source dataset, plus `found_in`/`found_in_count` and the two value KPIs under `Master (derived)`: `Source dataset`, `Column name` (as in that source), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)") |
+| `Column Guide`   | One row per column of every source dataset, plus `found_in`/`found_in_count`, the two value KPIs and the three price-projection KPIs under `Master (derived)`: `Source dataset`, `Column name` (as in that source), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)") |
 | `Master`         | The joined table, one row per player (layout above); header frozen along with `player_name`                                                                                                          |
 | `Dunkest`        | Raw `player_stats.csv`, as-is                                                                                                                                                                        |
 | `BN Advanced`    | Raw `basketnews_players_advanced_stats.csv`, as-is                                                                                                                                                   |

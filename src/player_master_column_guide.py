@@ -202,6 +202,21 @@ _DERIVED_GUIDE = {
     "found_in_count": "Number of sources in found_in",
     "pir_per_credit": "Expected PIR per credit: kag_pir_avg_recent / price; blank if price is 0",
     "pir_per_min_per_credit": "Season PIR/min per credit: kag_pir_per_min / price; blank if price is 0",
+    "breakeven_pir": (
+        "0.9 x price: PIR needed for price to hold steady (unofficial, see docs/rules.md). "
+        "ESTIMATE, not the official mechanism - see expected_price_change for the full caveat"
+    ),
+    "expected_price_change": (
+        "(kag_pir_avg - breakeven_pir) / 10: estimated next price move in credits, from the "
+        "community-reverse-engineered formula in docs/rules.md. ESTIMATE, not the official "
+        "mechanism: treats season-average PIR (kag_pir_avg) as the Round score, which the real "
+        "formula may or may not add a 10% team-win bonus to on top (unconfirmed); the formula "
+        "itself is unvalidated against real price outcomes"
+    ),
+    "capital_yield_pct": (
+        "expected_price_change / price x 100: the same estimated price move as a % of current "
+        "price - see expected_price_change for the caveat"
+    ),
 }
 
 _KAGGLE_KPIS_GUIDE = {column: text for column, (_, text) in _KAGGLE_KPIS_COLUMNS.items()}

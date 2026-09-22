@@ -59,6 +59,11 @@ Master column layout:
      exists from kag_pir_avg_recent / kag_pir_per_min and price; blank if the KPI or the
      price is missing, or the price is 0). The price columns sit before this block, not
      last as in earlier versions, on purpose: the derived KPIs depend on the price.
+  9. unofficial price-projection KPIs: breakeven_pir, expected_price_change,
+     capital_yield_pct - an ESTIMATE of the next price move from docs/rules.md's
+     community-reverse-engineered formula, treating kag_pir_avg (season-average PIR,
+     not the recent-5 window) as the Round score; blank under the same conditions as
+     the value KPIs above. See `add_price_projection_kpis` for the formula and caveats.
 
 Usage:
     python src/build_player_master_table.py [--out PATH]
@@ -132,6 +137,8 @@ KAGGLE_TEAM_CROSSWALK = {
     "ZAL": "Zalgiris Kaunas",
 }
 VALUE_KPIS = {"pir_per_credit": "kag_pir_avg_recent", "pir_per_min_per_credit": "kag_pir_per_min"}
+# Unofficial price-projection columns (see add_price_projection_kpis), in output order.
+PRICE_PROJECTION_KPIS = ["breakeven_pir", "expected_price_change", "capital_yield_pct"]
 # Views in the order their columns/rows appear: total, then offense, then defense.
 VIEW_ABBREV = {"total": "tot", "offensive": "off", "defensive": "def"}
 FOUND_PREFIX = "_found_"
@@ -357,6 +364,35 @@ def add_value_kpis(master: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def add_price_projection_kpis(master: pd.DataFrame) -> pd.DataFrame:
+    """Add the unofficial price-projection KPIs: breakeven_pir, expected_price_change, capital_yield_pct.
+
+    ESTIMATE, not the official price mechanism: applies the community-reverse-engineered
+    formula from docs/rules.md (`Price change = (Round score - 0.9 x Starting value) / 10`)
+    with this pipeline's `kag_pir_avg` (season-average PIR) standing in for the Round score
+    and today's `price` standing in for the starting value. docs/rules.md flags two open
+    questions this does not resolve: whether the real Round score includes a 10% team-win
+    bonus that `kag_pir_avg` does not, and whether the formula itself (reverse-engineered,
+    unvalidated against real price outcomes) is accurate at all. There is no round-by-round
+    price history in this pipeline, so this is a forward-looking estimate off today's price,
+    not a backtest.
+
+    Args:
+        master: Frame with `price` and `kag_pir_avg`.
+
+    Returns:
+        A copy with `breakeven_pir`, `expected_price_change` and `capital_yield_pct`
+        appended; blank (not zero) wherever `price` or `kag_pir_avg` is missing, or the
+        price is 0.
+    """
+    out = master.copy()
+    price = out["price"].where(out["price"] > 0)
+    out["breakeven_pir"] = 0.9 * price
+    out["expected_price_change"] = (out["kag_pir_avg"] - out["breakeven_pir"]) / 10
+    out["capital_yield_pct"] = out["expected_price_change"] / price * 100
+    return out
+
+
 def _require_unique_names(df: pd.DataFrame, source: str) -> None:
     """Raise if two rows of one source normalise to the same name (would corrupt the join)."""
     dupes = df.loc[df["name_key"].duplicated(keep=False), "name_key"].unique().tolist()
@@ -493,8 +529,16 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     onoff_cols = [c for c in bn_onoff.columns if c.startswith("bnoo_")]
     kaggle_cols = [c for c in kaggle.columns if c.startswith("kag_") and c != "kag_team_name"]
     master = add_value_kpis(master)
+    master = add_price_projection_kpis(master)
     master = master[
-        lead_cols + dunkest_cols + bn_cols + onoff_cols + kaggle_cols + ["price", "price_rank"] + list(VALUE_KPIS)
+        lead_cols
+        + dunkest_cols
+        + bn_cols
+        + onoff_cols
+        + kaggle_cols
+        + ["price", "price_rank"]
+        + list(VALUE_KPIS)
+        + PRICE_PROJECTION_KPIS
     ]
     return master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True), stats
 

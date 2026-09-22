@@ -30,7 +30,17 @@ def test_found_in_labels_and_counts() -> None:
 @pytest.fixture
 def guide_inputs() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     sources = {"Dunkest": pd.DataFrame(columns=["id", "gp"])}
-    master = pd.DataFrame(columns=["found_in", "found_in_count", "pir_per_credit", "pir_per_min_per_credit"])
+    master = pd.DataFrame(
+        columns=[
+            "found_in",
+            "found_in_count",
+            "pir_per_credit",
+            "pir_per_min_per_credit",
+            "breakeven_pir",
+            "expected_price_change",
+            "capital_yield_pct",
+        ]
+    )
     return sources, master
 
 
@@ -43,6 +53,9 @@ def test_guide_accepts_source_columns_plus_derived(guide_inputs: tuple[dict[str,
         "found_in_count",
         "pir_per_credit",
         "pir_per_min_per_credit",
+        "breakeven_pir",
+        "expected_price_change",
+        "capital_yield_pct",
     }
 
 
@@ -69,7 +82,17 @@ def test_guide_lists_every_kaggle_kpi_column_once_under_its_own_label() -> None:
     kpis = pd.DataFrame(columns=list(GUIDE[KAGGLE_KPIS]))
     sources = {KAGGLE_KPIS: kpis}
     guide = build_column_guide(sources)
-    master = pd.DataFrame(columns=["found_in", "found_in_count", "pir_per_credit", "pir_per_min_per_credit"])
+    master = pd.DataFrame(
+        columns=[
+            "found_in",
+            "found_in_count",
+            "pir_per_credit",
+            "pir_per_min_per_credit",
+            "breakeven_pir",
+            "expected_price_change",
+            "capital_yield_pct",
+        ]
+    )
     check_column_guide(guide, sources, master)
     assert guide.loc[guide["Source dataset"] == KAGGLE_KPIS, "Column name"].tolist() == list(kpis.columns)
     assert "(undocumented" not in " ".join(guide["Explanation"])
