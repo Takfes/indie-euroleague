@@ -80,6 +80,15 @@ from pathlib import Path
 import pandas as pd
 
 from master_workbook import write_workbook
+from player_identity import (
+    ALIAS_SHEET,
+    IDENTITY_VIEW_SHEET,
+    PlayerKeyRegistry,
+    build_alias_table,
+    build_identity_view,
+    load_alias_table,
+    merge_on_player_key,
+)
 from player_master_column_guide import (
     BN_ADVANCED,
     BN_ONOFF,
@@ -102,6 +111,7 @@ PRICE_PATH = REPO_ROOT / "data/euroleague-fantasy/basketballsphere_prices.csv"
 KAGGLE_KPIS_PATH = REPO_ROOT / "data/curated/player_kpis.xlsx"
 TEAM_KPIS_PATH = REPO_ROOT / "data/curated/team_kpis.xlsx"
 DEFAULT_OUT = REPO_ROOT / "data/curated/player_master_table.xlsx"
+ALIAS_TABLE_PATH = REPO_ROOT / "data/curated/player_alias_table.xlsx"
 
 # Tier 3 (manual) of team-name resolution: player-master `team_name` values that Tier 1
 # (exact/teams_compatible) and Tier 2 (fuzzy) leave unresolved against the 20 canonical
@@ -469,6 +479,32 @@ def load_kaggle_kpis(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+# Increment-2 adjudication (Step 3b): `kag_player_id` -> the name_key of the existing master
+# row it is the same player as, for Kaggle rows `resolve_names`/`map_alternate_spellings` leave
+# unmatched. A one-off manual decision, applied at build time, never re-derived inside the build.
+# 2026-09 adjudication: the 10 Kaggle rows currently left unmatched (Abramo Canka, Dominykas
+# Daubaris, Jacopo Vogogna, Joseba Querejeta, Lazar Stojkovic, Marvyn Wade, Mate Khatiashvili,
+# Mattia Ceccato, Novak Pavlovic, Tamir Gold) all have kag_games_played == 0 and no candidate
+# above the fuzzy-match threshold on their team roster (best ratio 0.667, "Tamir Gold" vs "Tamir
+# Blatt", a different player) -- confirmed genuinely absent from the other 4 sources, not a
+# matching gap. No overrides recorded; see the build report for the full investigation.
+KAGGLE_PLAYER_IDENTITY_OVERRIDES: dict[str, str] = {}
+
+
+def apply_kaggle_identity_overrides(kaggle_player_id: pd.Series, resolved_name_key: pd.Series) -> pd.Series:
+    """Force specific Kaggle rows (by `kag_player_id`) onto a manually-adjudicated existing name_key.
+
+    Args:
+        kaggle_player_id: `kag_player_id` column.
+        resolved_name_key: The Kaggle frame's `name_key` after `resolve_names`.
+
+    Returns:
+        `resolved_name_key`, with any `KAGGLE_PLAYER_IDENTITY_OVERRIDES` entries applied.
+    """
+    overrides = kaggle_player_id.map(KAGGLE_PLAYER_IDENTITY_OVERRIDES)
+    return resolved_name_key.where(overrides.isna(), overrides)
+
+
 def add_value_kpis(master: pd.DataFrame) -> pd.DataFrame:
     """Add the price-dependent KPIs `pir_per_credit` and `pir_per_min_per_credit`.
 
@@ -525,6 +561,34 @@ def _require_unique_names(df: pd.DataFrame, source: str) -> None:
         )
 
 
+def _match_method(before: pd.Series, after: pd.Series, known_before: set[str]) -> list[str]:
+    """Classify each row as "fallback" (resolve_names changed its key), "exact" (unchanged, already
+    known) or "new" (unchanged, starts a new master row); for the alias table's audit trail."""
+    return [
+        "fallback" if b != a else ("exact" if b in known_before else "new") for b, a in zip(before, after, strict=True)
+    ]
+
+
+def _kaggle_match_method(
+    original: pd.Series, after_aliases: pd.Series, after_fallback: pd.Series, final: pd.Series, known_before: set[str]
+) -> list[str]:
+    """Classify each Kaggle row by which stage last changed its key: override, fallback,
+    alternate_spelling, exact (unchanged, already known) or new (unchanged, starts a new row)."""
+    methods = []
+    for o, aa, af, f in zip(original, after_aliases, after_fallback, final, strict=True):
+        if f != af:
+            methods.append("override")
+        elif af != aa:
+            methods.append("fallback")
+        elif aa != o:
+            methods.append("alternate_spelling")
+        elif o in known_before:
+            methods.append("exact")
+        else:
+            methods.append("new")
+    return methods
+
+
 def found_in_columns(found: pd.DataFrame) -> pd.DataFrame:
     """Turn per-source provenance flags into the `found_in` and `found_in_count` columns.
 
@@ -539,16 +603,28 @@ def found_in_columns(found: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame({"found_in": labels, "found_in_count": found[codes].sum(axis=1).astype(int)})
 
 
-def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, int]]:
-    """Join the five sources into the Master table.
+def build_master_table(
+    sources: dict[str, pd.DataFrame], alias_table_path: Path = ALIAS_TABLE_PATH
+) -> tuple[pd.DataFrame, dict[str, int], pd.DataFrame]:
+    """Join the five sources into the Master table, keyed off a persisted, stable `player_key`.
+
+    `player_key` is minted once per player and looked up (not regenerated) via the checked-in
+    alias table at `alias_table_path`; it is what the frames are actually merged on (see
+    `player_identity.merge_on_player_key`). The row-grouping decisions themselves (which source
+    rows are the same player) are unchanged: still `resolve_names`/`map_alternate_spellings`/
+    `name_key` from player_name_matching.py, driving player_key only through this run's
+    `PlayerKeyRegistry`. `player_key` is an internal working column, not part of the Master
+    sheet's output columns.
 
     Args:
         sources: Raw source frames keyed by sheet name (see `read_sources`).
+        alias_table_path: Path to the checked-in alias table (empty/bootstrap if missing).
 
     Returns:
-        The master table and a dict of join statistics (rows per source, players
-        in all four original sources and in all five, fallback name matches, Kaggle
-        matching counts, position-fallback players).
+        The master table, a dict of join statistics (rows per source, players in all four
+        original sources and in all five, fallback name matches, Kaggle matching counts,
+        position-fallback players), and the updated alias table (existing rows plus any new
+        links minted this run) to persist back to `alias_table_path`.
     """
     bn_adv = load_bn_advanced_stats(sources[BN_ADVANCED])
     bn_onoff = load_bn_onoff_stats(sources[BN_ONOFF])
@@ -564,21 +640,51 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
 
     master = bn_adv.merge(bn_onoff, on="player_id", how="left")
 
+    existing_alias = load_alias_table(alias_table_path)
+    registry = PlayerKeyRegistry(existing_alias)
+    master["player_key"] = [
+        registry.resolve("bnadv", pid, name, key, team, "base")
+        for pid, name, key, team in zip(
+            master["player_id"], master["bn_player_name"], master["name_key"], master["bn_team_name"], strict=True
+        )
+    ]
+
     exact_dunkest = dunkest["name_key"].copy()
+    known_before_dunkest = set(master["name_key"])
     bn_base = master.rename(columns={"bn_team_name": "team_name", "bn_games_played": "games_played"})
     dunkest["name_key"] = resolve_names(bn_base, dunkest, "dunk_team_name", other_games_col="dunk_gp")
     _require_unique_names(dunkest, DUNKEST)
-    master = master.merge(dunkest, on="name_key", how="outer")
+    dunkest_method = _match_method(exact_dunkest, dunkest["name_key"], known_before_dunkest)
+    dunkest["player_key"] = [
+        registry.resolve("dunk", slug, name, key, team, method)
+        for slug, name, key, team, method in zip(
+            dunkest["dunk_slug"],
+            dunkest["dunk_player_name"],
+            dunkest["name_key"],
+            dunkest["dunk_team_name"],
+            dunkest_method,
+            strict=True,
+        )
+    ]
+    master = merge_on_player_key(master, dunkest, how="outer")
 
     # A price row spelled like a Dunkest row that was linked to basketnews under
     # another spelling (e.g. "Sasha" vs "Aleksandr") follows that link.
     aliases = dict(zip(exact_dunkest, dunkest["name_key"], strict=True))
     prices["name_key"] = prices["name_key"].map(lambda key: aliases.get(key, key))
     exact_prices = prices["name_key"].copy()
+    known_before_prices = set(master["name_key"])
     known_teams = master.assign(team_name=master["dunk_team_name"].fillna(master["bn_team_name"]))
     prices["name_key"] = resolve_names(known_teams, prices, "price_club")
     _require_unique_names(prices, FANTASY_PRICES)
-    master = master.merge(prices, on="name_key", how="outer")
+    prices_method = _match_method(exact_prices, prices["name_key"], known_before_prices)
+    prices["player_key"] = [
+        registry.resolve("elf", raw_name, raw_name, key, team, method)
+        for raw_name, key, team, method in zip(
+            prices["price_name_raw"], prices["name_key"], prices["price_club"], prices_method, strict=True
+        )
+    ]
+    master = merge_on_player_key(master, prices, how="outer")
 
     # Kaggle last: its names are converted from `LAST, FIRST` and it has no position or price, so it
     # only ever links onto (or adds) rows; the four earlier sources are matched exactly as before.
@@ -591,9 +697,26 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
     )
     after_aliases = kaggle["name_key"].copy()
     kaggle["name_key"] = resolve_names(known_teams, kaggle, "kag_team_name", extend_surnames=True)
+    after_fallback = kaggle["name_key"].copy()
+    kaggle["name_key"] = apply_kaggle_identity_overrides(kaggle["kag_player_id"], kaggle["name_key"])
     _require_unique_names(kaggle, KAGGLE_KPIS)
     keys_before_kaggle = set(master["name_key"])
-    master = master.merge(kaggle, on="name_key", how="outer")
+    kaggle_method = _kaggle_match_method(
+        exact_kaggle, after_aliases, after_fallback, kaggle["name_key"], keys_before_kaggle
+    )
+    kaggle["player_key"] = [
+        registry.resolve("kag", pid, name, key, team, method)
+        for pid, name, key, team, method in zip(
+            kaggle["kag_player_id"],
+            kaggle["kag_player_name"],
+            kaggle["name_key"],
+            kaggle["kag_team_name"],
+            kaggle_method,
+            strict=True,
+        )
+    ]
+    master = merge_on_player_key(master, kaggle, how="outer")
+    alias_table = build_alias_table(existing_alias, registry.rows)
 
     found = pd.DataFrame({code: master[f"{FOUND_PREFIX}{code}"].notna() for code in FOUND_IN_SOURCES})
     master = master.drop(columns=[f"{FOUND_PREFIX}{code}" for code in FOUND_IN_SOURCES])
@@ -618,7 +741,8 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
         "in_all_five": int(found.all(axis=1).sum()),
         "kaggle_exact_matches": int(exact_kaggle.isin(keys_before_kaggle).sum()),
         "kaggle_alternate_spelling_matches": int((exact_kaggle != after_aliases).sum()),
-        "kaggle_fallback_matches": int((after_aliases != kaggle["name_key"]).sum()),
+        "kaggle_fallback_matches": int((after_aliases != after_fallback).sum()),
+        "kaggle_override_matches": int((after_fallback != kaggle["name_key"]).sum()),
         "kaggle_new_rows": int((~kaggle["name_key"].isin(keys_before_kaggle)).sum()),
         "fallback_matches_dunkest": int((exact_dunkest != dunkest["name_key"]).sum()),
         "fallback_matches_prices": int((exact_prices != prices["name_key"]).sum()),
@@ -674,7 +798,8 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
         + list(VALUE_KPIS)
         + PRICE_PROJECTION_KPIS
     ]
-    return master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True), stats
+    master = master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True)
+    return master, stats, alias_table
 
 
 def build_column_guide(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
@@ -708,10 +833,11 @@ def check_column_guide(guide: pd.DataFrame, sources: dict[str, pd.DataFrame], ma
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="Output xlsx path")
+    parser.add_argument("--alias-table", type=Path, default=ALIAS_TABLE_PATH, help="Player alias table xlsx path")
     args = parser.parse_args()
 
     sources = read_sources()
-    master, stats = build_master_table(sources)
+    master, stats, alias_table = build_master_table(sources, alias_table_path=args.alias_table)
     guide = build_column_guide(sources)
     check_column_guide(guide, sources, master)
     write_workbook(
@@ -722,7 +848,12 @@ def main() -> None:
             **{SHEET_NAMES.get(label, label): df for label, df in sources.items()},
         },
     )
+    write_workbook(
+        args.alias_table,
+        {ALIAS_SHEET: alias_table, IDENTITY_VIEW_SHEET: build_identity_view(alias_table)},
+    )
     print(f"Wrote {len(master)} players x {len(master.columns)} columns to {args.out}")
+    print(f"Wrote {len(alias_table)} alias rows ({alias_table['player_key'].nunique()} players) to {args.alias_table}")
     print("Join stats:", ", ".join(f"{k}={v}" for k, v in stats.items()))
     undocumented = int((guide["Explanation"] == UNDOCUMENTED).sum())
     if undocumented:
