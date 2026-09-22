@@ -119,7 +119,60 @@ def _dunkest_dvp_guide() -> dict[str, str]:
     return guide
 
 
+TEAM_KPIS = "Team KPIs"
+
+
+def team_kpis_guide() -> dict[str, tuple[str, str]]:
+    """Column -> (source dataset, explanation) for the `Team KPIs` sheet, in sheet order.
+
+    `foul_rate_per40_*` normalization: a EuroLeague game is 40 regulation minutes (4 x
+    10-minute quarters). The raw Basketnews fouls columns are already per-game averages, and
+    per-team overtime minutes are not available anywhere in the raw data, so under the
+    assumption that every game is exactly 40 minutes (overtime not modeled), a per-game rate
+    already equals a per-40-minutes rate. These columns restate that per-game rate under this
+    explicit, documented assumption rather than leaving the unit implicit.
+    """
+    return {
+        "team_name": (TEAM_KPIS, "Team name (Basketnews spelling); joins into the team master table"),
+        "pace_factor": (
+            TEAM_KPIS,
+            "offense_all_possessions (Basketnews team stats, per-game pace) / the 20-team league average; "
+            "1.0 = league-average pace, >1 = faster than average",
+        ),
+        "foul_rate_per40_drawn": (
+            TEAM_KPIS,
+            "offense_all_fouls_received (Basketnews team stats) per 40 minutes of team play; already a "
+            "per-game average and a game is 40 regulation minutes, so under a fixed 40-minutes-per-game "
+            "assumption (overtime not modeled, no per-game minutes data exists) this equals the raw "
+            "per-game rate",
+        ),
+        "foul_rate_per40_committed": (
+            TEAM_KPIS,
+            "defense_all_fouls (Basketnews team stats, fouls the team itself commits) per 40 minutes of "
+            "team play; same 40-minutes-per-game assumption as foul_rate_per40_drawn",
+        ),
+        "funnel_ratio_guards": (
+            TEAM_KPIS,
+            "guards_fantasy_points (Dunkest defense vs position, conceded per game) / the 20-team league "
+            "average for guards; 1.0 = league-average funnel to guards, >1 = concedes more than average",
+        ),
+        "funnel_ratio_forwards": (
+            TEAM_KPIS,
+            "forwards_fantasy_points (Dunkest defense vs position, conceded per game) / the 20-team league "
+            "average for forwards",
+        ),
+        "funnel_ratio_centers": (
+            TEAM_KPIS,
+            "centers_fantasy_points (Dunkest defense vs position, conceded per game) / the 20-team league "
+            "average for centers",
+        ),
+    }
+
+
+TEAM_KPI_COLUMNS = [column for column in team_kpis_guide() if column != "team_name"]
+
 GUIDE: dict[str, dict[str, str]] = {
     BN_TEAM: _bn_team_guide(),
     DUNKEST_DVP: _dunkest_dvp_guide(),
+    TEAM_KPIS: {column: text for column, (_, text) in team_kpis_guide().items()},
 }
