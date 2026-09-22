@@ -159,7 +159,7 @@ The workbook has these sheets, in order:
 | `Fantasy Prices` | Raw `basketballsphere_prices.csv`, as-is (head coaches included; `Master` excludes them)                                                                                                             |
 | `Player KPIs`    | The KPI workbook's table (`data/curated/player_kpis.xlsx`), as-is                                                                                                                                    |
 
-As of the last run: 446 unique players, 165 `Master` columns (the earlier four-source
+As of the last run: 446 unique players, 175 `Master` columns (the earlier four-source
 master had 436 players; 341 of the 351 Kaggle players joined an existing row, 10 added a new
 row). Coverage per source (a player can be missing from some sources and still appear, since
 the join is an outer join throughout):
