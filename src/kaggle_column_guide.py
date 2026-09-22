@@ -116,6 +116,7 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "minutes_trend": (KPI_DERIVED, "Recent mean minutes minus season mean minutes (role change)"),
         "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
         "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
+        "starts_rate": (KPI_DERIVED, "Starts (is_starter = 1) / games played, season"),
         # Points contribution (mean and spread of pts_share_of_pir over games with pir > 0).
         "pts_contribution_pct": (
             KPI_DERIVED,

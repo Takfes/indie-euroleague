@@ -15,7 +15,7 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
   - Production: `pir_avg` (season mean), `pir_per_min` (total PIR / total minutes),
     `pir_avg_recent`, `pir_median_recent`.
   - Opportunity: `minutes_avg`, `minutes_avg_recent`, `minutes_trend` (recent - season mean,
-    in minutes), `minutes_sd` and `minutes_cv`.
+    in minutes), `minutes_sd`, `minutes_cv` and `starts_rate` (starts / games played, season).
   - Stability, over all games played: SD and CV of per-game PIR/min (CV = SD / mean of the
     per-game series), PIR P10/P50/P90 (linear interpolation) and range P90 - P10. SD and CV
     need 2 games, otherwise blank.
@@ -111,6 +111,7 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
         "minutes_trend": recent["minutes"].mean() - minutes_avg,
         "minutes_sd": minutes_sd,
         "minutes_cv": _ratio(minutes_sd, minutes_avg),
+        "starts_rate": _ratio(games["is_starter"].sum(), n_games),
         "pir_per_min_sd": pir_per_min_sd,
         "pir_per_min_cv": _ratio(pir_per_min_sd, pir_per_min_mean),
         "pir_p10": p10,

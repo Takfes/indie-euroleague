@@ -42,6 +42,7 @@ def _games(player_id: str, name: str, rows: list[dict]) -> pd.DataFrame:
             "player": name,
             "team_id": row.get("team_id", "AAA"),
             "played": played,
+            "is_starter": row.get("is_starter", 0),
             "game_number": number if played else pd.NA,
             "pir_per_min": row["pir"] / row["minutes"] if played else np.nan,
             **ROW_DEFAULTS,
@@ -104,6 +105,17 @@ def test_single_game_has_blank_spread_and_negative_mean_blank_cv() -> None:
     negative = _kpis([{"pir": -4, "minutes": 10.0}, {"pir": -2, "minutes": 10.0}])
     assert pd.notna(negative["pir_per_min_sd"])
     assert pd.isna(negative["pir_per_min_cv"])
+
+
+def test_starts_rate_is_starts_over_games_played() -> None:
+    rows = [
+        {"pir": 5, "minutes": 10.0, "is_starter": 1},
+        {"pir": 5, "minutes": 10.0, "is_starter": 0},
+        {"pir": 0, "minutes": 0.0, "is_starter": 0},  # DNP: excluded from both starts and games_played
+        {"pir": 5, "minutes": 10.0, "is_starter": 1},
+    ]
+    k = _kpis(rows)
+    assert k["starts_rate"] == pytest.approx(2 / 3)
 
 
 def test_shooting_and_usage_from_season_totals() -> None:

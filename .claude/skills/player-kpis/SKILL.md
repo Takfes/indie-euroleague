@@ -32,7 +32,7 @@ Games = games played (minutes > 0). "Recent" = the last `RECENT_GAMES` = 5 games
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
 | Identity    | `player_id` (Kaggle), `player_name_raw` (`LAST, FIRST`), `player_name` (First Last), `team_id` (latest team), `games_played`, `games_dnp`, `dnp_rate`, `recent_games` |
 | Production  | `pir_avg` (season mean), `pir_per_min` (total PIR / total minutes), `pir_avg_recent`, `pir_median_recent`        |
-| Opportunity | `minutes_avg`, `minutes_avg_recent`, `minutes_trend` (recent - season mean, minutes), `minutes_sd`, `minutes_cv` |
+| Opportunity | `minutes_avg`, `minutes_avg_recent`, `minutes_trend` (recent - season mean, minutes), `minutes_sd`, `minutes_cv`, `starts_rate` (starts / games played, season) |
 | Stability   | `pir_per_min_sd`, `pir_per_min_cv` (SD / mean of the per-game series), `pir_p10`, `pir_p50`, `pir_p90`, `pir_range` (P90 - P10); all over the season; SD/CV blank under 2 games |
 | Profile     | `pts/reb/ast/stl/blk/fdr_contrib` (season total of the component / season total PIR; blank if total PIR <= 0; can sum above 1 because PIR subtracts negatives), `fg_pct`, `fg3_pct`, `ft_pct`, `ts_pct` (season totals), `fdr_rate` (fouls drawn / minutes), `usage_proxy_avg` (mean per game played), `usage_per_min` (total usage / total minutes) |
 
