@@ -116,6 +116,10 @@ TEAM_NAME_OVERRIDES: dict[str, str | None] = {
 # Consistent with FULL_NAME_MIN_RATIO in player_name_matching.py (comparing full names).
 TEAM_NAME_FUZZY_MIN_RATIO = 0.85
 
+# Basketnews 5-position scheme -> the Dunkest/price-list 3-bucket scheme. A closed,
+# deterministic mapping: normalize_bn_positions raises on any code not listed here.
+BN_POSITION_TO_BUCKET = {"PG": "G", "SG": "G", "SF": "F", "PF": "F", "C": "C"}
+
 SOURCE_PATHS = {
     DUNKEST: DUNKEST_PATH,
     BN_ADVANCED: BN_ADV_PATH,
@@ -384,6 +388,47 @@ def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | No
     )
 
 
+def normalize_bn_positions(positions: pd.Series) -> pd.Series:
+    """Normalise basketnews `bn_position` values onto the Dunkest/price-list G/F/C bucket scheme.
+
+    Basketnews uses a 5-position scheme (PG/SG/SF/PF/C), including comma-separated
+    multi-position combos (e.g. "SF,PF"); a combo takes its first-listed token
+    (captain-confirmed tie-break rule) before mapping through `BN_POSITION_TO_BUCKET`.
+
+    Args:
+        positions: Raw `bn_position` values; NaN (player missing from basketnews) stays NaN.
+
+    Returns:
+        Series of "G"/"F"/"C" (or NaN), aligned to `positions`.
+
+    Raises:
+        ValueError: If a non-null value's first-listed token is not one of PG/SG/SF/PF/C.
+    """
+    first_token = positions.map(lambda p: p.split(",")[0] if isinstance(p, str) else None)
+    unmapped = sorted(set(first_token.dropna()) - set(BN_POSITION_TO_BUCKET))
+    if unmapped:
+        raise ValueError(
+            f"bn_position codes not in BN_POSITION_TO_BUCKET: {unmapped}. Add an entry in "
+            "src/build_player_master_table.py (Basketnews position code -> G/F/C bucket)."
+        )
+    return first_token.map(BN_POSITION_TO_BUCKET)
+
+
+def resolve_position(dunk_position: pd.Series, bn_position: pd.Series, price_position: pd.Series) -> pd.Series:
+    """Resolve a player's position via the 3-source fallback: Dunkest, then Basketnews, then price list.
+
+    Args:
+        dunk_position: Dunkest `position` column (G/F/C; highest priority).
+        bn_position: Basketnews position, already bucketed to G/F/C (see `normalize_bn_positions`).
+        price_position: Fantasy price list `position` column (G/F/C; lowest priority).
+
+    Returns:
+        Series aligned to the inputs: the first non-null value in priority order, or NaN
+        when all three sources are missing.
+    """
+    return dunk_position.fillna(bn_position).fillna(price_position)
+
+
 def map_kaggle_teams(codes: pd.Series) -> pd.Series:
     """Map Kaggle team codes to master team names through `KAGGLE_TEAM_CROSSWALK`.
 
@@ -593,7 +638,9 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, 
         .fillna(master["price_club"])
         .fillna(master["kag_team_name"])
     )
-    master["position"] = master["dunk_position"].fillna(master["bn_position"]).fillna(master["price_position"])
+    master["position"] = resolve_position(
+        master["dunk_position"], normalize_bn_positions(master["bn_position"]), master["price_position"]
+    )
     master["games_played"] = master["dunk_gp"].fillna(master["bn_games_played"])
     canonical_teams = load_canonical_team_names()
     master["canonical_team_name"] = master["team_name"].map(lambda t: resolve_team_name(t, canonical_teams))
