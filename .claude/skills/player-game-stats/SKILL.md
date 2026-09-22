@@ -41,6 +41,11 @@ Output sheets: `Column Guide` (source dataset, column name, explanation; one row
   `P<digits>` player id, real ids also include letter codes such as `PLCZ`), keeps the chosen phases.
 - Parses `minutes` (`MM:SS` text or `DNP`) into decimal minutes; DNP becomes 0.
 - Joins date, time, team names, opponent and home/away (first-listed team = home) from the header.
+  **Two Kaggle files feed every row, not one.** `euroleague_box_score.csv` gives the per-player stat
+  columns; `euroleague_header.csv` (one row per `game_id`, with `team_a`/`team_b`, `team_id_a`/`team_id_b`,
+  `date`, `time`) is joined on `game_id` and is where `team_name`, `opponent_id`, `opponent_name`,
+  `home_away`, `date` and `time` come from - none of those six columns exist in the box score csv itself,
+  so don't expect to find them there; they are a legitimate join, not fabricated.
 - Per row: `fgm`, `fga`, `pir`, `pir_per_min`, `usage_proxy`, `usage_per_min`, `fdr_per_min`, `fg_pct`,
   `ft_pct`, `ts_pct` (blank where the denominator is 0) and `game_number` (per player, chronological by
   date, time, then game id; games played only).
