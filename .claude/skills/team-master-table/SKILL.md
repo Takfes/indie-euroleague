@@ -1,25 +1,28 @@
 ---
 name: team-master-table
-description: Rebuild the unified EuroLeague team master table that joins basketnews team stats (offense/defense, all/home/away) and Dunkest defense-vs-position (what each team concedes to guards, forwards, centers) into one row per team. Use this whenever the user asks to combine/merge/consolidate the two team datasets into a single table, rebuild data/curated/team_master_table.xlsx, or wants an all-in-one team dataframe after either source dataset (basketnews-team-stats, dunkest-defense-positions) has been refreshed.
+description: Rebuild the unified EuroLeague team master table that joins basketnews team stats (offense/defense, all/home/away), Dunkest defense-vs-position (what each team concedes to guards, forwards, centers), and the derived team KPIs (pace factor, foul rates, positional funnel ratios) into one row per team. Use this whenever the user asks to combine/merge/consolidate the team datasets into a single table, rebuild data/curated/team_master_table.xlsx, or wants an all-in-one team dataframe after any source dataset (basketnews-team-stats, dunkest-defense-positions, team-kpis) has been refreshed.
 ---
 
 # EuroLeague team master table
 
 Rebuilds `data/curated/team_master_table.xlsx`: a workbook whose `Master` sheet has
-one row per team (20 teams), joining the two team datasets collected by other skills
-in this repo. The raw source datasets and a column guide ride along as extra sheets.
+one row per team (20 teams), joining the two raw team datasets collected by other skills
+in this repo plus the derived team KPIs. The raw/derived source datasets and a column
+guide ride along as extra sheets.
 
 ## When to use this
 
-Run this after either source dataset has been refreshed, or whenever the user wants a
-single team-level table. It is a pure join step - it fetches nothing, so both source
-CSVs must already exist:
+Run this after any source dataset has been refreshed, or whenever the user wants a
+single team-level table. It is a pure join step - it fetches nothing, so both raw source
+CSVs and the derived KPI workbook must already exist:
 
 - `data/basketnews-team-stats/basketnews_team_stats.csv`
 - `data/dunkest-defense-positions/dunkest_defense_vs_position.csv`
+- `data/curated/team_kpis.xlsx` (built by `team-kpis`; the build stops and names the
+  command if this is missing)
 
-If one is missing or stale, run its own skill first (`basketnews-team-stats`,
-`dunkest-defense-positions`).
+If a raw CSV is missing or stale, run its own skill first (`basketnews-team-stats`,
+`dunkest-defense-positions`). If `team_kpis.xlsx` is missing or stale, run `team-kpis` first.
 
 ## How it works
 
@@ -60,8 +63,12 @@ autofilter, widths) is shared with the player builder in `src/master_workbook.py
   `defense_all`, `defense_home`, `defense_away`, 20 KPIs each), then the Dunkest columns in
   source order (`dunkdvp_guards_*`, `dunkdvp_forwards_*`, `dunkdvp_centers_*`, 8 stats each,
   fantasy points last). The Dunkest `team_name` and `season` are dropped (they repeat the
-  identity columns). Rows are sorted by `team_name` (case-insensitive); 20 rows, no blanks
-  (the build refuses blank cells). No `found_in` columns: every team is in both sources.
+  identity columns). Last, the six derived Team KPI columns (unprefixed), grouped together
+  after the raw blocks and joined by `team_name`: `pace_factor`, `foul_rate_per40_drawn`,
+  `foul_rate_per40_committed`, `funnel_ratio_guards`, `funnel_ratio_forwards`,
+  `funnel_ratio_centers` (see the `team-kpis` skill for their formulas). Rows are sorted by
+  `team_name` (case-insensitive); 20 rows, no blanks (the build refuses blank cells). No
+  `found_in` columns: every team is in both raw sources.
 - **Reading the values.** Basketnews: `<offense|defense>_<all|home|away>_<kpi>` (`all` = all
   games, `home`/`away` = the split). The `offense_*` block holds the team's own numbers, the
   `defense_*` block what it concedes (opponent side) plus its own defensive actions; note
@@ -89,6 +96,7 @@ source column exactly once and warns if a source column has no explanation in
 | `Master`                      | The joined table, one row per team (layout above); header frozen along with `team_name`                                                              |
 | `BN Team Stats`               | Raw `basketnews_team_stats.csv`, as-is                                                                                                               |
 | `Dunkest Defense vs Position` | Raw `dunkest_defense_vs_position.csv`, as-is                                                                                                         |
+| `Team KPIs`                   | `data/curated/team_kpis.xlsx`'s `Team KPIs` sheet, as-is (see the `team-kpis` skill)                                                                 |
 
 ## Committing the refreshed data
 
