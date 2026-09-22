@@ -4,12 +4,14 @@
 Combines two EuroLeague datasets (one row per team, 20 teams) into one row per team:
   - data/basketnews-team-stats/basketnews_team_stats.csv (offense/defense KPIs, all/home/away)
   - data/dunkest-defense-positions/dunkest_defense_vs_position.csv (stats conceded to guards/forwards/centers)
+Also joins in the six derived team KPIs from data/curated/team_kpis.xlsx (built by
+src/build_team_kpis.py, which must run first).
 
 Output: data/curated/team_master_table.xlsx with sheets, in order:
-  - Column Guide: every column of both source datasets exactly once (Source dataset,
-    Column name, Explanation); texts live in src/team_master_column_guide.py
+  - Column Guide: every column of both source datasets plus the derived Team KPIs, exactly
+    once (Source dataset, Column name, Explanation); texts live in src/team_master_column_guide.py
   - Master: one row per team, sorted by team_name (layout below)
-  - BN Team Stats, Dunkest Defense vs Position: the raw source datasets as-is
+  - BN Team Stats, Dunkest Defense vs Position, Team KPIs: the raw/derived source datasets as-is
 
 Matching strategy: the sources have different team ids and spell some names differently.
 Teams are matched by normalised name (accents, casing, spacing ignored) after applying
@@ -24,12 +26,14 @@ columns that both sources repeat are kept once, unprefixed):
   2. remaining Basketnews columns in source order: bnteam_league_id, then the blocks
      offense_all, offense_home, offense_away, defense_all, defense_home, defense_away
   3. Dunkest columns in source order: guards_*, forwards_*, centers_* (dunkdvp_*)
+  4. derived Team KPIs block, unprefixed, in `TEAM_KPI_COLUMNS` order (pace_factor, the two
+     foul rates, then the three funnel ratios) - joined last, after the raw source blocks
 There are no found_in columns: every team is in both sources (the build refuses otherwise).
 
 Usage:
     python src/build_team_master_table.py [--out PATH]
 
-Re-run any time the two source CSVs are refreshed.
+Re-run any time the two source CSVs are refreshed (rebuild team_kpis.xlsx first if it changed).
 """
 
 from __future__ import annotations
@@ -41,12 +45,22 @@ from pathlib import Path
 import pandas as pd
 
 from master_workbook import write_workbook
-from team_master_column_guide import BN_TEAM, DUNKEST_DVP, GUIDE, SOURCE_PREFIXES, UNDOCUMENTED
+from team_master_column_guide import (
+    BN_TEAM,
+    DUNKEST_DVP,
+    GUIDE,
+    SOURCE_PREFIXES,
+    TEAM_KPI_COLUMNS,
+    TEAM_KPIS,
+    UNDOCUMENTED,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+TEAM_KPIS_PATH = REPO_ROOT / "data/curated/team_kpis.xlsx"
 SOURCE_PATHS = {
     BN_TEAM: REPO_ROOT / "data/basketnews-team-stats/basketnews_team_stats.csv",
     DUNKEST_DVP: REPO_ROOT / "data/dunkest-defense-positions/dunkest_defense_vs_position.csv",
+    TEAM_KPIS: TEAM_KPIS_PATH,
 }
 DEFAULT_OUT = REPO_ROOT / "data/curated/team_master_table.xlsx"
 
@@ -68,8 +82,21 @@ DVP_DUPLICATED = ["team_id", "team_name", "season"]
 
 
 def read_sources() -> dict[str, pd.DataFrame]:
-    """Read the two raw source CSVs, keyed by their workbook sheet name."""
-    return {sheet: pd.read_csv(path) for sheet, path in SOURCE_PATHS.items()}
+    """Read the two raw source CSVs and the team KPI workbook, keyed by source label.
+
+    Raises:
+        FileNotFoundError: If `data/curated/team_kpis.xlsx` does not exist yet; the message
+            gives the command that produces it.
+    """
+    if not TEAM_KPIS_PATH.exists():
+        raise FileNotFoundError(
+            f"Missing {TEAM_KPIS_PATH.relative_to(REPO_ROOT)}, which the team master table needs. "
+            "Build it first with `uv run python src/build_team_kpis.py`."
+        )
+    return {
+        label: pd.read_excel(path, sheet_name=TEAM_KPIS) if path.suffix == ".xlsx" else pd.read_csv(path)
+        for label, path in SOURCE_PATHS.items()
+    }
 
 
 def team_key(name: str) -> str:
@@ -123,13 +150,14 @@ def match_teams(bn: pd.DataFrame, dunkest: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_master_table(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """Join the two sources into the Master table, one row per team sorted by `team_name`.
+    """Join the two sources and the derived Team KPIs into the Master table, sorted by `team_name`.
 
     Args:
         sources: Raw source frames keyed by sheet name (see `read_sources`).
 
     Returns:
-        The master table: identity columns, `bnteam_*` columns, then `dunkdvp_*` columns.
+        The master table: identity columns, `bnteam_*` columns, `dunkdvp_*` columns, then the
+        unprefixed derived Team KPI columns (`TEAM_KPI_COLUMNS`).
 
     Raises:
         ValueError: If the teams do not match one-to-one or any Master cell is blank.
@@ -147,8 +175,11 @@ def build_master_table(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
     ]
 
     master = bn_part.merge(ids, on=BN_ID, validate="one_to_one").merge(dvp_part, on=DVP_ID, validate="one_to_one")
+    master = master.merge(sources[TEAM_KPIS], on="team_name", validate="one_to_one")
     lead = [*BN_IDENTITY, BN_ID, DVP_ID, *[f"{bn_prefix}{c}" for c in BN_GAMES]]
-    master = master[lead + [f"{bn_prefix}{c}" for c in bn_cols] + [f"{dvp_prefix}{c}" for c in dvp_cols]]
+    master = master[
+        lead + [f"{bn_prefix}{c}" for c in bn_cols] + [f"{dvp_prefix}{c}" for c in dvp_cols] + TEAM_KPI_COLUMNS
+    ]
     master = master.sort_values("team_name", key=lambda names: names.str.lower()).reset_index(drop=True)
     blanks = master.columns[master.isna().any()].tolist()
     if blanks or master["team_name"].duplicated().any():
