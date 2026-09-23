@@ -83,11 +83,10 @@ from master_workbook import write_workbook
 from player_identity import (
     ALIAS_SHEET,
     IDENTITY_VIEW_SHEET,
-    PlayerKeyRegistry,
-    build_alias_table,
+    alias_records,
+    assign_player_keys,
     build_identity_view,
     load_alias_table,
-    merge_on_player_key,
 )
 from player_master_column_guide import (
     BN_ADVANCED,
@@ -606,25 +605,27 @@ def found_in_columns(found: pd.DataFrame) -> pd.DataFrame:
 def build_master_table(
     sources: dict[str, pd.DataFrame], alias_table_path: Path = ALIAS_TABLE_PATH
 ) -> tuple[pd.DataFrame, dict[str, int], pd.DataFrame]:
-    """Join the five sources into the Master table, keyed off a persisted, stable `player_key`.
+    """Join the five sources into the Master table and assign each player's stable `player_key`.
 
-    `player_key` is minted once per player and looked up (not regenerated) via the checked-in
-    alias table at `alias_table_path`; it is what the frames are actually merged on (see
-    `player_identity.merge_on_player_key`). The row-grouping decisions themselves (which source
-    rows are the same player) are unchanged: still `resolve_names`/`map_alternate_spellings`/
-    `name_key` from player_name_matching.py, driving player_key only through this run's
-    `PlayerKeyRegistry`. `player_key` is an internal working column, not part of the Master
-    sheet's output columns.
+    Two phases, in this order. First the matching pass resolves which rows of all five sources
+    are the same player: the bnadv -> dunk -> elf -> kag chain of `resolve_names` /
+    `map_alternate_spellings` / `name_key` (player_name_matching.py), each source outer-joined
+    onto the previous ones by its resolved `name_key`. No `player_key` exists during this pass,
+    and it reads nothing persisted. Only once it is complete does `assign_player_keys`
+    (player_identity.py) give each final group one key, in a single pass, reusing the key of any
+    (source, source_id) link already in the previous alias table. `player_key` therefore never
+    depends on which source's row was matched first, and is not a Master output column.
 
     Args:
         sources: Raw source frames keyed by sheet name (see `read_sources`).
-        alias_table_path: Path to the checked-in alias table (empty/bootstrap if missing).
+        alias_table_path: Path to the previous run's alias table (empty/bootstrap if missing);
+            only its (source, source_id) -> player_key links are read.
 
     Returns:
         The master table, a dict of join statistics (rows per source, players in all four
         original sources and in all five, fallback name matches, Kaggle matching counts,
-        position-fallback players), and the updated alias table (existing rows plus any new
-        links minted this run) to persist back to `alias_table_path`.
+        position-fallback players), and this round's alias table (one row per source row with
+        its `player_key`) to persist back to `alias_table_path`.
     """
     bn_adv = load_bn_advanced_stats(sources[BN_ADVANCED])
     bn_onoff = load_bn_onoff_stats(sources[BN_ONOFF])
@@ -640,12 +641,9 @@ def build_master_table(
 
     master = bn_adv.merge(bn_onoff, on="player_id", how="left")
 
-    existing_alias = load_alias_table(alias_table_path)
-    registry = PlayerKeyRegistry(existing_alias)
-    master["player_key"] = [
-        registry.resolve("bnadv", pid, name, key, team, "base")
-        for pid, name, key, team in zip(
-            master["player_id"], master["bn_player_name"], master["name_key"], master["bn_team_name"], strict=True
+    records = [
+        alias_records(
+            "bnadv", master["player_id"], master["bn_player_name"], master["name_key"], master["bn_team_name"], "base"
         )
     ]
 
@@ -655,18 +653,17 @@ def build_master_table(
     dunkest["name_key"] = resolve_names(bn_base, dunkest, "dunk_team_name", other_games_col="dunk_gp")
     _require_unique_names(dunkest, DUNKEST)
     dunkest_method = _match_method(exact_dunkest, dunkest["name_key"], known_before_dunkest)
-    dunkest["player_key"] = [
-        registry.resolve("dunk", slug, name, key, team, method)
-        for slug, name, key, team, method in zip(
+    records.append(
+        alias_records(
+            "dunk",
             dunkest["dunk_slug"],
             dunkest["dunk_player_name"],
             dunkest["name_key"],
             dunkest["dunk_team_name"],
             dunkest_method,
-            strict=True,
         )
-    ]
-    master = merge_on_player_key(master, dunkest, how="outer")
+    )
+    master = master.merge(dunkest, on="name_key", how="outer")
 
     # A price row spelled like a Dunkest row that was linked to basketnews under
     # another spelling (e.g. "Sasha" vs "Aleksandr") follows that link.
@@ -678,13 +675,17 @@ def build_master_table(
     prices["name_key"] = resolve_names(known_teams, prices, "price_club")
     _require_unique_names(prices, FANTASY_PRICES)
     prices_method = _match_method(exact_prices, prices["name_key"], known_before_prices)
-    prices["player_key"] = [
-        registry.resolve("elf", raw_name, raw_name, key, team, method)
-        for raw_name, key, team, method in zip(
-            prices["price_name_raw"], prices["name_key"], prices["price_club"], prices_method, strict=True
+    records.append(
+        alias_records(
+            "elf",
+            prices["price_name_raw"],
+            prices["price_name_raw"],
+            prices["name_key"],
+            prices["price_club"],
+            prices_method,
         )
-    ]
-    master = merge_on_player_key(master, prices, how="outer")
+    )
+    master = master.merge(prices, on="name_key", how="outer")
 
     # Kaggle last: its names are converted from `LAST, FIRST` and it has no position or price, so it
     # only ever links onto (or adds) rows; the four earlier sources are matched exactly as before.
@@ -704,19 +705,20 @@ def build_master_table(
     kaggle_method = _kaggle_match_method(
         exact_kaggle, after_aliases, after_fallback, kaggle["name_key"], keys_before_kaggle
     )
-    kaggle["player_key"] = [
-        registry.resolve("kag", pid, name, key, team, method)
-        for pid, name, key, team, method in zip(
+    records.append(
+        alias_records(
+            "kag",
             kaggle["kag_player_id"],
             kaggle["kag_player_name"],
             kaggle["name_key"],
             kaggle["kag_team_name"],
             kaggle_method,
-            strict=True,
         )
-    ]
-    master = merge_on_player_key(master, kaggle, how="outer")
-    alias_table = build_alias_table(existing_alias, registry.rows)
+    )
+    master = master.merge(kaggle, on="name_key", how="outer")
+
+    # Matching is complete: every source row now sits in its final group. Only now are keys assigned.
+    alias_table = assign_player_keys(pd.concat(records, ignore_index=True), load_alias_table(alias_table_path))
 
     found = pd.DataFrame({code: master[f"{FOUND_PREFIX}{code}"].notna() for code in FOUND_IN_SOURCES})
     master = master.drop(columns=[f"{FOUND_PREFIX}{code}" for code in FOUND_IN_SOURCES])

@@ -1,22 +1,30 @@
-"""Persisted, stable player identity: `player_key` and the checked-in alias table.
+"""Stable player identity: `player_key` and the alias table it is written to.
 
 `name_key` (player_name_matching.py) is a normalisation helper recomputed fresh from raw
-names on every build; it is not an identity. `player_key` is the identity: minted once per
-real player and looked up (never regenerated) on every later build, from the checked-in
-alias table (data/curated/player_alias_table.xlsx). The underlying matching decisions
-(which source rows are the same player) still come entirely from `resolve_names` /
-`map_alternate_spellings` / `name_key` in player_name_matching.py; this module only persists
-and looks up the result of those decisions, and provides the join key the builder merges on.
+names on every build; it is not an identity. `player_key` is the identity, and it is assigned
+strictly *after* a round's multi-source matching (`resolve_names` / `map_alternate_spellings` /
+`name_key` in player_name_matching.py, chained bnadv -> dunk -> elf -> kag) has fully resolved
+which source rows are the same player. Only then does `assign_player_keys` give each final
+group one key, in a single pass, so no key is minted while a later source's rows are still
+unmatched and a player cannot be split by which source happened to be processed first.
+
+The alias table (data/curated/player_alias_table.xlsx) is that pass's output: one row per
+source row with its key. The matching never reads it; the only thing read back from the previous
+run's table is each (source, source_id) link's key, so a player keeps its key across refreshes
+even when a source respells the name.
 """
 
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
 
 import pandas as pd
 
 ALIAS_COLUMNS = ["source", "source_id", "raw_name", "normalized_name", "team_name", "match_method", "player_key"]
+# What the matching pass records per source row, before any key exists.
+RECORD_COLUMNS = [c for c in ALIAS_COLUMNS if c != "player_key"]
 ALIAS_SHEET = "Alias Table"
 IDENTITY_VIEW_SHEET = "Identity View"
 
@@ -40,111 +48,92 @@ def load_alias_table(path: Path) -> pd.DataFrame:
     return pd.read_excel(path, sheet_name=ALIAS_SHEET)
 
 
-class PlayerKeyRegistry:
-    """Mints and looks up `player_key` values for one build run, seeded from a persisted alias table.
-
-    A source row's identity is looked up, in order, by (source, source_id) already on file,
-    then by this run's `name_key` (so every source row that `player_name_matching.py` has
-    already resolved onto the same name_key shares one player_key), minting a brand new key
-    only when neither is known yet.
-    """
-
-    def __init__(self, existing_alias: pd.DataFrame) -> None:
-        """Seed the registry from a previously-persisted alias table (empty on first build).
-
-        Args:
-            existing_alias: Frame with `ALIAS_COLUMNS` (see `load_alias_table`).
-        """
-        self._by_source_id: dict[tuple[str, str], str] = {
-            (row.source, str(row.source_id)): row.player_key
-            for row in existing_alias.itertuples()
-            if pd.notna(row.source_id)
-        }
-        self._by_name_key: dict[str, str] = {}
-        self._used_keys: set[str] = set(existing_alias["player_key"])
-        self.rows: list[dict[str, object]] = []
-
-    def resolve(
-        self,
-        source: str,
-        source_id: object,
-        raw_name: object,
-        name_key: str,
-        team_name: object,
-        match_method: str,
-    ) -> str:
-        """Return the player_key for one source row, minting a new one if never seen before.
-
-        Also records an alias-table row for this (source, source_id) link in `self.rows`.
-
-        Args:
-            source: Short source code (e.g. "dunk", "bnadv", "elf", "kag").
-            source_id: That source's own identifier for the row (NaN/None if it has none).
-            raw_name: The raw, un-normalised name as that source spells it.
-            name_key: This row's fully-resolved `name_key` (after `resolve_names` etc.).
-            team_name: The raw team/club name as that source spells it.
-            match_method: How this row's name_key was resolved this run (e.g. "base", "exact",
-                "fallback", "alternate_spelling", "override", "new"), for the audit trail.
-
-        Returns:
-            The player_key, reused from the persisted alias table or this run's earlier rows
-            where possible, otherwise newly minted.
-        """
-        source_id_key = str(source_id) if pd.notna(source_id) else None
-        if source_id_key is not None and (source, source_id_key) in self._by_source_id:
-            key = self._by_source_id[(source, source_id_key)]
-        elif name_key in self._by_name_key:
-            key = self._by_name_key[name_key]
-        else:
-            key = self._mint(name_key)
-        self._by_name_key[name_key] = key
-        if source_id_key is not None:
-            self._by_source_id[(source, source_id_key)] = key
-        self.rows.append({
-            "source": source,
-            "source_id": source_id_key,
-            "raw_name": raw_name,
-            "normalized_name": name_key,
-            "team_name": team_name,
-            "match_method": match_method,
-            "player_key": key,
-        })
-        return key
-
-    def _mint(self, name_key: str) -> str:
-        """Mint a new player_key slug for a name_key never seen in this registry, disambiguating collisions."""
-        base = slugify_key(name_key)
-        candidate = base
-        suffix = 2
-        while candidate in self._used_keys:
-            candidate = f"{base}-{suffix}"
-            suffix += 1
-        self._used_keys.add(candidate)
-        return candidate
-
-
-def build_alias_table(existing_alias: pd.DataFrame, new_rows: list[dict[str, object]]) -> pd.DataFrame:
-    """Merge this run's newly-recorded links into the persisted alias table.
-
-    Existing (source, source_id) rows are left untouched (in case their raw_name/team_name
-    drifted upstream but the row is otherwise unchanged, the persisted version is kept, since
-    it is what future builds already rely on); a new link is appended.
+def alias_records(
+    source: str,
+    source_ids: Sequence[object],
+    raw_names: Sequence[object],
+    name_keys: Sequence[str],
+    team_names: Sequence[object],
+    match_methods: str | Sequence[str],
+) -> pd.DataFrame:
+    """Record one source's rows, as resolved by the matching pass, ready for `assign_player_keys`.
 
     Args:
-        existing_alias: The previously persisted alias table.
-        new_rows: Rows recorded by `PlayerKeyRegistry.resolve` during this build.
+        source: Short source code (e.g. "dunk", "bnadv", "elf", "kag").
+        source_ids: That source's own identifier per row (NaN/None if a row has none).
+        raw_names: The raw, un-normalised name per row as that source spells it.
+        name_keys: Each row's final `name_key`, after every matching stage.
+        team_names: The raw team/club name per row as that source spells it.
+        match_methods: How each name_key was resolved this run ("base", "exact", "fallback",
+            "alternate_spelling", "override", "new"), for the audit trail; one value applies to all rows.
 
     Returns:
-        The updated alias table, `ALIAS_COLUMNS` only, sorted by player_key then source.
+        Frame with `RECORD_COLUMNS`, one row per source row; ids stringified (missing stays None).
     """
-    new = pd.DataFrame(new_rows, columns=ALIAS_COLUMNS)
-    if existing_alias.empty:
-        combined = new
-    else:
-        known = set(zip(existing_alias["source"], existing_alias["source_id"].astype(str), strict=True))
-        genuinely_new = new[~new.apply(lambda r: (r["source"], str(r["source_id"])) in known, axis=1)]
-        combined = pd.concat([existing_alias[ALIAS_COLUMNS], genuinely_new], ignore_index=True)
-    return combined.sort_values(["player_key", "source"]).reset_index(drop=True)
+    return pd.DataFrame({
+        "source": source,
+        "source_id": [str(i) if pd.notna(i) else None for i in source_ids],
+        "raw_name": list(raw_names),
+        "normalized_name": list(name_keys),
+        "team_name": list(team_names),
+        "match_method": match_methods if isinstance(match_methods, str) else list(match_methods),
+    })[RECORD_COLUMNS]
+
+
+def assign_player_keys(records: pd.DataFrame, existing_alias: pd.DataFrame) -> pd.DataFrame:
+    """Give every group of matched source rows one `player_key`, once the round's matching is complete.
+
+    A group is all `records` sharing a `normalized_name` (the final `name_key`: every source row
+    the matching chain resolved onto one player). Groups are visited in sorted name order, so the
+    result never depends on which source's rows were processed first. Two steps:
+
+    1. A group takes the key of a previously persisted (source, source_id) link among its rows, so
+       keys survive refreshes even when a source respells a name. If its rows hold several
+       persisted keys the smallest wins (the un-suffixed slug sorts before "-2"); a key already
+       taken by an earlier group is skipped, so no two groups ever share one.
+    2. A group with no usable persisted key gets its `name_key` slug ("wade-baldwin"), suffixed
+       "-2", "-3", ... if a key is already taken. This runs only after every persisted key has
+       been claimed, so a new group can never take a key another group holds by link.
+
+    Args:
+        records: One row per source row, with `RECORD_COLUMNS` (see `alias_records`).
+        existing_alias: Previous run's alias table, or an empty frame on a first build. Only its
+            (source, source_id) -> player_key links are read.
+
+    Returns:
+        This round's alias table: `ALIAS_COLUMNS`, one row per source row, sorted by player_key
+        then source.
+    """
+    persisted = {
+        (row.source, str(row.source_id)): row.player_key
+        for row in existing_alias.itertuples()
+        if pd.notna(row.source_id)
+    }
+    groups = dict(tuple(records.groupby("normalized_name", sort=True)))
+    keys: dict[str, str] = {}
+    taken: set[str] = set()
+    for name, rows in groups.items():
+        held = {persisted[link] for link in zip(rows["source"], rows["source_id"], strict=True) if link in persisted}
+        free = sorted(held - taken)
+        if free:
+            keys[name] = free[0]
+            taken.add(free[0])
+    for name in groups:
+        if name not in keys:
+            keys[name] = _mint(name, taken)
+    table = records.assign(player_key=records["normalized_name"].map(keys))[ALIAS_COLUMNS]
+    return table.sort_values(["player_key", "source"], kind="stable").reset_index(drop=True)
+
+
+def _mint(name_key: str, taken: set[str]) -> str:
+    """Derive a player_key slug from a name_key, suffixing "-2", "-3", ... past keys already taken."""
+    base = slugify_key(name_key)
+    candidate, suffix = base, 2
+    while candidate in taken:
+        candidate = f"{base}-{suffix}"
+        suffix += 1
+    taken.add(candidate)
+    return candidate
 
 
 def build_identity_view(alias_table: pd.DataFrame) -> pd.DataFrame:
@@ -164,24 +153,3 @@ def build_identity_view(alias_table: pd.DataFrame) -> pd.DataFrame:
         view[f"{source}_source_id"] = rows["source_id"]
         view[f"{source}_raw_name"] = rows["raw_name"]
     return view.reset_index()
-
-
-def merge_on_player_key(base: pd.DataFrame, other: pd.DataFrame, how: str) -> pd.DataFrame:
-    """Merge two frames on `player_key`, reconciling the `name_key` column both carry.
-
-    Both frames keep a `name_key` column alongside `player_key` (the matching helpers in
-    player_name_matching.py operate on `name_key`); merging on `player_key` would otherwise
-    leave two suffixed copies. This coalesces them back into one `name_key` column, preferring
-    `base`'s value and falling back to `other`'s for rows the outer join adds from `other` alone.
-
-    Args:
-        base: Left frame, with `player_key` and `name_key` columns.
-        other: Right frame, with `player_key` and `name_key` columns.
-        how: Merge type, passed through to `pd.DataFrame.merge`.
-
-    Returns:
-        The merged frame with a single `name_key` column.
-    """
-    merged = base.merge(other, on="player_key", how=how, suffixes=("", "_other"))
-    merged["name_key"] = merged["name_key"].fillna(merged["name_key_other"])
-    return merged.drop(columns="name_key_other")
