@@ -36,12 +36,24 @@ def test_team_name_current_is_the_price_list_club_and_blank_without_a_price_row(
     assert master["team_name_hist"].notna().all()
 
 
-def test_canonical_team_name_resolves_from_the_historical_team(master: pd.DataFrame) -> None:
+def test_canonical_team_name_follows_the_price_list_then_the_historical_team(master: pd.DataFrame) -> None:
     assert "team_name" not in master.columns
     canonical = load_canonical_team_names()
-    expected = master["team_name_hist"].map(lambda team: resolve_team_name(team, canonical))
-    pd.testing.assert_series_equal(master["canonical_team_name"], expected, check_names=False)
-    assert master["canonical_team_name"].notna().any()
+    priced = master["team_name_current"].notna()
+    assert master.loc[priced, "canonical_team_name"].tolist() == (
+        master.loc[priced, "team_name_current"].map(master_build.PRICE_CLUB_TO_CANONICAL).tolist()
+    )
+    unpriced = master[~priced]
+    expected = unpriced["team_name_hist"].map(lambda team: resolve_team_name(team, canonical))
+    pd.testing.assert_series_equal(unpriced["canonical_team_name"], expected, check_names=False)
+
+
+def test_canonical_team_names_are_this_seasons_twenty_teams(master: pd.DataFrame) -> None:
+    assert sorted(master["canonical_team_name"].dropna().unique()) == sorted(load_canonical_team_names())
+    besiktas = master["team_name_current"] == "Besiktas"
+    assert besiktas.any()
+    assert (master.loc[besiktas, "canonical_team_name"] == "Besiktas Istanbul").all()
+    assert not master["canonical_team_name"].eq("AS Monaco").any()
 
 
 def test_leading_columns_come_first_in_the_requested_order(master: pd.DataFrame) -> None:

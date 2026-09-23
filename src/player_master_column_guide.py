@@ -216,8 +216,10 @@ _DERIVED_GUIDE = {
         "without a price-list row, no fallback to team_name_hist"
     ),
     "canonical_team_name": (
-        "team_name_hist resolved onto one of the 20 canonical team_kpis.xlsx names (see resolve_team_name "
-        "in build_player_master_table.py); blank if it has no current match (e.g. Besiktas)"
+        "Current team on one of the 20 canonical names of this season's price list (see "
+        "load_canonical_team_names in build_player_master_table.py): team_name_current where the player has "
+        "one, else team_name_hist resolved onto them (resolve_team_name); blank if that historical team is "
+        "not in the current price list (e.g. AS Monaco)"
     ),
     "kag_minutes_pct": "kag_minutes_avg as % of a 40-minute game (0-100 scale); blank without Kaggle minutes",
     "expected_pir": f"kag_pir_avg_recent: mean PIR over the last {RECENT_GAMES} games played, the forward-looking PIR",

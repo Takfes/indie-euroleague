@@ -45,7 +45,9 @@ excluded columns; the Column Guide follows the same order):
      expected_price_next_round.
      `team_name_hist` = Dunkest, then basketnews, then the price list, then Kaggle team (it can lag
      a player's current team); `team_name_current` = the price list club only, blank without a price
-     row; `canonical_team_name` = `team_name_hist` on the 20 team_kpis.xlsx names. `position`:
+     row; `canonical_team_name` = the price list club on this season's 20 canonical team names
+     (`load_canonical_team_names`, derived from the price list itself), else, only for a player
+     without a price row, `team_name_hist` resolved onto them. `position`:
      Dunkest, then basketnews `positions`, then the price list `position`, so it is never blank for
      players missing from Dunkest. `games_played`: Dunkest, then basketnews. `found_in` (source
      codes, comma-separated, e.g. "dunk, elf") and `found_in_count` (how many) come from the join
@@ -115,19 +117,48 @@ BN_ONOFF_PATH = REPO_ROOT / "data/basketnews-onoff-stats/onoff_stats.csv"
 DUNKEST_PATH = REPO_ROOT / "data/dunkest-data/player_stats.csv"
 PRICE_PATH = REPO_ROOT / "data/euroleague-fantasy/basketballsphere_prices.csv"
 KAGGLE_KPIS_PATH = REPO_ROOT / "data/curated/player_kpis.xlsx"
-TEAM_KPIS_PATH = REPO_ROOT / "data/curated/team_kpis.xlsx"
 DEFAULT_OUT = REPO_ROOT / "data/curated/player_master_table.xlsx"
 ALIAS_TABLE_PATH = REPO_ROOT / "data/curated/player_alias_table.xlsx"
 
-# Tier 3 (manual) of team-name resolution: player-master `team_name` values that Tier 1
+# The fantasy price list is the ground truth for this season's teams and rosters: its 20 `club`
+# values (short names) are the current EuroLeague teams. Value is the canonical full team name
+# the rest of the pipeline joins on (the team_kpis.xlsx / team master spelling); a display string,
+# not a resolution key. A club new to the league (Besiktas) has no Basketnews/Dunkest history, so
+# only this table can name it. Add a line here when `load_canonical_team_names` raises for a club.
+PRICE_CLUB_TO_CANONICAL = {
+    "ASVEL": "LDLC ASVEL Villeurbanne",
+    "Anadolu Efes": "Anadolu Efes Istanbul",
+    "Barcelona": "FC Barcelona",
+    "Baskonia": "Kosner Baskonia Vitoria-Gasteiz",
+    "Bayern Munich": "FC Bayern Munich",
+    "Besiktas": "Besiktas Istanbul",
+    "Crvena Zvezda": "Crvena Zvezda Meridianbet Belgrade",
+    "Dubai": "Dubai Basketball",
+    "Fenerbahce": "Fenerbahce Beko Istanbul",
+    "Hapoel Tel Aviv": "Hapoel Shlomo Tel Aviv",
+    "Maccabi Tel Aviv": "Maccabi Playtika Tel Aviv",
+    "Milano": "EA7 Emporio Armani Milan",
+    "Olympiacos": "Olympiacos Piraeus",
+    "Panathinaikos": "Panathinaikos AKTOR Athens",
+    "Paris": "Paris Basketball",
+    "Partizan": "Partizan Mozzart Bet Belgrade",
+    "Real Madrid": "Real Madrid",
+    "Valencia": "Valencia Basket",
+    "Virtus Bologna": "Virtus Segafredo Bologna",
+    "Zalgiris": "Zalgiris Kaunas",
+}
+# EuroLeague teams per season: the price list must name exactly this many clubs.
+CURRENT_TEAM_COUNT = 20
+
+# Tier 3 (manual) of team-name resolution: player-master `team_name_hist` values that Tier 1
 # (exact/teams_compatible) and Tier 2 (fuzzy) leave unresolved against the 20 canonical
-# team_kpis.xlsx names. Value is the canonical name, or None when verified to have no
-# current match (e.g. a club not fielding a team in this season's EuroLeague). Add a line
-# here when `resolve_team_name` raises for a new unmatched value.
+# current-season names (`load_canonical_team_names`). Value is the canonical name, or None when
+# verified to have no current match (a club that is not among this season's 20 teams). Add a
+# line here when `resolve_team_name` raises for a new unmatched value.
 TEAM_NAME_OVERRIDES: dict[str, str | None] = {
-    # Not one of this season's 20 EuroLeague teams: all 10 rows carrying this value come
-    # only from the fantasy price list (found_in == "elf"), absent from every other source.
-    "Besiktas": None,
+    # Last season's stats sources (Dunkest, Basketnews, Kaggle) still list it, but it fields no
+    # team in the current fantasy price list, so no current team exists to resolve to.
+    "AS Monaco": None,
 }
 # Consistent with FULL_NAME_MIN_RATIO in player_name_matching.py (comparing full names).
 TEAM_NAME_FUZZY_MIN_RATIO = 0.85
@@ -344,20 +375,65 @@ def load_prices(df: pd.DataFrame) -> pd.DataFrame:
     return df[["name_key", "price_name_raw", "price_club", "price_position", "price_rank", "price"]]
 
 
-def load_canonical_team_names(path: Path = TEAM_KPIS_PATH) -> list[str]:
-    """Read the 20 canonical team names from the `Team KPIs` sheet of team_kpis.xlsx.
+def load_canonical_team_names(path: Path = PRICE_PATH) -> list[str]:
+    """Derive this season's 20 canonical team names from the fantasy price list.
+
+    The price list is the ground truth for the current teams: the distinct `club` values of its
+    player rows are the 20 teams, each spelled in full through `PRICE_CLUB_TO_CANONICAL`. Stats
+    sources (Basketnews, Dunkest, Kaggle) are last season's, so they cannot name a newly promoted
+    club. Reads only the raw CSV, so the result does not depend on any built workbook.
 
     Args:
-        path: Path to team_kpis.xlsx.
+        path: Path to basketballsphere_prices.csv.
 
     Returns:
-        The canonical team names, in file order.
+        The canonical team names, sorted alphabetically (case-insensitive).
+
+    Raises:
+        ValueError: If a club is not in `PRICE_CLUB_TO_CANONICAL`, or the list does not name
+            exactly `CURRENT_TEAM_COUNT` clubs (a partial or stale scrape).
     """
-    return pd.read_excel(path, sheet_name="Team KPIs")["team_name"].tolist()
+    prices = pd.read_csv(path)
+    clubs = sorted(prices.loc[prices["role"] == "player", "club"].dropna().unique())
+    unmapped = [club for club in clubs if club not in PRICE_CLUB_TO_CANONICAL]
+    if unmapped or len(clubs) != CURRENT_TEAM_COUNT:
+        raise ValueError(
+            f"{path.name} lists {len(clubs)} clubs, expected {CURRENT_TEAM_COUNT}; clubs not in "
+            f"PRICE_CLUB_TO_CANONICAL: {unmapped}. Add each to PRICE_CLUB_TO_CANONICAL in "
+            "src/build_player_master_table.py (price-list club -> canonical full name), or refresh "
+            "the price list if it is incomplete."
+        )
+    return sorted((PRICE_CLUB_TO_CANONICAL[club] for club in clubs), key=str.lower)
+
+
+def resolve_canonical_team_names(
+    team_current: pd.Series, team_hist: pd.Series, canonical_teams: list[str]
+) -> pd.Series:
+    """Resolve each player's canonical team, following the current season over history.
+
+    A player with a price-list club takes that club's canonical name straight from
+    `PRICE_CLUB_TO_CANONICAL` (the price list is the current-season ground truth). Only a
+    player absent from the price list, with no current-season signal, falls back to resolving the
+    historical team through `resolve_team_name`.
+
+    Args:
+        team_current: `team_name_current` column (price-list club, NaN without a price row).
+        team_hist: `team_name_hist` column (stats-source team, used only where `team_current` is NaN).
+        canonical_teams: The 20 canonical team names (see `load_canonical_team_names`).
+
+    Returns:
+        Series aligned to the inputs; None where the player has no current team (a historical
+        team verified to have none, see `TEAM_NAME_OVERRIDES`).
+
+    Raises:
+        ValueError: If a fallback team name does not resolve (see `resolve_team_name`).
+    """
+    fallback = team_hist.where(team_current.isna()).map(lambda team: resolve_team_name(team, canonical_teams))
+    return team_current.map(PRICE_CLUB_TO_CANONICAL).where(team_current.notna(), fallback)
 
 
 def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | None:
-    """Resolve a player-master `team_name` value onto exactly one canonical team name.
+    """Resolve a historical team name onto exactly one canonical team name.
 
     Three tiers, each tried only once the previous one fails to yield exactly one match:
 
@@ -369,7 +445,7 @@ def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | No
     3. Manual: `TEAM_NAME_OVERRIDES`, keyed by the raw `team_name` value.
 
     Args:
-        team_name: Raw `team_name` value from the player master table.
+        team_name: Raw `team_name_hist` value from the player master table.
         canonical_teams: The 20 canonical team names (see `load_canonical_team_names`).
 
     Returns:
@@ -399,8 +475,8 @@ def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | No
     if team_name in TEAM_NAME_OVERRIDES:
         return TEAM_NAME_OVERRIDES[team_name]
     raise ValueError(
-        f"team_name {team_name!r} does not resolve to exactly one of the 20 canonical teams in "
-        "data/curated/team_kpis.xlsx via exact match, teams_compatible(), or fuzzy match. Add an "
+        f"team_name {team_name!r} does not resolve to exactly one of the 20 canonical teams "
+        "(load_canonical_team_names) via exact match, teams_compatible(), or fuzzy match. Add an "
         "entry to TEAM_NAME_OVERRIDES in src/build_player_master_table.py (canonical name, or None "
         "if verified to have no current match)."
     )
@@ -802,8 +878,9 @@ def build_master_table(
         master["dunk_position"], normalize_bn_positions(master["bn_position"]), master["price_position"]
     )
     master["games_played"] = master["dunk_gp"].fillna(master["bn_games_played"])
-    canonical_teams = load_canonical_team_names()
-    master["canonical_team_name"] = master["team_name_hist"].map(lambda t: resolve_team_name(t, canonical_teams))
+    master["canonical_team_name"] = resolve_canonical_team_names(
+        master["team_name_current"], master["team_name_hist"], load_canonical_team_names()
+    )
 
     lead_cols = [
         "player_name",

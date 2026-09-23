@@ -122,10 +122,13 @@ extending it:
   - Teams. `team_name_hist` is Dunkest, then basketnews, then the price list, then Kaggle (the former
     `team_name`; it can lag a player's current team). `team_name_current` is the price list club only, no
     fallback, blank without a price row (price-list spelling, e.g. "Milano", not the canonical names).
-    `canonical_team_name` resolves `team_name_hist` onto one of the 20 canonical names in
-    `data/curated/team_kpis.xlsx` (`resolve_team_name`: exact/`teams_compatible()` match, then fuzzy, then the
-    manual `TEAM_NAME_OVERRIDES`); blank if there is no current match (e.g. "Besiktas", not a EuroLeague team
-    this season).
+    The price list is the ground truth for this season's teams: `load_canonical_team_names()` derives the 20
+    canonical names from its `club` column through the explicit `PRICE_CLUB_TO_CANONICAL` dict (Besiktas, new to
+    the league, has no stats-source history and comes only from here), and it does not read `team_kpis.xlsx`.
+    `canonical_team_name` is the price-list club on those names where the player has one; only a player with no
+    price row falls back to resolving `team_name_hist` (`resolve_team_name`: exact/`teams_compatible()` match,
+    then fuzzy, then the manual `TEAM_NAME_OVERRIDES`); blank if that has no current match (e.g. "AS Monaco",
+    which fields no team in the current price list).
   - Position and provenance. `position` is Dunkest's value for every player present in Dunkest; players missing
     from Dunkest fall back to basketnews `positions`, normalised from its 5-position scheme (PG/SG/SF/PF/C,
     multi-position combos take the first-listed token) onto the Dunkest/price-list G/F/C buckets
