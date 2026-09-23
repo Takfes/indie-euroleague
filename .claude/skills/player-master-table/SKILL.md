@@ -56,13 +56,17 @@ extending it:
   view anyway). A handful of players (5 out of 336) have
   rows for two teams because they were traded mid-season; only the
   team-stint with the most games played is kept.
-- **Player identity.** The join is keyed off a stable `player_key`
-  (`src/player_identity.py`), minted once per player and looked up (never
-  re-derived) from the checked-in `data/curated/player_alias_table.xlsx`
-  (`Alias Table`: one row per source row resolved to a player_key, plus a
-  wide `Identity View` for eyeballing every source's raw name/id side by
-  side). The underlying matching decisions below (which rows are the same
-  player) are unchanged; `player_key` just persists and joins on the result.
+- **Player identity.** Each player gets a stable `player_key`
+  (`src/player_identity.py`), assigned only *after* the matching below has
+  fully resolved which rows of all five sources are the same player, in one
+  pass over the final groups - so a player can never be split by which
+  source's row happened to be matched first. A group reuses the key of any
+  (source, source_id) link already in the previous
+  `data/curated/player_alias_table.xlsx`, otherwise takes its name slug
+  ("wade-baldwin"). That table (`Alias Table`: one row per source row with
+  its player_key, plus a wide `Identity View` for eyeballing every source's
+  raw name/id side by side) is a build output rewritten each run; the
+  matching itself never reads it.
 - **Matching players across sources.** There's no shared player ID across
   basketnews / Dunkest / basketballsphere, so players are matched by a
   normalized name key (`src/player_name_matching.py`): accents stripped,
@@ -197,8 +201,8 @@ script rather than trusting this table after any source update.
 
 The run also updates `data/curated/player_alias_table.xlsx` (the checked-in
 `player_key` alias table + identity view; see "Player identity" above) -
-commit it alongside the master table, since it is what the next run looks
-`player_key` up from.
+commit it alongside the master table, since the next run reuses its
+(source, source_id) -> `player_key` links to keep keys stable.
 
 `.gitignore` has an explicit exception for this folder
 (`!data/curated/` + `!data/curated/**`), so a
