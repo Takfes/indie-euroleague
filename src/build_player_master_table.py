@@ -35,35 +35,40 @@ Lundberg), then the same rules as above (no games-played rule; plus a compound-s
 `KAGGLE_TEAM_CROSSWALK` (Kaggle team code -> master team name), and the build stops on a
 code that is not in it.
 
-Master column layout:
-  1. identity: player_name, team_name, position, season, games_played - Dunkest is
-     preferred, then basketnews, then the price list (position: Dunkest, then
-     basketnews `positions`, then the price list `position`, so it is never blank
-     for players missing from Dunkest). `season` only exists in basketnews, so it is
-     blank for players missing there, as is `games_played` when Dunkest is also missing.
-     Players traded mid-season keep only their max-games stint in the bnadv/bnoo
-     columns, while the identity columns follow Dunkest (current team, season games).
-  2. provenance: found_in (source codes, comma-separated, e.g. "dunk, elf") and
-     found_in_count (how many); codes are defined once in
-     `FOUND_IN_SOURCES` (src/player_master_column_guide.py): dunk, bnadv, bnoo, kag, elf.
-     Computed from the join provenance (which source rows the player came from),
-     not from non-null values; the run reports any disagreement with that inference.
-  3. Dunkest columns (dunk_*)
-  4. basketnews advanced: player_id, then bnadv_* columns
-  5. basketnews on/off (bnoo_*): total (_tot), then offensive (_off), then
-     defensive (_def) columns, each in source CSV order
-  6. Kaggle KPIs (kag_*): every column of the Player KPIs sheet, prefixed. Kaggle has no
-     position, so the few Kaggle-only players (nobody else lists them) have a blank position.
-  7. fantasy price columns: price, price_rank
-  8. derived value KPIs: pir_per_credit, pir_per_min_per_credit (computed after the master
-     exists from kag_pir_avg_recent / kag_pir_per_min and price; blank if the KPI or the
-     price is missing, or the price is 0). The price columns sit before this block, not
-     last as in earlier versions, on purpose: the derived KPIs depend on the price.
-  9. unofficial price-projection KPIs: breakeven_pir, expected_price_change,
-     capital_yield_pct - an ESTIMATE of the next price move from docs/rules.md's
-     community-reverse-engineered formula, treating kag_pir_avg (season-average PIR,
-     not the recent-5 window) as the Round score; blank under the same conditions as
-     the value KPIs above. See `add_price_projection_kpis` for the formula and caveats.
+Master column layout (src/player_master_layout.py holds the order, the dropped duplicates and the
+excluded columns; the Column Guide follows the same order):
+  1. leading columns, exactly: player_name, team_name_hist, team_name_current, canonical_team_name,
+     position, found_in, found_in_count, games_played, kag_minutes_avg, kag_minutes_pct, price,
+     kag_pir_avg, kag_pir_sd, kag_pir_per_min, kag_pir_per_min_sd, pir_per_credit,
+     pir_per_min_per_credit, expected_pir, breakeven_pir, expected_price_change,
+     expected_price_next_round.
+     `team_name_hist` = Dunkest, then basketnews, then the price list, then Kaggle team (it can lag
+     a player's current team); `team_name_current` = the price list club only, blank without a price
+     row; `canonical_team_name` = `team_name_hist` on the 20 team_kpis.xlsx names. `position`:
+     Dunkest, then basketnews `positions`, then the price list `position`, so it is never blank for
+     players missing from Dunkest. `games_played`: Dunkest, then basketnews. `found_in` (source
+     codes, comma-separated, e.g. "dunk, elf") and `found_in_count` (how many) come from the join
+     provenance (which source rows the player came from), not from non-null values; codes are
+     defined once in `FOUND_IN_SOURCES` (src/player_master_column_guide.py): dunk, bnadv, bnoo, kag,
+     elf; the run reports any disagreement with the non-null inference. Players traded mid-season
+     keep only their max-games stint in the bnadv/bnoo columns, while the identity columns follow
+     Dunkest (current team, season games).
+  2. the rest of the price projection (`capital_yield_pct`) and `season` (only in basketnews, so
+     blank for players missing there).
+  3. raw stats and metrics (Dunkest `dunk_*`, basketnews advanced `bnadv_*`, on/off `bnoo_*`, plus
+     the Kaggle KPIs that are not distributions): production and availability, offense, defense, then
+     team and lineup level (`dunk_plus_minus`, `bnoo_*`: total `_tot`, offense `_off`, defense
+     `_def`, source order inside each group).
+  4. the 11 signed PIR contribution shares (`kag_*_contribution_pct`, they sum to 100).
+  5. the Kaggle distribution KPIs (`kag_*`: average, sd, cv, p10, p50, p90, range per family).
+  A stat that two sources both report appears once (`DUPLICATE_COLUMNS`); `EXCLUDED_COLUMNS` are computed
+  but left out of the sheet. The value KPIs pir_per_credit and pir_per_min_per_credit are computed
+  after the master exists from kag_pir_avg_recent / kag_pir_per_min and price (blank if the KPI or the
+  price is missing, or the price is 0). breakeven_pir, expected_price_change, capital_yield_pct and
+  expected_price_next_round (= price + expected_price_change) are an ESTIMATE of the next price move
+  from docs/rules.md's community-reverse-engineered formula, treating kag_pir_avg (season-average
+  PIR, not the recent-5 window) as the Round score; `expected_pir` is kag_pir_avg_recent. See
+  `add_price_projection_kpis` for the formula and caveats.
 
 Usage:
     python src/build_player_master_table.py [--out PATH]
@@ -100,6 +105,7 @@ from player_master_column_guide import (
     KAGGLE_KPIS,
     UNDOCUMENTED,
 )
+from player_master_layout import DUPLICATE_COLUMNS, EXCLUDED_COLUMNS, order_master_columns
 from player_name_matching import map_alternate_spellings, name_key, normalize_name, resolve_names, teams_compatible
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -831,7 +837,12 @@ def build_master_table(
         + ["expected_pir"]
         + PRICE_PROJECTION_KPIS
     ]
+    master = master.drop(columns=list(DUPLICATE_COLUMNS))
+    master = master[order_master_columns(master.columns)]
     master = master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True)
+    # Very last step of column assembly: EXCLUDED_COLUMNS (src/player_master_layout.py) only leaves
+    # columns out of the sheet, everything above still computed them.
+    master = master.drop(columns=EXCLUDED_COLUMNS)
     return master, stats, alias_table
 
 

@@ -5,7 +5,11 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
+import build_player_master_table as master_build
+from build_game_player_stats import CONTRIBUTION_STATS
+from build_player_kpis import DISTRIBUTION_FAMILIES
 from build_player_master_table import ALIAS_TABLE_PATH, build_master_table, read_sources
+from player_master_layout import DUPLICATE_COLUMNS, EXCLUDED_COLUMNS, LEADING_COLUMNS, order_master_columns
 
 
 @pytest.fixture(scope="module")
@@ -27,3 +31,65 @@ def test_team_name_current_is_the_price_list_club_and_blank_without_a_price_row(
 def test_canonical_team_name_resolves_from_the_historical_team(master: pd.DataFrame) -> None:
     assert "team_name" not in master.columns
     assert master["canonical_team_name"].notna().any()
+
+
+def test_leading_columns_come_first_in_the_requested_order(master: pd.DataFrame) -> None:
+    assert list(master.columns[: len(LEADING_COLUMNS)]) == LEADING_COLUMNS
+    # The captain's list, with canonical_team_name slotted in after the two team-name columns.
+    requested = "player_name, team_name_hist, team_name_current, position, found_in, found_in_count, games_played"
+    requested += ", kag_minutes_avg, kag_minutes_pct, price, kag_pir_avg, kag_pir_sd, kag_pir_per_min"
+    requested += ", kag_pir_per_min_sd, pir_per_credit, pir_per_min_per_credit, expected_pir, breakeven_pir"
+    requested += ", expected_price_change, expected_price_next_round"
+    assert [c for c in LEADING_COLUMNS if c != "canonical_team_name"] == requested.split(", ")
+
+
+def test_columns_are_unique_and_excluded_or_duplicate_ones_are_gone(master: pd.DataFrame) -> None:
+    assert master.columns.is_unique
+    assert not set(EXCLUDED_COLUMNS) & set(master.columns)
+    assert not set(DUPLICATE_COLUMNS) & set(master.columns)
+    assert set(DUPLICATE_COLUMNS.values()) <= set(master.columns) | set(EXCLUDED_COLUMNS)
+
+
+def test_removing_an_exclusion_brings_the_column_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The layout places every excluded column, so the exclusion is a pure last-step filter."""
+    monkeypatch.setattr(master_build, "EXCLUDED_COLUMNS", [])
+    table, _, _ = build_master_table(read_sources(), alias_table_path=ALIAS_TABLE_PATH)
+    assert set(EXCLUDED_COLUMNS) <= set(table.columns)
+    assert table["kag_games_played"].notna().sum() == 351  # still computed
+
+
+def test_the_eleven_contribution_columns_sit_together_and_sum_to_100(master: pd.DataFrame) -> None:
+    pct = [f"kag_{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]
+    start = list(master.columns).index(pct[0])
+    assert list(master.columns[start : start + len(pct)]) == pct
+    complete = master.dropna(subset=pct)
+    assert len(complete) > 300
+    assert complete[pct].sum(axis=1).sub(100).abs().max() < 1e-9
+
+
+def test_every_kaggle_distribution_family_is_complete(master: pd.DataFrame) -> None:
+    for family in DISTRIBUTION_FAMILIES:
+        stats = [f"kag_{family}_{stat}" for stat in ("sd", "cv", "p10", "p50", "p90", "range")]
+        assert set(stats) <= set(master.columns), family
+    for prefix in CONTRIBUTION_STATS:
+        stats = [f"kag_{prefix}_contribution_{stat}" for stat in ("pct", "std", "cv", "p10", "p50", "p90", "range")]
+        assert set(stats) <= set(master.columns), prefix
+
+
+def test_shooting_families_follow_attempted_made_percentage(master: pd.DataFrame) -> None:
+    position = {column: i for i, column in enumerate(master.columns)}
+    for attempted, made, rate in (
+        ("dunk_fga", "dunk_fgm", "kag_fg_pct"),
+        ("dunk_tpa", "dunk_tpm", "kag_fg3_pct"),
+        ("dunk_fta", "dunk_ftm", "kag_ft_pct"),
+    ):
+        assert position[attempted] < position[f"{attempted}_tot"] < position[made] < position[f"{made}_tot"]
+        assert position[made] < position[rate]
+
+
+def test_layout_rejects_columns_it_does_not_place_and_names_them() -> None:
+    columns = [*LEADING_COLUMNS, "brand_new_metric"]
+    with pytest.raises(
+        ValueError, match=r"not in the Master: .*\bkag_pir_avg_recent\b.*not in the layout: \['brand_new_metric'\]"
+    ):
+        order_master_columns(columns)
