@@ -11,10 +11,11 @@ Combines five EuroLeague datasets into one row per player:
   - data/euroleague-fantasy/basketballsphere_prices.csv (fantasy prices)
 
 Output: data/curated/player_master_table.xlsx with sheets, in order:
-  - Column Guide: one row per column of every source dataset (Source dataset,
-    Column name, Explanation), plus the derived Master columns under the label
-    "Master (derived)"; texts live in src/player_master_column_guide.py
+  - Column Guide: one row per Master column, in Master order (Source dataset, Column name as in
+    the Master, Explanation), the derived Master columns under the label "Master (derived)"; texts
+    live in src/player_master_column_guide.py
   - Master: one row per player (layout below)
+  - Source Column Guide: one row per column of every source sheet below, named as in that source
   - Dunkest, BN Advanced, BN On-Off, Fantasy Prices, Player KPIs: the source datasets as-is
     (BN On-Off stays long format, rows ordered total, offensive, defensive; Fantasy
     Prices keeps the head coaches, which the Master table excludes)
@@ -96,7 +97,6 @@ from player_identity import (
 from player_master_column_guide import (
     BN_ADVANCED,
     BN_ONOFF,
-    DERIVED,
     DUNKEST,
     FANTASY_PRICES,
     FOUND_IN_SEPARATOR,
@@ -104,6 +104,7 @@ from player_master_column_guide import (
     GUIDE,
     KAGGLE_KPIS,
     UNDOCUMENTED,
+    describe_master_column,
 )
 from player_master_layout import DUPLICATE_COLUMNS, EXCLUDED_COLUMNS, order_master_columns
 from player_name_matching import map_alternate_spellings, name_key, normalize_name, resolve_names, teams_compatible
@@ -846,32 +847,56 @@ def build_master_table(
     return master, stats, alias_table
 
 
-def build_column_guide(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """One row per source column in workbook sheet order, then the derived Master columns."""
+def build_column_guide(master: pd.DataFrame) -> pd.DataFrame:
+    """One row per Master column, in Master order: (Source dataset, Column name, Explanation).
+
+    Column names are the Master headers (`dunk_tpa`, not the source's `tpa`). A kept column that a
+    dropped duplicate (`DUPLICATE_COLUMNS`) also reported says so in its explanation.
+    """
+    dropped_for: dict[str, list[str]] = {}
+    for dropped, kept in DUPLICATE_COLUMNS.items():
+        dropped_for.setdefault(kept, []).append(dropped)
+    rows = []
+    for column in master.columns:
+        label, text = describe_master_column(column)
+        if column in dropped_for:
+            text += f" (same stat as {', '.join(dropped_for[column])}, dropped from the Master)"
+        rows.append((label, column, text))
+    return pd.DataFrame(rows, columns=["Source dataset", "Column name", "Explanation"])
+
+
+def build_source_column_guide(sources: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """One row per column of every source sheet, in workbook sheet order (names as in that source)."""
     rows = [
         (sheet, column, GUIDE[sheet].get(column, UNDOCUMENTED))
         for sheet, df in sources.items()
         for column in df.columns
     ]
-    rows += [(DERIVED, column, text) for column, text in GUIDE[DERIVED].items()]
     return pd.DataFrame(rows, columns=["Source dataset", "Column name", "Explanation"])
 
 
-def check_column_guide(guide: pd.DataFrame, sources: dict[str, pd.DataFrame], master: pd.DataFrame) -> None:
-    """Raise if the guide is not: every source column exactly once, plus derived Master columns only.
+def check_column_guide(guide: pd.DataFrame, master: pd.DataFrame) -> None:
+    """Raise unless the guide lists exactly the Master's columns, once each and in Master order.
 
     Args:
         guide: The Column Guide frame from `build_column_guide`.
+        master: The Master table.
+    """
+    if guide["Column name"].tolist() != list(master.columns):
+        raise ValueError("Column Guide must list every Master column exactly once, in Master column order")
+
+
+def check_source_column_guide(guide: pd.DataFrame, sources: dict[str, pd.DataFrame]) -> None:
+    """Raise if the guide is not: every source sheet column exactly once and nothing else.
+
+    Args:
+        guide: The Source Column Guide frame from `build_source_column_guide`.
         sources: Raw source frames keyed by sheet name.
-        master: The Master table; derived columns must exist in it.
     """
     listed = list(zip(guide["Source dataset"], guide["Column name"], strict=True))
     expected = [(sheet, column) for sheet, df in sources.items() for column in df.columns]
-    derived = [(label, column) for label, column in listed if label == DERIVED]
-    if sorted(item for item in listed if item[0] != DERIVED) != sorted(expected):
-        raise ValueError("Column Guide must list every source column exactly once and nothing else")
-    if len(set(derived)) != len(derived) or any(column not in master.columns for _, column in derived):
-        raise ValueError(f"Column Guide rows under '{DERIVED}' must be unique columns of the Master sheet")
+    if sorted(listed) != sorted(expected):
+        raise ValueError("Source Column Guide must list every source column exactly once and nothing else")
 
 
 def main() -> None:
@@ -882,13 +907,16 @@ def main() -> None:
 
     sources = read_sources()
     master, stats, alias_table = build_master_table(sources, alias_table_path=args.alias_table)
-    guide = build_column_guide(sources)
-    check_column_guide(guide, sources, master)
+    guide = build_column_guide(master)
+    check_column_guide(guide, master)
+    source_guide = build_source_column_guide(sources)
+    check_source_column_guide(source_guide, sources)
     write_workbook(
         args.out,
         {
             "Column Guide": guide,
             "Master": master,
+            "Source Column Guide": source_guide,
             **{SHEET_NAMES.get(label, label): df for label, df in sources.items()},
         },
     )
@@ -899,9 +927,11 @@ def main() -> None:
     print(f"Wrote {len(master)} players x {len(master.columns)} columns to {args.out}")
     print(f"Wrote {len(alias_table)} alias rows ({alias_table['player_key'].nunique()} players) to {args.alias_table}")
     print("Join stats:", ", ".join(f"{k}={v}" for k, v in stats.items()))
-    undocumented = int((guide["Explanation"] == UNDOCUMENTED).sum())
+    undocumented = int(
+        (guide["Explanation"] == UNDOCUMENTED).sum() + (source_guide["Explanation"] == UNDOCUMENTED).sum()
+    )
     if undocumented:
-        print(f"WARNING: {undocumented} source columns have no Column Guide explanation")
+        print(f"WARNING: {undocumented} columns have no Column Guide explanation")
 
 
 if __name__ == "__main__":

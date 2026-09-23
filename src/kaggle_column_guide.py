@@ -186,10 +186,10 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
         **_distribution_guide("fdr_rate", "per-game fouls drawn / minute"),
         # Shooting.
-        "fg_pct": (KPI_DERIVED, "Season FGM / FGA"),
-        "fg3_pct": (KPI_DERIVED, "Season three-pointers made / attempted"),
-        "ft_pct": (KPI_DERIVED, "Season FTM / FTA"),
-        "ts_pct": (KPI_DERIVED, "Season points / (2 x (FGA + 0.44 x FTA))"),
+        "fg_pct": (KPI_DERIVED, "Season FGM / FGA (fraction, 0-1)"),
+        "fg3_pct": (KPI_DERIVED, "Season three-pointers made / attempted (fraction, 0-1)"),
+        "ft_pct": (KPI_DERIVED, "Season FTM / FTA (fraction, 0-1)"),
+        "ts_pct": (KPI_DERIVED, "Season points / (2 x (FGA + 0.44 x FTA)) (fraction, 0-1)"),
         # Usage.
         "usage_proxy_avg": (KPI_DERIVED, "Mean per game played of FGA + 0.44 x FTA + TO + 0.5 x AST"),
         **_distribution_guide("usage_proxy", "game usage proxy"),

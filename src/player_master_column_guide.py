@@ -198,6 +198,12 @@ _FANTASY_PRICES_GUIDE = {
 
 # Columns computed by the builder that exist only on the Master sheet (not in any source CSV).
 _DERIVED_GUIDE = {
+    "player_name": "Player name: Dunkest first + last, else BN Advanced, else price list, else Kaggle",
+    "position": (
+        "G/F/C: Dunkest, else BN Advanced positions (first-listed, bucketed to G/F/C), else the price "
+        "list; blank if none has it"
+    ),
+    "games_played": "Games played: Dunkest gp, else BN Advanced games_played; blank if neither has the player",
     "found_in": "Sources with the player: " + FOUND_IN_SEPARATOR.join(f"{c}={n}" for c, n in FOUND_IN_SOURCES.items()),
     "found_in_count": "Number of sources in found_in",
     "team_name_hist": (
@@ -247,3 +253,45 @@ GUIDE: dict[str, dict[str, str]] = {
     FANTASY_PRICES: _FANTASY_PRICES_GUIDE,
     KAGGLE_KPIS: _KAGGLE_KPIS_GUIDE,
 }
+
+
+# Master columns that carry a source column under another name: column -> (source label, source column).
+_RENAMED_SOURCE_COLUMNS = {
+    "season": (BN_ADVANCED, "season"),
+    "player_id": (BN_ADVANCED, "player_id"),
+    "price": (FANTASY_PRICES, "price"),
+    "price_rank": (FANTASY_PRICES, "rank"),
+}
+# Master column prefix -> source label (`price`, `season` and `player_id` carry none).
+_PREFIX_SOURCES = {"dunk_": DUNKEST, "bnadv_": BN_ADVANCED, "bnoo_": BN_ONOFF, "kag_": KAGGLE_KPIS}
+_ONOFF_VIEWS = {"tot": "total view", "off": "offensive view", "def": "defensive view"}
+
+
+def describe_master_column(column: str) -> tuple[str, str]:
+    """The (source dataset label, explanation) of one Master column, by its Master name.
+
+    Derived columns first (`GUIDE[DERIVED]`), then the few renamed source columns, then the
+    prefixed source columns (`dunk_tpa` -> Dunkest `tpa`; `bnoo_<metric>_<view>` -> the on/off
+    `<metric>` text plus its view).
+
+    Args:
+        column: A column of the Master sheet.
+
+    Returns:
+        The source label and the explanation; `UNDOCUMENTED` as the explanation when the guide
+        has no text for the source column, and `DERIVED` as the label when the column is unknown.
+    """
+    if column in GUIDE[DERIVED]:
+        return DERIVED, GUIDE[DERIVED][column]
+    if column in _RENAMED_SOURCE_COLUMNS:
+        label, source_column = _RENAMED_SOURCE_COLUMNS[column]
+        return label, GUIDE[label].get(source_column, UNDOCUMENTED)
+    for prefix, label in _PREFIX_SOURCES.items():
+        if column.startswith(prefix):
+            source_column = column.removeprefix(prefix)
+            if label == BN_ONOFF:
+                metric, _, view = source_column.rpartition("_")
+                if view in _ONOFF_VIEWS and metric in GUIDE[label]:
+                    return label, f"{GUIDE[label][metric]} ({_ONOFF_VIEWS[view]})"
+            return label, GUIDE[label].get(source_column, UNDOCUMENTED)
+    return DERIVED, UNDOCUMENTED

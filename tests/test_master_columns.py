@@ -8,7 +8,13 @@ import pytest
 import build_player_master_table as master_build
 from build_game_player_stats import CONTRIBUTION_STATS
 from build_player_kpis import DISTRIBUTION_FAMILIES
-from build_player_master_table import ALIAS_TABLE_PATH, build_master_table, read_sources
+from build_player_master_table import (
+    ALIAS_TABLE_PATH,
+    build_column_guide,
+    build_master_table,
+    build_source_column_guide,
+    read_sources,
+)
 from player_master_layout import DUPLICATE_COLUMNS, EXCLUDED_COLUMNS, LEADING_COLUMNS, order_master_columns
 
 
@@ -93,3 +99,15 @@ def test_layout_rejects_columns_it_does_not_place_and_names_them() -> None:
         ValueError, match=r"not in the Master: .*\bkag_pir_avg_recent\b.*not in the layout: \['brand_new_metric'\]"
     ):
         order_master_columns(columns)
+
+
+def test_both_column_guides_document_every_column_of_the_real_workbook(master: pd.DataFrame) -> None:
+    guide = build_column_guide(master)
+    assert guide["Column name"].tolist() == list(master.columns)
+    assert not guide["Explanation"].str.contains("undocumented").any(), guide.loc[
+        guide["Explanation"].str.contains("undocumented"), "Column name"
+    ].tolist()
+    sources = read_sources()
+    source_guide = build_source_column_guide(sources)
+    assert not source_guide["Explanation"].str.contains("undocumented").any()
+    assert len(source_guide) == sum(len(df.columns) for df in sources.values())
