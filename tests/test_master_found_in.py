@@ -91,7 +91,9 @@ def test_master_guide_follows_master_order_with_master_names_and_source_labels()
     assert text["bnoo_3p_attempted_lineup_off"].endswith("with player on court (offensive view)")
     assert text["mystery_column"] == UNDOCUMENTED
     # A kept column names the duplicates that were dropped in its favour.
-    assert "same stat as bnadv_3p_attempted, dropped from the Master" in text["dunk_tpa"]
+    assert (
+        "same stat as bnadv_3p_attempted, dropped from the Master; still on the BN Advanced sheet" in text["dunk_tpa"]
+    )
     assert describe_master_column("dunk_fgm_tot") == (DUNKEST, GUIDE[DUNKEST]["fgm_tot"])
 
 

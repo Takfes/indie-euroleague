@@ -95,9 +95,9 @@ _DISTRIBUTION_TEXTS = {
     "p10": "10th percentile of {what}, season",
     "p50": "Median {what}, season",
     "p90": "90th percentile of {what}, season",
-    "range": "{base}_p90 - {base}_p10",
+    "range": "90th minus 10th percentile of {what}, season",
     "sd": "Std dev of {what}; blank under 2 games",
-    "cv": "{base}_sd / mean of {what}; blank under 2 games or if mean <= 0",
+    "cv": "Std dev / mean of {what}; blank under 2 games or if mean <= 0",
 }
 
 
@@ -115,17 +115,27 @@ def _distribution_guide(
 
 
 def _contribution_guide() -> dict[str, tuple[str, str]]:
-    """Guide entries of the per-component contribution KPIs: `pct`, its percentiles and range, `std`, `cv`."""
+    """Guide entries of the per-component contribution KPIs: `pct`, its percentiles and range, `std`, `cv`.
+
+    Texts are in words, not column names, so they read the same in the Master (`kag_` prefix).
+    """
     guide: dict[str, tuple[str, str]] = {}
-    for prefix in CONTRIBUTION_LABELS:
-        share, base = f"{prefix}_share_of_pir", f"{prefix}_contribution"
-        guide[f"{base}_pct"] = (KPI_DERIVED, f"Mean {share} x 100; the 11 contribution_pct values sum to 100")
+    for prefix, label in CONTRIBUTION_LABELS.items():
+        reduces = label.startswith("-")
+        share = f"per-game share of PIR from {label.removeprefix('-').lower()}" + (
+            " (a minus: reduces PIR)" if reduces else ""
+        )
+        base = f"{prefix}_contribution"
+        guide[f"{base}_pct"] = (
+            KPI_DERIVED,
+            f"Mean {share} x 100; the 11 contribution_pct sum to 100 (blank if no game has pir > 0)",
+        )
         guide[f"{base}_p10"] = (KPI_DERIVED, f"10th percentile of {share} x 100, season")
         guide[f"{base}_p50"] = (KPI_DERIVED, f"Median {share} x 100, season")
         guide[f"{base}_p90"] = (KPI_DERIVED, f"90th percentile of {share} x 100, season")
-        guide[f"{base}_range"] = (KPI_DERIVED, f"{base}_p90 - {base}_p10")
-        guide[f"{base}_std"] = (KPI_DERIVED, f"Std dev of {share} (unscaled); blank under 2 games")
-        guide[f"{base}_cv"] = (KPI_DERIVED, f"{base}_std / |mean {share}|; blank under 2 games or if mean is 0")
+        guide[f"{base}_range"] = (KPI_DERIVED, f"90th minus 10th percentile of {share} x 100, season")
+        guide[f"{base}_std"] = (KPI_DERIVED, f"Std dev of {share} (unscaled, 0-1); blank under 2 games")
+        guide[f"{base}_cv"] = (KPI_DERIVED, f"Std dev / |mean| of {share}; blank under 2 games or if mean is 0")
     return guide
 
 

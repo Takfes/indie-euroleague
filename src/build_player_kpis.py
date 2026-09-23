@@ -24,8 +24,10 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
     (`pir_avg`), PIR/min (`pir_per_min`, the ratio of season totals; its spread stats come from
     the per-game series), minutes (`minutes_avg`), usage proxy (`usage_proxy_avg`), usage per
     minute (`usage_per_min`, ratio of season totals) and fouls drawn per minute (`fdr_rate`, ratio
-    of season totals). Shooting percentages, `starts_rate` and the recent-window figures are
-    season totals or windows, not per-game distributions, and stay single values.
+    of season totals). Shooting percentages are left out: their per-game value is attempt-weighted
+    (0% or 100% on one shot, undefined on a game without attempts, and `fg3_pct` has no per-game
+    series), so the season ratio of totals is the figure; `starts_rate` and the recent-window
+    figures are single values too.
   - Profile: contribution shares are computed per game in src/build_game_player_stats.py
     for all 11 components of PIR (`{prefix}_share_of_pir` = the component's signed value /
     that row's pir, blank unless the row's pir > 0; missed shots, turnovers, shots blocked

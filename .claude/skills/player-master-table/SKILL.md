@@ -149,7 +149,9 @@ extending it:
     does not), blank under the same conditions.
   - Duplicates (`DUPLICATE_COLUMNS`). A stat two sources both report appears once, decided on value agreement
     (direct comparison, correlation, agreement with the Kaggle box-score means), precision and completeness:
-    per-game counts keep Dunkest over basketnews advanced; shooting percentages (FG, 3P, FT, TS) keep the Kaggle
+    per-game counts keep Dunkest over basketnews advanced (basketnews also lists 31 players Dunkest lacks, 6 of
+    them priced; those have the ten count columns blank in the Master, the `BN Advanced` sheet keeps them);
+    shooting percentages (FG, 3P, FT, TS) keep the Kaggle
     KPI (exact, blank without attempts; note it is a 0-1 fraction, the rest are 0-100); the basketnews team
     ratings keep the on/off total view. Five on/off metrics identical across two views (e.g.
     `offensive_rating_lineup` in total and offense) are kept per view anyway.

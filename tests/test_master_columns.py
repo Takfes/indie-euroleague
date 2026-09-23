@@ -13,7 +13,9 @@ from build_player_master_table import (
     build_column_guide,
     build_master_table,
     build_source_column_guide,
+    load_canonical_team_names,
     read_sources,
+    resolve_team_name,
 )
 from player_master_layout import DUPLICATE_COLUMNS, EXCLUDED_COLUMNS, LEADING_COLUMNS, order_master_columns
 
@@ -36,6 +38,9 @@ def test_team_name_current_is_the_price_list_club_and_blank_without_a_price_row(
 
 def test_canonical_team_name_resolves_from_the_historical_team(master: pd.DataFrame) -> None:
     assert "team_name" not in master.columns
+    canonical = load_canonical_team_names()
+    expected = master["team_name_hist"].map(lambda team: resolve_team_name(team, canonical))
+    pd.testing.assert_series_equal(master["canonical_team_name"], expected, check_names=False)
     assert master["canonical_team_name"].notna().any()
 
 

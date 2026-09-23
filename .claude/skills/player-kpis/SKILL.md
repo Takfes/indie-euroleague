@@ -43,8 +43,9 @@ percentiles, defined from 1 game); `_range` = p90 - p10. Families are listed onc
 `src/build_player_kpis.py`: PIR (`pir_avg`), PIR/min (`pir_per_min`), minutes (`minutes_avg`), usage proxy
 (`usage_proxy_avg`), usage per minute (`usage_per_min`) and fouls drawn per minute (`fdr_rate`); for the three
 per-minute ones the average is a ratio of season totals and the spread stats come from the per-game series.
-Shooting percentages, `starts_rate` and the recent-window figures are not per-game distributions and stay single
-values. To add or drop a family, edit that dict plus the matching `player_kpis_guide()` entries; a KPI computed
+Shooting percentages are left out on purpose: a per-game percentage is attempt-weighted (0% or 100% on one shot,
+undefined without attempts; `fg3_pct` has no per-game series), so the season ratio of totals is the figure.
+`starts_rate` and the recent-window figures are single values too. To add or drop a family, edit that dict plus the matching `player_kpis_guide()` entries; a KPI computed
 without a guide entry raises.
 
 **Contribution shares.** Computed per game in `player-game-stats` for the 11 components of PIR (`pts`, `reb`,

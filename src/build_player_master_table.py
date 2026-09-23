@@ -860,7 +860,10 @@ def build_column_guide(master: pd.DataFrame) -> pd.DataFrame:
     for column in master.columns:
         label, text = describe_master_column(column)
         if column in dropped_for:
-            text += f" (same stat as {', '.join(dropped_for[column])}, dropped from the Master)"
+            sheets = sorted({
+                SHEET_NAMES.get(describe_master_column(d)[0], describe_master_column(d)[0]) for d in dropped_for[column]
+            })
+            text += f" (same stat as {', '.join(dropped_for[column])}, dropped from the Master; still on the {' / '.join(sheets)} sheet)"
         rows.append((label, column, text))
     return pd.DataFrame(rows, columns=["Source dataset", "Column name", "Explanation"])
 

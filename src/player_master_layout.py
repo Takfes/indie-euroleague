@@ -57,7 +57,10 @@ DUPLICATE_COLUMNS = {
     "bnadv_defensive_rating_lineup": "bnoo_defensive_rating_lineup_tot",
     # Per-game counts: Dunkest and BN advanced agree to the 1-decimal rounding (corr >= 0.995,
     # >= 92% of rows identical) and both match the Kaggle box-score means; Dunkest is the primary
-    # stats source and keeps each shooting / rebounding family complete (attempts + makes).
+    # stats source (as for the excluded `bnadv_points`) and keeps each shooting / rebounding family
+    # complete (attempts + makes). Coverage cost: BN advanced also lists 31 players Dunkest lacks
+    # (6 with a price), who now have these ten columns blank in the Master; the BN Advanced sheet
+    # still holds their values. Keep the `bnadv_*` column instead if those players matter.
     "bnadv_3p_attempted": "dunk_tpa",
     "bnadv_ft_attempted": "dunk_fta",
     "bnadv_assists": "dunk_ast",

@@ -9,6 +9,7 @@ sources. Keys are the column names exactly as they appear in each source CSV.
 from __future__ import annotations
 
 from build_player_kpis import GUIDE as _KAGGLE_KPIS_COLUMNS
+from build_player_kpis import RECENT_GAMES
 
 DUNKEST = "Dunkest"
 BN_ADVANCED = "BN Advanced"
@@ -219,7 +220,7 @@ _DERIVED_GUIDE = {
         "in build_player_master_table.py); blank if it has no current match (e.g. Besiktas)"
     ),
     "kag_minutes_pct": "kag_minutes_avg as % of a 40-minute game (0-100 scale); blank without Kaggle minutes",
-    "expected_pir": "kag_pir_avg_recent: mean PIR over the last 5 games played, the forward-looking PIR",
+    "expected_pir": f"kag_pir_avg_recent: mean PIR over the last {RECENT_GAMES} games played, the forward-looking PIR",
     "pir_per_credit": "Expected PIR per credit: kag_pir_avg_recent / price; blank if price is 0",
     "pir_per_min_per_credit": "Season PIR/min per credit: kag_pir_per_min / price; blank if price is 0",
     "breakeven_pir": (
