@@ -58,12 +58,14 @@ extending it:
   team-stint with the most games played is kept.
 - **Player identity.** Each player gets a stable `player_key`
   (`src/player_identity.py`), assigned only *after* the matching below has
-  fully resolved which rows of all five sources are the same player, in one
-  pass over the final groups - so a player can never be split by which
-  source's row happened to be matched first. A group reuses the key of any
-  (source, source_id) link already in the previous
-  `data/curated/player_alias_table.xlsx`, otherwise takes its name slug
-  ("wade-baldwin"). That table (`Alias Table`: one row per source row with
+  fully resolved which rows are the same player (basketnews, Dunkest, price
+  list and Kaggle are name-matched; the on/off rows ride on basketnews'
+  `player_id`), in one pass over the final groups - so a player can never be
+  split by which source's row happened to be matched first. A group reuses
+  the key of any (source, source_id) link already in the previous
+  `data/curated/player_alias_table.xlsx` (the smallest, if its rows hold
+  several), otherwise takes its name slug ("wade-baldwin", suffixed "-2",
+  "-3" if that key is already taken). That table (`Alias Table`: one row per source row with
   its player_key, plus a wide `Identity View` for eyeballing every source's
   raw name/id side by side) is a build output rewritten each run; the
   matching itself never reads it.

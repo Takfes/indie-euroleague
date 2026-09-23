@@ -45,7 +45,7 @@ def load_alias_table(path: Path) -> pd.DataFrame:
     """
     if not path.exists():
         return pd.DataFrame(columns=ALIAS_COLUMNS)
-    return pd.read_excel(path, sheet_name=ALIAS_SHEET)
+    return pd.read_excel(path, sheet_name=ALIAS_SHEET, dtype={"source_id": str})
 
 
 def alias_records(
@@ -93,7 +93,7 @@ def assign_player_keys(records: pd.DataFrame, existing_alias: pd.DataFrame) -> p
        taken by an earlier group is skipped, so no two groups ever share one.
     2. A group with no usable persisted key gets its `name_key` slug ("wade-baldwin"), suffixed
        "-2", "-3", ... if a key is already taken. This runs only after every persisted key has
-       been claimed, so a new group can never take a key another group holds by link.
+       been claimed, so a new group can never take a key another group has claimed.
 
     Args:
         records: One row per source row, with `RECORD_COLUMNS` (see `alias_records`).

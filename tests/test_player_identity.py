@@ -65,6 +65,17 @@ def test_load_alias_table_returns_empty_frame_when_missing(tmp_path: Path) -> No
     assert list(table.columns) == ALIAS_COLUMNS
 
 
+def test_load_alias_table_reads_numeric_source_ids_back_as_strings(tmp_path: Path) -> None:
+    """An id column that is all numbers (e.g. re-saved by hand) must still match the stringified record ids."""
+    path = tmp_path / "alias.xlsx"
+    numeric = _persisted(("bnadv", "34625", "kamar baldwin", "kamar-baldwin"), ("bnadv", "7", "a b", "a-b"))
+    numeric["source_id"] = [34625, 7]
+    with pd.ExcelWriter(path) as writer:
+        numeric.to_excel(writer, sheet_name="Alias Table", index=False)
+    table = load_alias_table(path)
+    assert table["source_id"].tolist() == ["34625", "7"]
+
+
 def test_alias_records_stringifies_ids_broadcasts_the_method_and_keeps_a_missing_id_missing() -> None:
     records = alias_records("bnadv", [101, np.nan], ["A B", "C D"], ["a b", "c d"], ["T1", "T2"], "base")
     assert list(records.columns) == RECORD_COLUMNS

@@ -60,7 +60,9 @@ def test_master_has_one_row_when_only_the_kaggle_link_of_one_player_is_persisted
 
     assert len(master) == len(baseline)
     pd.testing.assert_frame_equal(master, baseline)
-    assert (alias_out["player_key"] == victim).sum() == (committed_alias["player_key"] == victim).sum()
+    # Every source row keeps the key it had in the committed table, including the trimmed player's.
+    link = ["source", "source_id", "player_key"]
+    pd.testing.assert_frame_equal(alias_out[link], committed_alias[link])
     assert alias_out["player_key"].nunique() == len(master)
 
 
