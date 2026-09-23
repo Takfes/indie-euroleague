@@ -90,18 +90,42 @@ GAME_STATS_SHEET = "Game Stats"
 KPI_DERIVED = "Player KPIs (derived)"
 
 
+# Guide order of the spread stats within a KPI group: percentiles low-to-high, range, then sd, cv.
+_DISTRIBUTION_TEXTS = {
+    "p10": "10th percentile of {what}, season",
+    "p50": "Median {what}, season",
+    "p90": "90th percentile of {what}, season",
+    "range": "{base}_p90 - {base}_p10",
+    "sd": "Std dev of {what}; blank under 2 games",
+    "cv": "{base}_sd / mean of {what}; blank under 2 games or if mean <= 0",
+}
+
+
+def _distribution_guide(
+    base: str, what: str, stats: tuple[str, ...] = tuple(_DISTRIBUTION_TEXTS)
+) -> dict[str, tuple[str, str]]:
+    """Guide entries `{base}_{stat}` of the standard spread stats of one per-game series.
+
+    Args:
+        base: KPI name prefix, e.g. "minutes".
+        what: The per-game series in words, e.g. "game minutes".
+        stats: The spread stats to document, in order; a subset when the rest have older hand-written texts.
+    """
+    return {f"{base}_{stat}": (KPI_DERIVED, _DISTRIBUTION_TEXTS[stat].format(base=base, what=what)) for stat in stats}
+
+
 def _contribution_guide() -> dict[str, tuple[str, str]]:
-    """Guide entries of the per-component contribution KPIs, one `pct` and one `std` per component."""
+    """Guide entries of the per-component contribution KPIs: `pct`, its percentiles and range, `std`, `cv`."""
     guide: dict[str, tuple[str, str]] = {}
     for prefix in CONTRIBUTION_LABELS:
-        guide[f"{prefix}_contribution_pct"] = (
-            KPI_DERIVED,
-            f"Mean {prefix}_share_of_pir x 100; the 11 contribution_pct values sum to 100",
-        )
-        guide[f"{prefix}_contribution_std"] = (
-            KPI_DERIVED,
-            f"Std dev of {prefix}_share_of_pir (unscaled); blank under 2 games",
-        )
+        share, base = f"{prefix}_share_of_pir", f"{prefix}_contribution"
+        guide[f"{base}_pct"] = (KPI_DERIVED, f"Mean {share} x 100; the 11 contribution_pct values sum to 100")
+        guide[f"{base}_p10"] = (KPI_DERIVED, f"10th percentile of {share} x 100, season")
+        guide[f"{base}_p50"] = (KPI_DERIVED, f"Median {share} x 100, season")
+        guide[f"{base}_p90"] = (KPI_DERIVED, f"90th percentile of {share} x 100, season")
+        guide[f"{base}_range"] = (KPI_DERIVED, f"{base}_p90 - {base}_p10")
+        guide[f"{base}_std"] = (KPI_DERIVED, f"Std dev of {share} (unscaled); blank under 2 games")
+        guide[f"{base}_cv"] = (KPI_DERIVED, f"{base}_std / |mean {share}|; blank under 2 games or if mean is 0")
     return guide
 
 
@@ -109,9 +133,12 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
     """Column -> (source dataset, explanation) for the `Player KPIs` sheet, in sheet order.
 
     Columns are grouped by base metric (PIR, PIR/min, minutes, one group per contribution
-    component, fouls drawn rate, shooting, usage), identity columns first. Within a group, aggregates follow one
-    sequence: recent-then-season average, trend/median, percentiles, spread (sd/cv). See
-    the `player-kpis` skill for the convention a future column addition should follow.
+    component, fouls drawn rate, shooting, usage), identity columns first. Within a group,
+    aggregates follow one sequence: recent-then-season average, trend/median, percentiles
+    (p10, p50, p90, range), spread (sd, cv). Every per-game series carries the full set
+    (average, sd, cv, p10, p50, p90, range); see `DISTRIBUTION_FAMILIES` in
+    src/build_player_kpis.py. See the `player-kpis` skill for the convention a future column
+    addition should follow.
 
     Args:
         recent_games: Size of the recent window (games played), quoted in the texts.
@@ -138,14 +165,17 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "pir_p50": (KPI_DERIVED, "Median game PIR, season (typical outcome)"),
         "pir_p90": (KPI_DERIVED, "90th percentile of game PIR, season (ceiling)"),
         "pir_range": (KPI_DERIVED, "pir_p90 - pir_p10 (outcome spread)"),
+        **_distribution_guide("pir", "game PIR", ("sd", "cv")),
         # PIR / minute.
         "pir_per_min": (KPI_DERIVED, "Season total PIR / season total minutes"),
+        **_distribution_guide("pir_per_min", "per-game PIR/min", ("p10", "p50", "p90", "range")),
         "pir_per_min_sd": (KPI_DERIVED, "Std dev of per-game PIR/min; blank under 2 games"),
         "pir_per_min_cv": (KPI_DERIVED, "PIR/min std dev / mean of per-game PIR/min; blank if mean <= 0"),
         # Minutes.
         "minutes_avg_recent": (KPI_DERIVED, f"Mean minutes over the last {n} games played"),
         "minutes_avg": (KPI_DERIVED, "Mean minutes per game played, season"),
         "minutes_trend": (KPI_DERIVED, "Recent mean minutes minus season mean minutes (role change)"),
+        **_distribution_guide("minutes", "game minutes", ("p10", "p50", "p90", "range")),
         "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
         "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
         "starts_rate": (KPI_DERIVED, "Starts (is_starter = 1) / games played, season"),
@@ -154,6 +184,7 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         **_contribution_guide(),
         # Fouls drawn rate.
         "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
+        **_distribution_guide("fdr_rate", "per-game fouls drawn / minute"),
         # Shooting.
         "fg_pct": (KPI_DERIVED, "Season FGM / FGA"),
         "fg3_pct": (KPI_DERIVED, "Season three-pointers made / attempted"),
@@ -161,5 +192,7 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "ts_pct": (KPI_DERIVED, "Season points / (2 x (FGA + 0.44 x FTA))"),
         # Usage.
         "usage_proxy_avg": (KPI_DERIVED, "Mean per game played of FGA + 0.44 x FTA + TO + 0.5 x AST"),
+        **_distribution_guide("usage_proxy", "game usage proxy"),
         "usage_per_min": (KPI_DERIVED, "Season usage proxy total / season minutes"),
+        **_distribution_guide("usage_per_min", "per-game usage proxy / minute"),
     }

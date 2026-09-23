@@ -15,19 +15,28 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
   - Production: `pir_avg` (season mean), `pir_per_min` (total PIR / total minutes),
     `pir_avg_recent`, `pir_median_recent`.
   - Opportunity: `minutes_avg`, `minutes_avg_recent`, `minutes_trend` (recent - season mean,
-    in minutes), `minutes_sd`, `minutes_cv` and `starts_rate` (starts / games played, season).
-  - Stability, over all games played: SD and CV of per-game PIR/min (CV = SD / mean of the
-    per-game series), PIR P10/P50/P90 (linear interpolation) and range P90 - P10. SD and CV
-    need 2 games, otherwise blank.
+    in minutes), `starts_rate` (starts / games played, season).
+  - Distribution KPIs: every per-game series below has an average plus the same six spread
+    stats, over all games played: `{base}_sd` (sample std, ddof=1) and `{base}_cv` (sd / mean of
+    the series; blank if the mean is not positive) need 2 games, otherwise blank;
+    `{base}_p10`, `{base}_p50`, `{base}_p90` (linear-interpolation percentiles; defined from 1
+    game) and `{base}_range` = p90 - p10. The series (`DISTRIBUTION_FAMILIES`) are game PIR
+    (`pir_avg`), PIR/min (`pir_per_min`, the ratio of season totals; its spread stats come from
+    the per-game series), minutes (`minutes_avg`), usage proxy (`usage_proxy_avg`), usage per
+    minute (`usage_per_min`, ratio of season totals) and fouls drawn per minute (`fdr_rate`, ratio
+    of season totals). Shooting percentages, `starts_rate` and the recent-window figures are
+    season totals or windows, not per-game distributions, and stay single values.
   - Profile: contribution shares are computed per game in src/build_game_player_stats.py
     for all 11 components of PIR (`{prefix}_share_of_pir` = the component's signed value /
     that row's pir, blank unless the row's pir > 0; missed shots, turnovers, shots blocked
     and fouls committed enter with a minus sign, so the 11 shares of a row sum to exactly 1),
-    then aggregated here per player: `{prefix}_contribution_pct` is the plain mean share of
-    the rows where it is defined, times 100 - no renormalization, the 11 values sum to 100
-    by construction; `{prefix}_contribution_std` is the sample std (ddof=1) of the same
-    shares, left unscaled. Also shooting percentages from season totals, `fdr_rate`,
-    `usage_proxy_avg`, `usage_per_min`.
+    then aggregated here per player over the rows where the share is defined:
+    `{prefix}_contribution_pct` is the plain mean share times 100 - no renormalization, the 11
+    values sum to 100 by construction. The same shares carry the distribution set:
+    `{prefix}_contribution_std` (sample std, left unscaled), `_cv` (sd / |mean|, so the
+    negative components get a positive CV), and `_p10`, `_p50`, `_p90`, `_range` on the same
+    0-100 scale as `_pct`. Also shooting percentages from season totals (fractions, 0-1),
+    `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
   Players who only have DNP rows keep a row with blank KPIs and `games_played` 0.
 
 Usage:
@@ -54,7 +63,17 @@ DEFAULT_OUT = REPO_ROOT / "data/curated/player_kpis.xlsx"
 
 RECENT_GAMES = 5
 MIN_GAMES_FOR_SPREAD = 2
-PERCENTILES = {"pir_p10": 0.1, "pir_p50": 0.5, "pir_p90": 0.9}
+PERCENTILES = {"p10": 0.1, "p50": 0.5, "p90": 0.9}
+# KPI name prefix -> per-game series of the Game Stats sheet: each gets the full distribution set
+# (`_sd`, `_cv`, `_p10`, `_p50`, `_p90`, `_range`) next to its average. Remove an entry to drop a family.
+DISTRIBUTION_FAMILIES = {
+    "pir": "pir",
+    "pir_per_min": "pir_per_min",
+    "minutes": "minutes",
+    "usage_proxy": "usage_proxy",
+    "usage_per_min": "usage_per_min",
+    "fdr_rate": "fdr_per_min",
+}
 GUIDE = player_kpis_guide(RECENT_GAMES)
 KPI_COLUMNS = list(GUIDE)
 IDENTITY_COLUMNS = ["player_id", "player_name_raw", "player_name", "team_id", "games_played", "games_dnp", "dnp_rate"]
@@ -78,6 +97,24 @@ def _ratio(numerator: float, denominator: float) -> float:
     return numerator / denominator if denominator > 0 else float("nan")
 
 
+def _distribution(series: pd.Series, sign: int = 1, scale: float = 1.0) -> dict[str, float]:
+    """The standard spread set of one per-game series: sd, cv, p10, p50, p90 and range.
+
+    Args:
+        series: The player's per-game values; NaN games are ignored.
+        sign: The sign that makes the series' mean non-negative (-1 for a component that
+            reduces PIR), so `cv` = sd / |mean| is defined for it too.
+        scale: Factor applied to the percentiles and the range, not to `sd` or `cv`.
+
+    Returns:
+        `sd` and `cv` (NaN under `MIN_GAMES_FOR_SPREAD` values, `cv` also NaN if the mean is not
+        positive after `sign`), `p10`, `p50`, `p90` (NaN only without any value) and `range`.
+    """
+    sd = series.std() if series.count() >= MIN_GAMES_FOR_SPREAD else float("nan")
+    p10, p50, p90 = (series.quantile(q) * scale for q in PERCENTILES.values())
+    return {"sd": sd, "cv": _ratio(sd, sign * series.mean()), "p10": p10, "p50": p50, "p90": p90, "range": p90 - p10}
+
+
 def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[str, float]:
     """Compute the KPIs of one player from their games played.
 
@@ -92,15 +129,7 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
     recent = games.tail(recent_games)
     n_games = len(games)
     total = games[_SEASON_TOTALS].sum()
-    pir_per_min_series = games["pir_per_min"]
-    can_spread = n_games >= MIN_GAMES_FOR_SPREAD
-    nan = float("nan")
-
-    p10, p50, p90 = (games["pir"].quantile(q) for q in PERCENTILES.values())
-    pir_per_min_mean = pir_per_min_series.mean()
     minutes_avg = games["minutes"].mean()
-    minutes_sd = games["minutes"].std() if can_spread else nan
-    pir_per_min_sd = pir_per_min_series.std() if can_spread else nan
 
     out: dict[str, float] = {
         "recent_games": len(recent),
@@ -111,20 +140,16 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
         "minutes_avg": minutes_avg,
         "minutes_avg_recent": recent["minutes"].mean(),
         "minutes_trend": recent["minutes"].mean() - minutes_avg,
-        "minutes_sd": minutes_sd,
-        "minutes_cv": _ratio(minutes_sd, minutes_avg),
         "starts_rate": _ratio(games["is_starter"].sum(), n_games),
-        "pir_per_min_sd": pir_per_min_sd,
-        "pir_per_min_cv": _ratio(pir_per_min_sd, pir_per_min_mean),
-        "pir_p10": p10,
-        "pir_p50": p50,
-        "pir_p90": p90,
-        "pir_range": p90 - p10,
     }
-    for prefix in CONTRIBUTION_STATS:
+    for base, column in DISTRIBUTION_FAMILIES.items():
+        out |= {f"{base}_{stat}": value for stat, value in _distribution(games[column]).items()}
+    for prefix, (sign, _) in CONTRIBUTION_STATS.items():
         shares = games[f"{prefix}_share_of_pir"]
         out[f"{prefix}_contribution_pct"] = shares.mean() * 100
-        out[f"{prefix}_contribution_std"] = shares.std()
+        # `sd` keeps its original `_std` column name here; the other families call it `_sd`.
+        distribution = _distribution(shares, sign=sign, scale=100)
+        out |= {f"{prefix}_contribution_{'std' if stat == 'sd' else stat}": v for stat, v in distribution.items()}
     out |= {
         "fg_pct": _ratio(total["fgm"], total["fga"]),
         "fg3_pct": _ratio(total["three_points_made"], total["three_points_attempted"]),
@@ -134,6 +159,12 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
         "usage_proxy_avg": games["usage_proxy"].mean(),
         "usage_per_min": _ratio(total["usage_proxy"], total["minutes"]),
     }
+    undocumented = sorted(set(out) - set(KPI_COLUMNS))
+    if undocumented:
+        raise ValueError(
+            f"KPIs computed but missing from the Column Guide: {undocumented}. "
+            "Add them to player_kpis_guide() in src/kaggle_column_guide.py."
+        )
     return {column: float(out[column]) for column in KPI_COLUMNS[len(IDENTITY_COLUMNS) :]}
 
 

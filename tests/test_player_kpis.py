@@ -6,8 +6,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import build_player_kpis as kpi_module
 from build_game_player_stats import CONTRIBUTION_STATS
-from build_player_kpis import GUIDE, KPI_COLUMNS, build_column_guide, build_player_kpis
+from build_player_kpis import (
+    DISTRIBUTION_FAMILIES,
+    GUIDE,
+    KPI_COLUMNS,
+    build_column_guide,
+    build_player_kpis,
+    player_kpis,
+)
 
 ROW_DEFAULTS = {
     "points": 0,
@@ -54,6 +62,8 @@ def _games(player_id: str, name: str, rows: list[dict]) -> pd.DataFrame:
             "pir": pir,
             **{k: v for k, v in row.items() if k not in ("pir", "team_id")},
         }
+        entry["usage_per_min"] = entry["usage_proxy"] / row["minutes"] if played else np.nan
+        entry["fdr_per_min"] = entry["fouls_received"] / row["minutes"] if played else np.nan
         for prefix, (sign, stat) in CONTRIBUTION_STATS.items():
             entry[f"{prefix}_share_of_pir"] = sign * entry[stat] / pir if pd.notna(pir) and pir > 0 else np.nan
         frame.append(entry)
@@ -260,3 +270,99 @@ def test_one_row_per_player_sorted_by_name_with_documented_columns() -> None:
     assert list(table.columns) == KPI_COLUMNS
     guide = build_column_guide()
     assert guide["Column name"].tolist() == KPI_COLUMNS == list(GUIDE)
+
+
+SPREAD_STATS = ("sd", "cv", "p10", "p50", "p90", "range")
+
+
+def test_every_distribution_family_and_contribution_exposes_the_standard_set() -> None:
+    for base in DISTRIBUTION_FAMILIES:
+        for stat in SPREAD_STATS:
+            assert f"{base}_{stat}" in KPI_COLUMNS, f"{base}_{stat}"
+    assert {"pir_avg", "pir_per_min", "minutes_avg", "usage_proxy_avg", "usage_per_min", "fdr_rate"} <= set(KPI_COLUMNS)
+    for prefix in CONTRIBUTION_STATS:
+        for stat in ("pct", "std", "cv", "p10", "p50", "p90", "range"):
+            assert f"{prefix}_contribution_{stat}" in KPI_COLUMNS, f"{prefix}_contribution_{stat}"
+    assert len(KPI_COLUMNS) == len(set(KPI_COLUMNS))
+
+
+def test_pir_gains_sd_and_cv_and_minutes_gain_percentiles() -> None:
+    rows = [
+        {"pir": pir, "minutes": minutes} for pir, minutes in ((2, 10.0), (4, 20.0), (6, 30.0), (20, 40.0), (8, 20.0))
+    ]
+    k = _kpis(rows)
+    pir = [2, 4, 6, 20, 8]
+    assert k["pir_sd"] == pytest.approx(np.std(pir, ddof=1))
+    assert k["pir_cv"] == pytest.approx(np.std(pir, ddof=1) / np.mean(pir))
+    minutes = [10.0, 20.0, 30.0, 40.0, 20.0]
+    assert k["minutes_p10"] == pytest.approx(np.percentile(minutes, 10))
+    assert k["minutes_p50"] == pytest.approx(20.0)
+    assert k["minutes_p90"] == pytest.approx(np.percentile(minutes, 90))
+    assert k["minutes_range"] == pytest.approx(k["minutes_p90"] - k["minutes_p10"])
+    assert k["minutes_sd"] == pytest.approx(np.std(minutes, ddof=1))
+    assert k["minutes_cv"] == pytest.approx(np.std(minutes, ddof=1) / np.mean(minutes))
+
+
+def test_per_minute_and_usage_families_take_their_spread_from_the_per_game_series() -> None:
+    """The average of a per-minute KPI is a ratio of season totals; its spread stats use the per-game values."""
+    rows = [
+        {"pir": 4, "minutes": 10.0, "usage_proxy": 5.0, "fouls_received": 1},
+        {"pir": 12, "minutes": 40.0, "usage_proxy": 20.0, "fouls_received": 4},
+        {"pir": 8, "minutes": 20.0, "usage_proxy": 15.0, "fouls_received": 2},
+    ]
+    k = _kpis(rows)
+    assert k["pir_per_min_p50"] == pytest.approx(np.median([0.4, 0.3, 0.4]))
+    assert k["pir_per_min_range"] == pytest.approx(k["pir_per_min_p90"] - k["pir_per_min_p10"])
+    assert k["usage_proxy_avg"] == pytest.approx(np.mean([5.0, 20.0, 15.0]))
+    assert k["usage_proxy_p50"] == pytest.approx(15.0)
+    assert k["usage_proxy_sd"] == pytest.approx(np.std([5.0, 20.0, 15.0], ddof=1))
+    assert k["usage_per_min"] == pytest.approx(40 / 70)  # ratio of totals, not the mean of the series
+    per_game_usage = [0.5, 0.5, 0.75]
+    assert k["usage_per_min_p50"] == pytest.approx(np.median(per_game_usage))
+    assert k["usage_per_min_cv"] == pytest.approx(np.std(per_game_usage, ddof=1) / np.mean(per_game_usage))
+    per_game_fdr = [0.1, 0.1, 0.1]
+    assert k["fdr_rate"] == pytest.approx(7 / 70)
+    assert k["fdr_rate_p50"] == pytest.approx(np.median(per_game_fdr))
+    assert k["fdr_rate_sd"] == pytest.approx(0.0)
+
+
+def test_single_game_keeps_percentiles_but_blanks_sd_and_cv_for_every_family() -> None:
+    k = _kpis([{"pir": 7, "minutes": 14.0, "points": 7}])
+    for base in DISTRIBUTION_FAMILIES:
+        assert pd.isna(k[f"{base}_sd"]) and pd.isna(k[f"{base}_cv"])
+        assert k[f"{base}_p10"] == k[f"{base}_p50"] == k[f"{base}_p90"]
+        assert k[f"{base}_range"] == 0
+    assert k["pts_contribution_p10"] == k["pts_contribution_p50"] == k["pts_contribution_p90"] == pytest.approx(100.0)
+    assert pd.isna(k["pts_contribution_std"]) and pd.isna(k["pts_contribution_cv"])
+
+
+def test_contribution_distribution_is_on_the_pct_scale_and_negative_components_get_a_positive_cv() -> None:
+    rows = [
+        # pir = 8 + 4 - 2 (turnovers) = 10 ; pir = 6 + 2 - 4 (turnovers) = 4 ; pir = 5 + 5 - 0 = 10
+        {"pir": 10, "minutes": 20.0, "points": 8, "total_rebounds": 4, "turnovers": 2},
+        {"pir": 4, "minutes": 20.0, "points": 6, "total_rebounds": 2, "turnovers": 4},
+        {"pir": 10, "minutes": 20.0, "points": 5, "total_rebounds": 5},
+    ]
+    k = _kpis(rows)
+    tov_shares = [-0.2, -1.0, 0.0]
+    pts_shares = [0.8, 1.5, 0.5]
+    assert k["tov_contribution_pct"] == pytest.approx(np.mean(tov_shares) * 100)
+    assert k["tov_contribution_p50"] == pytest.approx(-20.0)
+    assert k["tov_contribution_p10"] == pytest.approx(np.percentile(tov_shares, 10) * 100)
+    assert k["tov_contribution_p90"] == pytest.approx(np.percentile(tov_shares, 90) * 100)
+    assert k["tov_contribution_range"] == pytest.approx(k["tov_contribution_p90"] - k["tov_contribution_p10"])
+    assert k["tov_contribution_std"] == pytest.approx(np.std(tov_shares, ddof=1))  # sd stays unscaled
+    assert k["tov_contribution_cv"] == pytest.approx(np.std(tov_shares, ddof=1) / abs(np.mean(tov_shares)))
+    assert k["pts_contribution_cv"] == pytest.approx(np.std(pts_shares, ddof=1) / np.mean(pts_shares))
+    assert k["pts_contribution_p90"] == pytest.approx(np.percentile(pts_shares, 90) * 100)
+    # A component that never appears has a zero mean: no CV.
+    assert k["mfg_contribution_pct"] == 0
+    assert pd.isna(k["mfg_contribution_cv"])
+    assert k["mfg_contribution_p50"] == 0
+
+
+def test_a_kpi_computed_without_a_guide_entry_is_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(kpi_module.DISTRIBUTION_FAMILIES, "surprise_metric", "pir")
+    played = _games("P1", "SMITH, JOHN", [{"pir": 5, "minutes": 10.0}])
+    with pytest.raises(ValueError, match=r"missing from the Column Guide: \['surprise_metric_cv'.*surprise_metric_sd"):
+        player_kpis(played)
