@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the team-level derived KPI table (one row per EuroLeague team) from two raw sources.
+"""Build the team-level derived KPI table (one row per EuroLeague team) from two raw sources plus the curated player workbooks.
 
 Reads the same two raw CSVs `src/build_team_master_table.py` reads directly (no new data):
   - data/basketnews-team-stats/basketnews_team_stats.csv (Basketnews team stats)
@@ -16,7 +16,7 @@ Output: data/curated/team_kpis.xlsx with sheets, in order:
     texts live in src/team_master_column_guide.py
   - Team KPIs: one row per team (20 teams), columns in `KPI_COLUMNS` order
 
-Definitions (pure arithmetic on existing team-level columns, no new raw data):
+Definitions (pure arithmetic on existing columns, no new raw data):
   - `pace_factor`: `offense_all_possessions` (already a per-game pace figure) divided by the
     20-team league average of that column. ~1.0 for a league-average-pace team.
   - `foul_rate_per40_drawn` / `foul_rate_per40_committed`: `offense_all_fouls_received` /
@@ -38,10 +38,11 @@ Definitions (pure arithmetic on existing team-level columns, no new raw data):
     The opponent's identity is the Kaggle `opponent_id` code, mapped through
     `KAGGLE_TEAM_CROSSWALK` and `resolve_team_name()` (both from `build_player_master_table.py`)
     onto the 20 canonical team names.
-:
+
+Usage:
     python src/build_team_kpis.py [--out PATH]
 
-Re-run any time the two source CSVs are refreshed.
+Re-run any time the two source CSVs or the two curated player workbooks are refreshed.
 """
 
 from __future__ import annotations
