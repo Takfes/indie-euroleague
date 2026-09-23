@@ -38,7 +38,7 @@ _DUNKEST_GUIDE = {
     "last_name": "Last name (suffix like Iv/Jr included)",
     "team_id": "Dunkest team id",
     "team_code": "Dunkest short team code",
-    "team_name": "Team name; master team_name (preferred source)",
+    "team_name": "Team name; master team_name_hist (preferred source)",
     "position": "G/F/C; master position (fallback: BN Advanced, then Fantasy)",
     "position_id": "Position id: 1=Guard, 2=Forward, 3=Center",
     "cr": "Fantasy credit value (all 0 in current data)",
@@ -200,10 +200,20 @@ _FANTASY_PRICES_GUIDE = {
 _DERIVED_GUIDE = {
     "found_in": "Sources with the player: " + FOUND_IN_SEPARATOR.join(f"{c}={n}" for c, n in FOUND_IN_SOURCES.items()),
     "found_in_count": "Number of sources in found_in",
-    "canonical_team_name": (
-        "team_name resolved onto one of the 20 canonical team_kpis.xlsx names (see resolve_team_name "
-        "in build_player_master_table.py); blank if team_name has no current match (e.g. Besiktas)"
+    "team_name_hist": (
+        "Team from the stats sources: Dunkest, then BN Advanced, then the price list, then Kaggle "
+        "(the former team_name); can lag a player's current team"
     ),
+    "team_name_current": (
+        "Team per the fantasy price list (club), the freshest source of the current team; blank "
+        "without a price-list row, no fallback to team_name_hist"
+    ),
+    "canonical_team_name": (
+        "team_name_hist resolved onto one of the 20 canonical team_kpis.xlsx names (see resolve_team_name "
+        "in build_player_master_table.py); blank if it has no current match (e.g. Besiktas)"
+    ),
+    "kag_minutes_pct": "kag_minutes_avg as % of a 40-minute game (0-100 scale); blank without Kaggle minutes",
+    "expected_pir": "kag_pir_avg_recent: mean PIR over the last 5 games played, the forward-looking PIR",
     "pir_per_credit": "Expected PIR per credit: kag_pir_avg_recent / price; blank if price is 0",
     "pir_per_min_per_credit": "Season PIR/min per credit: kag_pir_per_min / price; blank if price is 0",
     "breakeven_pir": (
@@ -216,6 +226,10 @@ _DERIVED_GUIDE = {
         "mechanism: treats season-average PIR (kag_pir_avg) as the Round score, which the real "
         "formula may or may not add a 10% team-win bonus to on top (unconfirmed); the formula "
         "itself is unvalidated against real price outcomes"
+    ),
+    "expected_price_next_round": (
+        "price + expected_price_change: forecast price level after the next Round. ESTIMATE, see "
+        "expected_price_change for the caveat"
     ),
     "capital_yield_pct": (
         "expected_price_change / price x 100: the same estimated price move as a % of current "

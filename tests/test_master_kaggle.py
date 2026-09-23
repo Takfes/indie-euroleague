@@ -11,6 +11,7 @@ import pytest
 import build_player_master_table as master_build
 from build_player_master_table import (
     KAGGLE_TEAM_CROSSWALK,
+    add_kaggle_display_columns,
     add_price_projection_kpis,
     add_value_kpis,
     load_kaggle_kpis,
@@ -96,7 +97,19 @@ def test_price_projection_kpis_match_the_docs_formula_and_stay_blank_without_inp
     assert out.loc[0, "capital_yield_pct"] == pytest.approx(10.0)
     assert out.loc[1, "capital_yield_pct"] == pytest.approx(0.5)
     assert out["capital_yield_pct"].isna().tolist() == [False, False, False, True, True, True]
+    # The forecast price level is the price plus the expected move; blank wherever the move is.
+    assert out["expected_price_next_round"].tolist() == pytest.approx(
+        [11.0, 20.1, 19.0, float("nan"), float("nan"), float("nan")], nan_ok=True
+    )
     assert "breakeven_pir" not in frame.columns  # input untouched
+
+
+def test_kaggle_display_columns_are_minutes_over_a_full_game_and_the_recent_pir() -> None:
+    frame = pd.DataFrame({"kag_minutes_avg": [32.0, 10.0, np.nan], "kag_pir_avg_recent": [15.5, np.nan, 9.0]})
+    out = add_kaggle_display_columns(frame)
+    assert out["kag_minutes_pct"].tolist() == pytest.approx([80.0, 25.0, float("nan")], nan_ok=True)
+    assert out["expected_pir"].tolist() == pytest.approx([15.5, float("nan"), 9.0], nan_ok=True)
+    assert "kag_minutes_pct" not in frame.columns  # input untouched
 
 
 def test_read_sources_stops_with_the_commands_that_build_the_kpi_workbook(

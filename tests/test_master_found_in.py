@@ -30,18 +30,7 @@ def test_found_in_labels_and_counts() -> None:
 @pytest.fixture
 def guide_inputs() -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     sources = {"Dunkest": pd.DataFrame(columns=["id", "gp"])}
-    master = pd.DataFrame(
-        columns=[
-            "found_in",
-            "found_in_count",
-            "canonical_team_name",
-            "pir_per_credit",
-            "pir_per_min_per_credit",
-            "breakeven_pir",
-            "expected_price_change",
-            "capital_yield_pct",
-        ]
-    )
+    master = pd.DataFrame(columns=list(GUIDE[DERIVED]))
     return sources, master
 
 
@@ -49,16 +38,9 @@ def test_guide_accepts_source_columns_plus_derived(guide_inputs: tuple[dict[str,
     sources, master = guide_inputs
     guide = build_column_guide(sources)
     check_column_guide(guide, sources, master)
-    assert set(guide.loc[guide["Source dataset"] == DERIVED, "Column name"]) == {
-        "found_in",
-        "found_in_count",
-        "canonical_team_name",
-        "pir_per_credit",
-        "pir_per_min_per_credit",
-        "breakeven_pir",
-        "expected_price_change",
-        "capital_yield_pct",
-    }
+    derived = set(guide.loc[guide["Source dataset"] == DERIVED, "Column name"])
+    assert derived == set(GUIDE[DERIVED])
+    assert {"found_in", "team_name_current", "kag_minutes_pct", "expected_pir", "expected_price_next_round"} <= derived
 
 
 def test_guide_rejects_missing_duplicate_or_extra_source_column(
@@ -84,18 +66,7 @@ def test_guide_lists_every_kaggle_kpi_column_once_under_its_own_label() -> None:
     kpis = pd.DataFrame(columns=list(GUIDE[KAGGLE_KPIS]))
     sources = {KAGGLE_KPIS: kpis}
     guide = build_column_guide(sources)
-    master = pd.DataFrame(
-        columns=[
-            "found_in",
-            "found_in_count",
-            "canonical_team_name",
-            "pir_per_credit",
-            "pir_per_min_per_credit",
-            "breakeven_pir",
-            "expected_price_change",
-            "capital_yield_pct",
-        ]
-    )
+    master = pd.DataFrame(columns=list(GUIDE[DERIVED]))
     check_column_guide(guide, sources, master)
     assert guide.loc[guide["Source dataset"] == KAGGLE_KPIS, "Column name"].tolist() == list(kpis.columns)
     assert "(undocumented" not in " ".join(guide["Explanation"])

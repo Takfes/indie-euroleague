@@ -166,7 +166,9 @@ KAGGLE_TEAM_CROSSWALK = {
 }
 VALUE_KPIS = {"pir_per_credit": "kag_pir_avg_recent", "pir_per_min_per_credit": "kag_pir_per_min"}
 # Unofficial price-projection columns (see add_price_projection_kpis), in output order.
-PRICE_PROJECTION_KPIS = ["breakeven_pir", "expected_price_change", "capital_yield_pct"]
+PRICE_PROJECTION_KPIS = ["breakeven_pir", "expected_price_change", "capital_yield_pct", "expected_price_next_round"]
+# Minutes of a regulation EuroLeague game (overtime not counted): kag_minutes_pct is minutes / this x 100.
+FULL_GAME_MINUTES = 40
 # Views in the order their columns/rows appear: total, then offense, then defense.
 VIEW_ABBREV = {"total": "tot", "offensive": "off", "defensive": "def"}
 FOUND_PREFIX = "_found_"
@@ -521,8 +523,28 @@ def add_value_kpis(master: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def add_kaggle_display_columns(master: pd.DataFrame) -> pd.DataFrame:
+    """Add `kag_minutes_pct` and `expected_pir`, two display columns taken straight from Kaggle KPIs.
+
+    `kag_minutes_pct` is `kag_minutes_avg` as a percentage of a full game (`FULL_GAME_MINUTES`),
+    on the 0-100 scale of the `_pct` suffix (`_rate` would be 0-1). `expected_pir` is
+    `kag_pir_avg_recent`, the recency-weighted PIR and most forward-looking figure in the table;
+    the price projections below deliberately keep using `kag_pir_avg`, per docs/rules.md.
+
+    Args:
+        master: Frame with `kag_minutes_avg` and `kag_pir_avg_recent`.
+
+    Returns:
+        A copy with both columns appended; blank wherever the Kaggle KPI is.
+    """
+    out = master.copy()
+    out["kag_minutes_pct"] = out["kag_minutes_avg"] / FULL_GAME_MINUTES * 100
+    out["expected_pir"] = out["kag_pir_avg_recent"]
+    return out
+
+
 def add_price_projection_kpis(master: pd.DataFrame) -> pd.DataFrame:
-    """Add the unofficial price-projection KPIs: breakeven_pir, expected_price_change, capital_yield_pct.
+    """Add the unofficial price-projection KPIs (breakeven, expected price move and level, capital yield).
 
     ESTIMATE, not the official price mechanism: applies the community-reverse-engineered
     formula from docs/rules.md (`Price change = (Round score - 0.9 x Starting value) / 10`)
@@ -538,15 +560,17 @@ def add_price_projection_kpis(master: pd.DataFrame) -> pd.DataFrame:
         master: Frame with `price` and `kag_pir_avg`.
 
     Returns:
-        A copy with `breakeven_pir`, `expected_price_change` and `capital_yield_pct`
-        appended; blank (not zero) wherever `price` or `kag_pir_avg` is missing, or the
-        price is 0.
+        A copy with `breakeven_pir`, `expected_price_change`, `capital_yield_pct` and
+        `expected_price_next_round` (`price + expected_price_change`, the forecast price level
+        rather than the delta) appended; blank (not zero) wherever `price` or `kag_pir_avg` is
+        missing, or the price is 0.
     """
     out = master.copy()
     price = out["price"].where(out["price"] > 0)
     out["breakeven_pir"] = 0.9 * price
     out["expected_price_change"] = (out["kag_pir_avg"] - out["breakeven_pir"]) / 10
     out["capital_yield_pct"] = out["expected_price_change"] / price * 100
+    out["expected_price_next_round"] = out["price"] + out["expected_price_change"]
     return out
 
 
@@ -758,22 +782,26 @@ def build_master_table(
         .fillna(master["price_name_raw"])
         .fillna(master["kag_player_name"])
     )
-    master["team_name"] = (
+    master["team_name_hist"] = (
         master["dunk_team_name"]
         .fillna(master["bn_team_name"])
         .fillna(master["price_club"])
         .fillna(master["kag_team_name"])
     )
+    # The price list is the freshest source of a player's current team; no fallback, so a player
+    # without a price row stays blank rather than borrowing the historical team.
+    master["team_name_current"] = master["price_club"]
     master["position"] = resolve_position(
         master["dunk_position"], normalize_bn_positions(master["bn_position"]), master["price_position"]
     )
     master["games_played"] = master["dunk_gp"].fillna(master["bn_games_played"])
     canonical_teams = load_canonical_team_names()
-    master["canonical_team_name"] = master["team_name"].map(lambda t: resolve_team_name(t, canonical_teams))
+    master["canonical_team_name"] = master["team_name_hist"].map(lambda t: resolve_team_name(t, canonical_teams))
 
     lead_cols = [
         "player_name",
-        "team_name",
+        "team_name_hist",
+        "team_name_current",
         "canonical_team_name",
         "position",
         "season",
@@ -788,6 +816,7 @@ def build_master_table(
     bn_cols = ["player_id"] + [c for c in bn_adv.columns if c.startswith("bnadv_")]
     onoff_cols = [c for c in bn_onoff.columns if c.startswith("bnoo_")]
     kaggle_cols = [c for c in kaggle.columns if c.startswith("kag_") and c != "kag_team_name"]
+    master = add_kaggle_display_columns(master)
     master = add_value_kpis(master)
     master = add_price_projection_kpis(master)
     master = master[
@@ -796,8 +825,10 @@ def build_master_table(
         + bn_cols
         + onoff_cols
         + kaggle_cols
+        + ["kag_minutes_pct"]
         + ["price", "price_rank"]
         + list(VALUE_KPIS)
+        + ["expected_pir"]
         + PRICE_PROJECTION_KPIS
     ]
     master = master.sort_values("player_name", key=lambda names: names.str.lower()).reset_index(drop=True)
