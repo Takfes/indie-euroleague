@@ -1,6 +1,6 @@
 ---
 name: team-master-table
-description: Rebuild the unified EuroLeague team master table that joins basketnews team stats (offense/defense, all/home/away), Dunkest defense-vs-position (what each team concedes to guards, forwards, centers), and the derived team KPIs (pace factor, foul rates, positional funnel ratios) into one row per team. Use this whenever the user asks to combine/merge/consolidate the team datasets into a single table, rebuild data/curated/team_master_table.xlsx, or wants an all-in-one team dataframe after any source dataset (basketnews-team-stats, dunkest-defense-positions, team-kpis) has been refreshed.
+description: Rebuild the unified EuroLeague team master table that joins basketnews team stats (offense/defense, all/home/away), Dunkest defense-vs-position (what each team concedes to guards, forwards, centers), and the derived team KPIs (pace factor, foul rates, positional funnel ratios, Dunkest- and real-PIR-based) into one row per team. Use this whenever the user asks to combine/merge/consolidate the team datasets into a single table, rebuild data/curated/team_master_table.xlsx, or wants an all-in-one team dataframe after any source dataset (basketnews-team-stats, dunkest-defense-positions, team-kpis) has been refreshed.
 ---
 
 # EuroLeague team master table
@@ -63,10 +63,11 @@ autofilter, widths) is shared with the player builder in `src/master_workbook.py
   `defense_all`, `defense_home`, `defense_away`, 20 KPIs each), then the Dunkest columns in
   source order (`dunkdvp_guards_*`, `dunkdvp_forwards_*`, `dunkdvp_centers_*`, 8 stats each,
   fantasy points last). The Dunkest `team_name` and `season` are dropped (they repeat the
-  identity columns). Last, the six derived Team KPI columns (unprefixed), grouped together
+  identity columns). Last, the nine derived Team KPI columns (unprefixed), grouped together
   after the raw blocks and joined by `team_name`: `pace_factor`, `foul_rate_per40_drawn`,
   `foul_rate_per40_committed`, `funnel_ratio_guards`, `funnel_ratio_forwards`,
-  `funnel_ratio_centers` (see the `team-kpis` skill for their formulas). Rows are sorted by
+  `funnel_ratio_centers`, then the real-PIR block `funnel_actual_pir_guards`,
+  `funnel_actual_pir_forwards`, `funnel_actual_pir_centers` (see the `team-kpis` skill for their formulas). Rows are sorted by
   `team_name` (case-insensitive); 20 rows, no blanks (the build refuses blank cells). No
   `found_in` columns: every team is in both raw sources.
 - **Reading the values.** Basketnews: `<offense|defense>_<all|home|away>_<kpi>` (`all` = all
