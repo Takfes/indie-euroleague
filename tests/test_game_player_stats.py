@@ -12,8 +12,10 @@ from build_game_player_stats import (
     add_row_metrics,
     build_column_guide,
     build_game_stats,
+    check_contributions_sum_to_pir,
     parse_minutes,
 )
+from kaggle_column_guide import CONTRIBUTION_LABELS
 
 STAT_ZERO = {
     "points": 0,
@@ -129,26 +131,58 @@ def test_pir_and_usage_proxy_on_a_row() -> None:
     assert out["ts_pct"] == pytest.approx(10 / (2 * (8 + 0.88)))
 
 
-def test_contribution_shares_divide_by_row_pir_and_blank_when_pir_not_positive() -> None:
+def test_contribution_shares_are_signed_components_over_row_pir_and_sum_to_one() -> None:
     box, _ = _game_frames()
-    row = box.iloc[[0]].copy()  # pir 12, points 10, total_rebounds 4, fouls_received 3
+    # pir 12: +10 pts +4 reb +2 ast +1 stl +1 blk +3 fdr, -4 mfg -1 mft -1 tov -1 blkag -2 pf
+    row = box.iloc[[0]].copy()
     row["minutes"] = 20.5
     row["played"] = True
     out = add_row_metrics(row).iloc[0]
-    assert out["pts_share_of_pir"] == pytest.approx(10 / 12)
-    assert out["reb_share_of_pir"] == pytest.approx(4 / 12)
-    assert out["fdr_share_of_pir"] == pytest.approx(3 / 12)
-    assert out["ast_share_of_pir"] == pytest.approx(2 / 12)
-    assert out["stl_share_of_pir"] == pytest.approx(1 / 12)
-    assert out["blk_share_of_pir"] == pytest.approx(1 / 12)
+    assert (out["fg_missed"], out["ft_missed"]) == (4, 1)
+    expected = {
+        "pts": 10 / 12,
+        "reb": 4 / 12,
+        "ast": 2 / 12,
+        "stl": 1 / 12,
+        "blk": 1 / 12,
+        "fdr": 3 / 12,
+        "mfg": -4 / 12,
+        "mft": -1 / 12,
+        "tov": -1 / 12,
+        "blkag": -1 / 12,
+        "pf": -2 / 12,
+    }
+    assert list(expected) == list(CONTRIBUTION_STATS)
+    for prefix, share in expected.items():
+        assert out[f"{prefix}_share_of_pir"] == pytest.approx(share)
+    assert sum(out[f"{prefix}_share_of_pir"] for prefix in CONTRIBUTION_STATS) == pytest.approx(1.0)
 
     # Zero out every make (keep the attempts): pir drops from 12 to -5, without touching the
-    # counting stats (rebounds, assists, steals, blocks, fouls drawn) used above.
+    # counting stats used above. A row with pir <= 0 has no shares at all.
     row.loc[row.index[0], ["two_points_made", "three_points_made", "free_throws_made", "points"]] = 0
     zero_pir_out = add_row_metrics(row).iloc[0]
     assert zero_pir_out["pir"] <= 0
     share_columns = [f"{prefix}_share_of_pir" for prefix in CONTRIBUTION_STATS]
     assert zero_pir_out[share_columns].isna().all()
+
+
+def test_contribution_signs_and_labels_agree() -> None:
+    """The guide labels (a leading "-" marks a negative component) follow the signs used to build the shares."""
+    assert list(CONTRIBUTION_LABELS) == list(CONTRIBUTION_STATS)
+    for prefix, (sign, _) in CONTRIBUTION_STATS.items():
+        assert CONTRIBUTION_LABELS[prefix].startswith("-") == (sign < 0)
+
+
+def test_component_sum_check_passes_on_consistent_rows_and_names_a_mismatch() -> None:
+    box, _ = _game_frames()
+    row = box.iloc[[0]].copy()
+    row["minutes"] = 20.5
+    row["played"] = True
+    out = add_row_metrics(row)
+    assert check_contributions_sum_to_pir(out) == 1
+    out.loc[out.index[0], "fg_missed"] += 1  # a component drifts away from the pir formula
+    with pytest.raises(ValueError, match="do not sum to pir on 1 played rows"):
+        check_contributions_sum_to_pir(out)
 
 
 def test_percentages_blank_when_denominator_is_zero_and_dnp_rows_blank() -> None:
@@ -187,6 +221,7 @@ def test_build_game_stats_drops_totals_flags_dnp_and_joins_header() -> None:
     assert (dnp["team_name"], dnp["opponent_id"], dnp["home_away"]) == ("TEAM B", "AAA", "away")
     assert played["date"] == "2025-10-01"
     assert played["pir"] == played["valuation"] == 12
+    assert stats["pir_rows_checked_component_sum"] == 1
     assert pd.isna(dnp["pir"])
     assert dnp["minutes"] == 0
 

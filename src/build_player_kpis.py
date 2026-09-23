@@ -20,12 +20,14 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
     per-game series), PIR P10/P50/P90 (linear interpolation) and range P90 - P10. SD and CV
     need 2 games, otherwise blank.
   - Profile: contribution shares are computed per game in src/build_game_player_stats.py
-    (`{prefix}_share_of_pir` = that stat / that row's pir, blank unless the row's pir > 0),
-    then aggregated here per player: `{prefix}_contribution_pct` is the mean share of the
-    rows where it is defined, renormalized across the six stats to sum to 100% (means alone
-    don't sum to 100% - the renormalization is the normalization); `{prefix}_contribution_std`
-    is the sample std (ddof=1) of the same shares, left unscaled. Also shooting percentages
-    from season totals, `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
+    for all 11 components of PIR (`{prefix}_share_of_pir` = the component's signed value /
+    that row's pir, blank unless the row's pir > 0; missed shots, turnovers, shots blocked
+    and fouls committed enter with a minus sign, so the 11 shares of a row sum to exactly 1),
+    then aggregated here per player: `{prefix}_contribution_pct` is the plain mean share of
+    the rows where it is defined, times 100 - no renormalization, the 11 values sum to 100
+    by construction; `{prefix}_contribution_std` is the sample std (ddof=1) of the same
+    shares, left unscaled. Also shooting percentages from season totals, `fdr_rate`,
+    `usage_proxy_avg`, `usage_per_min`.
   Players who only have DNP rows keep a row with blank KPIs and `games_played` 0.
 
 Usage:
@@ -119,12 +121,10 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
         "pir_p90": p90,
         "pir_range": p90 - p10,
     }
-    contribution_means = {prefix: games[f"{prefix}_share_of_pir"].mean() for prefix in CONTRIBUTION_STATS}
-    contribution_stds = {prefix: games[f"{prefix}_share_of_pir"].std() for prefix in CONTRIBUTION_STATS}
-    mean_total = sum(contribution_means.values())
     for prefix in CONTRIBUTION_STATS:
-        out[f"{prefix}_contribution_pct"] = _ratio(contribution_means[prefix], mean_total) * 100
-        out[f"{prefix}_contribution_std"] = contribution_stds[prefix]
+        shares = games[f"{prefix}_share_of_pir"]
+        out[f"{prefix}_contribution_pct"] = shares.mean() * 100
+        out[f"{prefix}_contribution_std"] = shares.std()
     out |= {
         "fg_pct": _ratio(total["fgm"], total["fga"]),
         "fg3_pct": _ratio(total["three_points_made"], total["three_points_attempted"]),

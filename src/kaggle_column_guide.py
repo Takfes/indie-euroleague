@@ -13,6 +13,23 @@ KAGGLE_HEADER = "Kaggle header"
 GAME_DERIVED = "Game Stats (derived)"
 GAME_STATS_SOURCE_DATASETS = (KAGGLE_BOX_SCORE, KAGGLE_HEADER, GAME_DERIVED)
 
+# Contribution prefix -> label of the PIR component, in the order of CONTRIBUTION_STATS
+# (src/build_game_player_stats.py, which holds the signs; a test keeps both in step). A leading "-"
+# marks a component that reduces PIR: its share is taken with a minus sign.
+CONTRIBUTION_LABELS = {
+    "pts": "Points",
+    "reb": "Total rebounds",
+    "ast": "Assists",
+    "stl": "Steals",
+    "blk": "Blocks made",
+    "fdr": "Fouls drawn",
+    "mfg": "-Missed field goals",
+    "mft": "-Missed free throws",
+    "tov": "-Turnovers",
+    "blkag": "-Own shots blocked",
+    "pf": "-Fouls committed",
+}
+
 GAME_STATS_GUIDE: dict[str, tuple[str, str]] = {
     "game_id": (KAGGLE_BOX_SCORE, "Game id, e.g. E2025_028"),
     "game": (KAGGLE_BOX_SCORE, "Game label, first-listed team code first"),
@@ -35,12 +52,14 @@ GAME_STATS_GUIDE: dict[str, tuple[str, str]] = {
     "points": (KAGGLE_BOX_SCORE, "Points scored"),
     "fgm": (GAME_DERIVED, "Field goals made (two + three pointers)"),
     "fga": (GAME_DERIVED, "Field goals attempted (two + three pointers)"),
+    "fg_missed": (GAME_DERIVED, "Missed field goals (FGA - FGM)"),
     "two_points_made": (KAGGLE_BOX_SCORE, "Two-pointers made"),
     "two_points_attempted": (KAGGLE_BOX_SCORE, "Two-pointers attempted"),
     "three_points_made": (KAGGLE_BOX_SCORE, "Three-pointers made"),
     "three_points_attempted": (KAGGLE_BOX_SCORE, "Three-pointers attempted"),
     "free_throws_made": (KAGGLE_BOX_SCORE, "Free throws made"),
     "free_throws_attempted": (KAGGLE_BOX_SCORE, "Free throws attempted"),
+    "ft_missed": (GAME_DERIVED, "Missed free throws (FTA - FTM)"),
     "offensive_rebounds": (KAGGLE_BOX_SCORE, "Offensive rebounds"),
     "defensive_rebounds": (KAGGLE_BOX_SCORE, "Defensive rebounds"),
     "total_rebounds": (KAGGLE_BOX_SCORE, "Total rebounds"),
@@ -61,23 +80,36 @@ GAME_STATS_GUIDE: dict[str, tuple[str, str]] = {
     "fg_pct": (GAME_DERIVED, "FGM / FGA; blank if no attempts"),
     "ft_pct": (GAME_DERIVED, "FTM / FTA; blank if no attempts"),
     "ts_pct": (GAME_DERIVED, "True shooting: points / (2 x (FGA + 0.44 x FTA)); blank if no attempts"),
-    "pts_share_of_pir": (GAME_DERIVED, "Points / pir this row; blank unless this row's pir > 0"),
-    "reb_share_of_pir": (GAME_DERIVED, "Total rebounds / pir this row; blank unless this row's pir > 0"),
-    "ast_share_of_pir": (GAME_DERIVED, "Assists / pir this row; blank unless this row's pir > 0"),
-    "stl_share_of_pir": (GAME_DERIVED, "Steals / pir this row; blank unless this row's pir > 0"),
-    "blk_share_of_pir": (GAME_DERIVED, "Blocks made / pir this row; blank unless this row's pir > 0"),
-    "fdr_share_of_pir": (GAME_DERIVED, "Fouls drawn / pir this row; blank unless this row's pir > 0"),
+    **{
+        f"{prefix}_share_of_pir": (GAME_DERIVED, f"{label} / pir this row; blank unless this row's pir > 0")
+        for prefix, label in CONTRIBUTION_LABELS.items()
+    },
 }
 
 GAME_STATS_SHEET = "Game Stats"
 KPI_DERIVED = "Player KPIs (derived)"
 
 
+def _contribution_guide() -> dict[str, tuple[str, str]]:
+    """Guide entries of the per-component contribution KPIs, one `pct` and one `std` per component."""
+    guide: dict[str, tuple[str, str]] = {}
+    for prefix in CONTRIBUTION_LABELS:
+        guide[f"{prefix}_contribution_pct"] = (
+            KPI_DERIVED,
+            f"Mean {prefix}_share_of_pir x 100; the 11 contribution_pct values sum to 100",
+        )
+        guide[f"{prefix}_contribution_std"] = (
+            KPI_DERIVED,
+            f"Std dev of {prefix}_share_of_pir (unscaled); blank under 2 games",
+        )
+    return guide
+
+
 def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
     """Column -> (source dataset, explanation) for the `Player KPIs` sheet, in sheet order.
 
     Columns are grouped by base metric (PIR, PIR/min, minutes, one group per contribution
-    stat, shooting, usage), identity columns first. Within a group, aggregates follow one
+    component, fouls drawn rate, shooting, usage), identity columns first. Within a group, aggregates follow one
     sequence: recent-then-season average, trend/median, percentiles, spread (sd/cv). See
     the `player-kpis` skill for the convention a future column addition should follow.
 
@@ -117,42 +149,10 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
         "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
         "starts_rate": (KPI_DERIVED, "Starts (is_starter = 1) / games played, season"),
-        # Points contribution (mean and spread of pts_share_of_pir over games with pir > 0).
-        "pts_contribution_pct": (
-            KPI_DERIVED,
-            "Mean pts_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "pts_contribution_std": (KPI_DERIVED, "Std dev of pts_share_of_pir (unscaled); blank under 2 games"),
-        # Rebounds contribution.
-        "reb_contribution_pct": (
-            KPI_DERIVED,
-            "Mean reb_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "reb_contribution_std": (KPI_DERIVED, "Std dev of reb_share_of_pir (unscaled); blank under 2 games"),
-        # Assists contribution.
-        "ast_contribution_pct": (
-            KPI_DERIVED,
-            "Mean ast_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "ast_contribution_std": (KPI_DERIVED, "Std dev of ast_share_of_pir (unscaled); blank under 2 games"),
-        # Steals contribution.
-        "stl_contribution_pct": (
-            KPI_DERIVED,
-            "Mean stl_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "stl_contribution_std": (KPI_DERIVED, "Std dev of stl_share_of_pir (unscaled); blank under 2 games"),
-        # Blocks contribution.
-        "blk_contribution_pct": (
-            KPI_DERIVED,
-            "Mean blk_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "blk_contribution_std": (KPI_DERIVED, "Std dev of blk_share_of_pir (unscaled); blank under 2 games"),
-        # Fouls drawn contribution and rate.
-        "fdr_contribution_pct": (
-            KPI_DERIVED,
-            "Mean fdr_share_of_pir, renormalized across the 6 stats to sum to 100%",
-        ),
-        "fdr_contribution_std": (KPI_DERIVED, "Std dev of fdr_share_of_pir (unscaled); blank under 2 games"),
+        # Contribution to PIR, one group per component (mean and spread of {prefix}_share_of_pir over
+        # the games with pir > 0); the 11 means sum to 100.
+        **_contribution_guide(),
+        # Fouls drawn rate.
         "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),
         # Shooting.
         "fg_pct": (KPI_DERIVED, "Season FGM / FGA"),

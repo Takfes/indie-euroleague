@@ -16,6 +16,11 @@ ROW_DEFAULTS = {
     "steals": 0,
     "blocks_favour": 0,
     "fouls_received": 0,
+    "fg_missed": 0,
+    "ft_missed": 0,
+    "turnovers": 0,
+    "blocks_against": 0,
+    "fouls_committed": 0,
     "fgm": 0,
     "fga": 0,
     "three_points_made": 0,
@@ -49,8 +54,8 @@ def _games(player_id: str, name: str, rows: list[dict]) -> pd.DataFrame:
             "pir": pir,
             **{k: v for k, v in row.items() if k not in ("pir", "team_id")},
         }
-        for prefix, stat in CONTRIBUTION_STATS.items():
-            entry[f"{prefix}_share_of_pir"] = entry[stat] / pir if pd.notna(pir) and pir > 0 else np.nan
+        for prefix, (sign, stat) in CONTRIBUTION_STATS.items():
+            entry[f"{prefix}_share_of_pir"] = sign * entry[stat] / pir if pd.notna(pir) and pir > 0 else np.nan
         frame.append(entry)
     return pd.DataFrame(frame)
 
@@ -152,30 +157,52 @@ def test_shooting_blank_without_attempts() -> None:
     assert k[["fg_pct", "fg3_pct", "ft_pct", "ts_pct"]].isna().all()
 
 
-def test_contribution_pct_is_the_row_mean_share_renormalized_to_100() -> None:
-    """Both games have pir > 0: shares average, then rescale to sum to 100%; std stays unscaled."""
+def test_contribution_pct_is_the_plain_mean_signed_share_times_100_and_all_eleven_sum_to_100() -> None:
+    """Both games have pir > 0 and the components add up to pir: no renormalization is needed."""
     rows = [
-        {"pir": 10, "minutes": 20.0, "points": 8, "total_rebounds": 4, "fouls_received": 2},
-        {"pir": 10, "minutes": 20.0, "points": 4, "assists": 6, "steals": 2, "blocks_favour": 1},
+        # pir = 8 + 4 + 2 - 2 (turnovers) - 1 (missed FG) - 1 (fouls committed) = 10
+        {
+            "pir": 10,
+            "minutes": 20.0,
+            "points": 8,
+            "total_rebounds": 4,
+            "fouls_received": 2,
+            "turnovers": 2,
+            "fg_missed": 1,
+            "fouls_committed": 1,
+        },
+        # pir = 4 + 6 + 2 + 1 - 2 (missed FT) - 1 (own shot blocked) = 10
+        {
+            "pir": 10,
+            "minutes": 20.0,
+            "points": 4,
+            "assists": 6,
+            "steals": 2,
+            "blocks_favour": 1,
+            "ft_missed": 2,
+            "blocks_against": 1,
+        },
     ]
     k = _kpis(rows)
-    # Row shares: pts .8/.4, reb .4/0, ast 0/.6, stl 0/.2, blk 0/.1, fdr .2/0 -> means below.
-    raw_means = {"pts": 0.6, "reb": 0.2, "ast": 0.3, "stl": 0.1, "blk": 0.05, "fdr": 0.1}
-    mean_total = sum(raw_means.values())
-    pct_columns = [f"{prefix}_contribution_pct" for prefix in raw_means]
-    for prefix, raw_mean in raw_means.items():
-        assert k[f"{prefix}_contribution_pct"] == pytest.approx(raw_mean / mean_total * 100)
-    assert k[pct_columns].sum() == pytest.approx(100.0)
-    raw_shares = {
+    row_shares = {
         "pts": [0.8, 0.4],
         "reb": [0.4, 0.0],
         "ast": [0.0, 0.6],
         "stl": [0.0, 0.2],
         "blk": [0.0, 0.1],
         "fdr": [0.2, 0.0],
+        "mfg": [-0.1, 0.0],
+        "mft": [0.0, -0.2],
+        "tov": [-0.2, 0.0],
+        "blkag": [0.0, -0.1],
+        "pf": [-0.1, 0.0],
     }
-    for prefix, shares in raw_shares.items():
+    assert list(row_shares) == list(CONTRIBUTION_STATS)
+    for prefix, shares in row_shares.items():
+        assert k[f"{prefix}_contribution_pct"] == pytest.approx(np.mean(shares) * 100)
         assert k[f"{prefix}_contribution_std"] == pytest.approx(np.std(shares, ddof=1))
+    pct_columns = [f"{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]
+    assert k[pct_columns].sum() == pytest.approx(100.0)
 
 
 def test_contribution_excludes_non_positive_pir_rows_from_mean_and_std() -> None:
@@ -187,7 +214,7 @@ def test_contribution_excludes_non_positive_pir_rows_from_mean_and_std() -> None
     ]
     k = _kpis(rows)
     assert k["pts_contribution_std"] == pytest.approx(0.0)  # only [0.5, 0.5] counted
-    assert k["pts_contribution_pct"] == pytest.approx(100.0)  # sole tracked stat with nonzero share
+    assert k["pts_contribution_pct"] == pytest.approx(50.0)  # plain mean of [0.5, 0.5], times 100
 
 
 def test_contribution_blank_when_no_row_has_positive_pir() -> None:

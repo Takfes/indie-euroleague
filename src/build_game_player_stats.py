@@ -14,14 +14,17 @@ Steps: keep the season, drop the two team-total rows per game (dorsal "TOTAL"; t
 not players), keep the chosen phases, parse `minutes` (MM:SS text, or DNP) to a decimal
 number, join date/time/teams from the header, then add per-row metrics: `pir`,
 `pir_per_min`, `usage_proxy`, `usage_per_min`, `fgm`, `fga`, `fg_pct`, `ft_pct`, `ts_pct`,
-`fdr_per_min`, the per-row PIR contribution shares (`CONTRIB_SHARE_COLUMNS`, e.g.
-`pts_share_of_pir` = points / pir for that row, blank unless that row's pir > 0) and a
-per-player chronological `game_number` (games played only).
+`fdr_per_min`, `fg_missed`, `ft_missed`, the per-row PIR contribution shares
+(`CONTRIB_SHARE_COLUMNS`: one per component of the PIR formula, signed so that the 11 shares
+of a row sum to exactly 1; e.g. `pts_share_of_pir` = points / pir and `tov_share_of_pir` =
+-turnovers / pir for that row, blank unless that row's pir > 0) and a per-player
+chronological `game_number` (games played only).
 
 A player played a game when minutes > 0. DNP rows (did not play) stay in the dataset with
 `played` False and blank derived values, so a DNP count is possible; every stat KPI later
 ignores them. Hard checks: PIR computed here equals the official `valuation` on every
-played row, no duplicate (game_id, player_id), two team-total rows per game.
+played row, the 11 signed PIR components add up to PIR on every played row, no duplicate
+(game_id, player_id), two team-total rows per game.
 
 Usage:
     python src/build_game_player_stats.py [--season E2025] [--phases PHASE ...] [--out PATH]
@@ -52,16 +55,25 @@ TEAM_TOTAL_ROWS_PER_GAME = 2
 FT_ATTEMPT_WEIGHT = 0.44
 ASSIST_WEIGHT = 0.5
 
-# Prefix -> box score column, for the per-row PIR contribution shares. Shared with
-# src/build_player_kpis.py, which aggregates `{prefix}_share_of_pir` into
-# `{prefix}_contribution_pct` / `{prefix}_contribution_std` per player.
-CONTRIBUTION_STATS = {
-    "pts": "points",
-    "reb": "total_rebounds",
-    "ast": "assists",
-    "stl": "steals",
-    "blk": "blocks_favour",
-    "fdr": "fouls_received",
+# Prefix -> (sign, Game Stats column) for the 11 components of PIR, positive ones first, in the
+# order of the PIR formula below. `sign` is the component's sign in that formula, so PIR is exactly
+# the sum of sign x column over all eleven and the signed shares `sign x column / pir` of a played
+# row sum to exactly 1 (no renormalization needed). Prefixes: mfg / mft = missed field goals / free
+# throws, blkag = blocks against (own shots blocked), pf = personal fouls committed. Shared with
+# src/build_player_kpis.py, which aggregates `{prefix}_share_of_pir` into `{prefix}_contribution_*`
+# per player.
+CONTRIBUTION_STATS: dict[str, tuple[int, str]] = {
+    "pts": (1, "points"),
+    "reb": (1, "total_rebounds"),
+    "ast": (1, "assists"),
+    "stl": (1, "steals"),
+    "blk": (1, "blocks_favour"),
+    "fdr": (1, "fouls_received"),
+    "mfg": (-1, "fg_missed"),
+    "mft": (-1, "ft_missed"),
+    "tov": (-1, "turnovers"),
+    "blkag": (-1, "blocks_against"),
+    "pf": (-1, "fouls_committed"),
 }
 CONTRIB_SHARE_COLUMNS = [f"{prefix}_share_of_pir" for prefix in CONTRIBUTION_STATS]
 
@@ -98,12 +110,14 @@ GAME_COLUMNS = [
     "points",
     "fgm",
     "fga",
+    "fg_missed",
     "two_points_made",
     "two_points_attempted",
     "three_points_made",
     "three_points_attempted",
     "free_throws_made",
     "free_throws_attempted",
+    "ft_missed",
     "offensive_rebounds",
     "defensive_rebounds",
     "total_rebounds",
@@ -147,18 +161,20 @@ def parse_minutes(text: pd.Series) -> pd.Series:
 
 
 def add_row_metrics(df: pd.DataFrame) -> pd.DataFrame:
-    """Add `fgm`, `fga` and the derived per-row metrics; derived values stay blank on DNP rows.
+    """Add `fgm`, `fga`, the missed-shot counts and the derived per-row metrics; derived values stay blank on DNP rows.
 
     Args:
         df: Player rows with the box score stat columns, decimal `minutes` and boolean `played`.
 
     Returns:
-        A copy with `fgm`, `fga`, `pir`, `pir_per_min`, `usage_proxy`, `usage_per_min`,
-        `fdr_per_min`, `fg_pct`, `ft_pct`, `ts_pct` and the `CONTRIB_SHARE_COLUMNS` added.
+        A copy with `fgm`, `fga`, `fg_missed`, `ft_missed`, `pir`, `pir_per_min`, `usage_proxy`,
+        `usage_per_min`, `fdr_per_min`, `fg_pct`, `ft_pct`, `ts_pct` and the `CONTRIB_SHARE_COLUMNS` added.
     """
     out = df.copy()
     out["fgm"] = out["two_points_made"] + out["three_points_made"]
     out["fga"] = out["two_points_attempted"] + out["three_points_attempted"]
+    out["fg_missed"] = out["fga"] - out["fgm"]
+    out["ft_missed"] = out["free_throws_attempted"] - out["free_throws_made"]
     out["pir"] = (
         out["points"]
         + out["total_rebounds"]
@@ -184,8 +200,8 @@ def add_row_metrics(df: pd.DataFrame) -> pd.DataFrame:
     out["fg_pct"] = safe_divide(out["fgm"], out["fga"])
     out["ft_pct"] = safe_divide(out["free_throws_made"], out["free_throws_attempted"])
     out["ts_pct"] = safe_divide(out["points"], 2 * (out["fga"] + FT_ATTEMPT_WEIGHT * out["free_throws_attempted"]))
-    for prefix, stat in CONTRIBUTION_STATS.items():
-        out[f"{prefix}_share_of_pir"] = safe_divide(out[stat], out["pir"])
+    for prefix, (sign, stat) in CONTRIBUTION_STATS.items():
+        out[f"{prefix}_share_of_pir"] = safe_divide(sign * out[stat], out["pir"])
     out[DERIVED_COLUMNS] = out[DERIVED_COLUMNS].where(out["played"])
     return out
 
@@ -215,6 +231,25 @@ def check_pir_matches_valuation(df: pd.DataFrame) -> int:
     return len(played)
 
 
+def check_contributions_sum_to_pir(df: pd.DataFrame) -> int:
+    """Raise if the 11 signed PIR components do not add up to `pir` on any played row.
+
+    This is what makes the per-row `{prefix}_share_of_pir` values sum to exactly 1. `pir` and the
+    components are defined independently (`add_row_metrics`), so the check also catches one being
+    edited without the other.
+
+    Returns:
+        The number of played rows checked (all matched).
+    """
+    played = df[df["played"]]
+    components = sum(sign * played[stat] for sign, stat in CONTRIBUTION_STATS.values())
+    bad = played[components != played["pir"]]
+    if len(bad):
+        sample = bad[["game_id", "player", "pir"]].head(10).to_string(index=False)
+        raise ValueError(f"Signed PIR components do not sum to pir on {len(bad)} played rows, e.g.:\n{sample}")
+    return len(played)
+
+
 def build_game_stats(
     box: pd.DataFrame, header: pd.DataFrame, season: str, phases: list[str]
 ) -> tuple[pd.DataFrame, dict[str, int]]:
@@ -232,7 +267,8 @@ def build_game_stats(
     Raises:
         ValueError: If the filters leave no rows, a game does not have exactly two team-total
             rows, header data is missing for a game, (game_id, player_id) repeats, minutes
-            cannot be parsed, or computed PIR differs from the official valuation.
+            cannot be parsed, computed PIR differs from the official valuation, or the signed
+            PIR components do not sum to PIR.
     """
     stats = {"box_rows": len(box)}
     box = box[box["season_code"] == season]
@@ -280,6 +316,7 @@ def build_game_stats(
     stats["rows_played"] = int(df["played"].sum())
     stats["rows_dnp"] = int((~df["played"]).sum())
     stats["pir_rows_checked_equal_to_valuation"] = check_pir_matches_valuation(df)
+    stats["pir_rows_checked_component_sum"] = check_contributions_sum_to_pir(df)
 
     df = df.sort_values(["date", "time", "game_id", "team_id", "player_id"]).reset_index(drop=True)
     return df[GAME_COLUMNS], stats
