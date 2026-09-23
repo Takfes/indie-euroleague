@@ -140,3 +140,8 @@ def test_an_unresolvable_historical_team_only_raises_for_players_who_need_the_fa
         "EA7 Emporio Armani Milan",
         "Real Madrid",
     ]
+
+
+def test_a_priced_club_without_a_canonical_spelling_raises_instead_of_going_blank() -> None:
+    with pytest.raises(ValueError, match=r"Yerevan Titans.*PRICE_CLUB_TO_CANONICAL"):
+        resolve_canonical_team_names(pd.Series(["Yerevan Titans"]), pd.Series(["Real Madrid"]), CANONICAL)

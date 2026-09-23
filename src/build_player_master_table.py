@@ -122,7 +122,7 @@ ALIAS_TABLE_PATH = REPO_ROOT / "data/curated/player_alias_table.xlsx"
 
 # The fantasy price list is the ground truth for this season's teams and rosters: its 20 `club`
 # values (short names) are the current EuroLeague teams. Value is the canonical full team name
-# the rest of the pipeline joins on (the team_kpis.xlsx / team master spelling); a display string,
+# the rest of the pipeline joins on (the team master spelling); a display string,
 # not a resolution key. A club new to the league (Besiktas) has no Basketnews/Dunkest history, so
 # only this table can name it. Add a line here when `load_canonical_team_names` raises for a club.
 PRICE_CLUB_TO_CANONICAL = {
@@ -426,10 +426,18 @@ def resolve_canonical_team_names(
         team verified to have none, see `TEAM_NAME_OVERRIDES`).
 
     Raises:
-        ValueError: If a fallback team name does not resolve (see `resolve_team_name`).
+        ValueError: If a price-list club is not in `PRICE_CLUB_TO_CANONICAL`, or a fallback team
+            name does not resolve (see `resolve_team_name`).
     """
+    current = team_current.map(PRICE_CLUB_TO_CANONICAL)
+    unmapped = sorted(team_current[current.isna() & team_current.notna()].unique())
+    if unmapped:
+        raise ValueError(
+            f"Price-list clubs not in PRICE_CLUB_TO_CANONICAL: {unmapped}. Add each to "
+            "PRICE_CLUB_TO_CANONICAL in src/build_player_master_table.py (price-list club -> canonical full name)."
+        )
     fallback = team_hist.where(team_current.isna()).map(lambda team: resolve_team_name(team, canonical_teams))
-    return team_current.map(PRICE_CLUB_TO_CANONICAL).where(team_current.notna(), fallback)
+    return current.where(team_current.notna(), fallback)
 
 
 def resolve_team_name(team_name: object, canonical_teams: list[str]) -> str | None:
