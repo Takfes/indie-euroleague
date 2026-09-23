@@ -46,9 +46,15 @@ Output sheets: `Column Guide` (source dataset, column name, explanation; one row
   `date`, `time`) is joined on `game_id` and is where `team_name`, `opponent_id`, `opponent_name`,
   `home_away`, `date` and `time` come from - none of those six columns exist in the box score csv itself,
   so don't expect to find them there; they are a legitimate join, not fabricated.
-- Per row: `fgm`, `fga`, `pir`, `pir_per_min`, `usage_proxy`, `usage_per_min`, `fdr_per_min`, `fg_pct`,
-  `ft_pct`, `ts_pct` (blank where the denominator is 0) and `game_number` (per player, chronological by
-  date, time, then game id; games played only).
+- Per row: `fgm`, `fga`, `fg_missed`, `ft_missed`, `pir`, `pir_per_min`, `usage_proxy`, `usage_per_min`,
+  `fdr_per_min`, `fg_pct`, `ft_pct`, `ts_pct` (blank where the denominator is 0), the 11 PIR contribution
+  shares `{prefix}_share_of_pir` and `game_number` (per player, chronological by date, time, then game id;
+  games played only).
+- **PIR contribution shares.** PIR is the sum of 11 signed components (`CONTRIBUTION_STATS` in
+  `src/build_game_player_stats.py`, prefix -> (sign, column)): `pts`, `reb`, `ast`, `stl`, `blk` (blocks made),
+  `fdr` (fouls drawn) count plus; `mfg` / `mft` (missed FG / FT), `tov`, `blkag` (own shots blocked) and `pf`
+  (fouls committed) count minus. `{prefix}_share_of_pir` = sign x component / that row's `pir`, blank unless the
+  row's pir > 0 (so the 11 shares of a row sum to exactly 1). `player-kpis` averages them per player.
 - **Definitions.** `pir` = points + total rebounds + assists + steals + blocks made + fouls drawn - missed FG -
   missed FT - turnovers - shots blocked - fouls committed (`blocks_favour` are blocks made, `blocks_against`
   the player's shots rejected, `fouls_received` fouls drawn = FDR). Usage proxy = FGA + 0.44 x FTA + TO + 0.5 x AST.
@@ -59,8 +65,8 @@ Output sheets: `Column Guide` (source dataset, column name, explanation; one row
 ## Verification (built into the script)
 
 The run stops with an error if: computed `pir` differs from the official `valuation` on any played row (it
-matches on every row of 2025-26), a game does not have exactly two team-total rows, (`game_id`, `player_id`)
-repeats, or a game has no header row. It prints row counts after each filter. Current numbers for E2025 (all
+matches on every row of 2025-26), the 11 signed components do not add up to `pir` on any played row (they do),
+a game does not have exactly two team-total rows, (`game_id`, `player_id`) repeats, or a game has no header row. It prints row counts after each filter. Current numbers for E2025 (all
 phases): 129,168 raw rows, 10,344 in the season, 804 team totals dropped, 9,540 player rows (8,741 played,
 799 DNP), 402 games, 351 players.
 

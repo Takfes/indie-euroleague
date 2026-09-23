@@ -107,47 +107,56 @@ extending it:
   source refresh, check the players present in only some sources for spelling
   variants the rules cannot link (the unit tests in
   `tests/test_player_name_matching.py` cover the rules).
-- **Column layout.** Leading identity columns: `player_name`, `team_name`,
-  `canonical_team_name`, `position`, `season`, `games_played`, taken from
-  Dunkest first, then basketnews, then the price list.
-  `canonical_team_name` resolves `team_name` onto one of the 20 canonical
-  names in `data/curated/team_kpis.xlsx` (`resolve_team_name`: exact/
-  `teams_compatible()` match, then fuzzy, then the manual
-  `TEAM_NAME_OVERRIDES`); blank if there is no current match (e.g.
-  "Besiktas", not a EuroLeague team this season). `position` is Dunkest's
-  value for every player present in Dunkest; players missing from Dunkest
-  fall back to basketnews `positions`, normalised from its 5-position
-  scheme (PG/SG/SF/PF/C, multi-position combos take the first-listed token)
-  onto the Dunkest/price-list G/F/C buckets (`normalize_bn_positions`),
-  then the price list's `G`/`F`/`C`, so the cell is never blank unless all
-  three sources lack it. Right after them come two provenance columns:
-  `found_in` (the sources holding the player, as codes joined with `", "` in fixed
-  order, e.g. `dunk, elf`) and `found_in_count` (integer, 1-5). Codes: `dunk` =
-  Dunkest, `bnadv` = basketnews advanced, `bnoo` = basketnews on/off, `kag` = Kaggle KPIs, `elf` =
-  fantasy prices (fixed order `dunk, bnadv, bnoo, kag, elf`); defined once in `FOUND_IN_SOURCES` in
-  `src/player_master_column_guide.py` (edit there to rename). They come from the join
-  provenance, not from non-null values; the run prints
-  `found_in_null_disagreements` (0 = agrees with a null-based inference; the run also prints
-  how many players used the position fallback). Then,
-  in this order: `found_in`, `found_in_count`, Dunkest columns (`dunk_*`), basketnews advanced (`player_id`,
-  then `bnadv_*`), basketnews on/off (`bnoo_*`: total `_tot`, then offense
-  `_off`, then defense `_def`, source order inside each group), the Kaggle KPIs
-  (`kag_*`, every column of the `Player KPIs` sheet), the fantasy `price`,
-  `price_rank`, then the derived value KPIs `pir_per_credit` (`kag_pir_avg_recent`
-  / `price`, the recent-5-games average PIR as expected PIR) and `pir_per_min_per_credit`
-  (`kag_pir_per_min` / `price`), blank when the KPI or the price is missing or the price
-  is 0, and last the unofficial price-projection KPIs `breakeven_pir` (`0.9 x price`),
-  `expected_price_change` (`(kag_pir_avg - breakeven_pir) / 10`) and `capital_yield_pct`
-  (`expected_price_change / price x 100`) - the community-reverse-engineered price formula
-  from `docs/rules.md`, treating `kag_pir_avg` (season average, not recent-5) as the Round
-  score; an ESTIMATE only (open question: whether the real Round score includes a 10%
-  team-win bonus that `kag_pir_avg` does not), blank under the same conditions as the value
-  KPIs. The price columns moved from last to before these derived blocks on purpose: the
-  derived KPIs depend on the price. `season` exists only in basketnews (blank for
-  players missing there) and traded players' `bnadv_*`/`bnoo_*` values come from
-  their max-games stint while the identity columns follow Dunkest. Source prefixes stay because these are
-  genuinely distinct measurements (e.g. `dunk_fouls_received` is Dunkest's own
-  count, not the same field as `bnadv_fouls_received`).
+- **Column layout.** The order, the dropped duplicates and the excluded columns live in
+  `src/player_master_layout.py`; a source column the layout does not place makes the build raise, so a new
+  one has to be added there on purpose. The first columns are, exactly: `player_name`, `team_name_hist`,
+  `team_name_current`, `canonical_team_name`, `position`, `found_in`, `found_in_count`, `games_played`,
+  `kag_minutes_avg`, `kag_minutes_pct`, `price`, `kag_pir_avg`, `kag_pir_sd`, `kag_pir_per_min`,
+  `kag_pir_per_min_sd`, `pir_per_credit`, `pir_per_min_per_credit`, `expected_pir`, `breakeven_pir`,
+  `expected_price_change`, `expected_price_next_round`. Then `capital_yield_pct`, `season` and the id /
+  sample-size columns, then the raw stats (production and availability, offense, defense, then team and lineup
+  level: `dunk_plus_minus` and all `bnoo_*`: total `_tot`, offense `_off`, defense `_def`, source order inside
+  each group), then the 11 signed contribution shares (`kag_*_contribution_pct`, they sum to 100), then the
+  Kaggle distribution KPIs. Within a stat family the sub-order is one pattern: per-game attempts, season-total
+  attempts, per-game makes, season-total makes, then the percentage / rate.
+  - Teams. `team_name_hist` is Dunkest, then basketnews, then the price list, then Kaggle (the former
+    `team_name`; it can lag a player's current team). `team_name_current` is the price list club only, no
+    fallback, blank without a price row (price-list spelling, e.g. "Milano", not the canonical names).
+    `canonical_team_name` resolves `team_name_hist` onto one of the 20 canonical names in
+    `data/curated/team_kpis.xlsx` (`resolve_team_name`: exact/`teams_compatible()` match, then fuzzy, then the
+    manual `TEAM_NAME_OVERRIDES`); blank if there is no current match (e.g. "Besiktas", not a EuroLeague team
+    this season).
+  - Position and provenance. `position` is Dunkest's value for every player present in Dunkest; players missing
+    from Dunkest fall back to basketnews `positions`, normalised from its 5-position scheme (PG/SG/SF/PF/C,
+    multi-position combos take the first-listed token) onto the Dunkest/price-list G/F/C buckets
+    (`normalize_bn_positions`), then the price list's `G`/`F`/`C`, so the cell is never blank unless all three
+    sources lack it. `found_in` lists the sources holding the player as codes joined with `", "` in fixed order
+    (e.g. `dunk, elf`), `found_in_count` counts them (1-5). Codes: `dunk` = Dunkest, `bnadv` = basketnews
+    advanced, `bnoo` = basketnews on/off, `kag` = Kaggle KPIs, `elf` = fantasy prices; defined once in
+    `FOUND_IN_SOURCES` in `src/player_master_column_guide.py`. They come from the join provenance, not from
+    non-null values; the run prints `found_in_null_disagreements` (0 = agrees with a null-based inference) and
+    how many players used the position fallback. `season` exists only in basketnews (blank for players missing
+    there) and traded players' `bnadv_*`/`bnoo_*` values come from their max-games stint while the identity
+    columns follow Dunkest.
+  - Derived columns. `kag_minutes_pct` = `kag_minutes_avg` / 40 x 100 (0-100 scale). `expected_pir` =
+    `kag_pir_avg_recent` (recent-5 average PIR). `pir_per_credit` (`kag_pir_avg_recent` / `price`) and
+    `pir_per_min_per_credit` (`kag_pir_per_min` / `price`) are blank when the KPI or the price is missing or the
+    price is 0. The unofficial price projection - `breakeven_pir` (`0.9 x price`), `expected_price_change`
+    (`(kag_pir_avg - breakeven_pir) / 10`), `capital_yield_pct` (`expected_price_change / price x 100`) and
+    `expected_price_next_round` (`price + expected_price_change`) - is the community-reverse-engineered price
+    formula from `docs/rules.md`, treating `kag_pir_avg` (season average, not recent-5) as the Round score; an
+    ESTIMATE only (open question: whether the real Round score includes a 10% team-win bonus that `kag_pir_avg`
+    does not), blank under the same conditions.
+  - Duplicates (`DUPLICATE_COLUMNS`). A stat two sources both report appears once, decided on value agreement
+    (direct comparison, correlation, agreement with the Kaggle box-score means), precision and completeness:
+    per-game counts keep Dunkest over basketnews advanced; shooting percentages (FG, 3P, FT, TS) keep the Kaggle
+    KPI (exact, blank without attempts; note it is a 0-1 fraction, the rest are 0-100); the basketnews team
+    ratings keep the on/off total view. Five on/off metrics identical across two views (e.g.
+    `offensive_rating_lineup` in total and offense) are kept per view anyway.
+  - Exclusions (`EXCLUDED_COLUMNS`). Ids and sample-size columns (`price_rank`, `dunk_cr`, `dunk_min`,
+    `dunk_slug`, `player_id`, `bnadv_points`, `kag_player_id`, `kag_player_name_raw`, `kag_player_name`,
+    `kag_team_id`, `kag_games_played`, `kag_recent_games`) are still computed but dropped as the very last
+    step; remove an entry from the list to bring the column back at its place in the layout.
 - **Head coaches are excluded.** basketballsphere's price list includes a
   `role` of `head_coach` alongside `player`; coaches have no player stats
   in any of the other three sources, so they're filtered out before
@@ -173,15 +182,16 @@ The workbook has these sheets, in order:
 
 | Sheet            | Content                                                                                                                                                                                              |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Column Guide`   | One row per column of every source dataset, plus `found_in`/`found_in_count`, the two value KPIs and the three price-projection KPIs under `Master (derived)`: `Source dataset`, `Column name` (as in that source), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)") |
+| `Column Guide`   | One row per `Master` column, in `Master` order: `Source dataset` (the source, or `Master (derived)`), `Column name` (as in the Master), `Explanation` (texts in `src/player_master_column_guide.py`; uncertain meanings say "(unverified)"; a kept duplicate names the columns dropped in its favour) |
 | `Master`         | The joined table, one row per player (layout above); header frozen along with `player_name`                                                                                                          |
+| `Source Column Guide` | One row per column of every source sheet below, named as in that source                                                                                                                       |
 | `Dunkest`        | Raw `player_stats.csv`, as-is                                                                                                                                                                        |
 | `BN Advanced`    | Raw `basketnews_players_advanced_stats.csv`, as-is                                                                                                                                                   |
 | `BN On-Off`      | Raw `onoff_stats.csv`, long format, rows ordered total, offensive, defensive                                                                                                                         |
 | `Fantasy Prices` | Raw `basketballsphere_prices.csv`, as-is (head coaches included; `Master` excludes them)                                                                                                             |
 | `Player KPIs`    | The KPI workbook's table (`data/curated/player_kpis.xlsx`), as-is                                                                                                                                    |
 
-As of the last run: 446 unique players, 176 `Master` columns; 341 of the 351 Kaggle players
+As of the last run: 446 unique players, 243 `Master` columns; 341 of the 351 Kaggle players
 joined an existing row, 10 added a new row (see the increment-2 adjudication in
 `KAGGLE_PLAYER_IDENTITY_OVERRIDES`/`src/build_player_master_table.py` for why those 10 stay
 unmatched). Coverage per source (a player can be missing from some sources and still appear, since
