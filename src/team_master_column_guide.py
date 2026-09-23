@@ -166,6 +166,23 @@ def team_kpis_guide() -> dict[str, tuple[str, str]]:
             "centers_fantasy_points (Dunkest defense vs position, conceded per game) / the 20-team league "
             "average for centers",
         ),
+        "funnel_actual_pir_guards": (
+            TEAM_KPIS,
+            "Real-PIR analogue of funnel_ratio_guards: PIR (Kaggle box score) of the opposing guards who "
+            "played, summed per game and averaged over the team's games, / the 20-team league average; "
+            "1.0 = league-average PIR conceded to guards, >1 = concedes more than average. Position from "
+            "the player master table (G/F/C); postseason games included",
+        ),
+        "funnel_actual_pir_forwards": (
+            TEAM_KPIS,
+            "Real-PIR analogue of funnel_ratio_forwards: PIR of the opposing forwards who played, summed "
+            "per game and averaged over the team's games, / the 20-team league average for forwards",
+        ),
+        "funnel_actual_pir_centers": (
+            TEAM_KPIS,
+            "Real-PIR analogue of funnel_ratio_centers: PIR of the opposing centers who played, summed "
+            "per game and averaged over the team's games, / the 20-team league average for centers",
+        ),
     }
 
 
