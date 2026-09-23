@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from build_team_master_table import BN_ID, DVP_ID, build_column_guide, check_column_guide, match_teams
-from team_master_column_guide import BN_TEAM, DUNKEST_DVP
+from team_master_column_guide import BN_TEAM, DUNKEST_DVP, TEAM_KPI_COLUMNS
 
 
 def _teams(*rows: tuple[int, str]) -> pd.DataFrame:
@@ -51,3 +51,10 @@ def test_column_guide_lists_every_source_column_once() -> None:
         check_column_guide(pd.concat([guide, guide.iloc[[0]]]), sources)
     with pytest.raises(ValueError, match="exactly once"):
         check_column_guide(guide.iloc[1:], sources)
+
+
+def test_team_kpi_block_groups_the_actual_pir_funnel_right_after_the_dunkest_funnel() -> None:
+    funnel = [c for c in TEAM_KPI_COLUMNS if c.startswith("funnel_")]
+    start = TEAM_KPI_COLUMNS.index(funnel[0])
+    assert TEAM_KPI_COLUMNS[start : start + 6] == funnel
+    assert [c.rsplit("_", 1)[0] for c in funnel] == ["funnel_ratio"] * 3 + ["funnel_actual_pir"] * 3

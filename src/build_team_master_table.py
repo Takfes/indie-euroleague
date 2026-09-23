@@ -4,7 +4,7 @@
 Combines two EuroLeague datasets (one row per team, 20 teams) into one row per team:
   - data/basketnews-team-stats/basketnews_team_stats.csv (offense/defense KPIs, all/home/away)
   - data/dunkest-defense-positions/dunkest_defense_vs_position.csv (stats conceded to guards/forwards/centers)
-Also joins in the six derived team KPIs from data/curated/team_kpis.xlsx (built by
+Also joins in the nine derived team KPIs from data/curated/team_kpis.xlsx (built by
 src/build_team_kpis.py, which must run first).
 
 Output: data/curated/team_master_table.xlsx with sheets, in order:
@@ -27,7 +27,8 @@ columns that both sources repeat are kept once, unprefixed):
      offense_all, offense_home, offense_away, defense_all, defense_home, defense_away
   3. Dunkest columns in source order: guards_*, forwards_*, centers_* (dunkdvp_*)
   4. derived Team KPIs block, unprefixed, in `TEAM_KPI_COLUMNS` order (pace_factor, the two
-     foul rates, then the three funnel ratios) - joined last, after the raw source blocks
+     foul rates, the three Dunkest funnel ratios, then the three real-PIR
+     `funnel_actual_pir_*` ratios) - joined last, after the raw source blocks
 There are no found_in columns: every team is in both sources (the build refuses otherwise).
 
 Usage:
