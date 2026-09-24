@@ -73,6 +73,31 @@ def test_columns_are_unique_and_excluded_or_duplicate_ones_are_gone(master: pd.D
     assert set(DUPLICATE_COLUMNS.values()) <= set(master.columns) | set(EXCLUDED_COLUMNS)
 
 
+def test_the_master_drops_exactly_the_requested_columns_and_keeps_the_kaggle_id_the_team_pipeline_reads(
+    master: pd.DataFrame,
+) -> None:
+    """Names are spelled out here, not derived from `EXCLUDED_COLUMNS`, so editing that list breaks this test."""
+    requested = {
+        "price_rank",
+        "dunk_cr",
+        "dunk_min",
+        "dunk_slug",
+        "player_id",
+        "bnadv_points",
+        "kag_player_name_raw",
+        "kag_player_name",
+        "kag_team_id",
+        "kag_games_played",
+        "kag_recent_games",
+    }
+    assert set(EXCLUDED_COLUMNS) == requested
+    assert not requested & set(master.columns)
+    # build_team_kpis.funnel_actual_pir maps Kaggle players to positions through the Master's `kag_player_id`
+    # (`dropna(subset=["kag_player_id"]).set_index("kag_player_id")["position"]`); excluding it broke that build.
+    assert {"kag_player_id", "position"} <= set(master.columns)
+    assert master["kag_player_id"].dropna().is_unique
+
+
 def test_removing_an_exclusion_brings_the_column_back(monkeypatch: pytest.MonkeyPatch) -> None:
     """The layout places every excluded column, so the exclusion is a pure last-step filter."""
     monkeypatch.setattr(master_build, "EXCLUDED_COLUMNS", [])

@@ -30,7 +30,9 @@ from build_player_kpis import DISTRIBUTION_FAMILIES
 # Left out of the final Master sheet only: the columns are still computed and used inside the
 # build (e.g. `kag_games_played`, `dunk_slug` and `player_id` feed the join provenance check). This
 # list is applied as the very last step of column assembly and is intentionally easy to undo:
-# remove an entry and the column reappears at its place in the layout below.
+# remove an entry and the column reappears at its place in the layout below. `kag_player_id` must
+# stay out of this list: src/build_team_kpis.py reads the built Master's `kag_player_id` -> `position`
+# map for the real-PIR funnel KPIs (tests/test_master_columns.py pins it).
 EXCLUDED_COLUMNS = [
     "price_rank",
     "dunk_cr",
@@ -38,7 +40,6 @@ EXCLUDED_COLUMNS = [
     "dunk_slug",
     "player_id",
     "bnadv_points",
-    "kag_player_id",
     "kag_player_name_raw",
     "kag_player_name",
     "kag_team_id",

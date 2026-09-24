@@ -159,9 +159,10 @@ extending it:
     ratings keep the on/off total view. Five on/off metrics identical across two views (e.g.
     `offensive_rating_lineup` in total and offense) are kept per view anyway.
   - Exclusions (`EXCLUDED_COLUMNS`). Ids and sample-size columns (`price_rank`, `dunk_cr`, `dunk_min`,
-    `dunk_slug`, `player_id`, `bnadv_points`, `kag_player_id`, `kag_player_name_raw`, `kag_player_name`,
-    `kag_team_id`, `kag_games_played`, `kag_recent_games`) are still computed but dropped as the very last
-    step; remove an entry from the list to bring the column back at its place in the layout.
+    `dunk_slug`, `player_id`, `bnadv_points`, `kag_player_name_raw`, `kag_player_name`, `kag_team_id`,
+    `kag_games_played`, `kag_recent_games`) are still computed but dropped as the very last step; remove
+    an entry from the list to bring the column back at its place in the layout. `kag_player_id` stays in
+    the Master on purpose: `src/build_team_kpis.py` maps Kaggle players to positions through it.
 - **Head coaches are excluded.** basketballsphere's price list includes a
   `role` of `head_coach` alongside `player`; coaches have no player stats
   in any of the other three sources, so they're filtered out before
