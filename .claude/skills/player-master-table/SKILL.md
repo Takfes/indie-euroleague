@@ -117,7 +117,7 @@ extending it:
   sample-size columns, then the raw stats (production and availability, offense, defense, then team and lineup
   level: `dunk_plus_minus` and all `bnoo_*`: total `_tot`, offense `_off`, defense `_def`, source order inside
   each group), then the 11 signed contribution shares (`kag_*_contribution_pct`, they sum to 100), then the
-  Kaggle distribution KPIs. Within a stat family the sub-order is one pattern: per-game attempts, season-total
+  Kaggle distribution KPIs (the 11 contribution families last: `_avg`, `_sd`, `_cv`, `_p10`, `_p50`, `_p90`, `_range` each). Within a stat family the sub-order is one pattern: per-game attempts, season-total
   attempts, per-game makes, season-total makes, then the percentage / rate.
   - Teams. `team_name_hist` is Dunkest, then basketnews, then the price list, then Kaggle (the former
     `team_name`; it can lag a player's current team). `team_name_current` is the price list club only, no
@@ -157,7 +157,9 @@ extending it:
     shooting percentages (FG, 3P, FT, TS) keep the Kaggle
     KPI (exact, blank without attempts; note it is a 0-1 fraction, the rest are 0-100); the basketnews team
     ratings keep the on/off total view. Five on/off metrics identical across two views (e.g.
-    `offensive_rating_lineup` in total and offense) are kept per view anyway.
+    `offensive_rating_lineup` in total and offense) are kept per view anyway. To bring a dropped column
+    back, remove it from `DUPLICATE_COLUMNS` **and** place it in the layout lists (dropped duplicates are
+    not listed there; the build raises "In the Master but not in the layout" otherwise).
   - Exclusions (`EXCLUDED_COLUMNS`). Ids and sample-size columns (`price_rank`, `dunk_cr`, `dunk_min`,
     `dunk_slug`, `player_id`, `bnadv_points`, `kag_player_name_raw`, `kag_player_name`, `kag_team_id`,
     `kag_games_played`, `kag_recent_games`) are still computed but dropped as the very last step; remove

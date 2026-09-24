@@ -54,7 +54,8 @@ Output sheets: `Column Guide` (source dataset, column name, explanation; one row
   `src/build_game_player_stats.py`, prefix -> (sign, column)): `pts`, `reb`, `ast`, `stl`, `blk` (blocks made),
   `fdr` (fouls drawn) count plus; `mfg` / `mft` (missed FG / FT), `tov`, `blkag` (own shots blocked) and `pf`
   (fouls committed) count minus. `{prefix}_share_of_pir` = sign x component / that row's `pir`, blank unless the
-  row's pir > 0 (so the 11 shares of a row sum to exactly 1). `player-kpis` averages them per player.
+  row's pir > 0 (so the 11 shares of a row sum to exactly 1). A per-game view only: `player-kpis` does not
+  aggregate them (it averages the signed components themselves and divides by the average PIR).
 - **Definitions.** `pir` = points + total rebounds + assists + steals + blocks made + fouls drawn - missed FG -
   missed FT - turnovers - shots blocked - fouls committed (`blocks_favour` are blocks made, `blocks_against`
   the player's shots rejected, `fouls_received` fouls drawn = FDR). Usage proxy = FGA + 0.44 x FTA + TO + 0.5 x AST.

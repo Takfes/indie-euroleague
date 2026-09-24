@@ -15,9 +15,9 @@ columns. No new data is fetched here.
 - `data/curated/player_game_stats.xlsx` (`Game Stats`; `player-game-stats` skill)
 - `data/curated/player_master_table.xlsx` (`Master`; `player-master-table` skill, for `kag_player_id` -> `position`)
 
-Pipeline: raw CSVs + player workbooks -> **this** -> `team-master-table`. Note the player master
-table itself reads `team_kpis.xlsx` (only its 20 canonical team names), so the two are mutually
-dependent on the committed workbooks; rebuild in the order player-game-stats -> player master -> this -> team master.
+Pipeline: raw CSVs + player workbooks -> **this** -> `team-master-table`. The dependency is one-way: the
+player master reads no team workbook (its 20 canonical team names come from the price list), so rebuild in
+the order player-game-stats -> player master -> this -> team master.
 
 ## When to use this
 

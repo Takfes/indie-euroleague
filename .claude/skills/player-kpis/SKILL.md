@@ -33,7 +33,7 @@ Games = games played (minutes > 0). "Recent" = the last `RECENT_GAMES` = 5 games
 | Identity     | `player_id` (Kaggle), `player_name_raw` (`LAST, FIRST`), `player_name` (First Last), `team_id` (latest team), `games_played`, `games_dnp`, `dnp_rate`, `recent_games` |
 | Recent window| `pir_avg_recent`, `pir_median_recent`, `minutes_avg_recent`, `minutes_trend` (recent - season mean, minutes) |
 | Distribution | one family per per-game series, each with the standard set: the average plus `_sd`, `_cv`, `_p10`, `_p50`, `_p90`, `_range` (see below) |
-| Contribution | 11 signed PIR components `{prefix}_contribution_pct` (mean per-game share x 100; they sum to 100), each with its own distribution set (`_std`, `_cv`, `_p10`.. `_range`) |
+| Contribution | 11 signed PIR components: `{prefix}_contribution_pct` (component average / `pir_avg` x 100; they sum to 100) and the component's own distribution set in PIR points (`_avg`, `_sd`, `_cv`, `_p10`.. `_range`) |
 | Other        | `starts_rate` (starts / games played), `fg_pct`, `fg3_pct`, `ft_pct`, `ts_pct` (season totals, 0-1 fractions) |
 
 **Distribution set.** Every KPI family that aggregates a per-game series exposes the same seven stats, all
@@ -48,14 +48,18 @@ undefined without attempts; `fg3_pct` has no per-game series), so the season rat
 `starts_rate` and the recent-window figures are single values too. To add or drop a family, edit that dict plus the matching `player_kpis_guide()` entries; a KPI computed
 without a guide entry raises.
 
-**Contribution shares.** Computed per game in `player-game-stats` for the 11 components of PIR (`pts`, `reb`,
-`ast`, `stl`, `blk`, `fdr` plus; `mfg`, `mft`, `tov`, `blkag`, `pf` minus), blank unless the game's pir > 0. Per
-player, `{prefix}_contribution_pct` is the plain mean of the defined shares x 100 - no renormalization: the 11
-signed shares of a game sum to exactly 1, so the 11 pct sum to 100 for every player with at least one game of
-pir > 0 (players whose every game has pir <= 0 are blank). `_p10/_p50/_p90/_range` are on the same 0-100 scale as
-`_pct`; `_std` (the original column, unscaled fraction) and `_cv` (sd / |mean|, so the negative components get a
-positive CV) complete the set. Per-game shares blow up when a game's pir is barely positive, so read small samples
-with care.
+**Contribution to PIR.** PIR is the sum of 11 signed components (`CONTRIBUTION_STATS` in
+`src/build_game_player_stats.py`: `pts`, `reb`, `ast`, `stl`, `blk`, `fdr` plus; `mfg`, `mft`, `tov`, `blkag`,
+`pf` minus). Each component is a per-game series in PIR points (minus components negative) and gets the
+distribution set over all games played: `{prefix}_contribution_avg`, `_sd`, `_cv` (sd / |mean|, so the negative
+components get a positive CV), `_p10`, `_p50`, `_p90`, `_range`; the 11 averages add up to `pir_avg`.
+`{prefix}_contribution_pct` = the component's average / `pir_avg` x 100, i.e. a **ratio of season totals**, not
+the mean of per-game ratios (a game with a tiny pir makes a per-game share explode, so that version was
+unstable). It uses every game played, including games at pir <= 0 (DNP rows are never games played). The 11
+pct sum to 100 by construction - no renormalization - for every player whose `pir_avg` is not 0; a player at
+exactly 0 is blank, and a negative `pir_avg` flips every sign but they still sum to 100. Players with a
+`pir_avg` near 0 (a handful of small-sample players) get very large shares. The per-game
+`{prefix}_share_of_pir` columns of `player-game-stats` are a per-game view only; nothing here reads them.
 
 Players who only have DNP rows keep a row (`games_played` 0, blank KPIs). A player traded mid-season has
 all games in the KPIs and the most recent team in `team_id`. The value KPIs (PIR/credit, PIR/min/credit)
@@ -73,7 +77,7 @@ the end. (The master table has its own order, see `player-master-table`.)
 ## Verification
 
 Recompute several KPIs for several players with independent code from the game rows (or the raw csv) and
-compare; check that the 11 `_contribution_pct` sum to 100 for every player with a game of pir > 0; also compare `pir_avg` with `valuation_per_game` of `euroleague_players.csv` (same Kaggle folder;
+compare; check that the 11 `_contribution_pct` sum to 100 for every player with `pir_avg` != 0 and the 11 `_contribution_avg` add up to `pir_avg`; also compare `pir_avg` with `valuation_per_game` of `euroleague_players.csv` (same Kaggle folder;
 matches within rounding for every 2025-26 player). Column Guide texts live in `src/kaggle_column_guide.py`
 (one row per column, marked "(unverified)" when unsure). Unit tests with tiny frames: `tests/test_player_kpis.py`.
 
