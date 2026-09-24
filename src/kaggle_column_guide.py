@@ -122,14 +122,15 @@ def _contribution_guide() -> dict[str, tuple[str, str]]:
     guide: dict[str, tuple[str, str]] = {}
     for prefix, label in CONTRIBUTION_LABELS.items():
         noun = label.removeprefix("-").lower()
-        minus = " (a minus: reduces PIR)" if label.startswith("-") else ""
+        minus = " (a minus: reduces PIR, so negative)" if label.startswith("-") else ""
         what = f"per-game PIR points from {noun}{minus}"
         base = f"{prefix}_contribution"
         guide[f"{base}_pct"] = (
             KPI_DERIVED,
             f"Share of average PIR from {noun}{minus}: average {what.removesuffix(minus)} / average PIR x 100, a "
             "ratio of season totals over every game played (also those at PIR <= 0); the 11 contribution_pct sum "
-            "to 100; blank if average PIR is 0 (a negative average PIR flips every sign)",
+            "to 100 (a minus component is negative while average PIR is positive); blank if average PIR is 0 "
+            "(a negative average PIR flips every sign)",
         )
         guide[f"{base}_avg"] = (
             KPI_DERIVED,

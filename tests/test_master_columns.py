@@ -95,6 +95,7 @@ def test_the_master_drops_exactly_the_requested_columns_and_keeps_the_kaggle_id_
     # build_team_kpis.funnel_actual_pir maps Kaggle players to positions through the Master's `kag_player_id`
     # (`dropna(subset=["kag_player_id"]).set_index("kag_player_id")["position"]`); excluding it broke that build.
     assert {"kag_player_id", "position"} <= set(master.columns)
+    assert master["kag_player_id"].notna().sum() > 300
     assert master["kag_player_id"].dropna().is_unique
 
 

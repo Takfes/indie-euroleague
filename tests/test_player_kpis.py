@@ -268,6 +268,7 @@ def test_dnp_only_player_keeps_a_row_with_blank_kpis() -> None:
     k = _kpis([{"pir": 0, "minutes": 0.0}, {"pir": 0, "minutes": 0.0}])
     assert (k["games_played"], k["games_dnp"], k["recent_games"], k["dnp_rate"]) == (0, 2, 0, 1.0)
     assert k[["pir_avg", "pir_per_min", "pir_p50", "pts_contribution_pct", "usage_per_min"]].isna().all()
+    assert k[[column for column in KPI_COLUMNS if "_contribution_" in column]].isna().all()
 
 
 def test_identity_uses_latest_team_all_games_and_clean_name() -> None:

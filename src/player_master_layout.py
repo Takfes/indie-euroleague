@@ -51,9 +51,9 @@ EXCLUDED_COLUMNS = [
 # agreement (direct comparison and correlation across the players both sources have), agreement
 # with the Kaggle box-score means, precision and completeness; the excluded `bnadv_points` (kept
 # `dunk_pts`) and `dunk_min` (kept `kag_minutes_avg`) belong to the same family of decisions.
-# To keep a dropped column after all, removing it from this dict is not enough: it must also be placed
-# in the lists below (dropped duplicates are not listed there), or the build raises "In the Master but
-# not in the layout"; the column that was kept in its favour stays unless it is removed too.
+# The lists below place only the kept columns, so a change here needs a matching layout edit or the build
+# raises: to keep a dropped column as well, remove its entry here and place it below; to flip a pair, swap
+# the entry and then place the newly kept column and remove the newly dropped one from the lists below.
 DUPLICATE_COLUMNS = {
     # Same BN team rating on court, scraped twice: identical in every row. The on/off total view
     # is kept (its description is verified, the BN advanced one is not).
