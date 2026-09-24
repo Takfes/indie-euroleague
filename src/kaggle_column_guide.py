@@ -148,8 +148,8 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
     aggregates follow one sequence: recent-then-season average, trend/median, percentiles
     (p10, p50, p90, range), spread (sd, cv). Every per-game series carries the full set
     (average, sd, cv, p10, p50, p90, range); see `DISTRIBUTION_FAMILIES` in
-    src/build_player_kpis.py. See the `player-kpis` skill for the convention a future column
-    addition should follow.
+    src/build_player_kpis.py (the 11 PIR components come from `CONTRIBUTION_STATS`). See the
+    `player-kpis` skill for the convention a future column addition should follow.
 
     Args:
         recent_games: Size of the recent window (games played), quoted in the texts.
