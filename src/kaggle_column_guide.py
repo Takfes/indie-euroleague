@@ -115,27 +115,28 @@ def _distribution_guide(
 
 
 def _contribution_guide() -> dict[str, tuple[str, str]]:
-    """Guide entries of the per-component contribution KPIs: `pct`, its percentiles and range, `std`, `cv`.
+    """Guide entries of the per-component contribution KPIs: `pct`, `avg` and the standard spread stats.
 
     Texts are in words, not column names, so they read the same in the Master (`kag_` prefix).
     """
     guide: dict[str, tuple[str, str]] = {}
     for prefix, label in CONTRIBUTION_LABELS.items():
-        reduces = label.startswith("-")
-        share = f"per-game share of PIR from {label.removeprefix('-').lower()}" + (
-            " (a minus: reduces PIR)" if reduces else ""
-        )
+        noun = label.removeprefix("-").lower()
+        minus = " (a minus: reduces PIR)" if label.startswith("-") else ""
+        what = f"per-game PIR points from {noun}{minus}"
         base = f"{prefix}_contribution"
         guide[f"{base}_pct"] = (
             KPI_DERIVED,
-            f"Mean {share} x 100; the 11 contribution_pct sum to 100 (blank if no game has pir > 0)",
+            f"Share of average PIR from {noun}{minus}: average {what.removesuffix(minus)} / average PIR x 100, a "
+            "ratio of season totals over every game played (also those at PIR <= 0); the 11 contribution_pct sum "
+            "to 100; blank if average PIR is 0 (a negative average PIR flips every sign)",
         )
-        guide[f"{base}_p10"] = (KPI_DERIVED, f"10th percentile of {share} x 100, season")
-        guide[f"{base}_p50"] = (KPI_DERIVED, f"Median {share} x 100, season")
-        guide[f"{base}_p90"] = (KPI_DERIVED, f"90th percentile of {share} x 100, season")
-        guide[f"{base}_range"] = (KPI_DERIVED, f"90th minus 10th percentile of {share} x 100, season")
-        guide[f"{base}_std"] = (KPI_DERIVED, f"Std dev of {share} (unscaled, 0-1); blank under 2 games")
-        guide[f"{base}_cv"] = (KPI_DERIVED, f"Std dev / |mean| of {share}; blank under 2 games or if mean is 0")
+        guide[f"{base}_avg"] = (
+            KPI_DERIVED,
+            f"Average {what}, season; the 11 contribution averages add up to the average PIR",
+        )
+        guide |= _distribution_guide(base, what, ("p10", "p50", "p90", "range", "sd"))
+        guide[f"{base}_cv"] = (KPI_DERIVED, f"Std dev / |mean| of {what}; blank under 2 games or if mean is 0")
     return guide
 
 
@@ -189,8 +190,8 @@ def player_kpis_guide(recent_games: int) -> dict[str, tuple[str, str]]:
         "minutes_sd": (KPI_DERIVED, "Std dev of game minutes; blank under 2 games"),
         "minutes_cv": (KPI_DERIVED, "Minutes std dev / mean minutes; blank under 2 games"),
         "starts_rate": (KPI_DERIVED, "Starts (is_starter = 1) / games played, season"),
-        # Contribution to PIR, one group per component (mean and spread of {prefix}_share_of_pir over
-        # the games with pir > 0); the 11 means sum to 100.
+        # Contribution to PIR, one group per component: the average and spread of the signed per-game
+        # component (PIR points, all games played) and its share of the average PIR; the 11 shares sum to 100.
         **_contribution_guide(),
         # Fouls drawn rate.
         "fdr_rate": (KPI_DERIVED, "Season fouls drawn / season minutes"),

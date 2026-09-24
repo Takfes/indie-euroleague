@@ -17,7 +17,7 @@ Order of the sheet:
   4. The 11 signed PIR contribution shares (`kag_*_contribution_pct`, they sum to 100).
   5. The Kaggle distribution KPIs: per family the average and its recent-window siblings, then
      sd, cv, p10, p50, p90, range; families whose average or sd already lead the sheet only add
-     the remainder. The 11 contribution families come last (std, cv, p10, p50, p90, range each).
+     the remainder. The 11 contribution families come last (avg, sd, cv, p10, p50, p90, range each).
 """
 
 from __future__ import annotations
@@ -51,6 +51,9 @@ EXCLUDED_COLUMNS = [
 # agreement (direct comparison and correlation across the players both sources have), agreement
 # with the Kaggle box-score means, precision and completeness; the excluded `bnadv_points` (kept
 # `dunk_pts`) and `dunk_min` (kept `kag_minutes_avg`) belong to the same family of decisions.
+# To keep a dropped column after all, removing it from this dict is not enough: it must also be placed
+# in the lists below (dropped duplicates are not listed there), or the build raises "In the Master but
+# not in the layout"; the column that was kept in its favour stays unless it is removed too.
 DUPLICATE_COLUMNS = {
     # Same BN team rating on court, scraped twice: identical in every row. The on/off total view
     # is kept (its description is verified, the BN advanced one is not).
@@ -205,7 +208,7 @@ def _distribution_columns() -> list[str]:
     for family in DISTRIBUTION_FAMILIES:
         columns += _FAMILY_HEADS[family] + [f"kag_{family}_{stat}" for stat in _SPREAD_STATS]
     for prefix in CONTRIBUTION_STATS:
-        columns += [f"kag_{prefix}_contribution_{stat}" for stat in ("std", "cv", "p10", "p50", "p90", "range")]
+        columns += [f"kag_{prefix}_contribution_{stat}" for stat in ("avg", *_SPREAD_STATS)]
     leading = set(LEADING_COLUMNS)
     return [column for column in columns if column not in leading]
 

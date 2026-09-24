@@ -64,8 +64,6 @@ def _games(player_id: str, name: str, rows: list[dict]) -> pd.DataFrame:
         }
         entry["usage_per_min"] = entry["usage_proxy"] / row["minutes"] if played else np.nan
         entry["fdr_per_min"] = entry["fouls_received"] / row["minutes"] if played else np.nan
-        for prefix, (sign, stat) in CONTRIBUTION_STATS.items():
-            entry[f"{prefix}_share_of_pir"] = sign * entry[stat] / pir if pd.notna(pir) and pir > 0 else np.nan
         frame.append(entry)
     return pd.DataFrame(frame)
 
@@ -167,8 +165,38 @@ def test_shooting_blank_without_attempts() -> None:
     assert k[["fg_pct", "fg3_pct", "ft_pct", "ts_pct"]].isna().all()
 
 
-def test_contribution_pct_is_the_plain_mean_signed_share_times_100_and_all_eleven_sum_to_100() -> None:
-    """Both games have pir > 0 and the components add up to pir: no renormalization is needed."""
+def _total_shares(rows: list[dict]) -> dict[str, float]:
+    """Expected contribution_pct by hand: sum of a signed component / sum of pir over the games, x 100."""
+    total_pir = sum(row["pir"] for row in rows)
+    return {
+        prefix: sign * sum(row.get(stat, 0) for row in rows) / total_pir * 100
+        for prefix, (sign, stat) in CONTRIBUTION_STATS.items()
+    }
+
+
+# Two games whose per-game shares differ a lot from the ratio of totals: the second game has a tiny pir.
+# game 1: pir = 20 (points) ; game 2: pir = 3 + 2 - 1 (turnover) - 2 (missed FG) - 0 = 2
+UNEVEN_ROWS = [
+    {"pir": 20, "minutes": 20.0, "points": 20},
+    {"pir": 2, "minutes": 20.0, "points": 3, "total_rebounds": 2, "turnovers": 1, "fg_missed": 2},
+]
+
+
+def test_contribution_pct_is_the_ratio_of_season_totals_not_the_mean_of_per_game_ratios() -> None:
+    k = _kpis(UNEVEN_ROWS)
+    # totals: points 23, rebounds 2, turnovers -1, missed FG -2 over pir 22
+    assert k["pts_contribution_pct"] == pytest.approx(23 / 22 * 100)
+    assert k["reb_contribution_pct"] == pytest.approx(2 / 22 * 100)
+    assert k["tov_contribution_pct"] == pytest.approx(-1 / 22 * 100)
+    assert k["mfg_contribution_pct"] == pytest.approx(-2 / 22 * 100)
+    # The old mean of per-game ratios would have been (1.0 + 1.5) / 2 = 125% for points.
+    assert k["pts_contribution_pct"] != pytest.approx(125.0)
+    expected = _total_shares(UNEVEN_ROWS)
+    for prefix, value in expected.items():
+        assert k[f"{prefix}_contribution_pct"] == pytest.approx(value)
+
+
+def test_all_eleven_contribution_pct_sum_to_100_and_the_component_averages_add_up_to_the_average_pir() -> None:
     rows = [
         # pir = 8 + 4 + 2 - 2 (turnovers) - 1 (missed FG) - 1 (fouls committed) = 10
         {
@@ -192,55 +220,48 @@ def test_contribution_pct_is_the_plain_mean_signed_share_times_100_and_all_eleve
             "ft_missed": 2,
             "blocks_against": 1,
         },
+        # a game at pir <= 0 is a game like any other here: pir = 2 - 6 (missed FG) - 1 (turnover) = -5
+        {"pir": -5, "minutes": 10.0, "points": 2, "fg_missed": 6, "turnovers": 1},
     ]
     k = _kpis(rows)
-    row_shares = {
-        "pts": [0.8, 0.4],
-        "reb": [0.4, 0.0],
-        "ast": [0.0, 0.6],
-        "stl": [0.0, 0.2],
-        "blk": [0.0, 0.1],
-        "fdr": [0.2, 0.0],
-        "mfg": [-0.1, 0.0],
-        "mft": [0.0, -0.2],
-        "tov": [-0.2, 0.0],
-        "blkag": [0.0, -0.1],
-        "pf": [-0.1, 0.0],
-    }
-    assert list(row_shares) == list(CONTRIBUTION_STATS)
-    for prefix, shares in row_shares.items():
-        assert k[f"{prefix}_contribution_pct"] == pytest.approx(np.mean(shares) * 100)
-        assert k[f"{prefix}_contribution_std"] == pytest.approx(np.std(shares, ddof=1))
     pct_columns = [f"{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]
-    assert k[pct_columns].sum() == pytest.approx(100.0)
+    assert k[pct_columns].sum() == pytest.approx(100.0, abs=1e-9)
+    avg_columns = [f"{prefix}_contribution_avg" for prefix in CONTRIBUTION_STATS]
+    assert k[avg_columns].sum() == pytest.approx(k["pir_avg"])
+    for prefix, value in _total_shares(rows).items():
+        assert k[f"{prefix}_contribution_pct"] == pytest.approx(value)
 
 
-def test_contribution_excludes_non_positive_pir_rows_from_mean_and_std() -> None:
-    """A game with pir <= 0 is dropped from that stat's share set, like every other blank-ratio KPI."""
+def test_contribution_uses_every_game_played_including_games_with_non_positive_pir() -> None:
     rows = [
-        {"pir": 10, "minutes": 20.0, "points": 5},  # share 0.5
-        {"pir": -2, "minutes": 20.0, "points": 9},  # excluded: this row's pir <= 0
-        {"pir": 6, "minutes": 20.0, "points": 3},  # share 0.5
+        {"pir": 10, "minutes": 20.0, "points": 10},
+        {"pir": -2, "minutes": 20.0, "points": 2, "fg_missed": 4},  # pir <= 0: still counted
+        {"pir": 0, "minutes": 20.0},  # pir exactly 0: still counted (a game played)
+        {"pir": 0, "minutes": 0.0, "points": 99},  # DNP: never counted
     ]
     k = _kpis(rows)
-    assert k["pts_contribution_std"] == pytest.approx(0.0)  # only [0.5, 0.5] counted
-    assert k["pts_contribution_pct"] == pytest.approx(50.0)  # plain mean of [0.5, 0.5], times 100
+    assert k["pts_contribution_avg"] == pytest.approx(4.0)  # (10 + 2 + 0) / 3 games played
+    assert k["mfg_contribution_avg"] == pytest.approx(-4 / 3)
+    assert k["pts_contribution_pct"] == pytest.approx(12 / 8 * 100)  # total points / total pir
+    assert k["mfg_contribution_pct"] == pytest.approx(-4 / 8 * 100)
+    assert k["pts_contribution_sd"] == pytest.approx(np.std([10, 2, 0], ddof=1))
 
 
-def test_contribution_blank_when_no_row_has_positive_pir() -> None:
-    k = _kpis([{"pir": -3, "minutes": 10.0, "points": 2}, {"pir": 0, "minutes": 10.0}])
-    contribution_columns = [
-        f"{prefix}_contribution_{suffix}" for prefix in CONTRIBUTION_STATS for suffix in ("pct", "std")
-    ]
-    assert k[contribution_columns].isna().all()
+def test_contribution_pct_is_blank_when_the_average_pir_is_zero_but_the_distribution_is_defined() -> None:
+    k = _kpis([{"pir": 3, "minutes": 10.0, "points": 3}, {"pir": -3, "minutes": 10.0, "fg_missed": 3}])
+    assert k["pir_avg"] == 0
+    assert k[[f"{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]].isna().all()
+    assert k["pts_contribution_avg"] == pytest.approx(1.5)
+    assert k["mfg_contribution_avg"] == pytest.approx(-1.5)
+    assert pd.notna(k["pts_contribution_sd"])
 
 
-def test_contribution_mean_defined_with_one_valid_row_but_std_stays_blank() -> None:
-    k = _kpis([{"pir": 10, "minutes": 20.0, "points": 5, "total_rebounds": 5}, {"pir": -1, "minutes": 10.0}])
-    assert k["pts_contribution_pct"] == pytest.approx(50.0)
-    assert k["reb_contribution_pct"] == pytest.approx(50.0)
-    assert pd.isna(k["pts_contribution_std"])
-    assert pd.isna(k["reb_contribution_std"])
+def test_contribution_pct_still_sums_to_100_when_the_average_pir_is_negative() -> None:
+    """A negative total flips every sign but the 11 shares still add up to 100 (the spec: blank only at 0)."""
+    k = _kpis([{"pir": -2, "minutes": 10.0, "points": 2, "fg_missed": 4}])
+    assert k["pts_contribution_pct"] == pytest.approx(-100.0)
+    assert k["mfg_contribution_pct"] == pytest.approx(200.0)
+    assert k[[f"{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]].sum() == pytest.approx(100.0)
 
 
 def test_dnp_only_player_keeps_a_row_with_blank_kpis() -> None:
@@ -281,8 +302,10 @@ def test_every_distribution_family_and_contribution_exposes_the_standard_set() -
             assert f"{base}_{stat}" in KPI_COLUMNS, f"{base}_{stat}"
     assert {"pir_avg", "pir_per_min", "minutes_avg", "usage_proxy_avg", "usage_per_min", "fdr_rate"} <= set(KPI_COLUMNS)
     for prefix in CONTRIBUTION_STATS:
-        for stat in ("pct", "std", "cv", "p10", "p50", "p90", "range"):
+        # The raw per-game component gets the same set as every other series, plus its share of PIR.
+        for stat in ("avg", *SPREAD_STATS, "pct"):
             assert f"{prefix}_contribution_{stat}" in KPI_COLUMNS, f"{prefix}_contribution_{stat}"
+        assert f"{prefix}_contribution_std" not in KPI_COLUMNS
     assert len(KPI_COLUMNS) == len(set(KPI_COLUMNS))
 
 
@@ -332,11 +355,13 @@ def test_single_game_keeps_percentiles_but_blanks_sd_and_cv_for_every_family() -
         assert pd.isna(k[f"{base}_sd"]) and pd.isna(k[f"{base}_cv"])
         assert k[f"{base}_p10"] == k[f"{base}_p50"] == k[f"{base}_p90"]
         assert k[f"{base}_range"] == 0
-    assert k["pts_contribution_p10"] == k["pts_contribution_p50"] == k["pts_contribution_p90"] == pytest.approx(100.0)
-    assert pd.isna(k["pts_contribution_std"]) and pd.isna(k["pts_contribution_cv"])
+    assert k["pts_contribution_p10"] == k["pts_contribution_p50"] == k["pts_contribution_p90"] == 7
+    assert k["pts_contribution_range"] == 0
+    assert pd.isna(k["pts_contribution_sd"]) and pd.isna(k["pts_contribution_cv"])
+    assert k["pts_contribution_pct"] == pytest.approx(100.0)
 
 
-def test_contribution_distribution_is_on_the_pct_scale_and_negative_components_get_a_positive_cv() -> None:
+def test_contribution_distribution_is_of_the_signed_per_game_component_and_negative_ones_get_a_positive_cv() -> None:
     rows = [
         # pir = 8 + 4 - 2 (turnovers) = 10 ; pir = 6 + 2 - 4 (turnovers) = 4 ; pir = 5 + 5 - 0 = 10
         {"pir": 10, "minutes": 20.0, "points": 8, "total_rebounds": 4, "turnovers": 2},
@@ -344,18 +369,19 @@ def test_contribution_distribution_is_on_the_pct_scale_and_negative_components_g
         {"pir": 10, "minutes": 20.0, "points": 5, "total_rebounds": 5},
     ]
     k = _kpis(rows)
-    tov_shares = [-0.2, -1.0, 0.0]
-    pts_shares = [0.8, 1.5, 0.5]
-    assert k["tov_contribution_pct"] == pytest.approx(np.mean(tov_shares) * 100)
-    assert k["tov_contribution_p50"] == pytest.approx(-20.0)
-    assert k["tov_contribution_p10"] == pytest.approx(np.percentile(tov_shares, 10) * 100)
-    assert k["tov_contribution_p90"] == pytest.approx(np.percentile(tov_shares, 90) * 100)
+    tov = [-2, -4, 0]  # signed: a turnover reduces PIR
+    pts = [8, 6, 5]
+    assert k["tov_contribution_avg"] == pytest.approx(np.mean(tov))
+    assert k["tov_contribution_p50"] == pytest.approx(-2.0)
+    assert k["tov_contribution_p10"] == pytest.approx(np.percentile(tov, 10))
+    assert k["tov_contribution_p90"] == pytest.approx(np.percentile(tov, 90))
     assert k["tov_contribution_range"] == pytest.approx(k["tov_contribution_p90"] - k["tov_contribution_p10"])
-    assert k["tov_contribution_std"] == pytest.approx(np.std(tov_shares, ddof=1))  # sd stays unscaled
-    assert k["tov_contribution_cv"] == pytest.approx(np.std(tov_shares, ddof=1) / abs(np.mean(tov_shares)))
-    assert k["pts_contribution_cv"] == pytest.approx(np.std(pts_shares, ddof=1) / np.mean(pts_shares))
-    assert k["pts_contribution_p90"] == pytest.approx(np.percentile(pts_shares, 90) * 100)
-    # A component that never appears has a zero mean: no CV.
+    assert k["tov_contribution_sd"] == pytest.approx(np.std(tov, ddof=1))  # same scale as the average
+    assert k["tov_contribution_cv"] == pytest.approx(np.std(tov, ddof=1) / abs(np.mean(tov)))
+    assert k["pts_contribution_cv"] == pytest.approx(np.std(pts, ddof=1) / np.mean(pts))
+    assert k["pts_contribution_p90"] == pytest.approx(np.percentile(pts, 90))
+    assert k["tov_contribution_pct"] == pytest.approx(-6 / 24 * 100)  # total turnovers / total pir
+    # A component that never appears has a zero mean: no CV, but a defined pct of 0.
     assert k["mfg_contribution_pct"] == 0
     assert pd.isna(k["mfg_contribution_cv"])
     assert k["mfg_contribution_p50"] == 0

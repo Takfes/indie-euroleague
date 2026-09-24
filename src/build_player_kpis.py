@@ -28,17 +28,16 @@ Definitions (games = games played, i.e. minutes > 0; DNP rows only feed `games_d
     (0% or 100% on one shot, undefined on a game without attempts, and `fg3_pct` has no per-game
     series), so the season ratio of totals is the figure; `starts_rate` and the recent-window
     figures are single values too.
-  - Profile: contribution shares are computed per game in src/build_game_player_stats.py
-    for all 11 components of PIR (`{prefix}_share_of_pir` = the component's signed value /
-    that row's pir, blank unless the row's pir > 0; missed shots, turnovers, shots blocked
-    and fouls committed enter with a minus sign, so the 11 shares of a row sum to exactly 1),
-    then aggregated here per player over the rows where the share is defined:
-    `{prefix}_contribution_pct` is the plain mean share times 100 - no renormalization, the 11
-    values sum to 100 by construction. The same shares carry the distribution set:
-    `{prefix}_contribution_std` (sample std, left unscaled), `_cv` (sd / |mean|, so the
-    negative components get a positive CV), and `_p10`, `_p50`, `_p90`, `_range` on the same
-    0-100 scale as `_pct`. Also shooting percentages from season totals (fractions, 0-1),
-    `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
+  - Profile: contribution to PIR. PIR is the sum of 11 signed components (`CONTRIBUTION_STATS` in
+    src/build_game_player_stats.py; missed shots, turnovers, shots blocked and fouls committed enter
+    with a minus sign). Each component is a per-game series in PIR points and carries the full
+    distribution set over all games played: `{prefix}_contribution_avg`, `_sd`, `_cv` (sd / |mean|, so
+    the negative components get a positive CV), `_p10`, `_p50`, `_p90`, `_range`. The 11 averages add
+    up to `pir_avg`. `{prefix}_contribution_pct` = the component's average / `pir_avg` x 100 (0-100
+    scale): a ratio of season totals, not the mean of per-game ratios, which explodes on a game with
+    a tiny PIR. The 11 values sum to 100 by construction (no renormalization) and are blank only when
+    `pir_avg` is 0; a negative `pir_avg` flips every sign but they still sum to 100. Also shooting
+    percentages from season totals (fractions, 0-1), `fdr_rate`, `usage_proxy_avg`, `usage_per_min`.
   Players who only have DNP rows keep a row with blank KPIs and `games_played` 0.
 
 Usage:
@@ -99,21 +98,25 @@ def _ratio(numerator: float, denominator: float) -> float:
     return numerator / denominator if denominator > 0 else float("nan")
 
 
-def _distribution(series: pd.Series, sign: int = 1, scale: float = 1.0) -> dict[str, float]:
+def _pct_of(part: float, whole: float) -> float:
+    """`part` as a percentage of `whole` (0-100 scale), NaN if `whole` is 0."""
+    return part / whole * 100 if whole != 0 else float("nan")
+
+
+def _distribution(series: pd.Series, sign: int = 1) -> dict[str, float]:
     """The standard spread set of one per-game series: sd, cv, p10, p50, p90 and range.
 
     Args:
         series: The player's per-game values; NaN games are ignored.
-        sign: The sign that makes the series' mean non-negative (-1 for a component that
-            reduces PIR), so `cv` = sd / |mean| is defined for it too.
-        scale: Factor applied to the percentiles and the range, not to `sd` or `cv`.
+        sign: The sign of a series that reduces PIR (-1: its values and mean are negative), so
+            `cv` = sd / |mean| is defined for it too.
 
     Returns:
         `sd` and `cv` (NaN under `MIN_GAMES_FOR_SPREAD` values, `cv` also NaN if the mean is not
         positive after `sign`), `p10`, `p50`, `p90` (NaN only without any value) and `range`.
     """
     sd = series.std() if series.count() >= MIN_GAMES_FOR_SPREAD else float("nan")
-    p10, p50, p90 = (series.quantile(q) * scale for q in PERCENTILES.values())
+    p10, p50, p90 = (series.quantile(q) for q in PERCENTILES.values())
     return {"sd": sd, "cv": _ratio(sd, sign * series.mean()), "p10": p10, "p50": p50, "p90": p90, "range": p90 - p10}
 
 
@@ -146,12 +149,14 @@ def player_kpis(played: pd.DataFrame, recent_games: int = RECENT_GAMES) -> dict[
     }
     for base, column in DISTRIBUTION_FAMILIES.items():
         out |= {f"{base}_{stat}": value for stat, value in _distribution(games[column]).items()}
-    for prefix, (sign, _) in CONTRIBUTION_STATS.items():
-        shares = games[f"{prefix}_share_of_pir"]
-        out[f"{prefix}_contribution_pct"] = shares.mean() * 100
-        # `sd` keeps its original `_std` column name here; the other families call it `_sd`.
-        distribution = _distribution(shares, sign=sign, scale=100)
-        out |= {f"{prefix}_contribution_{'std' if stat == 'sd' else stat}": v for stat, v in distribution.items()}
+    for prefix, (sign, column) in CONTRIBUTION_STATS.items():
+        component = sign * games[column]
+        base = f"{prefix}_contribution"
+        out[f"{base}_avg"] = component.mean()
+        out |= {f"{base}_{stat}": value for stat, value in _distribution(component, sign).items()}
+        # Against `pir_avg`, not the sum of the eleven averages: dropping a component from
+        # CONTRIBUTION_STATS then breaks the sum-to-100 check instead of silently renormalizing.
+        out[f"{base}_pct"] = _pct_of(component.mean(), out["pir_avg"])
     out |= {
         "fg_pct": _ratio(total["fgm"], total["fga"]),
         "fg3_pct": _ratio(total["three_points_made"], total["three_points_attempted"]),

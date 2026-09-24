@@ -17,8 +17,8 @@ number, join date/time/teams from the header, then add per-row metrics: `pir`,
 `fdr_per_min`, `fg_missed`, `ft_missed`, the per-row PIR contribution shares
 (`CONTRIB_SHARE_COLUMNS`: one per component of the PIR formula, signed so that the 11 shares
 of a row sum to exactly 1; e.g. `pts_share_of_pir` = points / pir and `tov_share_of_pir` =
--turnovers / pir for that row, blank unless that row's pir > 0) and a per-player
-chronological `game_number` (games played only).
+-turnovers / pir for that row, blank unless that row's pir > 0; a per-game view, the player KPIs
+do not aggregate them) and a per-player chronological `game_number` (games played only).
 
 A player played a game when minutes > 0. DNP rows (did not play) stay in the dataset with
 `played` False and blank derived values, so a DNP count is possible; every stat KPI later
@@ -60,8 +60,9 @@ ASSIST_WEIGHT = 0.5
 # the sum of sign x column over all eleven and the signed shares `sign x column / pir` of a played
 # row sum to exactly 1 (no renormalization needed). Prefixes: mfg / mft = missed field goals / free
 # throws, blkag = blocks against (own shots blocked), pf = personal fouls committed. Shared with
-# src/build_player_kpis.py, which aggregates `{prefix}_share_of_pir` into `{prefix}_contribution_*`
-# per player.
+# src/build_player_kpis.py, which averages each signed component per player (`{prefix}_contribution_*`)
+# and takes its share of the average PIR; the per-game `{prefix}_share_of_pir` columns are only a
+# per-game view (nothing aggregates them: a game with a tiny pir makes a share huge).
 CONTRIBUTION_STATS: dict[str, tuple[int, str]] = {
     "pts": (1, "points"),
     "reb": (1, "total_rebounds"),

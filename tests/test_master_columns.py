@@ -110,9 +110,20 @@ def test_the_eleven_contribution_columns_sit_together_and_sum_to_100(master: pd.
     pct = [f"kag_{prefix}_contribution_pct" for prefix in CONTRIBUTION_STATS]
     start = list(master.columns).index(pct[0])
     assert list(master.columns[start : start + len(pct)]) == pct
-    complete = master.dropna(subset=pct)
-    assert len(complete) > 300
-    assert complete[pct].sum(axis=1).sub(100).abs().max() < 1e-9
+    # Every player with a nonzero average PIR has all eleven shares and they sum to 100; the rest have none.
+    defined = master["kag_pir_avg"].notna() & (master["kag_pir_avg"] != 0)
+    assert defined.sum() > 300
+    assert master.loc[defined, pct].notna().all(axis=None)
+    assert master.loc[~defined, pct].isna().all(axis=None)
+    assert master.loc[defined, pct].sum(axis=1).sub(100).abs().max() < 1e-9
+
+
+def test_the_eleven_contribution_averages_add_up_to_the_average_pir(master: pd.DataFrame) -> None:
+    averages = [f"kag_{prefix}_contribution_avg" for prefix in CONTRIBUTION_STATS]
+    played = master["kag_pir_avg"].notna()
+    assert played.sum() > 300
+    assert master.loc[played, averages].sum(axis=1).sub(master.loc[played, "kag_pir_avg"]).abs().max() < 1e-9
+    assert master.loc[~played, averages].isna().all(axis=None)
 
 
 def test_every_kaggle_distribution_family_is_complete(master: pd.DataFrame) -> None:
@@ -120,8 +131,11 @@ def test_every_kaggle_distribution_family_is_complete(master: pd.DataFrame) -> N
         stats = [f"kag_{family}_{stat}" for stat in ("sd", "cv", "p10", "p50", "p90", "range")]
         assert set(stats) <= set(master.columns), family
     for prefix in CONTRIBUTION_STATS:
-        stats = [f"kag_{prefix}_contribution_{stat}" for stat in ("pct", "std", "cv", "p10", "p50", "p90", "range")]
+        stats = [
+            f"kag_{prefix}_contribution_{stat}" for stat in ("pct", "avg", "sd", "cv", "p10", "p50", "p90", "range")
+        ]
         assert set(stats) <= set(master.columns), prefix
+        assert f"kag_{prefix}_contribution_std" not in master.columns
 
 
 def test_shooting_families_follow_attempted_made_percentage(master: pd.DataFrame) -> None:
