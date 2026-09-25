@@ -152,6 +152,8 @@ data/*
 !data/basketnews-onoff-stats/**
 !data/euroleague-fantasy/
 !data/euroleague-fantasy/**
+!data/euroleague-fantasy-stats/
+!data/euroleague-fantasy-stats/**
 !data/curated/
 !data/curated/**
 !data/basketnews-team-stats/
