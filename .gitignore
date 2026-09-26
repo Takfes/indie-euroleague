@@ -139,10 +139,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Data: only data/curated_data/ is tracked; data/source_data/ holds the raw downloads
-data/*
-!data/curated_data/
-!data/curated_data/**
+# Data: only data_curated/ is tracked; data_source/ holds the raw downloads
+data_source/
 
 # Claude Code worktrees
 .claude/worktrees/
