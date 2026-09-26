@@ -13,6 +13,8 @@ Hobby pipeline: scrape/acquire data → KPIs/features → ML predictions (PIR, v
 | `docs/data-catalogue.md` · `docs/data-graph.md` | Data inventory · lineage (agent-generated)                   |
 | `data/stage_99/`                                | Consumption layer (symlinks)                                 |
 
+Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Kaggle/master-table pipelines, curated workbooks, skills) and `archive/v1-2026-09` (older `src/elfantasy/` and `flow/`). Recover a file with `git show <tag>:<path>`.
+
 ## Commands (repo root)
 
 - Run: `uv run python src/<script>.py`
