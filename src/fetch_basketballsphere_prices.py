@@ -16,7 +16,7 @@ rows.
 Usage:
     python src/fetch_basketballsphere_prices.py [--out PATH]
 
-Re-run this any time to refresh data/euroleague-fantasy/basketballsphere_prices.csv --
+Re-run this any time to refresh data/source_data/euroleague-fantasy/basketballsphere_prices.csv --
 prices change after every round, so the output is fully overwritten each run.
 """
 
@@ -31,7 +31,9 @@ from pathlib import Path
 
 URL = "https://basketballsphere.com/en/euroleague-fantasy-player-prices/"
 
-DEFAULT_OUT = Path(__file__).resolve().parents[1] / "data" / "euroleague-fantasy" / "basketballsphere_prices.csv"
+DEFAULT_OUT = (
+    Path(__file__).resolve().parents[1] / "data" / "source_data" / "euroleague-fantasy" / "basketballsphere_prices.csv"
+)
 
 # Row markup is stable and simple enough to regex directly rather than pulling in an
 # HTML-parsing dependency. Each `<tr>` carries the position/club/price as data
