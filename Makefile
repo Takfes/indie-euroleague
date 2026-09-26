@@ -13,12 +13,6 @@ check: ## Run code quality tools.
 	@uv run pre-commit run -a
 	# @uv run mypy  # re-enable once tool.mypy.files is set for the new source layout
 
-.PHONY: clean-data
-clean-data: # Clean data folders
-	@echo "💧 Clean data folders"
-	@find data/* -type f -delete
-	@touch data/datalog.json
-
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"

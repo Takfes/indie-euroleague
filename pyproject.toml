@@ -1,7 +1,7 @@
 [project]
 name = "fun-euroleague-fantasy"
 version = "0.0.1"
-description = "This is a template repository for Python projects that use uv for their dependency management."
+description = "EuroLeague Fantasy data acquisition and analysis."
 authors = [{ name = "Takfes", email = "takis_a29@hotmail.com" }]
 readme = "README.md"
 keywords = ['python']
@@ -10,26 +10,11 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = [
-    "category-encoders>=2.7.0",
-    "highspy>=1.9.0",
-    "ipywidgets>=8.1.5",
-    "lightgbm>=4.5.0",
-    "matplotlib>=3.10.0",
-    "openpyxl>=3.1.5",
-    "pyomo>=6.8.2",
-    "python-dotenv>=1.0.1",
-    "scikit-learn>=1.5.2",
-    "seaborn>=0.13.2",
-    "xgboost>=2.1.3",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://Takfes.github.io/fun-euroleague-fantasy/"
@@ -68,7 +53,7 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py312"
 line-length = 120
 fix = true
 
