@@ -1,11 +1,11 @@
 ---
 name: basketballsphere-fantasy-prices
-description: Refresh EuroLeague Fantasy player and head coach prices scraped from basketballsphere.com's "EuroLeague Fantasy Player Prices" page. Use this whenever the user asks to update, rebuild, refresh, or re-scrape EuroLeague Fantasy prices/credits, mentions basketballsphere.com, or references data/euroleague-fantasy/basketballsphere_prices.csv going stale after new rounds are played (prices move every round).
+description: Refresh EuroLeague Fantasy player and head coach prices scraped from basketballsphere.com's "EuroLeague Fantasy Player Prices" page. Use this whenever the user asks to update, rebuild, refresh, or re-scrape EuroLeague Fantasy prices/credits, mentions basketballsphere.com, or references data_source/fantasy_prices/basketballsphere_prices.csv going stale after new rounds are played (prices move every round).
 ---
 
 # basketballsphere.com EuroLeague Fantasy prices
 
-Rebuilds `data/euroleague-fantasy/basketballsphere_prices.csv`: the opening/current
+Rebuilds `data_source/fantasy_prices/basketballsphere_prices.csv`: the opening/current
 EuroLeague Fantasy credit price for every player (guards, forwards, centers) and every
 head coach, as shown on basketballsphere.com's player-prices page.
 
@@ -55,12 +55,12 @@ uv run python src/fetch_basketballsphere_prices.py
 ```
 
 No dependencies beyond the Python standard library. This overwrites
-`data/euroleague-fantasy/basketballsphere_prices.csv` with the current prices. Pass
+`data_source/fantasy_prices/basketballsphere_prices.csv` with the current prices. Pass
 `--out PATH` to write elsewhere instead.
 
 ## Output
 
-`data/euroleague-fantasy/basketballsphere_prices.csv` - one row per player or head
+`data_source/fantasy_prices/basketballsphere_prices.csv` - one row per player or head
 coach:
 
 - `rank` - the page's own ranking (by price, descending)
@@ -84,10 +84,5 @@ entirely) likely means the page's markup changed and the regex in
 
 ## Committing the refreshed data
 
-`data/euroleague-fantasy/` is allow-listed in this repo's `.gitignore`, so a normal
-`git add` picks up the CSV:
-
-```bash
-git add data/euroleague-fantasy/basketballsphere_prices.csv
-git commit -m "chore(data): refresh basketballsphere fantasy prices"
-```
+Nothing to commit: `data_source/` is git-ignored (only `data_curated/` is tracked), so a
+refresh stays local.

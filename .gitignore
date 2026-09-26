@@ -139,25 +139,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Data
-data/*
-*.csv
-*.xlsx
-~$*.xlsx
-!data/basketnews-players-stats/
-!data/basketnews-players-stats/**
-!data/dunkest-data/
-!data/dunkest-data/**
-!data/basketnews-onoff-stats/
-!data/basketnews-onoff-stats/**
-!data/euroleague-fantasy/
-!data/euroleague-fantasy/**
-!data/curated/
-!data/curated/**
-!data/basketnews-team-stats/
-!data/basketnews-team-stats/**
-!data/dunkest-defense-positions/
-!data/dunkest-defense-positions/**
+# Data: only data_curated/ is tracked; data_source/ holds the raw downloads
+data_source/
 
 # Claude Code worktrees
 .claude/worktrees/
