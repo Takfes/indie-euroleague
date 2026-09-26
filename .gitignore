@@ -141,9 +141,6 @@ cython_debug/
 
 # Data: only data/curated_data/ is tracked; data/source_data/ holds the raw downloads
 data/*
-*.csv
-*.xlsx
-~$*.xlsx
 !data/curated_data/
 !data/curated_data/**
 
