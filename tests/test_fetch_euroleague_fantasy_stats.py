@@ -9,6 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from eupy.fetchers.fetch_euroleague_fantasy_stats import (
+    HEAD_COACH_CSV_FIELDNAMES,
+    PLAYER_CSV_FIELDNAMES,
     fetch_round_rows,
     get_auth_token,
     matchday_ids_by_round,
@@ -123,7 +125,7 @@ def test_fetch_round_rows_paginates_until_last_page() -> None:
 def test_write_csv_writes_header_even_when_rows_empty(tmp_path: Path) -> None:
     out_path = tmp_path / "players.csv"
 
-    write_csv([], out_path)
+    write_csv([], out_path, PLAYER_CSV_FIELDNAMES)
 
     with out_path.open(encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -131,3 +133,27 @@ def test_write_csv_writes_header_even_when_rows_empty(tmp_path: Path) -> None:
         assert "round" in reader.fieldnames
         assert "player_id" in reader.fieldnames
         assert list(reader) == []
+
+
+def test_write_csv_players_drops_head_coach_only_columns(tmp_path: Path) -> None:
+    out_path = tmp_path / "players.csv"
+    row = {"round": 1, "player_id": 3791, "name": "C. Jones", "pts": "20", "win_1_10": "-"}
+
+    write_csv([row], out_path, PLAYER_CSV_FIELDNAMES)
+
+    with out_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert "pts" in reader.fieldnames
+        assert "win_1_10" not in reader.fieldnames
+
+
+def test_write_csv_head_coaches_drops_player_only_columns(tmp_path: Path) -> None:
+    out_path = tmp_path / "head_coaches.csv"
+    row = {"round": 1, "player_id": 99, "name": "Coach X", "win_1_10": "3", "pts": "-"}
+
+    write_csv([row], out_path, HEAD_COACH_CSV_FIELDNAMES)
+
+    with out_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        assert "win_1_10" in reader.fieldnames
+        assert "pts" not in reader.fieldnames
