@@ -126,7 +126,7 @@ one-file-per-script pattern as `fetchers/`:
   crosswalk.
 - `src/eupy/entity/apply_player_name_verdicts.py` — verdict-merge script/CLI used by
   the skill stage.
-- `src/eupy/entity/crosswalk.py` — `PlayerNameCrosswalk`, the read-only consumption
+- `src/eupy/entity/player_crosswalk.py` — `PlayerNameCrosswalk`, the read-only consumption
   class (see below).
 - `tests/test_resolve_player_names.py`, `tests/test_apply_player_name_verdicts.py`,
   `tests/test_player_name_crosswalk.py`, `tests/test_matching.py` — fixture-based, no network
@@ -145,7 +145,7 @@ one-file-per-script pattern as `fetchers/`:
 
 ### Consumption class
 
-`PlayerNameCrosswalk` (`src/eupy/entity/crosswalk.py`) — read-only accessor over the
+`PlayerNameCrosswalk` (`src/eupy/entity/player_crosswalk.py`) — read-only accessor over the
 published map, decoupled from how it gets regenerated:
 
 - `PlayerNameCrosswalk.load(path: Path | None = None) -> PlayerNameCrosswalk` — classmethod.
