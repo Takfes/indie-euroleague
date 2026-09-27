@@ -56,12 +56,10 @@ from __future__ import annotations
 
 import argparse
 import csv
-import re
-import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from rapidfuzz import fuzz, process
+from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
 
 MASTER_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_prices" / "basketballsphere_prices.csv"
@@ -80,20 +78,6 @@ CROSSWALK_FIELDNAMES = [
 ]
 
 RESOLVED_STATUSES = {"confirmed", "rejected", "no_match"}
-
-FUZZY_LIMIT = 3
-FUZZY_SCORE_CUTOFF = 80.0
-
-# (boxscore_name, match_score)
-Candidate = tuple[str, float]
-
-
-def normalize_name(name: str) -> str:
-    """Normalize a name for matching: strip accents, upper-case, letters/spaces only."""
-    decomposed = unicodedata.normalize("NFKD", name)
-    without_accents = "".join(c for c in decomposed if not unicodedata.combining(c))
-    letters_and_spaces = re.sub(r"[^A-Za-z ]", " ", without_accents.upper())
-    return re.sub(r"\s+", " ", letters_and_spaces).strip()
 
 
 def reorder_boxscore_name(name: str) -> str:
@@ -126,61 +110,6 @@ def load_boxscore_spellings(path: Path) -> dict[str, set[str]]:
                 continue
             spellings[reorder_boxscore_name(row["player"])].add(row["player_id"])
     return dict(spellings)
-
-
-def build_normalized_index(spelling_player_ids: dict[str, set[str]]) -> dict[str, set[str]]:
-    """Group distinct box-score spellings by normalized name, for exact-match lookup."""
-    index: dict[str, set[str]] = defaultdict(set)
-    for spelling in spelling_player_ids:
-        index[normalize_name(spelling)].add(spelling)
-    return dict(index)
-
-
-def find_candidates(
-    normalized_name: str,
-    spelling_player_ids: dict[str, set[str]],
-    normalized_index: dict[str, set[str]],
-    normalized_spellings: dict[str, str],
-    *,
-    limit: int = FUZZY_LIMIT,
-    score_cutoff: float = FUZZY_SCORE_CUTOFF,
-) -> tuple[str, list[Candidate], str]:
-    """Resolve one normalized master name to a match status, its candidates, and how it was matched.
-
-    Tries an exact normalized-string match first:
-    - Exactly one distinct raw spelling, used by exactly one `player_id` ->
-      `exact`.
-    - Exactly one distinct raw spelling, used by more than one `player_id`
-      -> `needs_review` / `exact_collision` (picking one would guess which
-      real player it is).
-    - More than one distinct raw spelling sharing the normalized value (e.g.
-      an accented variant) -> `needs_review` / `exact_ambiguous_spelling`,
-      every spelling listed.
-    Falls back to fuzzy top-`limit` candidates at or above `score_cutoff`
-    (`needs_review` / `fuzzy`), or `no_candidate` if none clear it.
-    """
-    spellings = normalized_index.get(normalized_name, set())
-    if len(spellings) == 1:
-        spelling = next(iter(spellings))
-        if len(spelling_player_ids[spelling]) > 1:
-            return "needs_review", [(spelling, 100.0)], "exact_collision"
-        return "exact", [(spelling, 100.0)], "exact"
-    if len(spellings) > 1:
-        candidates = [(spelling, 100.0) for spelling in sorted(spellings)]
-        return "needs_review", candidates, "exact_ambiguous_spelling"
-
-    matches = process.extract(
-        normalized_name, normalized_spellings, scorer=fuzz.WRatio, limit=limit, score_cutoff=score_cutoff
-    )
-    if not matches:
-        return "no_candidate", [], "fuzzy"
-    candidates = [(spelling, score) for _, score, spelling in matches]
-    return "needs_review", candidates, "fuzzy"
-
-
-def format_candidates_note(candidates: list[Candidate]) -> str:
-    """Render candidates as a human-readable note for `needs_review` rows."""
-    return "; ".join(f"{name} ({score:.1f})" for name, score in candidates)
 
 
 def build_row(
