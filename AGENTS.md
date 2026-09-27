@@ -9,7 +9,7 @@ Hobby pipeline: scrape/acquire data → KPIs/features → ML predictions (PIR, v
 | `contx/`                                        | Context: future ideas, KPIs, what others do, viz inspiration |
 | `docs/resources.md`                             | External URLs                                                |
 | `docs/next-steps.md`                            | Deferred work                                                |
-| `docs/specs/spec-<short-name>.md`               | Execution specs                                              |
+| `specs/spec-<short-name>.md`                    | Execution specs                                              |
 | `docs/data-catalogue.md` · `docs/data-graph.md` | Data inventory · lineage (agent-generated)                   |
 | `data/stage_99/`                                | Consumption layer (symlinks)                                 |
 
@@ -33,7 +33,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 
 ## Workflow
 
-1. Plan → spec (`docs/specs/spec-<short-name>.md`): goal, scope, pass criteria.
+1. Plan → spec (`specs/spec-<short-name>.md`): goal, scope, pass criteria.
 2. Spec → tickets.
 3. Per ticket: implement → verify against pass criteria → merge → cleanup.
 

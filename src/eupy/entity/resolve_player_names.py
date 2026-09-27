@@ -11,7 +11,7 @@ the master, no `player_id` from the box score) -- only the two name strings
 plus the resolution process's own metadata. Consumers who need `player_id`,
 `club`, `price`, etc. read them from their respective source files directly.
 
-Pipeline (see docs/specs/spec-player-name-linking.md for the full design):
+Pipeline (see specs/spec-player-name-linking.md for the full design):
 1. Exact stage -- normalize both sides (strip accents, upper-case, letters/
    spaces only, reorder box-score names to "First Last") and exact-match the
    normalized string against the distinct box-score display-name spellings.
