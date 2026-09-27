@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Apply agent verdicts onto the player-name crosswalk, keyed by `name`.
+"""Apply agent verdicts onto the team-name crosswalk, keyed by `name`.
 
-This is the write path for the agent stage of `resolve_player_names.py`'s
+This is the write path for the agent stage of `resolve_team_names.py`'s
 exact -> fuzzy-candidates -> agent-verifies pipeline: after reviewing every
 `needs_review` / `no_candidate` row, an agent records its decisions as a JSON
 list of verdict records and applies them here, instead of hand-editing the
@@ -15,19 +15,19 @@ Verdict record shape (JSON list, one object per row to update):
     {
         "name": "...",                              # required: row key
         "match_status": "confirmed",               # required: confirmed | rejected | no_match
-        "boxscore_name": "...",                     # required for confirmed, must be empty otherwise
+        "boxscore_team_name": "...",                 # required for confirmed, must be empty otherwise
         "match_score": 95.0,                        # optional
         "matched_by": "agent",                       # optional, defaults to "agent"
         "notes": "..."                               # required: brief rationale
     }
 
 Usage:
-    python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--crosswalk PATH]
+    python src/eupy/entity/apply_team_name_verdicts.py --verdicts PATH [--crosswalk PATH]
 
-Inputs: data/stage_01/player_name_crosswalk.csv (existing crosswalk, must already exist),
+Inputs: data/stage_01/team_name_crosswalk.csv (existing crosswalk, must already exist),
     a JSON verdicts file (path given via --verdicts).
-Outputs: data/stage_01/player_name_crosswalk.csv (updated in place).
-Final: true -- writes the same file resolve_player_names.py produces; see that script's header.
+Outputs: data/stage_01/team_name_crosswalk.csv (updated in place).
+Final: true -- writes the same file resolve_team_names.py produces; see that script's header.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from eupy.entity.resolve_player_names import CROSSWALK_PATH, load_existing_crosswalk, write_crosswalk
+from eupy.entity.resolve_team_names import CROSSWALK_PATH, load_existing_crosswalk, write_crosswalk
 
 TERMINAL_STATUSES = {"confirmed", "rejected", "no_match"}
 
@@ -53,8 +53,8 @@ def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[s
     Raises:
         ValueError: If a verdict targets a row not in the crosswalk, uses a
             non-terminal `match_status`, is `confirmed` without a
-            `boxscore_name` (or non-confirmed with one), or has no `notes`
-            rationale.
+            `boxscore_team_name` (or non-confirmed with one), or has no
+            `notes` rationale.
     """
     for verdict in verdicts:
         key = verdict["name"]
@@ -65,12 +65,12 @@ def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[s
         if status not in TERMINAL_STATUSES:
             raise ValueError(f"match_status must be one of {sorted(TERMINAL_STATUSES)}, got {status!r}")
 
-        boxscore_name = verdict.get("boxscore_name", "")
-        if status == "confirmed" and not boxscore_name:
-            raise ValueError(f"Verdict for {key!r} is 'confirmed' but has no boxscore_name")
-        if status != "confirmed" and boxscore_name:
+        boxscore_team_name = verdict.get("boxscore_team_name", "")
+        if status == "confirmed" and not boxscore_team_name:
+            raise ValueError(f"Verdict for {key!r} is 'confirmed' but has no boxscore_team_name")
+        if status != "confirmed" and boxscore_team_name:
             raise ValueError(
-                f"Verdict for {key!r} is {status!r} but carries a boxscore_name -- only confirmed rows should"
+                f"Verdict for {key!r} is {status!r} but carries a boxscore_team_name -- only confirmed rows should"
             )
 
         notes = verdict.get("notes", "")
@@ -80,7 +80,7 @@ def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[s
         match_score = verdict.get("match_score", "")
         row = rows_by_key[key]
         row["match_status"] = status
-        row["boxscore_name"] = boxscore_name
+        row["boxscore_team_name"] = boxscore_team_name
         row["match_score"] = f"{match_score:.1f}" if isinstance(match_score, int | float) else str(match_score)
         row["matched_by"] = verdict.get("matched_by", "agent")
         row["notes"] = notes
@@ -97,7 +97,7 @@ def main() -> None:
     args = parse_args()
     rows_by_key = load_existing_crosswalk(args.crosswalk)
     if not rows_by_key:
-        raise ValueError(f"No crosswalk found at {args.crosswalk} -- run resolve_player_names.py first")
+        raise ValueError(f"No crosswalk found at {args.crosswalk} -- run resolve_team_names.py first")
 
     verdicts = load_verdicts(args.verdicts)
     apply_verdicts(rows_by_key, verdicts)

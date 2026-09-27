@@ -1,19 +1,17 @@
-"""Tests for the player-name crosswalk's normalization, matching, and merge logic."""
+"""Tests for the player-name crosswalk's loading, row-building, and merge logic."""
 
 from __future__ import annotations
 
 import csv
 from pathlib import Path
 
+from eupy.entity.matching import build_normalized_index, normalize_name
 from eupy.entity.resolve_player_names import (
     build_crosswalk,
-    build_normalized_index,
     build_row,
-    find_candidates,
     load_boxscore_spellings,
     load_existing_crosswalk,
     load_master_rows,
-    normalize_name,
     reorder_boxscore_name,
     write_crosswalk,
 )
@@ -21,23 +19,6 @@ from eupy.entity.resolve_player_names import (
 
 def _master_row(name: str, role: str = "player") -> dict[str, str]:
     return {"rank": "1", "name": name, "club": "C", "position": "G", "price": "10.0", "role": role}
-
-
-# --- normalization -----------------------------------------------------------------
-
-
-def test_normalize_name_strips_accents_and_upper_cases() -> None:
-    assert normalize_name("Núñez Özil") == "NUNEZ OZIL"
-
-
-def test_normalize_name_replaces_punctuation_with_space_not_deletion() -> None:
-    # Hyphens/apostrophes become spaces so words don't glue into one token.
-    assert normalize_name("Nigel Hayes-Davis") == "NIGEL HAYES DAVIS"
-    assert normalize_name("D'Angelo Russell") == "D ANGELO RUSSELL"
-
-
-def test_normalize_name_collapses_whitespace() -> None:
-    assert normalize_name("  John   Smith  ") == "JOHN SMITH"
 
 
 def test_reorder_boxscore_name_swaps_last_comma_first() -> None:
@@ -103,7 +84,22 @@ def test_load_master_rows_reads_all_columns(tmp_path: Path) -> None:
     ]
 
 
-# --- candidate resolution -------------------------------------------------------------
+def test_load_master_rows_filters_out_head_coach_rows(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["rank", "name", "club", "position", "price", "role"])
+        writer.writeheader()
+        writer.writerows([
+            {"rank": "1", "name": "John Smith", "club": "C", "position": "G", "price": "10.0", "role": "player"},
+            {"rank": "2", "name": "Some Coach", "club": "C", "position": "HC", "price": "0.0", "role": "head_coach"},
+        ])
+
+    rows = load_master_rows(path)
+
+    assert [row["name"] for row in rows] == ["John Smith"]
+
+
+# --- row building ----------------------------------------------------------------------
 
 # "Ambi GUOUS" is a genuine collision: two different player_ids share one raw spelling.
 # "Lucas MARI" / "Lucas MARÍ" is a spelling ambiguity: one normalized value, two raw spellings.
@@ -122,80 +118,6 @@ def _index() -> dict[str, set[str]]:
 
 def _normalized_spellings() -> dict[str, str]:
     return {spelling: normalize_name(spelling) for spelling in SPELLING_PLAYER_IDS}
-
-
-def test_find_candidates_exact_match_is_unique() -> None:
-    status, candidates, matched_by = find_candidates(
-        normalize_name("John Smith"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings()
-    )
-
-    assert (status, matched_by) == ("exact", "exact")
-    assert candidates == [("John SMITH", 100.0)]
-
-
-def test_find_candidates_collision_is_needs_review() -> None:
-    status, candidates, matched_by = find_candidates(
-        normalize_name("Ambi Guous"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings()
-    )
-
-    assert (status, matched_by) == ("needs_review", "exact_collision")
-    assert candidates == [("Ambi GUOUS", 100.0)]
-
-
-def test_find_candidates_ambiguous_spelling_lists_every_variant() -> None:
-    status, candidates, matched_by = find_candidates(
-        normalize_name("Lucas Mari"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings()
-    )
-
-    assert (status, matched_by) == ("needs_review", "exact_ambiguous_spelling")
-    assert {name for name, _ in candidates} == {"Lucas MARI", "Lucas MARÍ"}
-    assert all(score == 100.0 for _, score in candidates)
-
-
-def test_find_candidates_fuzzy_match_above_cutoff_is_needs_review() -> None:
-    # "Bob Jonez" is a one-letter edit away from box-score "Bob Jones".
-    status, candidates, matched_by = find_candidates(
-        normalize_name("Bob Jonez"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings(), score_cutoff=50.0
-    )
-
-    assert (status, matched_by) == ("needs_review", "fuzzy")
-    assert candidates[0][0] == "Bob JONES"
-
-
-def test_find_candidates_below_cutoff_is_no_candidate() -> None:
-    # Same near-match as above, but a cutoff no real-world score would clear.
-    status, candidates, matched_by = find_candidates(
-        normalize_name("Bob Jonez"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings(), score_cutoff=99.9
-    )
-
-    assert (status, matched_by) == ("no_candidate", "fuzzy")
-    assert candidates == []
-
-
-def test_find_candidates_respects_limit() -> None:
-    spelling_player_ids = {"Bob Jones": {"P001"}, "Bob Jonas": {"P002"}, "Bob Jonis": {"P003"}, "Bob Jonus": {"P004"}}
-    normalized_spellings = {s: normalize_name(s) for s in spelling_player_ids}
-    index = build_normalized_index(spelling_player_ids)
-
-    status, candidates, matched_by = find_candidates(
-        normalize_name("Bob Jonez"), spelling_player_ids, index, normalized_spellings, limit=2, score_cutoff=0.0
-    )
-
-    assert (status, matched_by) == ("needs_review", "fuzzy")
-    assert len(candidates) == 2
-
-
-# --- row building ----------------------------------------------------------------------
-
-
-def test_build_row_head_coach_is_not_applicable() -> None:
-    row = build_row(
-        _master_row("Some Coach", role="head_coach"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings()
-    )
-
-    assert row["match_status"] == "not_applicable"
-    assert row["matched_by"] == "not_applicable"
-    assert row["boxscore_name"] == ""
 
 
 def test_build_row_exact_match() -> None:
@@ -237,9 +159,8 @@ def test_build_row_ambiguous_spelling_records_every_variant_in_notes() -> None:
 def test_build_crosswalk_preserves_agent_resolved_rows_byte_identical() -> None:
     master_rows = [_master_row("John Smith")]
     existing = {
-        ("John Smith", "player"): {
+        "John Smith": {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "Someone Else",
             "match_status": "confirmed",
             "match_score": "77.0",
@@ -251,16 +172,15 @@ def test_build_crosswalk_preserves_agent_resolved_rows_byte_identical() -> None:
     [row] = build_crosswalk(master_rows, SPELLING_PLAYER_IDS, existing)
 
     # Not recomputed even though "John Smith" has a real exact match -- carried over unchanged.
-    assert row == existing[("John Smith", "player")]
+    assert row == existing["John Smith"]
 
 
 def test_build_crosswalk_recomputes_non_resolved_statuses() -> None:
     master_rows = [_master_row("John Smith")]
     # Stale "exact" row with a wrong boxscore_name -- not a resolved status, so it must be recomputed.
     existing = {
-        ("John Smith", "player"): {
+        "John Smith": {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "Wrong Name",
             "match_status": "exact",
             "match_score": "100.0",
@@ -289,7 +209,6 @@ def test_write_crosswalk_then_load_existing_crosswalk_round_trips(tmp_path: Path
     rows = [
         {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "John SMITH",
             "match_status": "exact",
             "match_score": "100.0",
@@ -301,16 +220,15 @@ def test_write_crosswalk_then_load_existing_crosswalk_round_trips(tmp_path: Path
     write_crosswalk(rows, out_path)
     loaded = load_existing_crosswalk(out_path)
 
-    assert loaded == {("John Smith", "player"): rows[0]}
+    assert loaded == {"John Smith": rows[0]}
 
 
-def test_write_crosswalk_header_has_no_player_id_club_position_or_price(tmp_path: Path) -> None:
+def test_write_crosswalk_header_has_no_role_player_id_club_position_or_price(tmp_path: Path) -> None:
     out_path = tmp_path / "crosswalk.csv"
     write_crosswalk(
         [
             {
                 "name": "John Smith",
-                "role": "player",
                 "boxscore_name": "John SMITH",
                 "match_status": "exact",
                 "match_score": "100.0",
@@ -323,7 +241,7 @@ def test_write_crosswalk_header_has_no_player_id_club_position_or_price(tmp_path
 
     header = out_path.read_text(encoding="utf-8").splitlines()[0]
 
-    assert header == "name,role,boxscore_name,match_status,match_score,matched_by,notes"
+    assert header == "name,boxscore_name,match_status,match_score,matched_by,notes"
 
 
 def test_load_existing_crosswalk_returns_empty_dict_when_file_missing(tmp_path: Path) -> None:

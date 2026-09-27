@@ -1,0 +1,21 @@
+name,boxscore_team_name,match_status,match_score,matched_by,notes
+ASVEL,LDLC ASVEL VILLEURBANNE,confirmed,90.0,agent,team_id ASV; 'LDLC ASVEL VILLEURBANNE' is the most recent box-score spelling (E2019-E2025) of the same club as the older 'ASVEL LYON'/'LDLC' variants.
+Anadolu Efes,ANADOLU EFES,exact,100.0,exact,
+Barcelona,FC BARCELONA,confirmed,95.0,agent,"team_id BAR; 'FC BARCELONA' spans the whole dataset (E2007-E2025) and is the canonical spelling, distinct from dated sponsor variants (LASSA, REGAL, AXA) of the same club."
+Baskonia,BASKONIA,exact,100.0,exact,
+Bayern Munich,FC BAYERN MUNICH,confirmed,95.0,agent,Only box-score spelling for team_id MUN (E2013-E2025).
+Besiktas,BESIKTAS JK ISTANBUL,confirmed,90.0,agent,Only box-score spelling for team_id BES; Besiktas' sole EuroLeague season in this dataset is E2012.
+Crvena Zvezda,CRVENA ZVEZDA MERIDIANBET BELGRADE,confirmed,90.0,agent,"team_id RED; 'MERIDIANBET' is the current sponsor spelling (E2022-E2025), more recent than the MTS (E2016-E2022) and TELEKOM (E2013-E2015) variants of the same club."
+Dubai,DUBAI BASKETBALL,confirmed,90.0,agent,"Only box-score spelling for team_id DUB; Dubai Basketball is a brand-new E2025 EuroLeague entrant, present in euroleague_header.csv despite thin history."
+Fenerbahce,FENERBAHCE BEKO ISTANBUL,confirmed,90.0,agent,"team_id ULK; 'BEKO' is the current, long-running sponsor spelling (E2018-E2025) for the same club as the older ULKER-era candidates (all pre-E2018) the fuzzy stage surfaced."
+Hapoel Tel Aviv,HAPOEL IBI TEL AVIV,confirmed,95.0,agent,"Only box-score spelling for team_id HTA (E2025); a distinct club/team_id from Maccabi Tel Aviv (TEL), whose spellings the fuzzy stage also surfaced as lower-scoring false positives."
+Maccabi Tel Aviv,MACCABI TEL AVIV,exact,100.0,exact,
+Milano,MILANO,exact,100.0,exact,
+Olympiacos,OLYMPIACOS,exact,100.0,exact,
+Panathinaikos,PANATHINAIKOS,exact,100.0,exact,
+Paris,PARIS BASKETBALL,confirmed,90.0,agent,"Only box-score spelling for team_id PRS (E2024-E2025, a recent expansion club); the other fuzzy candidates (ARIS THESSALONIKI/TT BANK) are a different Greek club, a string-similarity false positive on 'aris'."
+Partizan,PARTIZAN,exact,100.0,exact,
+Real Madrid,REAL MADRID,exact,100.0,exact,
+Valencia,VALENCIA BASKET,confirmed,90.0,agent,"team_id PAM; 'VALENCIA BASKET' is the current, long-running spelling (E2014-E2025), more recent than the single-season 'POWER ELECTRONICS VALENCIA' (E2010)."
+Virtus Bologna,VIRTUS BOLOGNA,exact,100.0,exact,
+Zalgiris,ZALGIRIS,exact,100.0,exact,
