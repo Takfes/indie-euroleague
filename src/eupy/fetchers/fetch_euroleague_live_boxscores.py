@@ -17,7 +17,7 @@ Known limitation (not fixed here): the live API's player IDs (e.g. `P011157`)
 use a different ID scheme than the historical CSV's `PBDE`-style 4-char codes.
 No reconciliation is attempted -- live-API rows carry the live API's own IDs.
 
-See docs/specs/spec-euroleague-live-fetcher.md for the full design.
+See specs/spec-euroleague-live-fetcher.md for the full design.
 
 Usage:
     python src/eupy/fetchers/fetch_euroleague_live_boxscores.py [--season E2026] [--out-dir PATH]

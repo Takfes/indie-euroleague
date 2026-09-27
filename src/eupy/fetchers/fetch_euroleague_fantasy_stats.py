@@ -13,7 +13,7 @@ Auth is a static bearer token (Laravel-Sanctum-shaped: `{id}|{token}`, not a
 JWT) captured once from an already-logged-in browser session
 (`localStorage.getItem('flutter.authToken')`) and stored as
 `EUROLEAGUE_FANTASY_AUTH_TOKEN` in `.env` -- see
-docs/specs/spec-euroleague-fantasy-stats.md for the full bootstrap procedure
+specs/spec-euroleague-fantasy-stats.md for the full bootstrap procedure
 and the empirical findings behind every design choice below (why one matchday
 per call, why no `active_players` filter, why `per_page` is capped at 100,
 etc).
@@ -134,7 +134,7 @@ def get_auth_token(env_path: Path = DEFAULT_ENV_PATH) -> str:
         "https://euroleaguefantasy.euroleaguebasketball.net in a browser, run "
         "localStorage.getItem('flutter.authToken') in devtools, and store the "
         "result as EUROLEAGUE_FANTASY_AUTH_TOKEN in .env "
-        "(see docs/specs/spec-euroleague-fantasy-stats.md)."
+        "(see specs/spec-euroleague-fantasy-stats.md)."
     )
 
 

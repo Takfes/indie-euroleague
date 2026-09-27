@@ -49,3 +49,11 @@ uv run pytest                        # tests
 ruff check src tests                 # lint
 ruff format --check src tests        # format check
 ```
+
+## Finishing a task branch
+
+`make merge-worktree` merges a finished branch under `.claude/worktrees/`
+into main and cleans up (branch + worktree, local and remote) once you
+approve the diff — prompts if more than one exists. From an interactive
+Claude Code session, the `merge-worktree` skill does the same thing
+conversationally.

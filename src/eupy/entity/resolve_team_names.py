@@ -15,7 +15,7 @@ metadata. Consumers who need `team_id` resolve it themselves from
 `euroleague_header.csv` (`team_a`/`team_b` <-> `team_id_a`/`team_id_b` are in
 the same row, a trivial reverse lookup).
 
-Pipeline (see docs/specs/spec-team-name-linking.md for the full design; the
+Pipeline (see specs/spec-team-name-linking.md for the full design; the
 exact->fuzzy engine itself lives in `matching.py` and is shared with
 `resolve_player_names.py`):
 1. Exact stage -- normalize both sides and exact-match the normalized
