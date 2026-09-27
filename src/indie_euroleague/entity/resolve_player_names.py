@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
-"""Link basketballsphere fantasy prices to EuroLeague box-score player identities.
+"""Resolve basketballsphere fantasy-price names to EuroLeague box-score display names.
 
 `basketballsphere_prices.csv` (current-season fantasy prices) spells names
 `"First Last"`; `euroleague_box_score.csv` (historical box scores, E2007-E2025)
 spells them `"LAST, First"` with an upper-case surname. This script builds a
-left-join crosswalk from the former to the latter so downstream feature work
-can attach historical box-score stats to current fantasy players.
+left-join **name map** from the former to the latter so downstream feature
+work can attach historical box-score stats to current fantasy players. The
+map carries no other dataset's attributes (no `club`/`position`/`price` from
+the master, no `player_id` from the box score) -- only the two name strings
+plus the resolution process's own metadata. Consumers who need `player_id`,
+`club`, `price`, etc. read them from their respective source files directly.
 
 Pipeline (see docs/specs/spec-player-name-linking.md for the full design):
 1. Exact stage -- normalize both sides (strip accents, upper-case, letters/
    spaces only, reorder box-score names to "First Last") and exact-match the
-   normalized string. A normalized name shared by more than one distinct
-   `player_id` in the box-score data (rare -- two cases in the current data)
-   is NOT auto-matched; it is surfaced as `needs_review` with every candidate
-   listed, since picking one would be a guess.
+   normalized string against the distinct box-score display-name spellings.
+   Two ambiguity cases are NOT auto-matched, surfaced as `needs_review`
+   instead:
+   - `exact_collision` -- one raw spelling shared by more than one distinct
+     `player_id` (two different real players could share a name string).
+   - `exact_ambiguous_spelling` -- more than one distinct raw spelling shares
+     one normalized value (e.g. an accented vs. unaccented variant).
 2. Fuzzy stage -- for still-unmatched `role=player` rows, score the normalized
-   name against every distinct box-score player using rapidfuzz. The top
+   name against every distinct box-score spelling using rapidfuzz. The top
    `FUZZY_LIMIT` candidates at or above `FUZZY_SCORE_CUTOFF` become a
    `needs_review` row (never auto-accepted); nothing above the floor becomes
    `no_candidate`. The cutoff was tuned against this repo's real ~77 misses:
@@ -23,25 +30,25 @@ Pipeline (see docs/specs/spec-player-name-linking.md for the full design):
    while mostly excluding same-surname noise; below ~80 the candidate quality
    drops sharply (see spec Analysis section).
 3. Agent stage (skill) -- out of scope for this script; see
-   `apply_link_verdicts.py` and the `link-player-names` skill.
+   `apply_player_name_verdicts.py` and the `resolve-player-names` skill.
 
 `role=head_coach` rows pass through untouched as `match_status=not_applicable`
 -- the box-score dataset has no coach data, so matching them is impossible.
 
 Idempotency: rows the agent stage already resolved (`match_status` in
-`confirmed` / `rejected` / `no_match`) are carried over unchanged except for
-`club` / `position` / `price`, which are refreshed from the current master
-snapshot every run (prices change every round). Every other row -- new,
-`exact`, `needs_review`, or `no_candidate` -- is recomputed fresh. Rows are
-matched between runs by the `(name, role)` key.
+`confirmed` / `rejected` / `no_match`) are carried over to the new output
+completely unchanged, keyed on `(name, role)`. There is nothing on the master
+side (other than `name`/`role`, the key itself) that this artifact carries,
+so there is nothing to refresh -- every other row (new, `exact`,
+`needs_review`, `no_candidate`) is recomputed fresh.
 
 Usage:
-    python src/indie_euroleague/linking/link_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
+    python src/indie_euroleague/entity/resolve_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
 
 Inputs: data/raw_data/fantasy_prices/basketballsphere_prices.csv,
     data/raw_data/kaggle_data/euroleague_box_score.csv.
 Outputs: data/stage_01/player_name_crosswalk.csv (merged in place; existing
-    agent-resolved rows are preserved, see idempotency note above).
+    agent-resolved rows are preserved unchanged, see idempotency note above).
 Final: true -- feeds downstream feature work; symlinked into data/stage_99/.
 """
 
@@ -65,12 +72,8 @@ CROSSWALK_PATH = Path(__file__).resolve().parents[3] / "data" / "stage_01" / "pl
 CROSSWALK_FIELDNAMES = [
     "name",
     "role",
-    "club",
-    "position",
-    "price",
-    "match_status",
-    "player_id",
     "boxscore_name",
+    "match_status",
     "match_score",
     "matched_by",
     "notes",
@@ -81,8 +84,8 @@ RESOLVED_STATUSES = {"confirmed", "rejected", "no_match"}
 FUZZY_LIMIT = 3
 FUZZY_SCORE_CUTOFF = 80.0
 
-# (player_id, boxscore_name, match_score)
-Candidate = tuple[str, str, float]
+# (boxscore_name, match_score)
+Candidate = tuple[str, float]
 
 
 def normalize_name(name: str) -> str:
@@ -107,125 +110,128 @@ def load_master_rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(f))
 
 
-def load_boxscore_roster(path: Path) -> dict[str, str]:
-    """Load one canonical `"First Last"` name per `player_id`, excluding synthetic TOTAL rows.
+def load_boxscore_spellings(path: Path) -> dict[str, set[str]]:
+    """Load distinct box-score display-name spellings and the player_ids that use each.
 
-    Every `player_id` in this dataset maps to exactly one name spelling
-    (verified against the current data), so this dedupe is safe.
+    Keyed by the reordered `"First LAST"` spelling, excluding synthetic TOTAL
+    rows. A spelling used by more than one distinct `player_id` signals a
+    genuine name collision (two different real players, or an upstream
+    data-quality duplicate) -- kept here for internal collision detection,
+    even though `player_id` is never written to the crosswalk.
     """
-    roster: dict[str, str] = {}
+    spellings: dict[str, set[str]] = defaultdict(set)
     with path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if row["dorsal"] == "TOTAL":
                 continue
-            roster[row["player_id"]] = reorder_boxscore_name(row["player"])
-    return roster
+            spellings[reorder_boxscore_name(row["player"])].add(row["player_id"])
+    return dict(spellings)
 
 
-def build_normalized_index(roster: dict[str, str]) -> dict[str, list[tuple[str, str]]]:
-    """Group box-score `(player_id, name)` pairs by normalized name, for exact-match lookup."""
-    index: dict[str, list[tuple[str, str]]] = defaultdict(list)
-    for player_id, name in roster.items():
-        index[normalize_name(name)].append((player_id, name))
-    return index
+def build_normalized_index(spelling_player_ids: dict[str, set[str]]) -> dict[str, set[str]]:
+    """Group distinct box-score spellings by normalized name, for exact-match lookup."""
+    index: dict[str, set[str]] = defaultdict(set)
+    for spelling in spelling_player_ids:
+        index[normalize_name(spelling)].add(spelling)
+    return dict(index)
 
 
 def find_candidates(
     normalized_name: str,
-    roster: dict[str, str],
-    normalized_roster: dict[str, str],
-    normalized_index: dict[str, list[tuple[str, str]]],
+    spelling_player_ids: dict[str, set[str]],
+    normalized_index: dict[str, set[str]],
+    normalized_spellings: dict[str, str],
     *,
     limit: int = FUZZY_LIMIT,
     score_cutoff: float = FUZZY_SCORE_CUTOFF,
-) -> tuple[str, list[Candidate]]:
-    """Resolve one normalized master name to a match status and its candidates.
+) -> tuple[str, list[Candidate], str]:
+    """Resolve one normalized master name to a match status, its candidates, and how it was matched.
 
-    Tries an exact normalized-string match first: `exact` if exactly one
-    distinct `player_id` shares that name, `needs_review` (all of them listed)
-    if more than one does. Falls back to fuzzy top-`limit` candidates at or
-    above `score_cutoff` (`needs_review`), or `no_candidate` if none clear it.
+    Tries an exact normalized-string match first:
+    - Exactly one distinct raw spelling, used by exactly one `player_id` ->
+      `exact`.
+    - Exactly one distinct raw spelling, used by more than one `player_id`
+      -> `needs_review` / `exact_collision` (picking one would guess which
+      real player it is).
+    - More than one distinct raw spelling sharing the normalized value (e.g.
+      an accented variant) -> `needs_review` / `exact_ambiguous_spelling`,
+      every spelling listed.
+    Falls back to fuzzy top-`limit` candidates at or above `score_cutoff`
+    (`needs_review` / `fuzzy`), or `no_candidate` if none clear it.
     """
-    exact_hits = normalized_index.get(normalized_name, [])
-    if len(exact_hits) == 1:
-        player_id, boxscore_name = exact_hits[0]
-        return "exact", [(player_id, boxscore_name, 100.0)]
-    if len(exact_hits) > 1:
-        return "needs_review", [(player_id, name, 100.0) for player_id, name in exact_hits]
+    spellings = normalized_index.get(normalized_name, set())
+    if len(spellings) == 1:
+        spelling = next(iter(spellings))
+        if len(spelling_player_ids[spelling]) > 1:
+            return "needs_review", [(spelling, 100.0)], "exact_collision"
+        return "exact", [(spelling, 100.0)], "exact"
+    if len(spellings) > 1:
+        candidates = [(spelling, 100.0) for spelling in sorted(spellings)]
+        return "needs_review", candidates, "exact_ambiguous_spelling"
 
     matches = process.extract(
-        normalized_name, normalized_roster, scorer=fuzz.WRatio, limit=limit, score_cutoff=score_cutoff
+        normalized_name, normalized_spellings, scorer=fuzz.WRatio, limit=limit, score_cutoff=score_cutoff
     )
     if not matches:
-        return "no_candidate", []
-    return "needs_review", [(player_id, roster[player_id], score) for _, score, player_id in matches]
+        return "no_candidate", [], "fuzzy"
+    candidates = [(spelling, score) for _, score, spelling in matches]
+    return "needs_review", candidates, "fuzzy"
 
 
 def format_candidates_note(candidates: list[Candidate]) -> str:
     """Render candidates as a human-readable note for `needs_review` rows."""
-    return "; ".join(f"{name} ({player_id}, {score:.1f})" for player_id, name, score in candidates)
+    return "; ".join(f"{name} ({score:.1f})" for name, score in candidates)
 
 
 def build_row(
     master_row: dict[str, str],
-    roster: dict[str, str],
-    normalized_roster: dict[str, str],
-    normalized_index: dict[str, list[tuple[str, str]]],
+    spelling_player_ids: dict[str, set[str]],
+    normalized_index: dict[str, set[str]],
+    normalized_spellings: dict[str, str],
 ) -> dict[str, str]:
     """Build one fresh crosswalk row from a master row (no prior crosswalk state)."""
-    base = {
-        "name": master_row["name"],
-        "role": master_row["role"],
-        "club": master_row["club"],
-        "position": master_row["position"],
-        "price": master_row["price"],
-    }
+    base = {"name": master_row["name"], "role": master_row["role"]}
 
     if master_row["role"] == "head_coach":
         return {
             **base,
-            "match_status": "not_applicable",
-            "player_id": "",
             "boxscore_name": "",
+            "match_status": "not_applicable",
             "match_score": "",
             "matched_by": "not_applicable",
             "notes": "",
         }
 
-    status, candidates = find_candidates(
-        normalize_name(master_row["name"]), roster, normalized_roster, normalized_index
+    status, candidates, matched_by = find_candidates(
+        normalize_name(master_row["name"]), spelling_player_ids, normalized_index, normalized_spellings
     )
 
     if status == "no_candidate":
         return {
             **base,
-            "match_status": "no_candidate",
-            "player_id": "",
             "boxscore_name": "",
+            "match_status": "no_candidate",
             "match_score": "",
-            "matched_by": "fuzzy",
+            "matched_by": matched_by,
             "notes": "",
         }
 
-    player_id, boxscore_name, score = candidates[0]
+    boxscore_name, score = candidates[0]
     if status == "exact":
         return {
             **base,
-            "match_status": "exact",
-            "player_id": player_id,
             "boxscore_name": boxscore_name,
+            "match_status": "exact",
             "match_score": f"{score:.1f}",
-            "matched_by": "exact",
+            "matched_by": matched_by,
             "notes": "",
         }
 
-    # needs_review: either an ambiguous exact match or genuine fuzzy candidates.
-    matched_by = "exact_ambiguous" if score == 100.0 and len(candidates) > 1 else "fuzzy"
+    # needs_review: exact_collision, exact_ambiguous_spelling, or genuine fuzzy candidates.
     return {
         **base,
-        "match_status": "needs_review",
-        "player_id": player_id,
         "boxscore_name": boxscore_name,
+        "match_status": "needs_review",
         "match_score": f"{score:.1f}",
         "matched_by": matched_by,
         "notes": f"candidates: {format_candidates_note(candidates)}",
@@ -242,30 +248,26 @@ def load_existing_crosswalk(path: Path) -> dict[tuple[str, str], dict[str, str]]
 
 def build_crosswalk(
     master_rows: list[dict[str, str]],
-    roster: dict[str, str],
+    spelling_player_ids: dict[str, set[str]],
     existing: dict[tuple[str, str], dict[str, str]],
 ) -> list[dict[str, str]]:
     """Build the full crosswalk for the current master snapshot.
 
-    Rows already resolved by the agent stage (`RESOLVED_STATUSES`) are carried
-    over unchanged except for `club` / `position` / `price`, refreshed from
-    the current snapshot. Everything else is recomputed from scratch.
+    Rows already resolved by the agent stage (`RESOLVED_STATUSES`) are
+    carried over completely unchanged. Everything else is recomputed from
+    scratch.
     """
-    normalized_roster = {player_id: normalize_name(name) for player_id, name in roster.items()}
-    normalized_index = build_normalized_index(roster)
+    normalized_index = build_normalized_index(spelling_player_ids)
+    normalized_spellings = {spelling: normalize_name(spelling) for spelling in spelling_player_ids}
 
     crosswalk = []
     for master_row in master_rows:
         key = (master_row["name"], master_row["role"])
         prior = existing.get(key)
         if prior is not None and prior["match_status"] in RESOLVED_STATUSES:
-            refreshed = dict(prior)
-            refreshed["club"] = master_row["club"]
-            refreshed["position"] = master_row["position"]
-            refreshed["price"] = master_row["price"]
-            crosswalk.append(refreshed)
+            crosswalk.append(dict(prior))
             continue
-        crosswalk.append(build_row(master_row, roster, normalized_roster, normalized_index))
+        crosswalk.append(build_row(master_row, spelling_player_ids, normalized_index, normalized_spellings))
     return crosswalk
 
 
@@ -288,10 +290,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     master_rows = load_master_rows(args.master)
-    roster = load_boxscore_roster(args.boxscore)
+    spelling_player_ids = load_boxscore_spellings(args.boxscore)
     existing = load_existing_crosswalk(args.out)
 
-    rows = build_crosswalk(master_rows, roster, existing)
+    rows = build_crosswalk(master_rows, spelling_player_ids, existing)
     write_crosswalk(rows, args.out)
 
     counts = Counter(row["match_status"] for row in rows)
