@@ -35,7 +35,7 @@ Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-
 | `matching.py` | Shared exact→fuzzy matching engine (no CLI). |
 | `resolve_player_names.py` | Builds/refreshes `player_name_crosswalk.csv` (player names). |
 | `apply_player_name_verdicts.py` | Applies agent verdicts to the player crosswalk. |
-| `crosswalk.py` | `PlayerNameCrosswalk` — read-only lookup class. |
+| `player_crosswalk.py` | `PlayerNameCrosswalk` — read-only lookup class. |
 | `resolve_team_names.py` | Builds/refreshes `team_name_crosswalk.csv` (club names). |
 | `apply_team_name_verdicts.py` | Applies agent verdicts to the team crosswalk. |
 | `team_crosswalk.py` | `TeamNameCrosswalk` — read-only lookup class. |
