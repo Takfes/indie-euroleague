@@ -36,6 +36,34 @@ docs-test: ## Test if documentation can be built without warnings or errors
 docs: ## Build and serve the documentation
 	@uv run mkdocs serve
 
+.PHONY: merge-worktree
+merge-worktree: SHELL := /bin/bash
+merge-worktree: ## Stage a merge of a finished task branch into main (--no-ff --no-commit); prompts when several worktrees exist
+	@set -euo pipefail; \
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "Primary checkout has uncommitted changes -- resolve those first. Aborting."; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	branches=$$(git worktree list --porcelain | awk '/^worktree /{wt=$$2} /^branch /{b=$$2; sub("refs/heads/","",b); if (wt ~ /\.claude\/worktrees\//) print b; wt=""}'); \
+	if [ -z "$$branches" ]; then \
+		echo "No task worktrees found under .claude/worktrees/. Nothing to merge."; \
+		exit 0; \
+	fi; \
+	set -- $$branches; \
+	if [ $$# -eq 1 ]; then \
+		branch=$$1; \
+		echo "One task branch found: $$branch"; \
+	else \
+		echo "Multiple task branches found -- pick one:"; \
+		select branch in "$$@"; do [ -n "$$branch" ] && break; done; \
+	fi; \
+	echo "Staging merge of '$$branch' into $$(git branch --show-current) (--no-ff --no-commit)..."; \
+	git merge --no-ff --no-commit "$$branch"; \
+	echo; \
+	echo "Merge staged, not committed. Review below, then: git commit"; \
+	git status
+
 .PHONY: help
 help:
 	@uv run python -c "import re; \
