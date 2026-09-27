@@ -14,7 +14,7 @@ GET, then a regex pass over the embedded `<tr data-pos=... data-club=... data-pr
 rows.
 
 Usage:
-    python src/indie_euroleague/fetchers/fetch_basketballsphere_prices.py [--out PATH]
+    python src/eupy/fetchers/fetch_basketballsphere_prices.py [--out PATH]
 
 Re-run this any time to refresh data/raw_data/fantasy_prices/basketballsphere_prices.csv --
 prices change after every round, so the output is fully overwritten each run.

@@ -17,7 +17,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 
 ## Commands (repo root)
 
-- Run: `uv run python src/indie_euroleague/<module>.py` (e.g. `fetchers/fetch_euroleague_live_boxscores.py`)
+- Run: `uv run python src/eupy/<module>.py` (e.g. `fetchers/fetch_euroleague_live_boxscores.py`)
 - Test: `uv run pytest`
 - Lint/format: `ruff check src tests` · `ruff format --check src tests`
 
@@ -27,7 +27,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Challenge my views — sparring partner, not yes-man. Every release needs a clear purpose and value.
 - Blocked, multiple viable paths, or my instructions could be better → present options + recommendation.
 - Can't make something work → stop and tell me. Don't reinvent the wheel.
-- 80/20: works-but-suboptimal and off the critical path → defer. Offer to log it in `docs/next-steps.md` (quick, cheap tidy of the file when doing so).
+- 80/20: works-but-suboptimal and off the critical path → propose deferring it to `docs/next-steps.md`; logging it is my call, not a default action (quick, cheap tidy of the file when doing so).
 - While subagents run: brief status — progress, things to be aware of, decisions I need to make.
 - `update` → from git log + active specs, grouped summary of **done** vs **ongoing/remaining**. Abstract; not one line per commit/spec.
 
@@ -44,7 +44,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - [ ] `uv run pytest` green; new/changed logic has meaningful tests
 - [ ] Reproducible: re-running from raw data gives the same outputs
 - [ ] Script I/O headers current; catalogue + graph regenerated
-- [ ] Docs/specs updated; deferrals logged in `docs/next-steps.md`
+- [ ] Docs/specs updated; deferrals proposed and, once confirmed, logged in `docs/next-steps.md`
 - [ ] Branches/worktrees cleaned up
 
 ## Subagents & git
@@ -52,6 +52,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Delegate only when the task calls for it (multi-file, parallelizable, or context-heavy). If the main agent can do it without meaningful context cost, do it inline.
 - Also inline when: I ask or imply it, or I'm doing a quick thing rather than a spec. Unsure → ask.
 - I talk to subagents only through the main agent. Every decision needing my input (incl. module structure) is resolved with me **before** delegation. A subagent hitting an unresolved decision stops and reports back; main agent relays to me.
+- Subagents don't devise their own work — scope is the work-package/spec agreed between me and the main agent. Deviating (adding, dropping, reshaping tasks) needs a near-blocking reason; even then, the subagent stops and reports up rather than acting on it. A scope change ships only after I confirm; the main agent then updates the spec and its pass criteria, and the merge into main carries that updated spec file along with the code.
 - Budget guard: if a subagent or task runs well beyond expectation (default: >30 tool calls, repeated failed attempts, or main context getting heavy), pause and notify me with status + options (continue / narrow scope / stop).
 - Model: haiku for trivial, well-defined tasks; sonnet when implementation is uncertain.
 - Every brief includes: goal, pass criteria, branch/worktree, files in scope, decisions already made.
@@ -59,10 +60,10 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Parallel work: hold back items touched by >1 process; tell me and propose a workaround.
 - Shared docs — single writer (main agent), after merge:
   - Catalogue, graph: generated only (banner "GENERATED — do not edit"). On conflict, regenerate.
-  - `next-steps.md`: subagents list deferrals in their final report; main agent appends.
+  - `next-steps.md`: subagents list deferrals in their final report; main agent proposes them to me and appends only once I confirm.
   - Specs: read-only for subagents; status changes by main agent.
   - Enforcement: briefs list shared docs as out of scope; main agent rejects any subagent diff touching them.
-- Subagents never commit. Main agent verifies against Definition of done, then commits/merges. Uncertain → ask me.
+- Subagents never commit. Main agent verifies against Definition of done, then commits. Merging into main always needs my explicit go-ahead beforehand — not a report that it already happened — unless I've told you upfront to go straight through to merge.
 - Merge strategy: `local` → merge into local `main`; `remote` → open GitHub PR.
 - Conventional commits (`feat`/`fix`/`chore`/`refactor`/`test`/`docs`). Flag when splitting into more commits would give cleaner history.
 - After merge: delete finished branches and worktrees.
