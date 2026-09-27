@@ -32,15 +32,16 @@ Pipeline (see specs/spec-player-name-linking.md for the full design):
 3. Agent stage (skill) -- out of scope for this script; see
    `apply_player_name_verdicts.py` and the `resolve-player-names` skill.
 
-`role=head_coach` rows pass through untouched as `match_status=not_applicable`
--- the box-score dataset has no coach data, so matching them is impossible.
+`role=head_coach` rows are filtered out of the master rows before matching --
+the box-score dataset has no coach data, so matching them is structurally
+impossible, and they never appear in the crosswalk.
 
 Idempotency: rows the agent stage already resolved (`match_status` in
 `confirmed` / `rejected` / `no_match`) are carried over to the new output
-completely unchanged, keyed on `(name, role)`. There is nothing on the master
-side (other than `name`/`role`, the key itself) that this artifact carries,
-so there is nothing to refresh -- every other row (new, `exact`,
-`needs_review`, `no_candidate`) is recomputed fresh.
+completely unchanged, keyed on `name` alone. There is nothing on the master
+side (other than `name`, the key itself) that this artifact carries, so there
+is nothing to refresh -- every other row (new, `exact`, `needs_review`,
+`no_candidate`) is recomputed fresh.
 
 Usage:
     python src/eupy/entity/resolve_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
@@ -56,12 +57,10 @@ from __future__ import annotations
 
 import argparse
 import csv
-import re
-import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from rapidfuzz import fuzz, process
+from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
 
 MASTER_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_prices" / "basketballsphere_prices.csv"
@@ -71,7 +70,6 @@ CROSSWALK_PATH = Path(__file__).resolve().parents[3] / "data" / "stage_01" / "pl
 
 CROSSWALK_FIELDNAMES = [
     "name",
-    "role",
     "boxscore_name",
     "match_status",
     "match_score",
@@ -80,20 +78,6 @@ CROSSWALK_FIELDNAMES = [
 ]
 
 RESOLVED_STATUSES = {"confirmed", "rejected", "no_match"}
-
-FUZZY_LIMIT = 3
-FUZZY_SCORE_CUTOFF = 80.0
-
-# (boxscore_name, match_score)
-Candidate = tuple[str, float]
-
-
-def normalize_name(name: str) -> str:
-    """Normalize a name for matching: strip accents, upper-case, letters/spaces only."""
-    decomposed = unicodedata.normalize("NFKD", name)
-    without_accents = "".join(c for c in decomposed if not unicodedata.combining(c))
-    letters_and_spaces = re.sub(r"[^A-Za-z ]", " ", without_accents.upper())
-    return re.sub(r"\s+", " ", letters_and_spaces).strip()
 
 
 def reorder_boxscore_name(name: str) -> str:
@@ -105,9 +89,14 @@ def reorder_boxscore_name(name: str) -> str:
 
 
 def load_master_rows(path: Path) -> list[dict[str, str]]:
-    """Load basketballsphere_prices.csv rows (rank, name, club, position, price, role)."""
+    """Load basketballsphere_prices.csv `role=player` rows, dropping `role=head_coach`.
+
+    The box-score dataset has no coach data, so matching head coaches is
+    structurally impossible -- they are filtered out here, before matching,
+    rather than passed through as noise.
+    """
     with path.open(newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        return [row for row in csv.DictReader(f) if row["role"] == "player"]
 
 
 def load_boxscore_spellings(path: Path) -> dict[str, set[str]]:
@@ -128,61 +117,6 @@ def load_boxscore_spellings(path: Path) -> dict[str, set[str]]:
     return dict(spellings)
 
 
-def build_normalized_index(spelling_player_ids: dict[str, set[str]]) -> dict[str, set[str]]:
-    """Group distinct box-score spellings by normalized name, for exact-match lookup."""
-    index: dict[str, set[str]] = defaultdict(set)
-    for spelling in spelling_player_ids:
-        index[normalize_name(spelling)].add(spelling)
-    return dict(index)
-
-
-def find_candidates(
-    normalized_name: str,
-    spelling_player_ids: dict[str, set[str]],
-    normalized_index: dict[str, set[str]],
-    normalized_spellings: dict[str, str],
-    *,
-    limit: int = FUZZY_LIMIT,
-    score_cutoff: float = FUZZY_SCORE_CUTOFF,
-) -> tuple[str, list[Candidate], str]:
-    """Resolve one normalized master name to a match status, its candidates, and how it was matched.
-
-    Tries an exact normalized-string match first:
-    - Exactly one distinct raw spelling, used by exactly one `player_id` ->
-      `exact`.
-    - Exactly one distinct raw spelling, used by more than one `player_id`
-      -> `needs_review` / `exact_collision` (picking one would guess which
-      real player it is).
-    - More than one distinct raw spelling sharing the normalized value (e.g.
-      an accented variant) -> `needs_review` / `exact_ambiguous_spelling`,
-      every spelling listed.
-    Falls back to fuzzy top-`limit` candidates at or above `score_cutoff`
-    (`needs_review` / `fuzzy`), or `no_candidate` if none clear it.
-    """
-    spellings = normalized_index.get(normalized_name, set())
-    if len(spellings) == 1:
-        spelling = next(iter(spellings))
-        if len(spelling_player_ids[spelling]) > 1:
-            return "needs_review", [(spelling, 100.0)], "exact_collision"
-        return "exact", [(spelling, 100.0)], "exact"
-    if len(spellings) > 1:
-        candidates = [(spelling, 100.0) for spelling in sorted(spellings)]
-        return "needs_review", candidates, "exact_ambiguous_spelling"
-
-    matches = process.extract(
-        normalized_name, normalized_spellings, scorer=fuzz.WRatio, limit=limit, score_cutoff=score_cutoff
-    )
-    if not matches:
-        return "no_candidate", [], "fuzzy"
-    candidates = [(spelling, score) for _, score, spelling in matches]
-    return "needs_review", candidates, "fuzzy"
-
-
-def format_candidates_note(candidates: list[Candidate]) -> str:
-    """Render candidates as a human-readable note for `needs_review` rows."""
-    return "; ".join(f"{name} ({score:.1f})" for name, score in candidates)
-
-
 def build_row(
     master_row: dict[str, str],
     spelling_player_ids: dict[str, set[str]],
@@ -190,17 +124,7 @@ def build_row(
     normalized_spellings: dict[str, str],
 ) -> dict[str, str]:
     """Build one fresh crosswalk row from a master row (no prior crosswalk state)."""
-    base = {"name": master_row["name"], "role": master_row["role"]}
-
-    if master_row["role"] == "head_coach":
-        return {
-            **base,
-            "boxscore_name": "",
-            "match_status": "not_applicable",
-            "match_score": "",
-            "matched_by": "not_applicable",
-            "notes": "",
-        }
+    base = {"name": master_row["name"]}
 
     status, candidates, matched_by = find_candidates(
         normalize_name(master_row["name"]), spelling_player_ids, normalized_index, normalized_spellings
@@ -238,18 +162,18 @@ def build_row(
     }
 
 
-def load_existing_crosswalk(path: Path) -> dict[tuple[str, str], dict[str, str]]:
-    """Load an existing crosswalk keyed by `(name, role)`, or an empty dict if it doesn't exist yet."""
+def load_existing_crosswalk(path: Path) -> dict[str, dict[str, str]]:
+    """Load an existing crosswalk keyed by `name`, or an empty dict if it doesn't exist yet."""
     if not path.exists():
         return {}
     with path.open(newline="", encoding="utf-8") as f:
-        return {(row["name"], row["role"]): row for row in csv.DictReader(f)}
+        return {row["name"]: row for row in csv.DictReader(f)}
 
 
 def build_crosswalk(
     master_rows: list[dict[str, str]],
     spelling_player_ids: dict[str, set[str]],
-    existing: dict[tuple[str, str], dict[str, str]],
+    existing: dict[str, dict[str, str]],
 ) -> list[dict[str, str]]:
     """Build the full crosswalk for the current master snapshot.
 
@@ -262,10 +186,10 @@ def build_crosswalk(
 
     crosswalk = []
     for master_row in master_rows:
-        key = (master_row["name"], master_row["role"])
+        key = master_row["name"]
         prior = existing.get(key)
         if prior is not None and prior["match_status"] in RESOLVED_STATUSES:
-            crosswalk.append(dict(prior))
+            crosswalk.append({field: prior.get(field, "") for field in CROSSWALK_FIELDNAMES})
             continue
         crosswalk.append(build_row(master_row, spelling_player_ids, normalized_index, normalized_spellings))
     return crosswalk

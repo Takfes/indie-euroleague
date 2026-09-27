@@ -1,347 +1,327 @@
-name,role,boxscore_name,match_status,match_score,matched_by,notes
-Sasha Vezenkov,player,SASHA VEZENKOV,exact,100.0,exact,
-Mike James,player,MIKE JAMES,exact,100.0,exact,
-Chima Moneke,player,CHIMA MONEKE,exact,100.0,exact,
-Elijah Bryant,player,ELIJAH BRYANT,exact,100.0,exact,
-Jonas Valanciunas,player,JONAS VALANCIUNAS,exact,100.0,exact,
-Nikola Milutinov,player,NIKOLA MILUTINOV,exact,100.0,exact,
-TJ Shorts,player,TJ SHORTS,exact,100.0,exact,
-Jaylen Hoard,player,JAYLEN HOARD,exact,100.0,exact,
-Nadir Hifi,player,NADIR HIFI,exact,100.0,exact,
-Sylvain Francisco,player,SYLVAIN FRANCISCO,exact,100.0,exact,
-Walter Tavares,player,WALTER TAVARES,exact,100.0,exact,
-Kendrick Nunn,player,KENDRICK NUNN,exact,100.0,exact,
-Mfiondu Kabengele,player,MFIONDU KABENGELE,exact,100.0,exact,
-Dario Saric,player,DARIO SARIC,exact,100.0,exact,
-Mathias Lessort,player,MATHIAS LESSORT,exact,100.0,exact,
-Guerschon Yabusele,player,GUERSCHON YABUSELE,exact,100.0,exact,
-Wade Baldwin,player,WADE BALDWIN IV,confirmed,95.0,agent,"Fantasy site drops the 'IV' suffix; box score confirms only one Wade Baldwin (BALDWIN IV, WADE)."
-Dan Oturu,player,DAN OTURU,exact,100.0,exact,
-Moses Wright,player,MOSES WRIGHT,exact,100.0,exact,
-Tornike Shengelia,player,TORNIKE SHENGELIA,exact,100.0,exact,
-Facundo Campazzo,player,FACUNDO CAMPAZZO,exact,100.0,exact,
-Carlik Jones,player,CARLIK JONES,exact,100.0,exact,
-Kevin Punter,player,KEVIN  XAVIER PUNTER,confirmed,85.5,agent,"Box score's only Punter is 'PUNTER, KEVIN  XAVIER' -- middle name Xavier included, same player."
-McKinley Wright,player,MCKINLEY WRIGHT IV,confirmed,95.0,agent,"Fantasy site drops the 'IV' suffix; box score confirms only one McKinley Wright (WRIGHT IV, MCKINLEY)."
-Shane Larkin,player,SHANE LARKIN,exact,100.0,exact,
-Nigel Hayes-Davis,player,NIGEL HAYES,confirmed,90.0,agent,"Nigel Hayes added his wife's surname 'Davis' after his EuroLeague box-score history was recorded; box score's only Hayes with matching first name is 'HAYES, NIGEL'. The 'Davis' candidate (Paul Davis) is an unrelated player, rejected."
-Roman Sorkin,player,ROMAN SORKIN,exact,100.0,exact,
-Dzanan Musa,player,DZANAN MUSA,exact,100.0,exact,
-Zach LeDay,player,ZACH LEDAY,exact,100.0,exact,
-Jordan Nwora,player,JORDAN NWORA,exact,100.0,exact,
-Jean Montero,player,JEAN MONTERO,exact,100.0,exact,
-Timothe Luwawu-Cabarrot,player,TIMOTHE LUWAWU-CABARROT,exact,100.0,exact,
-Dwayne Bacon,player,DWAYNE BACON,exact,100.0,exact,
-Filip Petrusev,player,FILIP PETRUSEV,exact,100.0,exact,
-Talen Horton-Tucker,player,TALEN HORTON TUCKER,exact,100.0,exact,
-Tyler Dorsey,player,TYLER DORSEY,exact,100.0,exact,
-Amir Coffey,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Josh Nebo,player,JOSH NEBO,exact,100.0,exact,
-Kameron Taylor,player,KAMERON TAYLOR,exact,100.0,exact,
-Shavon Shields,player,SHAVON SHIELDS,exact,100.0,exact,
-Will Clyburn,player,WILL CLYBURN,exact,100.0,exact,
-Patty Mills,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Daniel Theis,player,DANIEL THEIS,exact,100.0,exact,
-Elie Okobo,player,ELIE OKOBO,exact,100.0,exact,
-Justin Robinson,player,JUSTIN ROBINSON,exact,100.0,exact,
-Chris Jones,player,CHRIS JONES,exact,100.0,exact,
-Ante Zizic,player,ANTE ZIZIC,exact,100.0,exact,
-Tyrique Jones,player,TYRIQUE JONES,exact,100.0,exact,
-Vasilije Micic,player,VASILIJE MICIC,exact,100.0,exact,
-Alec Peters,player,ALEC PETERS,exact,100.0,exact,
-Isaac Bonga,player,ISAAC BONGA,exact,100.0,exact,
-TJ Warren,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Carsen Edwards,player,CARSEN EDWARDS,exact,100.0,exact,
-Juancho Hernangomez,player,JUANCHO HERNANGOMEZ,exact,100.0,exact,
-Bonzie Colson,player,BONZIE COLSON,exact,100.0,exact,
-Marcus Bingham,player,,rejected,,agent,Candidate (Marcus Foster) only shares the first name 'Marcus'; no 'Bingham' in box score at all.
-Marjon Beauchamp,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Azuolas Tubelis,player,AZUOLAS TUBELIS,exact,100.0,exact,
-Tyson Etienne,player,,rejected,,agent,Candidate (Pierre-Etienne Drouault) only shares 'Etienne' as part of a different surname; no 'Etienne' surname in box score.
-Austin Wiley,player,,rejected,,agent,"Candidate (Austin Hollins) only shares the first name 'Austin'; box score's only Wiley is 'WILEY, JACOB' (different person)."
-Codi Miller-McIntyre,player,CODI MILLER-MCINTYRE,exact,100.0,exact,
-Johnathan Motley,player,JOHNATHAN MOTLEY,exact,100.0,exact,
-Rasheed Bello,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Donta Hall,player,DONTA HALL,exact,100.0,exact,
-Keaton Wallace,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Daron Russell,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Kostas Sloukas,player,KOSTAS SLOUKAS,exact,100.0,exact,
-Johannes Thiemann,player,JOHANNES THIEMANN,exact,100.0,exact,
-Patrick Baldwin Jr.,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Sterling Brown,player,STERLING BROWN,exact,100.0,exact,
-Trent Forrest,player,TRENT FORREST,exact,100.0,exact,
-Eugene Omoruyi,player,EUGENE OMORUYI,exact,100.0,exact,
-TJ Leaf,player,TJ LEAF,exact,100.0,exact,
-Trent Frazier,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Joel Bolomboy,player,JOEL BOLOMBOY,exact,100.0,exact,
-Tadas Sedekerskis,player,TADAS SEDEKERSKIS,exact,100.0,exact,
-Armoni Brooks,player,ARMONI BROOKS,exact,100.0,exact,
-Bruno Fernando,player,BRUNO FERNANDO,exact,100.0,exact,
-Matthew Strazel,player,MATTHEW STRAZEL,exact,100.0,exact,
-Nathan Reuvers,player,NATHAN REUVERS,exact,100.0,exact,
-Andreas Obst,player,ANDREAS OBST,exact,100.0,exact,
-Jordan Loyd,player,JORDAN LOYD,exact,100.0,exact,
-Oshae Brissett,player,O'SHAE J BRISSETT,confirmed,90.3,agent,"Punctuation/spacing variant of box score's ""BRISSETT, O'SHAE J"" -- same player, only Brissett in the data."
-Umoja Gibson,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Duane Washington,player,DUANE WASHINGTON,exact,100.0,exact,
-Ethan Thompson,player,,rejected,,agent,Candidates share only the surname 'Thompson' with different first names; box score has no 'Ethan Thompson' among its 6 Thompsons.
-Jared Butler,player,JARED BUTLER,exact,100.0,exact,
-Kyle Allman,player,,rejected,,agent,Candidate (Kyle O'Quinn) only shares the first name 'Kyle'; no 'Allman' surname anywhere in box score.
-Mamadi Diakite,player,MAMADI DIAKITE,exact,100.0,exact,
-Chris Duarte,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Georgios Bartzokas,head_coach,,not_applicable,,not_applicable,
-Johnny Juzang,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Kessler Edwards,player,KESSLER EDWARDS,exact,100.0,exact,
-Nick Weiler-Babb,player,NICK WEILER-BABB,exact,100.0,exact,
-Zeljko Obradovic,head_coach,,not_applicable,,not_applicable,
-Bobi Klintman,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-David DeJulius,player,DAVID DEJULIUS,exact,100.0,exact,
-Devon Dotson,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Marcus Carr,player,,rejected,,agent,Candidate (Marcus Foster) only shares the first name 'Marcus'; no 'Carr' surname in box score (only Carraretto/Carroll).
-Tremont Waters,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Alize Johnson,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Jacob Toppin,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Theo Maledon,player,THEO MALEDON,exact,100.0,exact,
-Anthony Brown,player,,rejected,,agent,Candidates only share the middle/first name 'Anthony'; no 'Brown' with first name Anthony among box score's 12 Browns.
-Devin Booker,player,DEVIN BOOKER,exact,100.0,exact,
-Jaylen Nowell,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Nigel Williams-Goss,player,NIGEL WILLIAMS-GOSS,exact,100.0,exact,
-Antonio Blakeney,player,ANTONIO BLAKENEY,exact,100.0,exact,
-Ercan Osmani,player,ERCAN OSMANI,exact,100.0,exact,
-Kobi Simmons,player,KOBI SIMMONS,exact,100.0,exact,
-Marko Guduric,player,MARKO GUDURIC,exact,100.0,exact,
-Tomas Satoransky,player,TOMAS SATORANSKY,exact,100.0,exact,
-Jae Crowder,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Jimmy Clark III,player,JIMMY CLARK III,exact,100.0,exact,
-Kenneth Faried,player,KENNETH FARIED,exact,100.0,exact,
-Marek Blazevic,player,MAREK BLAZEVIC,exact,100.0,exact,
-Ebuka Izundu,player,EBUKA IZUNDU,exact,100.0,exact,
-Evan Fournier,player,EVAN FOURNIER,exact,100.0,exact,
-Jaron Blossomgame,player,JARON BLOSSOMGAME,exact,100.0,exact,
-Mathis Dossou-Yovo,player,MATHIS DOSSOU-YOVO,exact,100.0,exact,
-Tosan Evbuomwan,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Maozinha Pereira,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Mouhamet Diouf,player,MOUHAMET DIOUF,exact,100.0,exact,
-TyTy Washington,player,,rejected,,agent,Candidate (Darius Washington Jr) shares only the surname; box score's only Washingtons are Darius Myron and Duane -- neither is TyTy.
-Jason Burnell,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Damian Jones,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Isaia Cordinier,player,ISAIA CORDINIER,exact,100.0,exact,
-Joffrey Lauvergne,player,JOFFREY LAUVERGNE,exact,100.0,exact,
-Olivier Sarr,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Stanley Umude,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Chuma Okeke,player,CHUMA OKEKE,exact,100.0,exact,
-Gabriel Deck,player,GABRIEL DECK,exact,100.0,exact,
-Garrison Mathews,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Gonzalo Corbalan,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Jared Rhoden,player,JARED RHODEN,exact,100.0,exact,
-Pedro Martinez,head_coach,,not_applicable,,not_applicable,
-Saras Jasikevicius,head_coach,,not_applicable,,not_applicable,
-Vladimir Lucic,player,VLADIMIR LUCIC,exact,100.0,exact,
-Kevin Kokila,player,,rejected,,agent,Candidate (Kevin Punter) only shares the first name 'Kevin'; no 'Kokila' surname in box score.
-Miles Norris,player,MILES NORRIS,exact,100.0,exact,
-AJ Lawson,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-DJ Stewart,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Hugo Besson,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Jerian Grant,player,JERIAN GRANT,exact,100.0,exact,
-Kai Jones,player,KAI JONES,exact,100.0,exact,
-Neal Sako,player,NEAL SAKO,exact,100.0,exact,
-Tyrese Martin,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Yam Madar,player,YAM MADAR,exact,100.0,exact,
-Both Gach,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Darius Thompson,player,DARIUS THOMPSON,exact,100.0,exact,
-Jaime Pradilla,player,JAIME PRADILLA,exact,100.0,exact,
-Leandro Bolmaro,player,LEANDRO BOLMARO,exact,100.0,exact,
-Mo Gueye,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Santi Yusta,player,SANTI YUSTA,exact,100.0,exact,
-Wendell Moore Jr.,player,,rejected,,agent,"Candidate (Darius Washington Jr) shares only the 'Jr' suffix token; box score's only Moore is 'MOORE, OMARI' (different person)."
-Mady Sissoko,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Rokas Jokubaitis,player,ROKAS JOKUBAITIS,exact,100.0,exact,
-Saben Lee,player,SABEN LEE,exact,100.0,exact,
-Conor Morgan,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Dimitris Itoudis,head_coach,,not_applicable,,not_applicable,
-Omari Moore,player,OMARI MOORE,exact,100.0,exact,
-RJ Cole,player,,rejected,,agent,"Candidates (Norris Cole, Cole Swider) don't match 'R.J. Cole'; no matching first-name/surname pair in box score."
-Damion Baugh,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Derrick Alston Jr.,player,DERRICK ALSTON JR.,exact,100.0,exact,
-Wenyen Gabriel,player,WENYEN GABRIEL,exact,100.0,exact,
-Brancou Badio,player,BRANCOU BADIO,exact,100.0,exact,
-Furkan Korkmaz,player,FURKAN KORKMAZ,exact,100.0,exact,
-Iffe Lundberg,player,IFFE LUNDBERG,exact,100.0,exact,
-Markus Howard,player,MARKUS HOWARD,exact,100.0,exact,
-Tonye Jekiri,player,TONYE JEKIRI,exact,100.0,exact,
-Devon Hall,player,DEVON HALL,exact,100.0,exact,
-Moustapha Fall,player,MOUSTAPHA FALL,exact,100.0,exact,
-Nicolo Melli,player,NICOLO MELLI,exact,100.0,exact,
-Thomas Walkup,player,THOMAS WALKUP,exact,100.0,exact,
-Collin Malcolm,player,COLLIN MALCOLM,exact,100.0,exact,
-Derek Willis,player,DEREK WILLIS,exact,100.0,exact,
-Aleksander Balcerowski,player,ALEKSANDER BALCEROWSKI,exact,100.0,exact,
-Aleksander Sekulic,head_coach,,not_applicable,,not_applicable,
-Allan Dokossi,player,ALLAN DOKOSSI,exact,100.0,exact,
-Braxton Key,player,BRAXTON KEY,exact,100.0,exact,
-Dylan Osetkowski,player,DYLAN OSETKOWSKI,exact,100.0,exact,
-Eugene German,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Lamar Stevens,player,LAMAR STEVENS,exact,100.0,exact,
-Max Shulga,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Xavi Pascual,head_coach,,not_applicable,,not_applicable,
-Chris Silva,player,CHRIS SILVA,exact,100.0,exact,
-Nathan Sestina,player,NATHAN SESTINA,exact,100.0,exact,
-Frank Ntilikina,player,FRANK NTILIKINA,exact,100.0,exact,
-Nikola Tanaskovic,player,,rejected,,agent,Candidate (Nikola Ivanovic) only shares the first name 'Nikola'; no 'Tanaskovic' surname in box score.
-Olivier Nkamboua,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Justinian Jessup,player,JUSTINIAN JESSUP,exact,100.0,exact,
-Luca Vildoza,player,LUCA VILDOZA,exact,100.0,exact,
-PJ Dozier,player,PJ DOZIER,exact,100.0,exact,
-Tamir Blatt,player,TAMIR BLATT,exact,100.0,exact,
-Georgios Papagiannis,player,GEORGIOS PAPAGIANNIS,exact,100.0,exact,
-Johannes Voigtmann,player,JOHANNES VOIGTMANN,exact,100.0,exact,
-Justin Minaya,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Khadeen Carrington,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Mbaye Ndiaye,player,MBAYE NDIAYE,exact,100.0,exact,
-Pablo Laso,head_coach,,not_applicable,,not_applicable,
-Scottie Wilbekin,player,SCOTTIE WILBEKIN,exact,100.0,exact,
-Semi Ojeleye,player,SEMI OJELEYE,exact,100.0,exact,
-Tomas Masiulis,head_coach,,not_applicable,,not_applicable,
-Tyson Ward,player,TYSON WARD,exact,100.0,exact,
-Yves Pons,player,YVES PONS,exact,100.0,exact,
-Alessandro Pajola,player,ALESSANDRO PAJOLA,exact,100.0,exact,
-Kevarrius Hayes,player,KEVARRIUS HAYES,exact,100.0,exact,
-Oscar Da Silva,player,OSCAR DA SILVA,exact,100.0,exact,
-Armando Bacot,player,ARMANDO BACOT JR.,confirmed,95.0,agent,"Fantasy site drops the 'Jr.' suffix; box score's only Bacot is 'BACOT JR., ARMANDO'."
-Elias Valtonen,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Maodo Lo,player,MAODO LO,exact,100.0,exact,
-Kamar Baldwin,player,KAMAR BALDWIN,exact,100.0,exact,
-Myles Cale,player,MYLES CALE,exact,100.0,exact,
-Arnas Butkevicius,player,ARNAS BUTKEVICIUS,exact,100.0,exact,
-Cory Joseph,player,CORY JOSEPH,exact,100.0,exact,
-Giuseppe Poeta,head_coach,,not_applicable,,not_applicable,
-Ibon Navarro,head_coach,,not_applicable,,not_applicable,
-Joel Parra,player,JOEL PARRA,exact,100.0,exact,
-Mouhamed Faye,player,MOUHAMED FAYE,exact,100.0,exact,
-Terry Tarpey,player,TERRY TARPEY,exact,100.0,exact,
-Vitto Brown,player,VITTO BROWN,exact,100.0,exact,
-Xavier Albert,head_coach,,not_applicable,,not_applicable,
-Yoan Makoundou,player,YOAN MAKOUNDOU,exact,100.0,exact,
-Mam Jaiteh,player,MAM JAITEH,exact,100.0,exact,
-Tobias Jensen,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Tyson Carter,player,TYSON CARTER,exact,100.0,exact,
-Kaodirichi Akobundu-Ehiogu,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Davion Mintz,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Aliou Diarra,player,ALIOU DIARRA,exact,100.0,exact,
-Antonis Karagiannidis,player,,rejected,,agent,Candidate (Antonis Fotsis) only shares the first name 'Antonis'; no 'Karagiannidis' surname in box score.
-David Kramer,player,DAVID KRAMER,exact,100.0,exact,
-Ish Wainright,player,ISH WAINRIGHT,exact,100.0,exact,
-Joan Penarroya,head_coach,,not_applicable,,not_applicable,
-Justin Anderson,player,JUSTIN ANDERSON,exact,100.0,exact,
-Oded Kattash,head_coach,,not_applicable,,not_applicable,
-Rodions Kurucs,player,RODIONS KURUCS,exact,100.0,exact,
-Yankuba Sima,player,YANKUBA SIMA,exact,100.0,exact,
-Amath M'Baye,player,AMATH M'BAYE,exact,100.0,exact,
-Dario Brizuela,player,DARIO BRIZUELA,exact,100.0,exact,
-Edgaras Ulanovas,player,EDGARAS ULANOVAS,exact,100.0,exact,
-Matteo Spagnolo,player,MATTEO SPAGNOLO,exact,100.0,exact,
-Bodian Massa,player,BODIAN MASSA,exact,100.0,exact,
-Dustin Sleva,player,DUSTIN SLEVA,exact,100.0,exact,
-Ignas Sargiunas,player,,rejected,,agent,"Box score's only Sargiunas is 'SARGIUNAS, TITAS' -- different first name, likely a relative, not the same player."
-Jeremy Morgan,player,JEREMY MORGAN,exact,100.0,exact,
-Marius Grigonis,player,MARIUS GRIGONIS,exact,100.0,exact,
-Tai Odiase,player,TAI ODIASE,exact,100.0,exact,
-Andres Feliz,player,ANDRES FELIZ,exact,100.0,exact,
-Daulton Hommes,player,DAULTON HOMMES,exact,100.0,exact,
-Agustin Ubal,player,AGUSTIN UBAL,exact,100.0,exact,
-Usman Garuba,player,USMAN GARUBA,exact,100.0,exact,
-Dusan Alimpijevic,head_coach,,not_applicable,,not_applicable,
-Mikael Jantunen,player,MIKAEL JANTUNEN,exact,100.0,exact,
-Tony Parker,head_coach,,not_applicable,,not_applicable,
-Kenan Kamenjas,player,KENAN KAMENJAS,exact,100.0,exact,
-Shane Hunter,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Khalifa Diop,player,KHALIFA DIOP,exact,100.0,exact,
-Nobel Boungou-Colo,player,NOBEL BOUNGOU-COLO,exact,100.0,exact,
-Tyler Ennis,player,TYLER ENNIS,exact,100.0,exact,
-Brice Dessert,player,BRICE DESSERT,exact,100.0,exact,
-Davide Casarin,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Davis Bertans,player,DAVIS BERTANS,exact,100.0,exact,
-Josep Puerto,player,JOSEP PUERTO,exact,100.0,exact,
-Konstantinos Mitoglou,player,KONSTANTINOS MITOGLOU,exact,100.0,exact,
-Mario Nakic,player,MARIO NAKIC,exact,100.0,exact,
-Metecan Birsen,player,METECAN BIRSEN,exact,100.0,exact,
-Francesco Ferrari,player,FRANCESCO FERRARI,exact,100.0,exact,
-Clement Frisch,player,CLEMENT FRISCH,exact,100.0,exact,
-Justus Hollatz,player,JUSTUS HOLLATZ,exact,100.0,exact,
-Alex Mumbru,head_coach,,not_applicable,,not_applicable,
-Anton Gavel,head_coach,,not_applicable,,not_applicable,
-Deividas Sirvydis,player,DEIVIDAS SIRVYDIS,exact,100.0,exact,
-Eli Ndiaye,player,ELI NDIAYE,exact,100.0,exact,
-Frederic Bourdillon,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Joel Ayayi,player,JOEL AYAYI,exact,100.0,exact,
-Maxime Lefevre,head_coach,,not_applicable,,not_applicable,
-Ognjen Dobric,player,OGNJEN DOBRIC,exact,100.0,exact,
-Onuralp Bitim,player,ONURALP BITIM,exact,100.0,exact,
-Paolo Galbiati,head_coach,,not_applicable,,not_applicable,
-Sebastian Herrera,player,SEBASTIAN HERRERA,exact,100.0,exact,
-Vanja Marinkovic,player,VANJA MARINKOVIC,exact,100.0,exact,
-Daniel Hackett,player,DANIEL HACKETT,exact,100.0,exact,
-David Lighty,player,DAVID LIGHTY,exact,100.0,exact,
-Leopold Cavaliere,player,LEOPOLD CAVALIERE,exact,100.0,exact,
-Marc-Owen Fodzo Dada,player,,rejected,,agent,Candidates only share the first name 'Marc'; no 'Fodzo'/'Dada' surname anywhere in box score.
-Nikola Djurisic,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Yakuba Ouattara,player,YAKUBA OUATTARA,exact,100.0,exact,
-Mario Saint-Supery,player,,rejected,,agent,Candidates only share the first name 'Mario'; no 'Saint-Supery'/'Supery' surname anywhere in box score.
-Edwin Jackson,player,EDWIN JACKSON,exact,100.0,exact,
-Giannoulis Larentzakis,player,GIANNOULIS LARENTZAKIS,exact,100.0,exact,
-Juan Nunez,player,JUAN NUNEZ,exact,100.0,exact,
-Alberto Abalde,player,ALBERTO ABALDE,exact,100.0,exact,
-Alvaro Cardenas,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Amit Ebo,player,AMIT EBO,exact,100.0,exact,
-Dovydas Giedraitis,player,DOVYDAS GIEDRAITIS,exact,100.0,exact,
-Eleftherios Mantzoukas,player,ELEFTHERIOS MANTZOUKAS,exact,100.0,exact,
-Giampaolo Ricci,player,GIAMPAOLO RICCI,exact,100.0,exact,
-Gur Lavy,player,GUR LAVI,confirmed,87.5,agent,"Hebrew-name transliteration variant of box score's 'LAVI, GUR' (Lavy/Lavi) -- same Israeli player."
-Izan Almansa,player,IZAN ALMANSA,exact,100.0,exact,
-John DiBartolomeo,player,JOHN DIBARTOLOMEO,exact,100.0,exact,
-Klemen Prepelic,player,KLEMEN PREPELIC,exact,100.0,exact,
-Nikos Rogkavopoulos,player,NIKOLAOS ROGKAVOPOULOS,confirmed,92.7,agent,"'Nikos' is the common Greek short form of 'Nikolaos'; box score's only Rogkavopoulos is 'ROGKAVOPOULOS, NIKOLAOS'."
-Sergio Llull,player,SERGIO LLULL,exact,100.0,exact,
-Sertac Sanli,player,SERTAC SANLI,exact,100.0,exact,
-Tomer Ginat,player,TOMER GINAT,exact,100.0,exact,
-Berk Ugurlu,player,BERK UGURLU,exact,100.0,exact,
-Dejan Davidovac,player,DEJAN DAVIDOVAC,exact,100.0,exact,
-Erkan Yilmaz,player,ERKAN YILMAZ,exact,100.0,exact,
-Niels Giffey,player,NIELS GIFFEY,exact,100.0,exact,
-Nikolaos Plotas,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Tommaso Baldasso,player,TOMMASO BALDASSO,exact,100.0,exact,
-Kostas Papanikolaou,player,KOSTAS PAPANIKOLAOU,exact,100.0,exact,
-William Rayman,player,WILLIAM RAYMAN,exact,100.0,exact,
-Awudu Abass,player,AWUDU ABASS,exact,100.0,exact,
-Dimitris Moraitis,player,DIMITRIS MORAITIS,exact,100.0,exact,
-Kosta Kondic,player,KOSTA KONDIC,exact,100.0,exact,
-Lucas Mari,player,LUCAS MARI,confirmed,100.0,agent,"Spelling ambiguity: box score has two distinct raw spellings for the same normalized name -- 'LUCAS MARI' (E2023) and 'LUCAS MARÍ' (E2022) -- almost certainly the same real player recorded under a corrected spelling in the more recent season (data-quality issue upstream, not a two-player collision). Picking the more recent spelling 'LUCAS MARI' as the anchor; flag for human override if a better source disambiguates this."
-Stefano Tonut,player,STEFANO TONUT,exact,100.0,exact,
-Gabriele Procida,player,GABRIELE PROCIDA,exact,100.0,exact,
-Aleksej Nedeljkovic,player,ALEKSEJ NEDELJKOVIC,exact,100.0,exact,
-Andrej Bjelic,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
-Arijan Lakic,player,ARIJAN LAKIC,exact,100.0,exact,
-Bar Timor,player,BAR TIMOR,exact,100.0,exact,
-Burakcan Yildizli,player,BURAKCAN YILDIZLI,exact,100.0,exact,
-David Mutaf,player,DAVID MUTAF,exact,100.0,exact,
-Diego Flaccadori,player,DIEGO FLACCADORI,exact,100.0,exact,
-Enzo Shahrvin,player,ENZO SHAHRVIN,exact,100.0,exact,
-Guy Palatin,player,GUY PALATIN,exact,100.0,exact,
-Ioannis Kouzeloglou,player,IOANNIS KOUZELOGLOU,exact,100.0,exact,
-Itay Segev,player,ITAY SEGEV,exact,100.0,exact,
-Kilian Fischer,player,KILIAN FISCHER,exact,100.0,exact,
-Matteo Baiocchi,player,MATTEO BAIOCCHI,exact,100.0,exact,
-Melih Mahmutoglu,player,MELIH MAHMUTOGLU,exact,100.0,exact,
-Mert Eksioglu,player,MERT EKSIOGLU,exact,100.0,exact,
-Mitar Bosnjakovic,player,MITAR BOSNJAKOVIC,exact,100.0,exact,
-Nemanja Dangubic,player,NEMANJA DANGUBIC,exact,100.0,exact,
-Nicola Akele,player,NICOLA AKELE,exact,100.0,exact,
-Omiros Netzipoglou,player,OMIROS NETZIPOGLOU,exact,100.0,exact,
-Ousmane Diop,player,OUSMANE DIOP,exact,100.0,exact,
-Oz Blayzer,player,OZ BLAYZER,exact,100.0,exact,
-Panagiotis Kalaitzakis,player,PANAGIOTIS KALAITZAKIS,exact,100.0,exact,
-Ruzgar Fenemen,player,RUZGAR FENEMEN,exact,100.0,exact,
-Stefan Joksimovic,player,STEFAN JOKSIMOVIC,exact,100.0,exact,
-Stefan Miljenovic,player,STEFAN MILJENOVIC,exact,100.0,exact,
-Uros Mijailovic,player,UROS MIJAILOVIC,exact,100.0,exact,
-Vojin Medarevic,player,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+name,boxscore_name,match_status,match_score,matched_by,notes
+Sasha Vezenkov,SASHA VEZENKOV,exact,100.0,exact,
+Mike James,MIKE JAMES,exact,100.0,exact,
+Chima Moneke,CHIMA MONEKE,exact,100.0,exact,
+Elijah Bryant,ELIJAH BRYANT,exact,100.0,exact,
+Jonas Valanciunas,JONAS VALANCIUNAS,exact,100.0,exact,
+Nikola Milutinov,NIKOLA MILUTINOV,exact,100.0,exact,
+TJ Shorts,TJ SHORTS,exact,100.0,exact,
+Jaylen Hoard,JAYLEN HOARD,exact,100.0,exact,
+Nadir Hifi,NADIR HIFI,exact,100.0,exact,
+Sylvain Francisco,SYLVAIN FRANCISCO,exact,100.0,exact,
+Walter Tavares,WALTER TAVARES,exact,100.0,exact,
+Kendrick Nunn,KENDRICK NUNN,exact,100.0,exact,
+Mfiondu Kabengele,MFIONDU KABENGELE,exact,100.0,exact,
+Dario Saric,DARIO SARIC,exact,100.0,exact,
+Mathias Lessort,MATHIAS LESSORT,exact,100.0,exact,
+Guerschon Yabusele,GUERSCHON YABUSELE,exact,100.0,exact,
+Wade Baldwin,WADE BALDWIN IV,confirmed,95.0,agent,"Fantasy site drops the 'IV' suffix; box score confirms only one Wade Baldwin (BALDWIN IV, WADE)."
+Dan Oturu,DAN OTURU,exact,100.0,exact,
+Moses Wright,MOSES WRIGHT,exact,100.0,exact,
+Tornike Shengelia,TORNIKE SHENGELIA,exact,100.0,exact,
+Facundo Campazzo,FACUNDO CAMPAZZO,exact,100.0,exact,
+Carlik Jones,CARLIK JONES,exact,100.0,exact,
+Kevin Punter,KEVIN  XAVIER PUNTER,confirmed,85.5,agent,"Box score's only Punter is 'PUNTER, KEVIN  XAVIER' -- middle name Xavier included, same player."
+McKinley Wright,MCKINLEY WRIGHT IV,confirmed,95.0,agent,"Fantasy site drops the 'IV' suffix; box score confirms only one McKinley Wright (WRIGHT IV, MCKINLEY)."
+Shane Larkin,SHANE LARKIN,exact,100.0,exact,
+Nigel Hayes-Davis,NIGEL HAYES,confirmed,90.0,agent,"Nigel Hayes added his wife's surname 'Davis' after his EuroLeague box-score history was recorded; box score's only Hayes with matching first name is 'HAYES, NIGEL'. The 'Davis' candidate (Paul Davis) is an unrelated player, rejected."
+Roman Sorkin,ROMAN SORKIN,exact,100.0,exact,
+Dzanan Musa,DZANAN MUSA,exact,100.0,exact,
+Zach LeDay,ZACH LEDAY,exact,100.0,exact,
+Jordan Nwora,JORDAN NWORA,exact,100.0,exact,
+Jean Montero,JEAN MONTERO,exact,100.0,exact,
+Timothe Luwawu-Cabarrot,TIMOTHE LUWAWU-CABARROT,exact,100.0,exact,
+Dwayne Bacon,DWAYNE BACON,exact,100.0,exact,
+Filip Petrusev,FILIP PETRUSEV,exact,100.0,exact,
+Talen Horton-Tucker,TALEN HORTON TUCKER,exact,100.0,exact,
+Tyler Dorsey,TYLER DORSEY,exact,100.0,exact,
+Amir Coffey,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Josh Nebo,JOSH NEBO,exact,100.0,exact,
+Kameron Taylor,KAMERON TAYLOR,exact,100.0,exact,
+Shavon Shields,SHAVON SHIELDS,exact,100.0,exact,
+Will Clyburn,WILL CLYBURN,exact,100.0,exact,
+Patty Mills,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Daniel Theis,DANIEL THEIS,exact,100.0,exact,
+Elie Okobo,ELIE OKOBO,exact,100.0,exact,
+Justin Robinson,JUSTIN ROBINSON,exact,100.0,exact,
+Chris Jones,CHRIS JONES,exact,100.0,exact,
+Ante Zizic,ANTE ZIZIC,exact,100.0,exact,
+Tyrique Jones,TYRIQUE JONES,exact,100.0,exact,
+Vasilije Micic,VASILIJE MICIC,exact,100.0,exact,
+Alec Peters,ALEC PETERS,exact,100.0,exact,
+Isaac Bonga,ISAAC BONGA,exact,100.0,exact,
+TJ Warren,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Carsen Edwards,CARSEN EDWARDS,exact,100.0,exact,
+Juancho Hernangomez,JUANCHO HERNANGOMEZ,exact,100.0,exact,
+Bonzie Colson,BONZIE COLSON,exact,100.0,exact,
+Marcus Bingham,,rejected,,agent,Candidate (Marcus Foster) only shares the first name 'Marcus'; no 'Bingham' in box score at all.
+Marjon Beauchamp,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Azuolas Tubelis,AZUOLAS TUBELIS,exact,100.0,exact,
+Tyson Etienne,,rejected,,agent,Candidate (Pierre-Etienne Drouault) only shares 'Etienne' as part of a different surname; no 'Etienne' surname in box score.
+Austin Wiley,,rejected,,agent,"Candidate (Austin Hollins) only shares the first name 'Austin'; box score's only Wiley is 'WILEY, JACOB' (different person)."
+Codi Miller-McIntyre,CODI MILLER-MCINTYRE,exact,100.0,exact,
+Johnathan Motley,JOHNATHAN MOTLEY,exact,100.0,exact,
+Rasheed Bello,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Donta Hall,DONTA HALL,exact,100.0,exact,
+Keaton Wallace,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Daron Russell,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Kostas Sloukas,KOSTAS SLOUKAS,exact,100.0,exact,
+Johannes Thiemann,JOHANNES THIEMANN,exact,100.0,exact,
+Patrick Baldwin Jr.,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Sterling Brown,STERLING BROWN,exact,100.0,exact,
+Trent Forrest,TRENT FORREST,exact,100.0,exact,
+Eugene Omoruyi,EUGENE OMORUYI,exact,100.0,exact,
+TJ Leaf,TJ LEAF,exact,100.0,exact,
+Trent Frazier,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Joel Bolomboy,JOEL BOLOMBOY,exact,100.0,exact,
+Tadas Sedekerskis,TADAS SEDEKERSKIS,exact,100.0,exact,
+Armoni Brooks,ARMONI BROOKS,exact,100.0,exact,
+Bruno Fernando,BRUNO FERNANDO,exact,100.0,exact,
+Matthew Strazel,MATTHEW STRAZEL,exact,100.0,exact,
+Nathan Reuvers,NATHAN REUVERS,exact,100.0,exact,
+Andreas Obst,ANDREAS OBST,exact,100.0,exact,
+Jordan Loyd,JORDAN LOYD,exact,100.0,exact,
+Oshae Brissett,O'SHAE J BRISSETT,confirmed,90.3,agent,"Punctuation/spacing variant of box score's ""BRISSETT, O'SHAE J"" -- same player, only Brissett in the data."
+Umoja Gibson,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Duane Washington,DUANE WASHINGTON,exact,100.0,exact,
+Ethan Thompson,,rejected,,agent,Candidates share only the surname 'Thompson' with different first names; box score has no 'Ethan Thompson' among its 6 Thompsons.
+Jared Butler,JARED BUTLER,exact,100.0,exact,
+Kyle Allman,,rejected,,agent,Candidate (Kyle O'Quinn) only shares the first name 'Kyle'; no 'Allman' surname anywhere in box score.
+Mamadi Diakite,MAMADI DIAKITE,exact,100.0,exact,
+Chris Duarte,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Johnny Juzang,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Kessler Edwards,KESSLER EDWARDS,exact,100.0,exact,
+Nick Weiler-Babb,NICK WEILER-BABB,exact,100.0,exact,
+Bobi Klintman,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+David DeJulius,DAVID DEJULIUS,exact,100.0,exact,
+Devon Dotson,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Marcus Carr,,rejected,,agent,Candidate (Marcus Foster) only shares the first name 'Marcus'; no 'Carr' surname in box score (only Carraretto/Carroll).
+Tremont Waters,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Alize Johnson,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Jacob Toppin,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Theo Maledon,THEO MALEDON,exact,100.0,exact,
+Anthony Brown,,rejected,,agent,Candidates only share the middle/first name 'Anthony'; no 'Brown' with first name Anthony among box score's 12 Browns.
+Devin Booker,DEVIN BOOKER,exact,100.0,exact,
+Jaylen Nowell,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Nigel Williams-Goss,NIGEL WILLIAMS-GOSS,exact,100.0,exact,
+Antonio Blakeney,ANTONIO BLAKENEY,exact,100.0,exact,
+Ercan Osmani,ERCAN OSMANI,exact,100.0,exact,
+Kobi Simmons,KOBI SIMMONS,exact,100.0,exact,
+Marko Guduric,MARKO GUDURIC,exact,100.0,exact,
+Tomas Satoransky,TOMAS SATORANSKY,exact,100.0,exact,
+Jae Crowder,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Jimmy Clark III,JIMMY CLARK III,exact,100.0,exact,
+Kenneth Faried,KENNETH FARIED,exact,100.0,exact,
+Marek Blazevic,MAREK BLAZEVIC,exact,100.0,exact,
+Ebuka Izundu,EBUKA IZUNDU,exact,100.0,exact,
+Evan Fournier,EVAN FOURNIER,exact,100.0,exact,
+Jaron Blossomgame,JARON BLOSSOMGAME,exact,100.0,exact,
+Mathis Dossou-Yovo,MATHIS DOSSOU-YOVO,exact,100.0,exact,
+Tosan Evbuomwan,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Maozinha Pereira,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Mouhamet Diouf,MOUHAMET DIOUF,exact,100.0,exact,
+TyTy Washington,,rejected,,agent,Candidate (Darius Washington Jr) shares only the surname; box score's only Washingtons are Darius Myron and Duane -- neither is TyTy.
+Jason Burnell,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Damian Jones,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Isaia Cordinier,ISAIA CORDINIER,exact,100.0,exact,
+Joffrey Lauvergne,JOFFREY LAUVERGNE,exact,100.0,exact,
+Olivier Sarr,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Stanley Umude,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Chuma Okeke,CHUMA OKEKE,exact,100.0,exact,
+Gabriel Deck,GABRIEL DECK,exact,100.0,exact,
+Garrison Mathews,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Gonzalo Corbalan,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Jared Rhoden,JARED RHODEN,exact,100.0,exact,
+Vladimir Lucic,VLADIMIR LUCIC,exact,100.0,exact,
+Kevin Kokila,,rejected,,agent,Candidate (Kevin Punter) only shares the first name 'Kevin'; no 'Kokila' surname in box score.
+Miles Norris,MILES NORRIS,exact,100.0,exact,
+AJ Lawson,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+DJ Stewart,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Hugo Besson,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Jerian Grant,JERIAN GRANT,exact,100.0,exact,
+Kai Jones,KAI JONES,exact,100.0,exact,
+Neal Sako,NEAL SAKO,exact,100.0,exact,
+Tyrese Martin,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Yam Madar,YAM MADAR,exact,100.0,exact,
+Both Gach,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Darius Thompson,DARIUS THOMPSON,exact,100.0,exact,
+Jaime Pradilla,JAIME PRADILLA,exact,100.0,exact,
+Leandro Bolmaro,LEANDRO BOLMARO,exact,100.0,exact,
+Mo Gueye,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Santi Yusta,SANTI YUSTA,exact,100.0,exact,
+Wendell Moore Jr.,,rejected,,agent,"Candidate (Darius Washington Jr) shares only the 'Jr' suffix token; box score's only Moore is 'MOORE, OMARI' (different person)."
+Mady Sissoko,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Rokas Jokubaitis,ROKAS JOKUBAITIS,exact,100.0,exact,
+Saben Lee,SABEN LEE,exact,100.0,exact,
+Conor Morgan,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Omari Moore,OMARI MOORE,exact,100.0,exact,
+RJ Cole,,rejected,,agent,"Candidates (Norris Cole, Cole Swider) don't match 'R.J. Cole'; no matching first-name/surname pair in box score."
+Damion Baugh,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Derrick Alston Jr.,DERRICK ALSTON JR.,exact,100.0,exact,
+Wenyen Gabriel,WENYEN GABRIEL,exact,100.0,exact,
+Brancou Badio,BRANCOU BADIO,exact,100.0,exact,
+Furkan Korkmaz,FURKAN KORKMAZ,exact,100.0,exact,
+Iffe Lundberg,IFFE LUNDBERG,exact,100.0,exact,
+Markus Howard,MARKUS HOWARD,exact,100.0,exact,
+Tonye Jekiri,TONYE JEKIRI,exact,100.0,exact,
+Devon Hall,DEVON HALL,exact,100.0,exact,
+Moustapha Fall,MOUSTAPHA FALL,exact,100.0,exact,
+Nicolo Melli,NICOLO MELLI,exact,100.0,exact,
+Thomas Walkup,THOMAS WALKUP,exact,100.0,exact,
+Collin Malcolm,COLLIN MALCOLM,exact,100.0,exact,
+Derek Willis,DEREK WILLIS,exact,100.0,exact,
+Aleksander Balcerowski,ALEKSANDER BALCEROWSKI,exact,100.0,exact,
+Allan Dokossi,ALLAN DOKOSSI,exact,100.0,exact,
+Braxton Key,BRAXTON KEY,exact,100.0,exact,
+Dylan Osetkowski,DYLAN OSETKOWSKI,exact,100.0,exact,
+Eugene German,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Lamar Stevens,LAMAR STEVENS,exact,100.0,exact,
+Max Shulga,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Chris Silva,CHRIS SILVA,exact,100.0,exact,
+Nathan Sestina,NATHAN SESTINA,exact,100.0,exact,
+Frank Ntilikina,FRANK NTILIKINA,exact,100.0,exact,
+Nikola Tanaskovic,,rejected,,agent,Candidate (Nikola Ivanovic) only shares the first name 'Nikola'; no 'Tanaskovic' surname in box score.
+Olivier Nkamboua,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Justinian Jessup,JUSTINIAN JESSUP,exact,100.0,exact,
+Luca Vildoza,LUCA VILDOZA,exact,100.0,exact,
+PJ Dozier,PJ DOZIER,exact,100.0,exact,
+Tamir Blatt,TAMIR BLATT,exact,100.0,exact,
+Georgios Papagiannis,GEORGIOS PAPAGIANNIS,exact,100.0,exact,
+Johannes Voigtmann,JOHANNES VOIGTMANN,exact,100.0,exact,
+Justin Minaya,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Khadeen Carrington,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Mbaye Ndiaye,MBAYE NDIAYE,exact,100.0,exact,
+Scottie Wilbekin,SCOTTIE WILBEKIN,exact,100.0,exact,
+Semi Ojeleye,SEMI OJELEYE,exact,100.0,exact,
+Tyson Ward,TYSON WARD,exact,100.0,exact,
+Yves Pons,YVES PONS,exact,100.0,exact,
+Alessandro Pajola,ALESSANDRO PAJOLA,exact,100.0,exact,
+Kevarrius Hayes,KEVARRIUS HAYES,exact,100.0,exact,
+Oscar Da Silva,OSCAR DA SILVA,exact,100.0,exact,
+Armando Bacot,ARMANDO BACOT JR.,confirmed,95.0,agent,"Fantasy site drops the 'Jr.' suffix; box score's only Bacot is 'BACOT JR., ARMANDO'."
+Elias Valtonen,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Maodo Lo,MAODO LO,exact,100.0,exact,
+Kamar Baldwin,KAMAR BALDWIN,exact,100.0,exact,
+Myles Cale,MYLES CALE,exact,100.0,exact,
+Arnas Butkevicius,ARNAS BUTKEVICIUS,exact,100.0,exact,
+Cory Joseph,CORY JOSEPH,exact,100.0,exact,
+Joel Parra,JOEL PARRA,exact,100.0,exact,
+Mouhamed Faye,MOUHAMED FAYE,exact,100.0,exact,
+Terry Tarpey,TERRY TARPEY,exact,100.0,exact,
+Vitto Brown,VITTO BROWN,exact,100.0,exact,
+Yoan Makoundou,YOAN MAKOUNDOU,exact,100.0,exact,
+Mam Jaiteh,MAM JAITEH,exact,100.0,exact,
+Tobias Jensen,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Tyson Carter,TYSON CARTER,exact,100.0,exact,
+Kaodirichi Akobundu-Ehiogu,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Davion Mintz,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Aliou Diarra,ALIOU DIARRA,exact,100.0,exact,
+Antonis Karagiannidis,,rejected,,agent,Candidate (Antonis Fotsis) only shares the first name 'Antonis'; no 'Karagiannidis' surname in box score.
+David Kramer,DAVID KRAMER,exact,100.0,exact,
+Ish Wainright,ISH WAINRIGHT,exact,100.0,exact,
+Justin Anderson,JUSTIN ANDERSON,exact,100.0,exact,
+Rodions Kurucs,RODIONS KURUCS,exact,100.0,exact,
+Yankuba Sima,YANKUBA SIMA,exact,100.0,exact,
+Amath M'Baye,AMATH M'BAYE,exact,100.0,exact,
+Dario Brizuela,DARIO BRIZUELA,exact,100.0,exact,
+Edgaras Ulanovas,EDGARAS ULANOVAS,exact,100.0,exact,
+Matteo Spagnolo,MATTEO SPAGNOLO,exact,100.0,exact,
+Bodian Massa,BODIAN MASSA,exact,100.0,exact,
+Dustin Sleva,DUSTIN SLEVA,exact,100.0,exact,
+Ignas Sargiunas,,rejected,,agent,"Box score's only Sargiunas is 'SARGIUNAS, TITAS' -- different first name, likely a relative, not the same player."
+Jeremy Morgan,JEREMY MORGAN,exact,100.0,exact,
+Marius Grigonis,MARIUS GRIGONIS,exact,100.0,exact,
+Tai Odiase,TAI ODIASE,exact,100.0,exact,
+Andres Feliz,ANDRES FELIZ,exact,100.0,exact,
+Daulton Hommes,DAULTON HOMMES,exact,100.0,exact,
+Agustin Ubal,AGUSTIN UBAL,exact,100.0,exact,
+Usman Garuba,USMAN GARUBA,exact,100.0,exact,
+Mikael Jantunen,MIKAEL JANTUNEN,exact,100.0,exact,
+Kenan Kamenjas,KENAN KAMENJAS,exact,100.0,exact,
+Shane Hunter,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Khalifa Diop,KHALIFA DIOP,exact,100.0,exact,
+Nobel Boungou-Colo,NOBEL BOUNGOU-COLO,exact,100.0,exact,
+Tyler Ennis,TYLER ENNIS,exact,100.0,exact,
+Brice Dessert,BRICE DESSERT,exact,100.0,exact,
+Davide Casarin,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Davis Bertans,DAVIS BERTANS,exact,100.0,exact,
+Josep Puerto,JOSEP PUERTO,exact,100.0,exact,
+Konstantinos Mitoglou,KONSTANTINOS MITOGLOU,exact,100.0,exact,
+Mario Nakic,MARIO NAKIC,exact,100.0,exact,
+Metecan Birsen,METECAN BIRSEN,exact,100.0,exact,
+Francesco Ferrari,FRANCESCO FERRARI,exact,100.0,exact,
+Clement Frisch,CLEMENT FRISCH,exact,100.0,exact,
+Justus Hollatz,JUSTUS HOLLATZ,exact,100.0,exact,
+Deividas Sirvydis,DEIVIDAS SIRVYDIS,exact,100.0,exact,
+Eli Ndiaye,ELI NDIAYE,exact,100.0,exact,
+Frederic Bourdillon,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Joel Ayayi,JOEL AYAYI,exact,100.0,exact,
+Ognjen Dobric,OGNJEN DOBRIC,exact,100.0,exact,
+Onuralp Bitim,ONURALP BITIM,exact,100.0,exact,
+Sebastian Herrera,SEBASTIAN HERRERA,exact,100.0,exact,
+Vanja Marinkovic,VANJA MARINKOVIC,exact,100.0,exact,
+Daniel Hackett,DANIEL HACKETT,exact,100.0,exact,
+David Lighty,DAVID LIGHTY,exact,100.0,exact,
+Leopold Cavaliere,LEOPOLD CAVALIERE,exact,100.0,exact,
+Marc-Owen Fodzo Dada,,rejected,,agent,Candidates only share the first name 'Marc'; no 'Fodzo'/'Dada' surname anywhere in box score.
+Nikola Djurisic,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Yakuba Ouattara,YAKUBA OUATTARA,exact,100.0,exact,
+Mario Saint-Supery,,rejected,,agent,Candidates only share the first name 'Mario'; no 'Saint-Supery'/'Supery' surname anywhere in box score.
+Edwin Jackson,EDWIN JACKSON,exact,100.0,exact,
+Giannoulis Larentzakis,GIANNOULIS LARENTZAKIS,exact,100.0,exact,
+Juan Nunez,JUAN NUNEZ,exact,100.0,exact,
+Alberto Abalde,ALBERTO ABALDE,exact,100.0,exact,
+Alvaro Cardenas,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Amit Ebo,AMIT EBO,exact,100.0,exact,
+Dovydas Giedraitis,DOVYDAS GIEDRAITIS,exact,100.0,exact,
+Eleftherios Mantzoukas,ELEFTHERIOS MANTZOUKAS,exact,100.0,exact,
+Giampaolo Ricci,GIAMPAOLO RICCI,exact,100.0,exact,
+Gur Lavy,GUR LAVI,confirmed,87.5,agent,"Hebrew-name transliteration variant of box score's 'LAVI, GUR' (Lavy/Lavi) -- same Israeli player."
+Izan Almansa,IZAN ALMANSA,exact,100.0,exact,
+John DiBartolomeo,JOHN DIBARTOLOMEO,exact,100.0,exact,
+Klemen Prepelic,KLEMEN PREPELIC,exact,100.0,exact,
+Nikos Rogkavopoulos,NIKOLAOS ROGKAVOPOULOS,confirmed,92.7,agent,"'Nikos' is the common Greek short form of 'Nikolaos'; box score's only Rogkavopoulos is 'ROGKAVOPOULOS, NIKOLAOS'."
+Sergio Llull,SERGIO LLULL,exact,100.0,exact,
+Sertac Sanli,SERTAC SANLI,exact,100.0,exact,
+Tomer Ginat,TOMER GINAT,exact,100.0,exact,
+Berk Ugurlu,BERK UGURLU,exact,100.0,exact,
+Dejan Davidovac,DEJAN DAVIDOVAC,exact,100.0,exact,
+Erkan Yilmaz,ERKAN YILMAZ,exact,100.0,exact,
+Niels Giffey,NIELS GIFFEY,exact,100.0,exact,
+Nikolaos Plotas,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Tommaso Baldasso,TOMMASO BALDASSO,exact,100.0,exact,
+Kostas Papanikolaou,KOSTAS PAPANIKOLAOU,exact,100.0,exact,
+William Rayman,WILLIAM RAYMAN,exact,100.0,exact,
+Awudu Abass,AWUDU ABASS,exact,100.0,exact,
+Dimitris Moraitis,DIMITRIS MORAITIS,exact,100.0,exact,
+Kosta Kondic,KOSTA KONDIC,exact,100.0,exact,
+Lucas Mari,LUCAS MARI,confirmed,100.0,agent,"Spelling ambiguity: box score has two distinct raw spellings for the same normalized name -- 'LUCAS MARI' (E2023) and 'LUCAS MARÍ' (E2022) -- almost certainly the same real player recorded under a corrected spelling in the more recent season (data-quality issue upstream, not a two-player collision). Picking the more recent spelling 'LUCAS MARI' as the anchor; flag for human override if a better source disambiguates this."
+Stefano Tonut,STEFANO TONUT,exact,100.0,exact,
+Gabriele Procida,GABRIELE PROCIDA,exact,100.0,exact,
+Aleksej Nedeljkovic,ALEKSEJ NEDELJKOVIC,exact,100.0,exact,
+Andrej Bjelic,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
+Arijan Lakic,ARIJAN LAKIC,exact,100.0,exact,
+Bar Timor,BAR TIMOR,exact,100.0,exact,
+Burakcan Yildizli,BURAKCAN YILDIZLI,exact,100.0,exact,
+David Mutaf,DAVID MUTAF,exact,100.0,exact,
+Diego Flaccadori,DIEGO FLACCADORI,exact,100.0,exact,
+Enzo Shahrvin,ENZO SHAHRVIN,exact,100.0,exact,
+Guy Palatin,GUY PALATIN,exact,100.0,exact,
+Ioannis Kouzeloglou,IOANNIS KOUZELOGLOU,exact,100.0,exact,
+Itay Segev,ITAY SEGEV,exact,100.0,exact,
+Kilian Fischer,KILIAN FISCHER,exact,100.0,exact,
+Matteo Baiocchi,MATTEO BAIOCCHI,exact,100.0,exact,
+Melih Mahmutoglu,MELIH MAHMUTOGLU,exact,100.0,exact,
+Mert Eksioglu,MERT EKSIOGLU,exact,100.0,exact,
+Mitar Bosnjakovic,MITAR BOSNJAKOVIC,exact,100.0,exact,
+Nemanja Dangubic,NEMANJA DANGUBIC,exact,100.0,exact,
+Nicola Akele,NICOLA AKELE,exact,100.0,exact,
+Omiros Netzipoglou,OMIROS NETZIPOGLOU,exact,100.0,exact,
+Ousmane Diop,OUSMANE DIOP,exact,100.0,exact,
+Oz Blayzer,OZ BLAYZER,exact,100.0,exact,
+Panagiotis Kalaitzakis,PANAGIOTIS KALAITZAKIS,exact,100.0,exact,
+Ruzgar Fenemen,RUZGAR FENEMEN,exact,100.0,exact,
+Stefan Joksimovic,STEFAN JOKSIMOVIC,exact,100.0,exact,
+Stefan Miljenovic,STEFAN MILJENOVIC,exact,100.0,exact,
+Uros Mijailovic,UROS MIJAILOVIC,exact,100.0,exact,
+Vojin Medarevic,,no_match,,agent,No EuroLeague box-score history under this spelling or checked surname variants (grepped box score for the surname) -- likely a genuine newcomer to EuroLeague.
