@@ -62,15 +62,18 @@ the user to run it from an interactive session instead.
    (per AGENTS.md's "After merge" step):
    - `git commit --no-edit`
    - `git push` (main to origin)
-   - `git branch -d <branch>` (local; safe delete -- it just merged, so this
-     always succeeds)
-   - if a same-named remote branch exists
-     (`git ls-remote --exit-code --heads origin <branch>`), delete it:
-     `git push origin --delete <branch>`
    - `git worktree unlock <path>` (ignore failure if it wasn't locked), then
      `git worktree remove --force <path>` -- force is safe here: the
      worktree's tracked content is already merged into main, so anything
-     left is disposable build clutter (`.venv`, `.pytest_cache`, etc.)
+     left is disposable build clutter (`.venv`, `.pytest_cache`, etc.). This
+     must run **before** the branch delete below: `git branch -d` refuses to
+     delete a branch that's still checked out in a worktree, and the branch
+     stays checked out there until the worktree itself is removed.
+   - `git branch -d <branch>` (local; safe delete -- it just merged, so this
+     always succeeds now that the worktree holding it is gone)
+   - if a same-named remote branch exists
+     (`git ls-remote --exit-code --heads origin <branch>`), delete it:
+     `git push origin --delete <branch>`
 
 ## Terminal equivalent
 

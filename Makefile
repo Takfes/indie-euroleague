@@ -74,12 +74,12 @@ merge-worktree: ## Merge a finished task branch into main and clean up its workt
 	echo "Pushing main..."; \
 	git push; \
 	echo "Cleaning up '$$branch'..."; \
+	git worktree unlock "$$path" 2>/dev/null || true; \
+	git worktree remove --force "$$path"; \
 	git branch -d "$$branch"; \
 	if git ls-remote --exit-code --heads origin "$$branch" >/dev/null 2>&1; then \
 		git push origin --delete "$$branch"; \
 	fi; \
-	git worktree unlock "$$path" 2>/dev/null || true; \
-	git worktree remove --force "$$path"; \
 	echo "Done: '$$branch' merged, pushed, and cleaned up."
 
 .PHONY: help
