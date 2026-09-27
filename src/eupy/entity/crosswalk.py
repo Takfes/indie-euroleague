@@ -44,7 +44,7 @@ class PlayerNameCrosswalk:
         if not resolved_path.exists():
             raise FileNotFoundError(
                 f"No player-name crosswalk found at {resolved_path}. Run "
-                f"`uv run python src/indie_euroleague/entity/resolve_player_names.py` "
+                f"`uv run python src/eupy/entity/resolve_player_names.py` "
                 f"(or the resolve-player-names skill) to generate it."
             )
         with resolved_path.open(newline="", encoding="utf-8") as f:

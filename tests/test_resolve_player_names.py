@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from indie_euroleague.entity.resolve_player_names import (
+from eupy.entity.resolve_player_names import (
     build_crosswalk,
     build_normalized_index,
     build_row,

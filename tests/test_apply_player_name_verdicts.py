@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from indie_euroleague.entity.apply_player_name_verdicts import apply_verdicts, load_verdicts
-from indie_euroleague.entity.resolve_player_names import load_existing_crosswalk, write_crosswalk
+from eupy.entity.apply_player_name_verdicts import apply_verdicts, load_verdicts
+from eupy.entity.resolve_player_names import load_existing_crosswalk, write_crosswalk
 
 
 def _needs_review_row() -> dict[str, str]:

@@ -43,7 +43,7 @@ so there is nothing to refresh -- every other row (new, `exact`,
 `needs_review`, `no_candidate`) is recomputed fresh.
 
 Usage:
-    python src/indie_euroleague/entity/resolve_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
+    python src/eupy/entity/resolve_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
 
 Inputs: data/raw_data/fantasy_prices/basketballsphere_prices.csv,
     data/raw_data/kaggle_data/euroleague_box_score.csv.

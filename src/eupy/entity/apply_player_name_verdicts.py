@@ -22,7 +22,7 @@ Verdict record shape (JSON list, one object per row to update):
     }
 
 Usage:
-    python src/indie_euroleague/entity/apply_player_name_verdicts.py --verdicts PATH [--crosswalk PATH]
+    python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--crosswalk PATH]
 
 Inputs: data/stage_01/player_name_crosswalk.csv (existing crosswalk, must already exist),
     a JSON verdicts file (path given via --verdicts).
@@ -37,7 +37,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from indie_euroleague.entity.resolve_player_names import CROSSWALK_PATH, load_existing_crosswalk, write_crosswalk
+from eupy.entity.resolve_player_names import CROSSWALK_PATH, load_existing_crosswalk, write_crosswalk
 
 TERMINAL_STATUSES = {"confirmed", "rejected", "no_match"}
 

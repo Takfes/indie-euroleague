@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from indie_euroleague.entity.crosswalk import PlayerNameCrosswalk
+from eupy.entity.crosswalk import PlayerNameCrosswalk
 
 
 def _write_crosswalk(path: Path, rows: list[dict[str, str]]) -> None:

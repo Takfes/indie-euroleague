@@ -86,16 +86,16 @@ itself) that this artifact carries, so there's nothing to refresh.
 
 ### Module structure
 
-New subpackage `src/indie_euroleague/entity/` (name-entity-resolution — matching records across
+New subpackage `src/eupy/entity/` (name-entity-resolution — matching records across
 datasets that refer to the same real-world entity despite different spellings/identifiers), same
 one-file-per-script pattern as `fetchers/`:
 
-- `src/indie_euroleague/entity/__init__.py`
-- `src/indie_euroleague/entity/resolve_player_names.py` — exact + fuzzy stage, CLI + importable
+- `src/eupy/entity/__init__.py`
+- `src/eupy/entity/resolve_player_names.py` — exact + fuzzy stage, CLI + importable
   functions (normalization, box-score name dedupe, candidate generation, map merge).
-- `src/indie_euroleague/entity/apply_player_name_verdicts.py` — verdict-merge script/CLI used by
+- `src/eupy/entity/apply_player_name_verdicts.py` — verdict-merge script/CLI used by
   the skill stage.
-- `src/indie_euroleague/entity/crosswalk.py` — `PlayerNameCrosswalk`, the read-only consumption
+- `src/eupy/entity/crosswalk.py` — `PlayerNameCrosswalk`, the read-only consumption
   class (see below).
 - `tests/test_resolve_player_names.py`, `tests/test_apply_player_name_verdicts.py`,
   `tests/test_player_name_crosswalk.py` — fixture-based, no network calls, no dependency on the
@@ -115,7 +115,7 @@ one-file-per-script pattern as `fetchers/`:
 
 ### Consumption class
 
-`PlayerNameCrosswalk` (`src/indie_euroleague/entity/crosswalk.py`) — read-only accessor over the
+`PlayerNameCrosswalk` (`src/eupy/entity/crosswalk.py`) — read-only accessor over the
 published map, decoupled from how it gets regenerated:
 
 - `PlayerNameCrosswalk.load(path: Path | None = None) -> PlayerNameCrosswalk` — classmethod.
