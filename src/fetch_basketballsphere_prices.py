@@ -18,6 +18,10 @@ Usage:
 
 Re-run this any time to refresh data/raw_data/fantasy_prices/basketballsphere_prices.csv --
 prices change after every round, so the output is fully overwritten each run.
+
+Inputs: none -- fetched live from https://basketballsphere.com/en/euroleague-fantasy-player-prices/.
+Outputs: data/raw_data/fantasy_prices/basketballsphere_prices.csv (overwritten each run).
+Final: false -- raw fetch output, not exposed under data/stage_99/.
 """
 
 from __future__ import annotations
