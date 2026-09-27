@@ -72,12 +72,20 @@ REQUEST_DELAY_SECONDS = 0.2
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_fantasy_stats"
 DEFAULT_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 
-# Fixed CSV header: "round"/"player_id" (synthesized here) followed by the
-# API's own `data.columns` names, sanitized ("win_1-10" -> "win_1_10" -- CSV
-# headers shouldn't contain hyphens that read like minus signs). Hardcoded
-# (rather than derived per-response) so the output schema is stable even for
-# a round with zero rows; matches this repo's other fetchers.
-CSV_FIELDNAMES = [
+# Fixed CSV headers: "round"/"player_id" (synthesized here) followed by a
+# subset of the API's own `data.columns` names, sanitized ("win_1-10" ->
+# "win_1_10" -- CSV headers shouldn't contain hyphens that read like minus
+# signs). Hardcoded (rather than derived per-response) so the output schema
+# is stable even for a round with zero rows; matches this repo's other
+# fetchers.
+#
+# The API returns the same 26 columns for both position filters, but only
+# half apply to each: box-score columns are always "-" for head coaches,
+# and win/loss-bucket columns are always "-" for players (see spec's
+# "Endpoints" section). Each output keeps only the columns that are ever
+# real for that entity, so neither CSV carries columns that are always
+# placeholder.
+_COMMON_FIELDNAMES = [
     "round",
     "player_id",
     "rank",
@@ -87,6 +95,10 @@ CSV_FIELDNAMES = [
     "fpt",
     "quotation",
     "plus",
+]
+
+PLAYER_CSV_FIELDNAMES = [
+    *_COMMON_FIELDNAMES,
     "pts",
     "reb",
     "ast",
@@ -98,6 +110,10 @@ CSV_FIELDNAMES = [
     "pf",
     "fg_missed",
     "ft_missed",
+]
+
+HEAD_COACH_CSV_FIELDNAMES = [
+    *_COMMON_FIELDNAMES,
     "win_1_10",
     "win_11_20",
     "win_20",
@@ -208,11 +224,16 @@ def fetch_round_rows(
     return rows
 
 
-def write_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
-    """Write rows to CSV (full overwrite), creating parent dirs as needed."""
+def write_csv(rows: list[dict[str, Any]], out_path: Path, fieldnames: list[str]) -> None:
+    """Write rows to CSV (full overwrite), creating parent dirs as needed.
+
+    Each row dict carries all 26 API columns regardless of entity type (see
+    `PLAYER_CSV_FIELDNAMES`/`HEAD_COACH_CSV_FIELDNAMES`); `extrasaction`
+    drops whichever ones aren't wanted in this output.
+    """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -235,8 +256,8 @@ def run(out_dir: Path, token: str) -> None:
 
     players_path = out_dir / "players.csv"
     head_coaches_path = out_dir / "head_coaches.csv"
-    write_csv(players_rows, players_path)
-    write_csv(head_coaches_rows, head_coaches_path)
+    write_csv(players_rows, players_path, PLAYER_CSV_FIELDNAMES)
+    write_csv(head_coaches_rows, head_coaches_path, HEAD_COACH_CSV_FIELDNAMES)
 
     print(
         f"Wrote {len(players_rows)} player rows to {players_path} and "
