@@ -9,7 +9,7 @@ fetches games that are new since the last run.
 
 ## Scope
 
-- One script: `src/fetch_euroleague_live_boxscores.py`.
+- One script: `src/indie_euroleague/fetchers/fetch_euroleague_live_boxscores.py`.
 - Two endpoints, no auth:
   - `https://live.euroleague.net/api/Header?gamecode={g}&seasoncode={s}`
   - `https://live.euroleague.net/api/BoxScore?gamecode={g}&seasoncode={s}`

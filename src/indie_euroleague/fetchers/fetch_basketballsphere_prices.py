@@ -14,7 +14,7 @@ GET, then a regex pass over the embedded `<tr data-pos=... data-club=... data-pr
 rows.
 
 Usage:
-    python src/fetch_basketballsphere_prices.py [--out PATH]
+    python src/indie_euroleague/fetchers/fetch_basketballsphere_prices.py [--out PATH]
 
 Re-run this any time to refresh data/raw_data/fantasy_prices/basketballsphere_prices.csv --
 prices change after every round, so the output is fully overwritten each run.
@@ -36,7 +36,7 @@ from pathlib import Path
 URL = "https://basketballsphere.com/en/euroleague-fantasy-player-prices/"
 
 DEFAULT_OUT = (
-    Path(__file__).resolve().parents[1] / "data" / "raw_data" / "fantasy_prices" / "basketballsphere_prices.csv"
+    Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_prices" / "basketballsphere_prices.csv"
 )
 
 # Row markup is stable and simple enough to regex directly rather than pulling in an

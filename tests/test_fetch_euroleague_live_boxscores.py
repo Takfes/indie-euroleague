@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from fetch_euroleague_live_boxscores import (
+from indie_euroleague.fetchers.fetch_euroleague_live_boxscores import (
     _assert_season_matches,
     build_game_rows,
     fetch_json,
@@ -226,7 +226,10 @@ def test_fetch_json_returns_none_for_empty_body() -> None:
     fake_response.__enter__ = Mock(return_value=fake_response)
     fake_response.__exit__ = Mock(return_value=False)
 
-    with patch("fetch_euroleague_live_boxscores.urllib.request.urlopen", return_value=fake_response):
+    with patch(
+        "indie_euroleague.fetchers.fetch_euroleague_live_boxscores.urllib.request.urlopen",
+        return_value=fake_response,
+    ):
         assert fetch_json("https://example.com") is None
 
 
@@ -238,7 +241,10 @@ def test_fetch_json_sends_non_default_user_agent() -> None:
     fake_response.__enter__ = Mock(return_value=fake_response)
     fake_response.__exit__ = Mock(return_value=False)
 
-    with patch("fetch_euroleague_live_boxscores.urllib.request.urlopen", return_value=fake_response) as mock_urlopen:
+    with patch(
+        "indie_euroleague.fetchers.fetch_euroleague_live_boxscores.urllib.request.urlopen",
+        return_value=fake_response,
+    ) as mock_urlopen:
         fetch_json("https://example.com")
 
     sent_request = mock_urlopen.call_args[0][0]

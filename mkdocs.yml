@@ -1,10 +1,10 @@
-site_name: fun-euroleague-fantasy
-repo_url: https://github.com/Takfes/fun-euroleague-fantasy
-site_url: https://Takfes.github.io/fun-euroleague-fantasy
+site_name: indie-euroleague
+repo_url: https://github.com/Takfes/indie-euroleague
+site_url: https://Takfes.github.io/indie-euroleague
 site_description: This is a template repository for Python projects that use uv for their dependency management.
 site_author: Takfes
 edit_uri: edit/main/docs/
-repo_name: Takfes/fun-euroleague-fantasy
+repo_name: Takfes/indie-euroleague
 copyright: Maintained by <a href="https://Takfes.com">Takfes</a>.
 
 nav:
@@ -36,9 +36,9 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Takfes/fun-euroleague-fantasy
+      link: https://github.com/Takfes/indie-euroleague
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/fun-euroleague-fantasy
+      link: https://pypi.org/project/indie-euroleague
 
 markdown_extensions:
   - toc:

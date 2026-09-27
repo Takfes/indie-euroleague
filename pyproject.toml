@@ -1,5 +1,5 @@
 [project]
-name = "fun-euroleague-fantasy"
+name = "indie-euroleague"
 version = "0.0.1"
 description = "EuroLeague Fantasy data acquisition and analysis."
 authors = [{ name = "Takfes", email = "takis_a29@hotmail.com" }]
@@ -17,9 +17,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://Takfes.github.io/fun-euroleague-fantasy/"
-Repository = "https://github.com/Takfes/fun-euroleague-fantasy"
-Documentation = "https://Takfes.github.io/fun-euroleague-fantasy/"
+Homepage = "https://Takfes.github.io/indie-euroleague/"
+Repository = "https://github.com/Takfes/indie-euroleague"
+Documentation = "https://Takfes.github.io/indie-euroleague/"
 
 [dependency-groups]
 dev = [

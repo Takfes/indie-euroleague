@@ -17,7 +17,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 
 ## Commands (repo root)
 
-- Run: `uv run python src/<script>.py`
+- Run: `uv run python src/indie_euroleague/<module>.py` (e.g. `fetchers/fetch_euroleague_live_boxscores.py`)
 - Test: `uv run pytest`
 - Lint/format: `ruff check src tests` · `ruff format --check src tests`
 
