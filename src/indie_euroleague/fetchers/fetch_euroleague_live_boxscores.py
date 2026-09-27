@@ -20,7 +20,7 @@ No reconciliation is attempted -- live-API rows carry the live API's own IDs.
 See docs/specs/spec-euroleague-live-fetcher.md for the full design.
 
 Usage:
-    python src/fetch_euroleague_live_boxscores.py [--season E2026] [--out-dir PATH]
+    python src/indie_euroleague/fetchers/fetch_euroleague_live_boxscores.py [--season E2026] [--out-dir PATH]
 
 Each run appends at most one delta CSV (only newly ingested games) and updates
 the season's `last_ingested_gamecode` in the state file. If there's nothing new,
@@ -54,7 +54,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; euroleague-live-fetcher/1.0)"
 # Polite-client delay between sequential requests.
 REQUEST_DELAY_SECONDS = 0.3
 
-DEFAULT_OUT_DIR = Path(__file__).resolve().parents[1] / "data" / "raw_data" / "euroleague_live"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_live"
 
 CSV_FIELDNAMES = [
     "game_player_id",

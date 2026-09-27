@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from fetch_basketballsphere_prices import fetch_html, parse_rows, write_csv
+from indie_euroleague.fetchers.fetch_basketballsphere_prices import fetch_html, parse_rows, write_csv
 
 PLAYER_ROW = (
     '<tr data-pos="G" data-club="PAN" data-price="12.5">'
@@ -107,7 +107,9 @@ def test_fetch_html_sends_desktop_user_agent() -> None:
     fake_response.__enter__ = Mock(return_value=fake_response)
     fake_response.__exit__ = Mock(return_value=False)
 
-    with patch("fetch_basketballsphere_prices.urllib.request.urlopen", return_value=fake_response) as mock_urlopen:
+    with patch(
+        "indie_euroleague.fetchers.fetch_basketballsphere_prices.urllib.request.urlopen", return_value=fake_response
+    ) as mock_urlopen:
         fetch_html("https://example.com")
 
     sent_request = mock_urlopen.call_args[0][0]
