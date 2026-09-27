@@ -17,16 +17,43 @@ files directly; this artifact only tells you which two name strings refer to the
 
 ## Scope
 
-- Left side (master): `data/raw_data/fantasy_prices/basketballsphere_prices.csv` (346 rows:
-  326 `role=player`, 20 `role=head_coach`).
+- Left side (master): `data/raw_data/fantasy_prices/basketballsphere_prices.csv`, `role=player`
+  rows only (326 of 346 rows).
 - Right side: distinct player names in `data/raw_data/kaggle_data/euroleague_box_score.csv`
   (129k event rows, `dorsal=TOTAL` rows excluded as synthetic team totals).
-- In scope: `role=player` rows only. `role=head_coach` rows (20) pass through untouched with
-  `match_status=not_applicable` — the box-score dataset has no coach data, so matching them is
-  structurally impossible; don't spend fuzzy/agent effort on them.
-- Out of scope: a `data/stage_XX` dataset-path registry (none exists yet in this repo). Actually
-  joining/using the map in downstream feature scripts beyond the lookup class described below
-  (real feature work is a future ticket).
+- Out of scope: `role=head_coach` rows (20). The box-score dataset has no coach data, so
+  matching them is structurally impossible — they are filtered out before the pipeline runs and
+  never appear in the crosswalk at all (not even as a `not_applicable` row; that status has been
+  retired — see 2026-09-27 revision below). A `data/stage_XX` dataset-path registry (none exists
+  yet in this repo). Actually joining/using the map in downstream feature scripts beyond the
+  lookup class described below (real feature work is a future ticket).
+
+## Revision — 2026-09-27
+
+Three adjustments made after the first implementation landed (see `spec-team-name-linking.md`
+for the sibling artifact added in the same pass):
+
+- **Coaches dropped entirely.** `role=head_coach` rows are filtered out of the master rows before
+  building the crosswalk (previously: passed through as `match_status=not_applicable`, 20 rows of
+  pure noise in an artifact that exists to answer a player-matching question). `not_applicable` is
+  retired from the `match_status` vocabulary.
+- **`role` column dropped.** With `head_coach` gone, every remaining row has `role=player` —
+  a constant column carrying no information — and `basketballsphere_prices.csv` has no duplicate
+  `name` values among `role=player` rows, so the crosswalk key simplifies from `(name, role)` to
+  `name` alone. `PlayerNameCrosswalk.boxscore_name_for` drops its `role` parameter accordingly.
+  Columns are now exactly: `name, boxscore_name, match_status, match_score, matched_by, notes`.
+- **Shared matching engine.** The normalize/exact/fuzzy logic (`normalize_name`, `find_candidates`,
+  `format_candidates_note`) moves out of `resolve_player_names.py` into `src/eupy/entity/matching.py`,
+  since `resolve_team_names.py` (the new sibling pipeline) needs the identical exact→fuzzy
+  machinery, just with a different data source, key column, and output column name.
+  `resolve_player_names.py` becomes a thin domain script: load the two raw CSVs, filter to
+  `role=player`, build the box-score name pool, call the shared engine, write the crosswalk.
+- **Agent stage is now a real subagent dispatch.** The `resolve-player-names` skill's review step
+  (previously: instructions for whoever invokes the skill to do the judgment calls inline) now
+  dispatches a dedicated Sonnet subagent — via the Agent tool — that receives the open rows plus
+  raw-data access, does the review, and returns a verdicts JSON for `apply_player_name_verdicts.py`
+  to apply. This was the original design intent ("offload the job to an agent to verify the
+  partial matchings") that the first implementation didn't actually wire up.
 
 ## Analysis (done 2026-09-27 — don't re-derive, use these numbers to sanity-check your own run)
 
@@ -86,27 +113,30 @@ itself) that this artifact carries, so there's nothing to refresh.
 
 ### Module structure
 
-New subpackage `src/eupy/entity/` (name-entity-resolution — matching records across
+Subpackage `src/eupy/entity/` (name-entity-resolution — matching records across
 datasets that refer to the same real-world entity despite different spellings/identifiers), same
 one-file-per-script pattern as `fetchers/`:
 
 - `src/eupy/entity/__init__.py`
-- `src/eupy/entity/resolve_player_names.py` — exact + fuzzy stage, CLI + importable
-  functions (normalization, box-score name dedupe, candidate generation, map merge).
+- `src/eupy/entity/matching.py` — shared exact→fuzzy engine (`normalize_name`,
+  `find_candidates`, `format_candidates_note`), generic over a `{spelling: {owner_id}}` pool.
+  Used by both `resolve_player_names.py` and `resolve_team_names.py`.
+- `src/eupy/entity/resolve_player_names.py` — thin domain script: load the two raw CSVs,
+  filter to `role=player`, build the box-score player-name pool, call `matching.py`, write the
+  crosswalk.
 - `src/eupy/entity/apply_player_name_verdicts.py` — verdict-merge script/CLI used by
   the skill stage.
 - `src/eupy/entity/crosswalk.py` — `PlayerNameCrosswalk`, the read-only consumption
   class (see below).
 - `tests/test_resolve_player_names.py`, `tests/test_apply_player_name_verdicts.py`,
-  `tests/test_player_name_crosswalk.py` — fixture-based, no network calls, no dependency on the
-  full real CSVs.
+  `tests/test_player_name_crosswalk.py`, `tests/test_matching.py` — fixture-based, no network
+  calls, no dependency on the full real CSVs.
 
 ### Data output
 
 - `data/stage_01/player_name_crosswalk.csv` — plain CSV via stdlib `csv`.
-- Columns, and *only* these: `name, role, boxscore_name, match_status, match_score, matched_by,
-  notes`. `match_status` ∈
-  `exact | needs_review | confirmed | rejected | no_candidate | no_match | not_applicable`.
+- Columns, and *only* these: `name, boxscore_name, match_status, match_score, matched_by,
+  notes`. `match_status` ∈ `exact | needs_review | confirmed | rejected | no_candidate | no_match`.
   `boxscore_name` is the box-score display name string when matched, empty otherwise.
 - Script header: inputs = the two raw CSVs; output = this file; `final: true` -> symlink into
   `data/stage_99/` per the project's manual-symlink convention.
@@ -121,12 +151,11 @@ published map, decoupled from how it gets regenerated:
 - `PlayerNameCrosswalk.load(path: Path | None = None) -> PlayerNameCrosswalk` — classmethod.
   `path=None` (the normal case) defaults to **`data/stage_99/player_name_crosswalk.csv`** — the
   project's stable, dataset-named consumption path (survives a future stage renumber), not
-  `stage_01` (the pipeline's own internal working path). Loads the CSV into a
-  `(name, role) -> row` dict.
-- A lookup method, e.g. `boxscore_name_for(name: str, role: str = "player") -> str | None` —
-  returns the mapped box-score display name only when `match_status` is `exact` or `confirmed`;
-  every other status (including `needs_review`/`no_candidate` — still-open rows) resolves to
-  `None`, so callers never need to know the status vocabulary.
+  `stage_01` (the pipeline's own internal working path). Loads the CSV into a `name -> row` dict.
+- A lookup method, `boxscore_name_for(name: str) -> str | None` — returns the mapped box-score
+  display name only when `match_status` is `exact` or `confirmed`; every other status (including
+  `needs_review`/`no_candidate` — still-open rows) resolves to `None`, so callers never need to
+  know the status vocabulary.
 - Refresh is never a method on this class — regenerating the artifact means re-running
   `resolve_player_names.py` / invoking the skill, same as always. The class only reads whatever's
   currently on disk, no hidden network/subprocess calls.
@@ -135,11 +164,14 @@ published map, decoupled from how it gets regenerated:
 
 ### Skill
 
-Renamed to `~/.claude/skills/resolve-player-names/SKILL.md` (same user-level location as the
-existing `~/.claude/skills/euroleague-fantasy-roster/` skill). Update every path/script/column
-reference for the `entity/` rename and the simplified schema (no `player_id` column). Content:
-when to invoke, the exact -> fuzzy -> agent flow, how to run the two scripts, and the judgment
-calls the agent stage should apply.
+`~/.claude/skills/resolve-player-names/SKILL.md` (user-level location, same as the existing
+`~/.claude/skills/euroleague-fantasy-roster/` skill). Its review step (open `needs_review` /
+`no_candidate` rows) dispatches a dedicated Sonnet subagent via the Agent tool, briefed with: the
+open rows, the raw box-score CSV path, the judgment-call guidance (nicknames, suffixes,
+transliteration, first-name-only/surname-only false positives — content carried over from the
+existing skill), and the required verdicts-JSON shape. The subagent returns the verdicts JSON;
+the skill then runs `apply_player_name_verdicts.py --verdicts <path>` and re-runs
+`resolve_player_names.py` to confirm zero rows remain open.
 
 ## Pass criteria
 
@@ -149,11 +181,12 @@ calls the agent stage should apply.
   idempotent carryover on re-run, verdict-apply merge, and `PlayerNameCrosswalk` (load, lookup
   hits/misses, missing-file error).
 - Running `resolve_player_names.py` live against the two real CSVs produces
-  `data/stage_01/player_name_crosswalk.csv` with all 346 rows accounted for, columns exactly
-  `name, role, boxscore_name, match_status, match_score, matched_by, notes` — no `player_id`,
-  `club`, `position`, or `price`.
-- Running the skill (agent stage) end-to-end resolves every `needs_review` / `no_candidate` row
-  to `confirmed` / `rejected` / `no_match`, with a rationale in `notes` for every non-exact row.
+  `data/stage_01/player_name_crosswalk.csv` with all 326 `role=player` rows accounted for (zero
+  `head_coach` rows present), columns exactly `name, boxscore_name, match_status, match_score,
+  matched_by, notes` — no `role`, `player_id`, `club`, `position`, or `price`.
+- Invoking the skill end-to-end (subagent dispatch included) resolves every `needs_review` /
+  `no_candidate` row to `confirmed` / `rejected` / `no_match`, with a rationale in `notes` for
+  every non-exact row.
 - Re-running `resolve_player_names.py` after a verdict pass changes nothing (byte-identical
   already-resolved rows) — verified live, not just in tests.
 - Script I/O headers present and accurate.
