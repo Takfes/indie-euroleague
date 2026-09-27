@@ -65,6 +65,9 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
   - Enforcement: briefs list shared docs as out of scope; main agent rejects any subagent diff touching them.
 - Subagents never commit. Main agent verifies against Definition of done, then commits. Merging into main always needs my explicit go-ahead beforehand — not a report that it already happened — unless I've told you upfront to go straight through to merge.
 - Merge strategy: `local` → merge into local `main`; `remote` → open GitHub PR.
+- Background/async jobs isolate in a worktree; their sandbox reaches that worktree and the remote (commit + push both work), never the shared main checkout. They finish by pushing their branch and reporting it ready to merge — never by merging into local main themselves. The process that spun off the job (it already owns the pre-merge review) performs the `git merge --no-ff --no-commit` from the primary checkout.
+- Before merging in either direction, check the target checkout's `git status`. Foreign uncommitted work (not part of this task) → stop and ask; never stash, discard, or merge over it.
+- A branch that's drifted from main (e.g. a rename/refactor landed on main after the branch forked) merges main into itself first and resolves conflicts there — including redoing any mechanical refactor main introduced — before merging into main.
 - Conventional commits (`feat`/`fix`/`chore`/`refactor`/`test`/`docs`). Flag when splitting into more commits would give cleaner history.
 - After merge: delete finished branches and worktrees.
 
