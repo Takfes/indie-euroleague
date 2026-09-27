@@ -79,6 +79,11 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - On every change, consider whether module structure should change (new/split/merge). Propose; main agent confirms with me before doing or delegating it.
 - New/changed scripts need tests — adversarially review each test idea first; write it only if it tests something meaningful. No tests for coverage's sake.
 
+## Skills
+
+- Skills created under, or for the purpose of, this project live in this repo's `.claude/skills/` — never the user/global `~/.claude/skills/` — unless I explicitly say otherwise.
+- Scripts a skill drives live in `src/`, in whatever module they belong to (per Code's module-structure rule) — not inlined in the skill file, not scattered elsewhere.
+
 ## Data
 
 - Raw: `data/raw_data/<source>/` — git-ignored.
