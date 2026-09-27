@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply agent verdicts onto the player-name crosswalk, keyed by `(name, role)`.
+"""Apply agent verdicts onto the player-name crosswalk, keyed by `name`.
 
 This is the write path for the agent stage of `resolve_player_names.py`'s
 exact -> fuzzy-candidates -> agent-verifies pipeline: after reviewing every
@@ -13,7 +13,7 @@ candidate was ever proposed).
 
 Verdict record shape (JSON list, one object per row to update):
     {
-        "name": "...", "role": "player",           # required: row key
+        "name": "...",                              # required: row key
         "match_status": "confirmed",               # required: confirmed | rejected | no_match
         "boxscore_name": "...",                     # required for confirmed, must be empty otherwise
         "match_score": 95.0,                        # optional
@@ -47,8 +47,8 @@ def load_verdicts(path: Path) -> list[dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def apply_verdicts(rows_by_key: dict[tuple[str, str], dict[str, str]], verdicts: list[dict[str, Any]]) -> None:
-    """Apply verdicts onto crosswalk rows in place, keyed by `(name, role)`.
+def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[str, Any]]) -> None:
+    """Apply verdicts onto crosswalk rows in place, keyed by `name`.
 
     Raises:
         ValueError: If a verdict targets a row not in the crosswalk, uses a
@@ -57,7 +57,7 @@ def apply_verdicts(rows_by_key: dict[tuple[str, str], dict[str, str]], verdicts:
             rationale.
     """
     for verdict in verdicts:
-        key = (verdict["name"], verdict["role"])
+        key = verdict["name"]
         if key not in rows_by_key:
             raise ValueError(f"Verdict targets a row not in the crosswalk: {key!r}")
 

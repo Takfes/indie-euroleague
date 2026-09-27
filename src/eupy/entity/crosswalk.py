@@ -21,12 +21,12 @@ RESOLVED_MATCH_STATUSES = {"exact", "confirmed"}
 class PlayerNameCrosswalk:
     """Look up a basketballsphere fantasy-price name's EuroLeague box-score display name."""
 
-    def __init__(self, rows_by_key: dict[tuple[str, str], dict[str, str]]) -> None:
+    def __init__(self, rows_by_key: dict[str, dict[str, str]]) -> None:
         self._rows_by_key = rows_by_key
 
     @classmethod
     def load(cls, path: Path | None = None) -> PlayerNameCrosswalk:
-        """Load the crosswalk CSV into a lookup keyed by `(name, role)`.
+        """Load the crosswalk CSV into a lookup keyed by `name`.
 
         Args:
             path: Crosswalk CSV path. Defaults to
@@ -48,15 +48,14 @@ class PlayerNameCrosswalk:
                 f"(or the resolve-player-names skill) to generate it."
             )
         with resolved_path.open(newline="", encoding="utf-8") as f:
-            rows_by_key = {(row["name"], row["role"]): row for row in csv.DictReader(f)}
+            rows_by_key = {row["name"]: row for row in csv.DictReader(f)}
         return cls(rows_by_key)
 
-    def boxscore_name_for(self, name: str, role: str = "player") -> str | None:
+    def boxscore_name_for(self, name: str) -> str | None:
         """Look up the EuroLeague box-score display name for a fantasy-price name.
 
         Args:
             name: The `basketballsphere_prices.csv` `name` value.
-            role: The `basketballsphere_prices.csv` `role` value.
 
         Returns:
             The matched box-score display name when `match_status` is
@@ -64,7 +63,7 @@ class PlayerNameCrosswalk:
             still-open (`needs_review`, `no_candidate`) rows, so callers
             never need to know the status vocabulary.
         """
-        row = self._rows_by_key.get((name, role))
+        row = self._rows_by_key.get(name)
         if row is None or row["match_status"] not in RESOLVED_MATCH_STATUSES:
             return None
         return row["boxscore_name"]

@@ -84,6 +84,21 @@ def test_load_master_rows_reads_all_columns(tmp_path: Path) -> None:
     ]
 
 
+def test_load_master_rows_filters_out_head_coach_rows(tmp_path: Path) -> None:
+    path = tmp_path / "prices.csv"
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["rank", "name", "club", "position", "price", "role"])
+        writer.writeheader()
+        writer.writerows([
+            {"rank": "1", "name": "John Smith", "club": "C", "position": "G", "price": "10.0", "role": "player"},
+            {"rank": "2", "name": "Some Coach", "club": "C", "position": "HC", "price": "0.0", "role": "head_coach"},
+        ])
+
+    rows = load_master_rows(path)
+
+    assert [row["name"] for row in rows] == ["John Smith"]
+
+
 # --- row building ----------------------------------------------------------------------
 
 # "Ambi GUOUS" is a genuine collision: two different player_ids share one raw spelling.
@@ -103,16 +118,6 @@ def _index() -> dict[str, set[str]]:
 
 def _normalized_spellings() -> dict[str, str]:
     return {spelling: normalize_name(spelling) for spelling in SPELLING_PLAYER_IDS}
-
-
-def test_build_row_head_coach_is_not_applicable() -> None:
-    row = build_row(
-        _master_row("Some Coach", role="head_coach"), SPELLING_PLAYER_IDS, _index(), _normalized_spellings()
-    )
-
-    assert row["match_status"] == "not_applicable"
-    assert row["matched_by"] == "not_applicable"
-    assert row["boxscore_name"] == ""
 
 
 def test_build_row_exact_match() -> None:
@@ -154,9 +159,8 @@ def test_build_row_ambiguous_spelling_records_every_variant_in_notes() -> None:
 def test_build_crosswalk_preserves_agent_resolved_rows_byte_identical() -> None:
     master_rows = [_master_row("John Smith")]
     existing = {
-        ("John Smith", "player"): {
+        "John Smith": {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "Someone Else",
             "match_status": "confirmed",
             "match_score": "77.0",
@@ -168,16 +172,15 @@ def test_build_crosswalk_preserves_agent_resolved_rows_byte_identical() -> None:
     [row] = build_crosswalk(master_rows, SPELLING_PLAYER_IDS, existing)
 
     # Not recomputed even though "John Smith" has a real exact match -- carried over unchanged.
-    assert row == existing[("John Smith", "player")]
+    assert row == existing["John Smith"]
 
 
 def test_build_crosswalk_recomputes_non_resolved_statuses() -> None:
     master_rows = [_master_row("John Smith")]
     # Stale "exact" row with a wrong boxscore_name -- not a resolved status, so it must be recomputed.
     existing = {
-        ("John Smith", "player"): {
+        "John Smith": {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "Wrong Name",
             "match_status": "exact",
             "match_score": "100.0",
@@ -206,7 +209,6 @@ def test_write_crosswalk_then_load_existing_crosswalk_round_trips(tmp_path: Path
     rows = [
         {
             "name": "John Smith",
-            "role": "player",
             "boxscore_name": "John SMITH",
             "match_status": "exact",
             "match_score": "100.0",
@@ -218,16 +220,15 @@ def test_write_crosswalk_then_load_existing_crosswalk_round_trips(tmp_path: Path
     write_crosswalk(rows, out_path)
     loaded = load_existing_crosswalk(out_path)
 
-    assert loaded == {("John Smith", "player"): rows[0]}
+    assert loaded == {"John Smith": rows[0]}
 
 
-def test_write_crosswalk_header_has_no_player_id_club_position_or_price(tmp_path: Path) -> None:
+def test_write_crosswalk_header_has_no_role_player_id_club_position_or_price(tmp_path: Path) -> None:
     out_path = tmp_path / "crosswalk.csv"
     write_crosswalk(
         [
             {
                 "name": "John Smith",
-                "role": "player",
                 "boxscore_name": "John SMITH",
                 "match_status": "exact",
                 "match_score": "100.0",
@@ -240,7 +241,7 @@ def test_write_crosswalk_header_has_no_player_id_club_position_or_price(tmp_path
 
     header = out_path.read_text(encoding="utf-8").splitlines()[0]
 
-    assert header == "name,role,boxscore_name,match_status,match_score,matched_by,notes"
+    assert header == "name,boxscore_name,match_status,match_score,matched_by,notes"
 
 
 def test_load_existing_crosswalk_returns_empty_dict_when_file_missing(tmp_path: Path) -> None:
