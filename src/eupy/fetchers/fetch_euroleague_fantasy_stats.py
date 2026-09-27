@@ -4,10 +4,19 @@
 The Fantasy Challenge web app (`euroleaguefantasy.euroleaguebasketball.net`)
 is a Flutter/CanvasKit SPA that calls a JSON API on `fantaking-api.dunkest.com`
 for its Stats table. This script reproduces those calls directly: one request
-to the league config endpoint to find which rounds are complete (and their
-internal "matchday" ids -- these do NOT line up 1:1 with the visible round
-number), then one paginated request per round per role (players vs. head
-coaches) to the stats table endpoint.
+to the league config endpoint to find which round to fetch through (and the
+matchday ids -- these do NOT line up 1:1 with the visible round number), then
+one paginated request per round per role (players vs. head coaches) to the
+stats table endpoint.
+
+Fetches through the *current* (in-progress) round, not just completed ones:
+the API starts publishing a round's `quotation` (price entering that round)
+as soon as it becomes `current_matchday`, well before that round's box-score
+columns are final -- waiting for the round to close would miss capturing that
+price snapshot, since `quotation` typically moves again once the round ends.
+Box-score columns for an in-progress round come back as placeholders
+(`0`/`"-"`) and get overwritten with final values by a later run, once that
+round becomes `previous_matchday`.
 
 Auth is a static bearer token (Laravel-Sanctum-shaped: `{id}|{token}`, not a
 JWT) captured once from an already-logged-in browser session
@@ -18,10 +27,10 @@ and the empirical findings behind every design choice below (why one matchday
 per call, why no `active_players` filter, why `per_page` is capped at 100,
 etc).
 
-Every run re-derives the completed-round range from the live API and rewrites
-both CSVs from scratch (no incremental state) -- cheap enough given the
-season's round count, and avoids state-file complexity for what's ultimately
-a full-history re-derivation each time.
+Every run re-derives the round range from the live API and rewrites both
+CSVs from scratch (no incremental state) -- cheap enough given the season's
+round count, and avoids state-file complexity for what's ultimately a
+full-history re-derivation each time.
 
 Usage:
     python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--out-dir PATH]
@@ -149,13 +158,23 @@ def fetch_json(url: str, token: str) -> dict[str, Any]:
 
 
 def fetch_config(token: str) -> dict[str, Any]:
-    """Fetch the league config: matchday list, last completed round, competition id."""
+    """Fetch the league config: matchday list, previous/current round, competition id."""
     return fetch_json(CONFIG_URL, token)["data"]
 
 
 def matchday_ids_by_round(config: dict[str, Any]) -> dict[int, int]:
     """Build `{round_number: matchday_id}` from the config's `matchdays` list."""
     return {matchday["number"]: matchday["id"] for matchday in config["matchdays"]}
+
+
+def max_round_to_fetch(config: dict[str, Any]) -> int:
+    """Return the highest round number to fetch this run: the in-progress round.
+
+    Includes `current_matchday`, not just `previous_matchday` (the last
+    *completed* round) -- see the module docstring for why the in-progress
+    round's price data would otherwise be missed.
+    """
+    return config["current_matchday"]["number"]
 
 
 def fetch_round_rows(
@@ -199,15 +218,15 @@ def write_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
 
 
 def run(out_dir: Path, token: str) -> None:
-    """Fetch every completed round's players and head-coach stats, write both CSVs."""
+    """Fetch every round's players and head-coach stats through the in-progress round, write both CSVs."""
     config = fetch_config(token)
     competition_id: int = config["current_competition_id"]
-    last_completed_round: int = config["previous_matchday"]["number"]
+    max_round = max_round_to_fetch(config)
     matchday_by_round = matchday_ids_by_round(config)
 
     players_rows: list[dict[str, Any]] = []
     head_coaches_rows: list[dict[str, Any]] = []
-    for round_number in range(1, last_completed_round + 1):
+    for round_number in range(1, max_round + 1):
         matchday_id = matchday_by_round[round_number]
         players_rows.extend(fetch_round_rows(competition_id, matchday_id, PLAYER_POSITIONS, round_number, token))
         head_coaches_rows.extend(
@@ -222,7 +241,7 @@ def run(out_dir: Path, token: str) -> None:
     print(
         f"Wrote {len(players_rows)} player rows to {players_path} and "
         f"{len(head_coaches_rows)} head-coach rows to {head_coaches_path} "
-        f"({last_completed_round} completed round(s))"
+        f"(rounds 1-{max_round}, including the in-progress round)"
     )
 
 

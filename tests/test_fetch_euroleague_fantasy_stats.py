@@ -12,6 +12,7 @@ from eupy.fetchers.fetch_euroleague_fantasy_stats import (
     fetch_round_rows,
     get_auth_token,
     matchday_ids_by_round,
+    max_round_to_fetch,
     sanitize_column_name,
     write_csv,
 )
@@ -35,6 +36,10 @@ def test_sanitize_column_name_replaces_hyphens_with_underscores() -> None:
 
 def test_matchday_ids_by_round_maps_round_number_to_matchday_id() -> None:
     assert matchday_ids_by_round(CONFIG_FIXTURE) == {1: 1528, 2: 1529, 3: 1530}
+
+
+def test_max_round_to_fetch_includes_the_in_progress_round() -> None:
+    assert max_round_to_fetch(CONFIG_FIXTURE) == 2
 
 
 def test_get_auth_token_prefers_environment_variable(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

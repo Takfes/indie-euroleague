@@ -4,7 +4,8 @@
 
 Acquire the full round-by-round Stats table (players and head coaches) from the
 EuroLeague Fantasy Challenge app's backing API and produce two long-format
-datasets, one row per player/coach per round, rounds appended as they complete.
+datasets, one row per player/coach per round, rounds appended through the
+round currently in progress.
 
 ## Scope
 
@@ -21,12 +22,14 @@ datasets, one row per player/coach per round, rounds appended as they complete.
   step (documented below) and stored as `EUROLEAGUE_FANTASY_AUTH_TOKEN` in
   `.env` (git-ignored). No refresh flow — if/when the token stops working,
   redo the manual capture.
-- Not incremental: every run re-derives which rounds are complete from the
+- Not incremental: every run re-derives which round to fetch through from the
   live API and rebuilds both CSVs from scratch (full overwrite), matching
   `fetch_basketballsphere_prices.py`'s convention. No state file.
-- Out of scope: any round not yet complete (see "Completeness check" below);
-  reconciling player IDs with other datasets (basketballsphere / Kaggle) —
-  that's separate crosswalk work per `spec-player-name-linking.md`.
+- Fetches through the round currently in progress (`current_matchday`), not
+  just completed ones (`previous_matchday`) — see "Price data leads box-score
+  completion" below for why. Out of scope: any round beyond that (not yet
+  started); reconciling player IDs with other datasets (basketballsphere /
+  Kaggle) — that's separate crosswalk work per `spec-player-name-linking.md`.
 
 ## Empirical findings (verified live, 2026-09-28)
 
@@ -91,24 +94,50 @@ datasets, one row per player/coach per round, rounds appended as they complete.
     the platform's own player/coach id (distinct from `name`).
   - **Unplayed rounds do not error and do not come back empty** — requesting
     `matchdays=1529` (Round 2, not yet played) still returns the full 20-row
-    head-coach roster, just with placeholder values (`"-"` for most stat
-    columns, `0`/`"0"` for fpt/win-loss buckets). The API will happily hand
-    back junk for a future round if asked. The fetcher must gate on
-    `previous_matchday.number` from the config call, never on response shape
-    — same "completeness check" discipline as
+    head-coach roster, with box-score columns placeholder-valued (`"-"` for
+    most stat columns, `0`/`"0"` for fpt/win-loss buckets) — see "Price data
+    leads box-score completion" below for the one exception (`quotation`).
+    The fetcher must never gate on response shape to decide whether a round's
+    box-score data is real — same "completeness check" discipline as
     `spec-euroleague-live-fetcher.md`'s polling loop.
   - Head-coach rows always carry `"-"` for box-score columns
     (reb/ast/stl/tov/blk/blka/fd/pf/fg_missed/ft_missed) — coaches don't have
     those stats; only fpt/quotation/plus/win-loss buckets are real values.
     Expected, not a data-quality issue — preserve `"-"` as-is, don't zero-fill.
 
+### Price data leads box-score completion
+
+- Verified live 2026-09-28 (round 1 complete, round 2 in progress): querying
+  `matchdays=1529` (round 2, `current_matchday`, box-score stats still `0`)
+  already returns a **different `quotation` value than the round-1 query**
+  for 265 of 340 players — e.g. S. Vezenkov: `17` (round 1) → `17.6` (round
+  2). `quotation` is "price entering this round," published as soon as a
+  round becomes `current_matchday`, well before that round's games are
+  played. `plus` was `0.0` for every player in both rounds at verification
+  time (round 1 is the season opener, so there's no prior round for it to
+  diff against yet — not enough completed rounds have passed to confirm
+  whether/when it becomes nonzero for a later round).
+- Consequence: gating fetch on `previous_matchday.number` (completed rounds
+  only, the original design) silently skips capturing the in-progress
+  round's price snapshot. That snapshot is not recoverable later — by the
+  time the round closes and becomes `previous_matchday`, `quotation` moves
+  again (entering the *next* round), so the entering-price value for the
+  round that just closed is gone. The fetcher therefore fetches through
+  `current_matchday.number` instead. This assumes the script runs at least
+  once per round while that round is still current — skipping a round's
+  entire in-progress window means only its post-close price is ever
+  captured, not its entering price. Acceptable: a missed entering-price
+  snapshot degrades one column for one round, not a hard failure.
+
 ## Design
 
 ### Per run
 
 1. Fetch `/leagues/10/config`. Build `{round_number: matchday_id}` from the
-   `matchdays` array. Set `last_completed_round = previous_matchday.number`.
-2. For `round_number` in `1..last_completed_round`:
+   `matchdays` array. Set `max_round = current_matchday.number` (the
+   in-progress round, not just the last completed one — see "Price data
+   leads box-score completion").
+2. For `round_number` in `1..max_round`:
    - Fetch all pages (`per_page=100`, loop until `page > last_page`) of
      `/stats/players/table?stats_type=tot&matchdays={matchday_id}&positions=Guard,Forward,Center`
      → rows tagged `round=round_number`, appended to the players accumulator.
@@ -133,12 +162,14 @@ datasets, one row per player/coach per round, rounds appended as they complete.
   clean.
 - `uv run pytest` green: unit tests for response-row → record mapping
   (columns+row zip), pagination looping (mocked multi-page response), and the
-  completed-round cutoff logic (config fixture → correct round list). No
-  live network calls in tests.
+  round-cutoff logic (config fixture → `max_round` includes the in-progress
+  round). No live network calls in tests.
 - Running the script live produces `players.csv` and `head_coaches.csv` under
-  `data/raw_data/euroleague_fantasy_stats/`, currently 1 round × 350 players
-  + 1 round × 20 head coaches, matching the counts independently verified via
-  `curl` above. Re-running produces identical output (idempotent, no state
-  file).
+  `data/raw_data/euroleague_fantasy_stats/`, currently 2 rounds × 345 players
+  + 2 rounds × 20 head coaches (round 1 complete, round 2 in progress),
+  matching the counts independently verified live above. Re-running is
+  idempotent for completed rounds (no state file); the in-progress round's
+  row count and `quotation` values may shift between runs as the API's live
+  price data updates — expected, not a bug.
 - Script header documents inputs/outputs/`final` flag (`false` — raw fetch,
   not yet exposed under `data/stage_99/`) per repo convention.
