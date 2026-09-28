@@ -36,7 +36,7 @@ flowchart LR
     d_coaches[("fantasy_stats/head_coaches<br/>stage 0")]
     d_live[("euroleague_net/box_score<br/>stage 0")]
     d_lhdr[("euroleague_net/headers<br/>stage 0")]
-    d_sched[("euroleague_api/schedule<br/>stage 0")]
+    d_sched[("euroleague_schedule/schedule<br/>stage 0")]
     d_kbox[("kaggle_data/euroleague_box_score<br/>stage 0")]
     d_khdr[("kaggle_data/euroleague_header<br/>stage 0")]
     d_opt[("optimizer_input<br/>stage 0")]

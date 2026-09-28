@@ -14,25 +14,10 @@ Deferred work, off the critical path.
 
 ## Squad optimizer (`src/eupy/optimize/optimize_squad.py`, spec: `specs/spec-squad-optimizer.md`)
 
-- **Config file for optimizer runs.** `cash`, `max_trades`, `w_budget` and the in/out paths are CLI
-  flags only. A small config file (TOML or YAML — format/location undecided; scoped to the
-  optimizer, widen later if useful) would make a run reproducible without retyping flags, and could
-  derive `max_trades` from the round (4 standard, unlimited in the windows listed in
-  `docs/rules.md`), which also removes the Round-1 flag below.
-- **Round 1 needs `--unlimited-trades`.** The default `--max-trades 4` makes a fresh-team run
-  infeasible (11 buys needed). The error message says so, but it is a footgun. Cheapest fix: default
-  to unlimited when no row has `in_prev_roster = 1`; otherwise solved by the config-file item above.
 - **`TURN1` / `TURN2` are built but unused.** Kept per the strategy-doc discussion; they only earn
   their place once the option-value work below pairs T1 starters with T2 bench players. Real rounds
   can have a T3 (up to 3 game dates seen in `schedule_E2026.csv`), which sits in neither set.
   Extend or drop them when the option-value decision is made.
-- **`w_budget` is weak.** Growth term = `w · (exp_pir − 1.1·price)/25` credits, so at the suggested
-  `w ≈ 3` one credit of price is worth ~0.13 PIR points. Across 60 random test universes `w = 3`
-  changed the chosen squad ~15% of the time, and never when `exp_pir ≈ 1.1·price`. Needs an exchange
-  rate with a defensible meaning: e.g. take the LP-relaxation shadow price of the budget constraint
-  (PIR points per credit within the round) and scale it by how much a credit of capital gain is
-  worth in later rounds. The price formula and its ±1.5cr cap are also unconfirmed
-  (`docs/rules.md`).
 - **Option value is not modelled — `exp_pir_adj` is only a hook.**
   - *What the game gives you.* Between turns a field player can be swapped with a bench player who
     has not played yet; the swapped-out player keeps 50% (`docs/rules.md`). For a T1 starter with

@@ -1,0 +1,8 @@
+# Reference optimizer config. See specs/spec-optimizer-config.md "Config file" for the key list.
+input = "data/raw_data/optimizer/optimizer_input.csv"
+sheet = ""
+output = "data/stage_01/squad_solution.csv"
+cash = 100.0
+max_trades = 4
+unlimited_trades = false
+credit_value = 0.0
