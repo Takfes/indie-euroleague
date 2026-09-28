@@ -16,7 +16,7 @@ Two outputs, both from the raw `date` column (parsed only to compare dates; writ
   label `RS`), `turn`. Sorted by `round`, `team`. Each team plays at most once per round.
 
 Usage:
-    python src/eupy/schedule/build_schedule_turns.py [--season E2026] [--input PATH]
+    python src/eupy/transform/build_schedule_turns.py [--season E2026] [--input PATH]
         [--out-schedule PATH] [--out-team-turns PATH]
 
 Inputs: euroleague_api/schedule -- data/raw_data/euroleague_api/schedule_{season}.csv.

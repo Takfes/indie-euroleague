@@ -26,6 +26,16 @@ uv run python src/eupy/fetchers/fetch_basketballsphere_prices.py
 
 Writes to `data/raw_data/fantasy_prices/basketballsphere_prices.csv`.
 
+## Schedule turns
+
+Adds `turn` (T1/T2 within each round) to the raw schedule and derives a per-team `(team, round, turn)` table. Needs `fetch_euroleague_schedule.py` to have run first:
+
+```bash
+uv run python src/eupy/transform/build_schedule_turns.py --season=E2026
+```
+
+Writes `data/stage_01/schedule.csv` and `data/stage_01/team_round_turn.csv` (symlinked in `data/stage_99/`). Turn rule: the round's latest date is T2, earlier dates are T1.
+
 ## Entity resolution
 
 Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-score data (`src/eupy/entity/`):

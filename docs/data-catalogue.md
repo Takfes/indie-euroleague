@@ -45,7 +45,7 @@ The `apply_*_name_verdicts.py` scripts read and rewrite the stage-1 crosswalk in
 | `src/eupy/fetchers/fetch_euroleague_fantasy_stats.py` | none (live: fantaking-api.dunkest.com; `EUROLEAGUE_FANTASY_AUTH_TOKEN`) | `euroleague_fantasy_stats/players`, `euroleague_fantasy_stats/head_coaches` | false |
 | `src/eupy/fetchers/fetch_euroleague_live_boxscores.py` | none (live: live.euroleague.net) | `euroleague_live/box_score` | false |
 | `src/eupy/fetchers/fetch_euroleague_schedule.py` | none (live: euroleague-advanced-api.eu) | `euroleague_api/schedule` | false |
-| `src/eupy/schedule/build_schedule_turns.py` | `euroleague_api/schedule` (`--input`; `--season`) | `schedule`, `team_round_turn` | true |
+| `src/eupy/transform/build_schedule_turns.py` | `euroleague_api/schedule` (`--input`; `--season`) | `schedule`, `team_round_turn` | true |
 | `src/eupy/transform/append_live_boxscores.py` | `kaggle_data/euroleague_box_score` (`--base-season`, default E2025), `euroleague_live/box_score` (all deltas) | `box_score_current` | false |
 | `src/eupy/entity/resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score` | `player_name_crosswalk` | true |
 | `src/eupy/entity/apply_player_name_verdicts.py` | `player_name_crosswalk`, verdicts JSON (`--verdicts`) | `player_name_crosswalk` | true |
