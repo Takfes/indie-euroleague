@@ -5,4 +5,4 @@ output = "data/stage_01/squad_solution.csv"
 cash = 100.0
 max_trades = 4
 unlimited_trades = false
-w_budget = 0.0
+credit_value = 0.0

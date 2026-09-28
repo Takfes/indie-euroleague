@@ -2,7 +2,7 @@
 """Pick the optimal single-round EuroLeague Fantasy (Classic mode) squad with a Pyomo MILP.
 
 Given one tidy table of player candidates for the upcoming round plus three scalars (`cash`,
-`max_trades`, `w_budget`), choose the 10 players (4 G / 4 F / 2 C), the starting five, the 6th
+`max_trades`, `credit_value`), choose the 10 players (4 G / 4 F / 2 C), the starting five, the 6th
 man, the bench and the captain that maximise expected fantasy points (plus an optional
 capital-growth term), subject to the Classic-mode rules in `docs/rules.md`: budget, trade limit,
 squad composition, max 6 players per club and the five legal starting formations. The head coach
@@ -33,7 +33,7 @@ in {0, 1}, enough rows per position to fill the squad, and a previous roster tha
 or a full 4 G / 4 F / 2 C squad.
 
 Scalars: `cash` (>= 0, credits in the bank before trading; Round 1: the whole budget, 100.0),
-`max_trades` (int >= 0, or None = unlimited window / Round 1; standard 4), `w_budget` (>= 0,
+`max_trades` (int >= 0, or None = unlimited window / Round 1; standard 4), `credit_value` (>= 0,
 credits -> points exchange rate for expected price growth; ~3.0 early season, 0.0 late).
 
 Output: one row per player in `previous roster U new squad`, columns `name, team, position, turn,
@@ -44,12 +44,12 @@ Config -- CLI flags can be pre-set in a TOML file (stdlib `tomllib`) instead of 
 `--config PATH` (default `data/stage_99/optimizer_config.toml` if present, else the built-in
 defaults). Precedence per field is CLI flag > config value > built-in default; an unrecognized
 config key raises `ValueError`. Keys: `input`, `sheet` (Excel only; "" = first sheet), `output`,
-`cash`, `max_trades`, `unlimited_trades`, `w_budget`. Reference / format:
+`cash`, `max_trades`, `unlimited_trades`, `credit_value`. Reference / format:
 `tests/data/optimizer_config_sample.toml`.
 
 Usage:
     python src/eupy/optimize/optimize_squad.py [--config PATH] [--input PATH] [--cash 100.0]
-        [--max-trades N | --unlimited-trades] [--w-budget 0.0] [--out PATH]
+        [--max-trades N | --unlimited-trades] [--credit-value 0.0] [--out PATH]
 
 Inputs: optimizer_input -- data/raw_data/optimizer/optimizer_input.csv (raw; prepared manually for now).
 Outputs: squad_solution -- data/stage_01/squad_solution.csv (overwritten each run).
@@ -110,7 +110,7 @@ OUTPUT_COLUMNS = [
     "is_captain",
 ]
 ROLE_ORDER = ("starter", "sixth", "bench", "none")
-KNOWN_CONFIG_KEYS = frozenset({"input", "sheet", "output", "cash", "max_trades", "unlimited_trades", "w_budget"})
+KNOWN_CONFIG_KEYS = frozenset({"input", "sheet", "output", "cash", "max_trades", "unlimited_trades", "credit_value"})
 
 
 @dataclass(frozen=True)
@@ -121,7 +121,8 @@ class Solution:
         table: One row per player in `previous roster U new squad` (`OUTPUT_COLUMNS`), sorted.
         objective: Optimal objective value.
         active_points: Player part of the objective (starters, 6th man, captain bonus, 50% bench).
-        growth_term: `w_budget * sum(delta)` over the squad's players.
+        growth_credits: Squad's expected credit gain this round, raw and independent of `credit_value`.
+        growth_term: `credit_value * growth_credits`.
         trades: Number of buys.
         cash_before: Credits in the bank before trading.
         cash_after: Credits in the bank after trading.
@@ -130,6 +131,7 @@ class Solution:
     table: pd.DataFrame
     objective: float
     active_points: float
+    growth_credits: float
     growth_term: float
     trades: int
     cash_before: float
@@ -233,8 +235,8 @@ def validate_input(df: pd.DataFrame) -> None:  # noqa: C901 -- a flat list of in
         )
 
 
-def _validate_scalars(cash: float, max_trades: int | None, w_budget: float) -> None:
-    """Reject out-of-range scalars (spec: cash >= 0, max_trades int >= 0 or None, w_budget >= 0)."""
+def _validate_scalars(cash: float, max_trades: int | None, credit_value: float) -> None:
+    """Reject out-of-range scalars (spec: cash >= 0, max_trades int >= 0 or None, credit_value >= 0)."""
     if not (math.isfinite(cash) and cash >= 0):
         raise ValueError(
             f"cash must be a finite number >= 0 credits, got {cash}. Pass the bank balance before trading."
@@ -244,8 +246,10 @@ def _validate_scalars(cash: float, max_trades: int | None, w_budget: float) -> N
         isinstance(max_trades, bool) or not isinstance(max_trades, numbers.Integral) or max_trades < 0
     ):
         raise ValueError(f"max_trades must be an int >= 0 or None (unlimited), got {max_trades!r}.")
-    if not (math.isfinite(w_budget) and w_budget >= 0):
-        raise ValueError(f"w_budget must be a finite number >= 0, got {w_budget}. Use 0.0 to ignore price growth.")
+    if not (math.isfinite(credit_value) and credit_value >= 0):
+        raise ValueError(
+            f"credit_value must be a finite number >= 0, got {credit_value}. Use 0.0 to ignore price growth."
+        )
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:
@@ -258,14 +262,14 @@ def _prepare(df: pd.DataFrame) -> pd.DataFrame:
     return out.sort_values("name", kind="stable").reset_index(drop=True)
 
 
-def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, w_budget: float) -> pyo.ConcreteModel:
+def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float) -> pyo.ConcreteModel:
     """Build the single-round squad MILP. Pure: no I/O, no solving.
 
     Args:
         df: Validated and prepared candidate table (`_prepare` output); row position = model index.
         cash: Credits in the bank before trading.
         max_trades: Max buys, or None for no limit.
-        w_budget: Weight of the expected price-growth term.
+        credit_value: Weight of the expected price-growth term.
 
     Returns:
         The Pyomo model (maximisation).
@@ -342,8 +346,10 @@ def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, w_budget:
     m.active_points = pyo.Expression(
         expr=sum(adj[i] * (m.y_start[i] + m.y_6th[i] + m.c[i]) + BENCH_FACTOR * exp[i] * m.y_bench[i] for i in m.I)
     )
-    # Expected capital growth of the whole squad, in points via the w_budget rate.
-    m.growth_term = pyo.Expression(expr=w_budget * sum(delta[i] * m.x[i] for i in m.I))
+    # Expected capital growth of the whole squad, in credits -- raw, independent of credit_value.
+    m.growth_credits = pyo.Expression(expr=sum(delta[i] * m.x[i] for i in m.I))
+    # Same, in points via the credit_value rate.
+    m.growth_term = pyo.Expression(expr=credit_value * m.growth_credits)
     m.objective = pyo.Objective(expr=m.active_points + m.growth_term, sense=pyo.maximize)
     return m
 
@@ -408,6 +414,7 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
         table=table,
         objective=float(pyo.value(m.objective)),
         active_points=float(pyo.value(m.active_points)),
+        growth_credits=float(pyo.value(m.growth_credits)),
         growth_term=float(pyo.value(m.growth_term)),
         trades=int((table["action"] == "buy").sum()),
         cash_before=cash,
@@ -415,14 +422,14 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
     )
 
 
-def optimize_squad(df: pd.DataFrame, cash: float, max_trades: int | None, w_budget: float = 0.0) -> Solution:
+def optimize_squad(df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float = 0.0) -> Solution:
     """Validate, build, solve and extract in one call.
 
     Args:
         df: Candidate table obeying the input contract.
         cash: Credits in the bank before trading (>= 0).
         max_trades: Max buys (int >= 0) or None for unlimited.
-        w_budget: Capital-growth weight (>= 0).
+        credit_value: Capital-growth weight (>= 0).
 
     Returns:
         The optimal `Solution`.
@@ -432,11 +439,53 @@ def optimize_squad(df: pd.DataFrame, cash: float, max_trades: int | None, w_budg
         RuntimeError: If the solver does not prove optimality.
     """
     validate_input(df)
-    _validate_scalars(cash, max_trades, w_budget)
+    _validate_scalars(cash, max_trades, credit_value)
     prepared = _prepare(df)
-    m = build_model(prepared, cash, max_trades, w_budget)
+    m = build_model(prepared, cash, max_trades, credit_value)
     solve(m)
     return extract_solution(prepared, m, cash)
+
+
+@dataclass(frozen=True)
+class CreditValueReport:
+    """What credit_value is buying, measured by re-solving at credit_value=0 and at cash+1.
+
+    Attributes:
+        lambda_shadow: PIR gained per +1 credit of cash, at credit_value=0 (shadow price of the
+            budget constraint, isolated from any credit_value weighting).
+        baseline_active: Optimal active_points at (cash, max_trades, credit_value=0) -- the
+            pure-PIR-maximizing squad, for comparison against `actual`.
+        baseline_growth_credits: That baseline squad's expected credit growth.
+    """
+
+    lambda_shadow: float
+    baseline_active: float
+    baseline_growth_credits: float
+
+
+def explain_credit_value(
+    df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float, actual: Solution
+) -> CreditValueReport:
+    """Measure what `credit_value` is buying: a shadow price and a pure-PIR baseline, via re-solves.
+
+    Args:
+        df: Candidate table obeying the input contract (the same one `actual` was solved from).
+        cash: Credits in the bank before trading, as used for `actual`.
+        max_trades: Max buys, as used for `actual`.
+        credit_value: The rate `actual` was solved with.
+        actual: The already-solved squad to compare against.
+
+    Returns:
+        The `CreditValueReport`. When `credit_value == 0`, `actual` already *is* the pure-PIR
+        baseline, so the baseline re-solve is skipped (one fewer solve than the general case).
+    """
+    baseline = actual if credit_value == 0 else optimize_squad(df, cash, max_trades, credit_value=0.0)
+    shadow = optimize_squad(df, cash=cash + 1, max_trades=max_trades, credit_value=0.0)
+    return CreditValueReport(
+        lambda_shadow=shadow.active_points - baseline.active_points,
+        baseline_active=baseline.active_points,
+        baseline_growth_credits=baseline.growth_credits,
+    )
 
 
 def format_report(sol: Solution, max_trades: int | None) -> str:
@@ -470,6 +519,27 @@ def format_report(sol: Solution, max_trades: int | None) -> str:
     return "\n".join(out)
 
 
+def format_credit_value_report(report: CreditValueReport, actual: Solution) -> str:
+    """Render the credit_value exchange-rate report: the measured shadow price and its trade-off.
+
+    Args:
+        report: Output of `explain_credit_value`.
+        actual: The squad actually solved for, at the run's `credit_value`.
+
+    Returns:
+        Two-line report text.
+    """
+    lines = [f"Credit value: {report.lambda_shadow:.2f} PIR/credit measured (re-solved at cash+1, credit_value=0)"]
+    if actual.active_points != report.baseline_active:
+        lines.append(
+            f"Growth trade-off: gave up {report.baseline_active - actual.active_points:.2f} PIR for "
+            f"+{actual.growth_credits - report.baseline_growth_credits:.3f} credits"
+        )
+    else:
+        lines.append("credit_value did not change the squad at this cash/trade limit")
+    return "\n".join(lines)
+
+
 @dataclass(frozen=True)
 class Settings:
     """Resolved run settings after merging CLI flags with the config file.
@@ -480,7 +550,7 @@ class Settings:
         output: Output CSV path.
         cash: Credits in the bank before trading.
         max_trades: Max buys this round, or None for unlimited.
-        w_budget: Capital-growth weight.
+        credit_value: Capital-growth weight.
     """
 
     input: Path
@@ -488,7 +558,7 @@ class Settings:
     output: Path
     cash: float
     max_trades: int | None
-    w_budget: float
+    credit_value: float
 
 
 def load_config(path: Path | None) -> dict:
@@ -553,7 +623,7 @@ def resolve_settings(args: argparse.Namespace, config: dict) -> Settings:
         output=args.out if args.out is not None else Path(config.get("output", DEFAULT_OUT)),
         cash=args.cash if args.cash is not None else config.get("cash", 100.0),
         max_trades=_resolve_max_trades(args, config),
-        w_budget=args.w_budget if args.w_budget is not None else config.get("w_budget", 0.0),
+        credit_value=args.credit_value if args.credit_value is not None else config.get("credit_value", 0.0),
     )
 
 
@@ -564,7 +634,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         argv: Argument list; None reads `sys.argv`.
 
     Returns:
-        Parsed namespace (`config`, `input`, `cash`, `max_trades`, `unlimited_trades`, `w_budget`,
+        Parsed namespace (`config`, `input`, `cash`, `max_trades`, `unlimited_trades`, `credit_value`,
         `out`); a flag not passed on the CLI is None, so the config/default fallback can tell it
         apart from an explicit value.
     """
@@ -582,7 +652,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--unlimited-trades", action="store_true", default=None, help="No trade limit (Round 1 / free windows)"
     )
     parser.add_argument(
-        "--w-budget", type=float, default=None, help="Capital-growth weight (default: config, else 0.0)"
+        "--credit-value", type=float, default=None, help="Capital-growth weight (default: config, else 0.0)"
     )
     parser.add_argument("--out", type=Path, default=None, help=f"Output CSV (default: config, else {DEFAULT_OUT})")
     return parser.parse_args(argv)
@@ -604,11 +674,13 @@ def main(argv: list[str] | None = None) -> None:
     settings = resolve_settings(args, config)
     df = load_input(settings.input, settings.sheet)
     started = time.perf_counter()
-    sol = optimize_squad(df, cash=settings.cash, max_trades=settings.max_trades, w_budget=settings.w_budget)
+    sol = optimize_squad(df, cash=settings.cash, max_trades=settings.max_trades, credit_value=settings.credit_value)
     elapsed = time.perf_counter() - started
     settings.output.parent.mkdir(parents=True, exist_ok=True)
     sol.table.to_csv(settings.output, index=False, encoding="utf-8", lineterminator="\n")
     print(format_report(sol, settings.max_trades))
+    cv_report = explain_credit_value(df, settings.cash, settings.max_trades, settings.credit_value, sol)
+    print(format_credit_value_report(cv_report, sol))
     print(f"Solved {len(df)} candidates in {elapsed:.2f}s; wrote {len(sol.table)} rows to {settings.output}")
 
 

@@ -55,4 +55,4 @@ The `apply_*_name_verdicts.py` scripts read and rewrite the stage-1 crosswalk in
 | `src/eupy/entity/apply_player_name_verdicts.py` | `player_name_crosswalk`, verdicts JSON (`--verdicts`) | `player_name_crosswalk` | true |
 | `src/eupy/entity/resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header` | `team_name_crosswalk` | true |
 | `src/eupy/entity/apply_team_name_verdicts.py` | `team_name_crosswalk`, verdicts JSON (`--verdicts`) | `team_name_crosswalk` | true |
-| `src/eupy/optimize/optimize_squad.py` | `optimizer_input` (`--input`); scalars `--cash`, `--max-trades`, `--w-budget`; optional `--config` (TOML run parameters, not a catalogued dataset) | `squad_solution` | true |
+| `src/eupy/optimize/optimize_squad.py` | `optimizer_input` (`--input`); scalars `--cash`, `--max-trades`, `--credit-value`; optional `--config` (TOML run parameters, not a catalogued dataset) | `squad_solution` | true |
