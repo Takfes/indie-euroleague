@@ -20,6 +20,7 @@ flowchart LR
     f_fs["fetch_euroleague_fantasy_stats"]
     f_live["fetch_euroleague_live_boxscores"]
     f_sched["fetch_euroleague_schedule"]
+    b_turns["build_schedule_turns"]
     r_p["resolve_player_names"]
     a_p["apply_player_name_verdicts"]
     r_t["resolve_team_names"]
@@ -42,6 +43,8 @@ flowchart LR
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
     d_sq[["squad_solution<br/>stage 1 · final"]]
+    d_sch[["schedule<br/>stage 1 · final"]]
+    d_trt[["team_round_turn<br/>stage 1 · final"]]
 
     bs --> f_bs --> d_prices
     dunkest --> f_fs
@@ -49,6 +52,9 @@ flowchart LR
     f_fs --> d_coaches
     live --> f_live --> d_live
     adv --> f_sched --> d_sched
+    d_sched --> b_turns
+    b_turns --> d_sch
+    b_turns --> d_trt
     kaggle --> d_kbox
     kaggle --> d_khdr
 
