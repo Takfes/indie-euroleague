@@ -26,6 +26,7 @@ flowchart LR
     r_t["resolve_team_names"]
     a_t["apply_team_name_verdicts"]
     o_sq["optimize_squad"]
+    t_app["append_live_boxscores"]
 
     %% raw datasets (stage 0)
     d_prices[("basketballsphere_prices<br/>stage 0")]
@@ -38,6 +39,7 @@ flowchart LR
     d_opt[("optimizer_input<br/>stage 0")]
 
     %% produced datasets
+    d_bsc["box_score_current<br/>stage 1"]
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
     d_sq[["squad_solution<br/>stage 1 · final"]]
@@ -67,6 +69,10 @@ flowchart LR
     r_t --> d_txw
     d_txw --> a_t --> d_txw
     verdicts --> a_t
+
+    d_kbox --> t_app
+    d_live --> t_app
+    t_app --> d_bsc
 
     manual --> d_opt
     d_opt --> o_sq --> d_sq
