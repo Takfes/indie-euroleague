@@ -27,8 +27,8 @@ the season's `last_ingested_gamecode` in the state file. If there's nothing new,
 no delta file is written and the state's `last_checked_at` is bumped.
 
 Inputs: none -- fetched live from live.euroleague.net/api/{Header,BoxScore}.
-Outputs: data/raw_data/euroleague_live/box_score/{season}_delta_{utc_timestamp}.csv
-    (one new file per run with new data), data/raw_data/euroleague_live/_state.json
+Outputs: data/raw_data/euroleague_net/box_score/{season}_delta_{utc_timestamp}.csv
+    (one new file per run with new data), data/raw_data/euroleague_net/_state.json
     (updated every run).
 Final: false -- raw fetch output, not exposed under data/stage_99/.
 """
@@ -54,7 +54,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; euroleague-live-fetcher/1.0)"
 # Polite-client delay between sequential requests.
 REQUEST_DELAY_SECONDS = 0.3
 
-DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_live"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_net"
 
 CSV_FIELDNAMES = [
     "game_player_id",

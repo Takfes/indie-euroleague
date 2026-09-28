@@ -16,7 +16,7 @@ Requires Python 3.12+ (managed automatically by `uv`). No `.env` or secrets need
 uv run python src/eupy/fetchers/fetch_euroleague_live_boxscores.py --season=E2026
 ```
 
-Writes to `data/raw_data/euroleague_live/box_score/`, tracks progress in `data/raw_data/euroleague_live/_state.json`.
+Writes to `data/raw_data/euroleague_net/box_score/`, tracks progress in `data/raw_data/euroleague_net/_state.json`.
 
 **Fantasy prices** (full overwrite — re-run any time to refresh, e.g. after a new round):
 

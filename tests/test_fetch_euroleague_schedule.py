@@ -155,8 +155,8 @@ def test_main_writes_named_csv_with_api_columns_and_verbatim_values(
 
 
 def test_main_creates_missing_output_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    # First real run on a fresh checkout: data/raw_data/euroleague_api/ doesn't exist yet.
-    out_dir = tmp_path / "raw_data" / "euroleague_api"
+    # First real run on a fresh checkout: data/raw_data/euroleague_schedule/ doesn't exist yet.
+    out_dir = tmp_path / "raw_data" / "euroleague_schedule"
     with patch(URLOPEN, return_value=_api_returns([_game(7)])):
         _run_main(monkeypatch, out_dir)
 
