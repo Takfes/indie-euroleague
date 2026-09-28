@@ -14,14 +14,6 @@ Deferred work, off the critical path.
 
 ## Squad optimizer (`src/eupy/optimize/optimize_squad.py`, spec: `specs/spec-squad-optimizer.md`)
 
-- **Config file for optimizer runs.** `cash`, `max_trades`, `w_budget` and the in/out paths are CLI
-  flags only. A small config file (TOML or YAML — format/location undecided; scoped to the
-  optimizer, widen later if useful) would make a run reproducible without retyping flags, and could
-  derive `max_trades` from the round (4 standard, unlimited in the windows listed in
-  `docs/rules.md`), which also removes the Round-1 flag below.
-- **Round 1 needs `--unlimited-trades`.** The default `--max-trades 4` makes a fresh-team run
-  infeasible (11 buys needed). The error message says so, but it is a footgun. Cheapest fix: default
-  to unlimited when no row has `in_prev_roster = 1`; otherwise solved by the config-file item above.
 - **`TURN1` / `TURN2` are built but unused.** Kept per the strategy-doc discussion; they only earn
   their place once the option-value work below pairs T1 starters with T2 bench players. Real rounds
   can have a T3 (up to 3 game dates seen in `schedule_E2026.csv`), which sits in neither set.
