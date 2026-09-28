@@ -18,7 +18,7 @@ flowchart LR
     f_bs["fetch_basketballsphere_prices"]
     f_fs["fetch_euroleague_fantasy_stats"]
     f_live["fetch_euroleague_live_boxscores"]
-    f_sched["fetch_euroleague_advanced_schedule"]
+    f_sched["fetch_euroleague_schedule"]
     r_p["resolve_player_names"]
     a_p["apply_player_name_verdicts"]
     r_t["resolve_team_names"]
@@ -29,7 +29,7 @@ flowchart LR
     d_players[("euroleague_fantasy_stats/players<br/>stage 0")]
     d_coaches[("euroleague_fantasy_stats/head_coaches<br/>stage 0")]
     d_live[("euroleague_live/box_score<br/>stage 0")]
-    d_sched[("euroleague_advanced_api/schedule<br/>stage 0")]
+    d_sched[("euroleague_api/schedule<br/>stage 0")]
     d_kbox[("kaggle_data/euroleague_box_score<br/>stage 0")]
     d_khdr[("kaggle_data/euroleague_header<br/>stage 0")]
 
