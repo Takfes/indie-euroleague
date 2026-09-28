@@ -1,8 +1,8 @@
-<!-- GENERATED — do not edit. Regenerated from the Inputs/Outputs/Final header of every script in src/eupy/. -->
+<!-- GENERATED — do not edit. Regenerated from the Inputs/Outputs/Final header of every script in src/eupy/, via the update-data-docs skill. -->
 
 # Data graph
 
-> **GENERATED — do not edit.** Lineage derived from script I/O headers. Rounded = external sources, rectangles = scripts, cylinders = raw datasets (`stage 0`), double-bordered = produced datasets with `final: true` (exposed under `data/stage_99/` as relative symlinks). Inventory: [data-catalogue.md](data-catalogue.md).
+> **GENERATED — do not edit.** Lineage derived from script I/O headers. Rounded = external sources, rectangles = scripts, cylinders = raw datasets (`stage 0`), double-bordered = produced datasets with `final: true` (exposed under `data/stage_99/` as relative symlinks). Color = stage: gray external sources, blue scripts, amber stage 0 (raw), green stage 1 (produced). Inventory: [data-catalogue.md](data-catalogue.md).
 
 ```mermaid
 flowchart LR
@@ -85,4 +85,14 @@ flowchart LR
 
     manual --> d_opt
     d_opt --> o_sq --> d_sq
+
+    %% stage coloring
+    classDef external fill:#e8e8e8,stroke:#888888,color:#333333
+    classDef script fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c
+    classDef stage0 fill:#fde9d9,stroke:#c97f3a,color:#4a2c0a
+    classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
+    class bs,dunkest,live,adv,kaggle,verdicts,manual external
+    class f_bs,f_fs,f_live,f_lhdr,f_sched,b_turns,r_p,a_p,r_t,a_t,o_sq,t_app,t_hdr script
+    class d_prices,d_players,d_coaches,d_live,d_lhdr,d_sched,d_kbox,d_khdr,d_opt stage0
+    class d_hdrc,d_bsc,d_pxw,d_txw,d_sq,d_sch,d_trt stage1
 ```
