@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from eupy.schedule.build_schedule_turns import assign_turns, main, team_round_turns
+from eupy.transform.build_schedule_turns import assign_turns, main, team_round_turns
 
 
 def _games(rows: list[tuple[int, str, str, str]]) -> pd.DataFrame:
