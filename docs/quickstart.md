@@ -18,6 +18,15 @@ uv run python src/eupy/fetchers/fetch_euroleague_live_boxscores.py --season=E202
 
 Writes to `data/raw_data/euroleague_net/box_score/`, tracks progress in `data/raw_data/euroleague_net/_state.json`.
 
+**Live headers** (same incremental pattern; Kaggle `euroleague_header` schema, works for any season — `--season=E2022` replicates a Kaggle season from live):
+
+```bash
+uv run python src/eupy/fetchers/fetch_euroleague_live_headers.py --season=E2026
+uv run python src/eupy/transform/append_live_headers.py   # Kaggle E2025 + all deltas -> data/stage_01/header_current.csv
+```
+
+Writes to `data/raw_data/euroleague_live/headers/`, tracks progress in `headers/_state.json`.
+
 **Fantasy prices** (full overwrite — re-run any time to refresh, e.g. after a new round):
 
 ```bash

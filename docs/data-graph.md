@@ -19,6 +19,7 @@ flowchart LR
     f_bs["fetch_basketballsphere_prices"]
     f_fs["fetch_euroleague_fantasy_stats"]
     f_live["fetch_euroleague_live_boxscores"]
+    f_lhdr["fetch_euroleague_live_headers"]
     f_sched["fetch_euroleague_schedule"]
     b_turns["build_schedule_turns"]
     r_p["resolve_player_names"]
@@ -27,18 +28,21 @@ flowchart LR
     a_t["apply_team_name_verdicts"]
     o_sq["optimize_squad"]
     t_app["append_live_boxscores"]
+    t_hdr["append_live_headers"]
 
     %% raw datasets (stage 0)
     d_prices[("basketballsphere_prices<br/>stage 0")]
     d_players[("euroleague_fantasy_stats/players<br/>stage 0")]
     d_coaches[("euroleague_fantasy_stats/head_coaches<br/>stage 0")]
     d_live[("euroleague_live/box_score<br/>stage 0")]
+    d_lhdr[("euroleague_live/headers<br/>stage 0")]
     d_sched[("euroleague_api/schedule<br/>stage 0")]
     d_kbox[("kaggle_data/euroleague_box_score<br/>stage 0")]
     d_khdr[("kaggle_data/euroleague_header<br/>stage 0")]
     d_opt[("optimizer_input<br/>stage 0")]
 
     %% produced datasets
+    d_hdrc["header_current<br/>stage 1"]
     d_bsc["box_score_current<br/>stage 1"]
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
@@ -51,6 +55,7 @@ flowchart LR
     f_fs --> d_players
     f_fs --> d_coaches
     live --> f_live --> d_live
+    live --> f_lhdr --> d_lhdr
     adv --> f_sched --> d_sched
     d_sched --> b_turns
     b_turns --> d_sch
@@ -73,6 +78,10 @@ flowchart LR
     d_kbox --> t_app
     d_live --> t_app
     t_app --> d_bsc
+
+    d_khdr --> t_hdr
+    d_lhdr --> t_hdr
+    t_hdr --> d_hdrc
 
     manual --> d_opt
     d_opt --> o_sq --> d_sq
