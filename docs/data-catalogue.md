@@ -1,4 +1,4 @@
-<!-- GENERATED — do not edit. Regenerated from the Inputs/Outputs/Final header of every script in src/eupy/. -->
+<!-- GENERATED — do not edit. Regenerated from the Inputs/Outputs/Final header of every script in src/eupy/, via the update-data-docs skill. -->
 
 # Data catalogue
 

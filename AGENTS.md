@@ -111,7 +111,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Inserting a step between stages (temp measure): letter suffix, e.g. `stage_01a`, `stage_01b` (sorts correctly, no downstream moves). A later renumber pass (registry recompute + rerun) normalizes to integers.
 - `data/stage_99/`: consumption layer. Datasets flagged `final: true` in their header are exposed here as **relative symlinks** to the real file. No copies.
 - Orchestration will move to DVC: script headers are the source of truth for deps/outs (future `dvc.yaml` is generated from them). Never declare `data/stage_99/` symlinks as DVC outs — DVC deps point at real stage paths.
-- Before every commit, the agent regenerates `docs/data-catalogue.md` and `docs/data-graph.md` from the headers — never hand-edited.
+- Before every commit, the agent regenerates `docs/data-catalogue.md` and `docs/data-graph.md` from the headers via the `update-data-docs` skill — never hand-edited.
 
 ### Manual symlink into `data/stage_99/`
 
