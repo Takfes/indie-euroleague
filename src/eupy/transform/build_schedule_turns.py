@@ -19,7 +19,7 @@ Usage:
     python src/eupy/transform/build_schedule_turns.py [--season E2026] [--input PATH]
         [--out-schedule PATH] [--out-team-turns PATH]
 
-Inputs: euroleague_api/schedule -- data/raw_data/euroleague_api/schedule_{season}.csv.
+Inputs: euroleague_schedule/schedule -- data/raw_data/euroleague_schedule/schedule_{season}.csv.
 Outputs: schedule -- data/stage_01/schedule.csv; team_round_turn -- data/stage_01/team_round_turn.csv
     (both overwritten each run).
 Final: true -- both are exposed under data/stage_99/ as relative symlinks.
@@ -33,7 +33,7 @@ from pathlib import Path
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-RAW_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_api"
+RAW_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_schedule"
 DEFAULT_OUT_SCHEDULE = REPO_ROOT / "data" / "stage_01" / "schedule.csv"
 DEFAULT_OUT_TEAM_TURNS = REPO_ROOT / "data" / "stage_01" / "team_round_turn.csv"
 
@@ -86,7 +86,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--season", default="E2026", help="Season code, e.g. E2026 (default: %(default)s)")
     parser.add_argument(
-        "--input", type=Path, help="Raw schedule CSV (default: raw_data/euroleague_api/schedule_{season}.csv)"
+        "--input", type=Path, help="Raw schedule CSV (default: raw_data/euroleague_schedule/schedule_{season}.csv)"
     )
     parser.add_argument("--out-schedule", type=Path, default=DEFAULT_OUT_SCHEDULE, help="(default: %(default)s)")
     parser.add_argument("--out-team-turns", type=Path, default=DEFAULT_OUT_TEAM_TURNS, help="(default: %(default)s)")

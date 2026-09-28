@@ -42,7 +42,7 @@ no index column. Extra columns are ignored (kept out of the model). Column names
 
 | column | type | required | meaning |
 | ------ | ---- | -------- | ------- |
-| `player_id` | str / int | yes | unique key; same id as `euroleague_fantasy_stats/players.csv` / `head_coaches.csv` |
+| `player_id` | str / int | yes | unique key; same id as `fantasy_stats/players.csv` / `head_coaches.csv` |
 | `name` | str | yes | display only (report/output) |
 | `team` | str | yes | club code (e.g. `PAR`, `OLY`), used for the 6-per-club cap; same code space as the fantasy-stats `team` column |
 | `position` | `G` / `F` / `C` / `HC` | yes | `HC` = head coach |

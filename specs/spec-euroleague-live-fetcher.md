@@ -14,9 +14,9 @@ fetches games that are new since the last run.
   - `https://live.euroleague.net/api/Header?gamecode={g}&seasoncode={s}`
   - `https://live.euroleague.net/api/BoxScore?gamecode={g}&seasoncode={s}`
 - Output: delta-only CSVs, one per run, under
-  `data/raw_data/euroleague_live/box_score/{season}_delta_{run_timestamp_utc}.csv`.
+  `data/raw_data/euroleague_net/box_score/{season}_delta_{run_timestamp_utc}.csv`.
   No merged master file — concatenating deltas is a future staging step, out of scope.
-- State file: `data/raw_data/euroleague_live/_state.json`, keyed by season code. Both
+- State file: `data/raw_data/euroleague_net/_state.json`, keyed by season code. Both
   the output directory and the state file live in the git-ignored raw zone
   (`data/raw_data/`), consistent with raw data not being tracked in git.
 - Out of scope: reconciling live-API player IDs (`P011157`) with the historical
