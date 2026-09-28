@@ -14,8 +14,7 @@ from unittest.mock import patch
 import pytest
 
 from eupy.fetchers import fetch_euroleague_live_headers as fh
-from eupy.fetchers.append_live_headers import append_headers
-from eupy.fetchers.append_live_headers import run as append_run
+from eupy.transform.append_live_headers import append_rows
 
 HEADER: dict[str, Any] = {
     "Live": False,
@@ -118,30 +117,16 @@ def test_run_resumes_from_state_and_writes_nothing_when_no_news(tmp_path: Path) 
 
 
 def _hdr_row(game_id: str, score: str = "1") -> dict[str, str]:
-    return {"game_id": game_id, "season_code": game_id.split("_")[0], "score_a": score}
+    return {"game_id": game_id, "score_a": score}
 
 
-def test_append_base_wins_dedupes_deltas_and_sorts_numerically() -> None:
-    base = [_hdr_row("E2025_010"), _hdr_row("E2025_002"), _hdr_row("E2026_001", "base-should-be-cut")]
-    deltas = [
-        _hdr_row("E2025_002", "live"),  # overlaps base -> dropped
-        _hdr_row("E2026_002", "old"),
-        _hdr_row("E2026_002", "new"),  # re-fetched -> latest wins
-        _hdr_row("E2026_001", "live"),
+def test_append_keys_on_game_id_last_wins_and_keeps_first_seen_position() -> None:
+    base = [_hdr_row("E2025_002"), _hdr_row("E2025_001")]
+    deltas = [_hdr_row("E2026_001"), _hdr_row("E2025_002", "live"), _hdr_row("E2026_001", "refetched")]
+    rows, dropped = append_rows(base, deltas)
+    assert [(r["game_id"], r["score_a"]) for r in rows] == [
+        ("E2025_002", "live"),
+        ("E2025_001", "1"),
+        ("E2026_001", "refetched"),
     ]
-    out = append_headers(base, deltas, "E2025")
-    assert [(r["game_id"], r["score_a"]) for r in out] == [
-        ("E2025_002", "1"),
-        ("E2025_010", "1"),
-        ("E2026_001", "live"),
-        ("E2026_002", "new"),
-    ]
-
-
-def test_append_run_rejects_schema_drift(tmp_path: Path) -> None:
-    base, deltas = tmp_path / "base.csv", tmp_path / "headers"
-    deltas.mkdir()
-    base.write_text("game_id,season_code,score_a\nE2025_001,E2025,1\n")
-    (deltas / "E2026_delta_1.csv").write_text("game_id,season_code\nE2026_001,E2026\n")
-    with pytest.raises(ValueError, match="columns differ"):
-        append_run(base, deltas, tmp_path / "out.csv", "E2025")
+    assert dropped == 2
