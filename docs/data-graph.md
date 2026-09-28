@@ -23,6 +23,8 @@ flowchart LR
     f_sched["fetch_euroleague_schedule"]
     b_turns["build_schedule_turns"]
     r_p["resolve_player_names"]
+    r_f["resolve_fantasy_stats_names"]
+    n_f["normalize_fantasy_stats"]
     a_p["apply_player_name_verdicts"]
     r_t["resolve_team_names"]
     a_t["apply_team_name_verdicts"]
@@ -46,6 +48,8 @@ flowchart LR
     d_bsc["box_score_current<br/>stage 1"]
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
+    d_fxw[["fantasy_stats_player_crosswalk<br/>stage 1 · final"]]
+    d_fpn[["fantasy_stats_players_normalized<br/>stage 2 · final"]]
     d_sq[["squad_solution<br/>stage 1 · final"]]
     d_sch[["schedule<br/>stage 1 · final"]]
     d_trt[["team_round_turn<br/>stage 1 · final"]]
@@ -68,6 +72,16 @@ flowchart LR
     r_p --> d_pxw
     d_pxw --> a_p --> d_pxw
     verdicts --> a_p
+
+    d_players --> r_f
+    d_prices --> r_f
+    d_kbox --> r_f
+    verdicts --> r_f
+    r_f --> d_fxw
+    d_fxw --> r_f
+    d_players --> n_f
+    d_fxw --> n_f
+    n_f --> d_fpn
 
     d_prices --> r_t
     d_khdr --> r_t
