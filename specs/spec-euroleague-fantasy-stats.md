@@ -16,9 +16,9 @@ round currently in progress.
 - Two output datasets, both long-format, each keeping only the columns that
   are ever real for that entity (see "Column split" below) — no column that's
   always placeholder for one dataset leaks in from the other:
-  - `data/raw_data/euroleague_fantasy_stats/players.csv` (positions Guard,
+  - `data/raw_data/fantasy_stats/players.csv` (positions Guard,
     Forward, Center)
-  - `data/raw_data/euroleague_fantasy_stats/head_coaches.csv` (position Head
+  - `data/raw_data/fantasy_stats/head_coaches.csv` (position Head
     Coach)
 - Auth: a static bearer token, captured once via a one-time manual browser
   step (documented below) and stored as `EUROLEAGUE_FANTASY_AUTH_TOKEN` in
@@ -189,7 +189,7 @@ round currently in progress.
   from `players.csv` and player-only columns from `head_coaches.csv`). No
   live network calls in tests.
 - Running the script live produces `players.csv` and `head_coaches.csv` under
-  `data/raw_data/euroleague_fantasy_stats/`, currently 2 rounds × 345 players
+  `data/raw_data/fantasy_stats/`, currently 2 rounds × 345 players
   + 2 rounds × 20 head coaches (round 1 complete, round 2 in progress),
   matching the counts independently verified live above. `players.csv`
   carries no `win_*`/`loss_*` columns; `head_coaches.csv` carries no

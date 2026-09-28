@@ -38,8 +38,8 @@ Usage:
 Inputs: none from disk -- fetched live from fantaking-api.dunkest.com, using
     EUROLEAGUE_FANTASY_AUTH_TOKEN (env var, or read from a `.env` file at the
     repo root).
-Outputs: data/raw_data/euroleague_fantasy_stats/players.csv and
-    data/raw_data/euroleague_fantasy_stats/head_coaches.csv (both fully
+Outputs: data/raw_data/fantasy_stats/players.csv and
+    data/raw_data/fantasy_stats/head_coaches.csv (both fully
     overwritten each run).
 Final: false -- raw fetch output, not exposed under data/stage_99/.
 """
@@ -69,7 +69,7 @@ MAX_PER_PAGE = 100
 # Polite-client delay between sequential requests.
 REQUEST_DELAY_SECONDS = 0.2
 
-DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_fantasy_stats"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_stats"
 DEFAULT_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 
 # Fixed CSV headers: "round"/"player_id" (synthesized here) followed by a

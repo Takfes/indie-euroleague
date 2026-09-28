@@ -21,7 +21,7 @@ Usage:
 integer `season` parameter is derived from it (`E2026` -> `2026`).
 
 Inputs: none -- fetched live from https://euroleague-advanced-api.eu/Euroleague/schedule?season={year}.
-Outputs: data/raw_data/euroleague_api/schedule_{season}.csv (overwritten each run).
+Outputs: data/raw_data/euroleague_schedule/schedule_{season}.csv (overwritten each run).
 Final: false -- raw fetch output, not exposed under data/stage_99/.
 """
 
@@ -41,7 +41,7 @@ SCHEDULE_URL = "https://euroleague-advanced-api.eu/Euroleague/schedule"
 # only verified with curl's own UA, so a descriptive one is sent to match the convention.
 USER_AGENT = "Mozilla/5.0 (compatible; euroleague-schedule-fetcher/1.0)"
 
-DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_api"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_schedule"
 
 # [0-9], not \d: \d also matches non-ASCII digits, which would slip through to the request.
 SEASON_CODE_RE = re.compile(r"E([0-9]{4})")
