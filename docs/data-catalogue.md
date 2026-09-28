@@ -15,6 +15,7 @@
 | `euroleague_api/schedule` | `data/raw_data/euroleague_api/schedule_{season}.csv` | `fetch_euroleague_schedule.py` | — | full overwrite per run (per season) |
 | `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | external (Kaggle, manual download) | `resolve_player_names.py` | manual |
 | `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | external (Kaggle, manual download) | `resolve_team_names.py` | manual |
+| `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external (prepared manually; upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
 
 The other `data/raw_data/kaggle_data/*.csv` files (comparison, play_by_play, players, points, teams) are not referenced by any script header yet.
 
@@ -24,6 +25,7 @@ The other `data/raw_data/kaggle_data/*.csv` files (comparison, play_by_play, pla
 | --- | --- | --- | --- | --- | --- | --- |
 | `player_name_crosswalk` | 01 | `data/stage_01/player_name_crosswalk.csv` | `resolve_player_names.py`, `apply_player_name_verdicts.py` (updates in place) | `basketballsphere_prices`, `kaggle_data/euroleague_box_score` | true | `data/stage_99/player_name_crosswalk.csv` |
 | `team_name_crosswalk` | 01 | `data/stage_01/team_name_crosswalk.csv` | `resolve_team_names.py`, `apply_team_name_verdicts.py` (updates in place) | `basketballsphere_prices`, `kaggle_data/euroleague_header` | true | `data/stage_99/team_name_crosswalk.csv` |
+| `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` (link to be created after the first run — the stage file does not exist yet) |
 
 The `apply_*_name_verdicts.py` scripts read and rewrite the stage-1 crosswalk in place, so they add no stage of their own.
 
@@ -39,3 +41,4 @@ The `apply_*_name_verdicts.py` scripts read and rewrite the stage-1 crosswalk in
 | `src/eupy/entity/apply_player_name_verdicts.py` | `player_name_crosswalk`, verdicts JSON (`--verdicts`) | `player_name_crosswalk` | true |
 | `src/eupy/entity/resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header` | `team_name_crosswalk` | true |
 | `src/eupy/entity/apply_team_name_verdicts.py` | `team_name_crosswalk`, verdicts JSON (`--verdicts`) | `team_name_crosswalk` | true |
+| `src/eupy/optimize/optimize_squad.py` | `optimizer_input` (`--input`); scalars `--cash`, `--max-trades`, `--w-budget` | `squad_solution` | true |

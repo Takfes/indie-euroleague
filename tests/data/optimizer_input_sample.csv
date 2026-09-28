@@ -1,0 +1,19 @@
+player_id,name,team,position,turn,price,exp_pir,exp_pir_adj,in_prev_roster
+101,Guard One,PAN,G,1,18.5,21.0,,0
+102,Guard Two,OLY,G,2,14.0,15.5,17.0,0
+103,Guard Three,PAR,G,1,9.5,11.0,,0
+104,Guard Four,RMB,G,2,7.0,8.5,,0
+105,Guard Five,PAN,G,1,5.5,6.0,,0
+106,Guard Six,OLY,G,2,4.0,4.5,,0
+201,Forward One,PAR,F,1,16.0,18.0,,0
+202,Forward Two,RMB,F,2,12.5,13.0,,0
+203,Forward Three,PAN,F,1,10.0,12.5,,0
+204,Forward Four,OLY,F,2,6.5,7.0,,0
+205,Forward Five,PAR,F,1,5.0,5.5,,0
+206,Forward Six,RMB,F,2,3.5,4.0,,0
+301,Center One,OLY,C,2,15.0,17.5,,0
+302,Center Two,RMB,C,2,9.0,10.5,,0
+303,Center Three,PAN,C,1,6.0,6.5,8.0,0
+304,Center Four,PAR,C,1,4.5,5.0,,0
+901,Coach One,PAN,HC,1,6.0,8.0,,0
+902,Coach Two,OLY,HC,2,4.0,5.0,,0
