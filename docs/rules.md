@@ -115,24 +115,22 @@ The coach scores even if dismissed, absent or disqualified.
 Reverse-engineered by the community account @ELFantasist together with a mathematician; it is reported to predict gains and losses across several price brackets.
 
 ```text
-Price change = (Round score − 0.9 × Starting value) / 10
+Gain/Losss = (PIR − Price × 1.1) / 25    <--- validated manually. excluding injuries which get -0.1
 ```
 
-- **Breakeven score = 0.9 × starting value.** Above it the price rises, below it the price falls, by 0.1cr per point of difference.
+> source : [@ELFantasist X/Twitter Post](https://x.com/ELFantasist/status/2015451800300654732)
 
-| Starting value | Breakeven score | Round score | Price change |
-| -------------- | --------------- | ----------- | ------------ |
-| 10cr           | 9               | 19          | +1.0cr       |
-| 20cr           | 18              | 19          | +0.1cr       |
-| 20cr           | 18              | 8           | −1.0cr       |
+- **Gain/Losee Breakeven Point** in PIR score, as a function of the credit/quotation/value = 1.1 × starting value. Above it the price rises, below it the price falls.
 
-The third row is derived from the formula; the first two are the community's worked examples.
+> - If a player costs 10.0 credits, their target baseline score to maintain price is $10.0 \times 1.1 = \mathbf{11.0 \text{ PIR}}$.
+> - If they score 21.0 PIR, their price gain is $\frac{21.0 - 11.0}{25} = \mathbf{+0.4 \text{ credits}}$.
+> - If they score 6.0 PIR, their price drops by $\frac{6.0 - 11.0}{25} = \mathbf{-0.2 \text{ credits}}$.
 
 - **Cap (unconfirmed):** the game is believed to cap the gain or loss in a single Round, reported as roughly ±15% of the player's value or a flat ~1.5cr. The official GitBook example (+1.5cr) is consistent with a flat cap, but neither cap is documented.
 - **Round score (unconfirmed):** the [Player score](#player-score) table is the standard PIR formula plus the team win bonus. It is not documented whether the price formula uses the score with or without the win bonus.
 - Neither the formula nor the cap appears in the official rules — treat predictions as estimates.
 
-References: [official rules GitBook — Quotations and price variations](https://fantaking.gitbook.io/euroleague-fantasy-challenge-rules/classic-mode/quotations-and-price-variations) (two inputs, no formula); [EuroLeague — Dynamic new player price changes](https://www.euroleaguebasketball.net/euroleague/news/euroleague-fantasy-challenge-dynamic-new-player-price-changes/); [Google search for price-formula hints](https://www.google.com/search?q=are+there+any+hints+online+concerning+the+euroleague+fantasy+credit+score%2Fprice+update+formula%3F)(where the community formula was found; search results, not a primary source); [@ELFantasist X/Twitter Post](https://x.com/ELFantasist/status/2015451800300654732)
+References: [official rules GitBook — Quotations and price variations](https://fantaking.gitbook.io/euroleague-fantasy-challenge-rules/classic-mode/quotations-and-price-variations) (two inputs, no formula); [EuroLeague — Dynamic new player price changes](https://www.euroleaguebasketball.net/euroleague/news/euroleague-fantasy-challenge-dynamic-new-player-price-changes/); [Google search for price-formula hints](https://www.google.com/search?q=are+there+any+hints+online+concerning+the+euroleague+fantasy+credit+score%2Fprice+update+formula%3F)(where the community formula was found; search results, not a primary source);
 
 ## Suspended or changed games
 
