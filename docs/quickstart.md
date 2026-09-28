@@ -25,7 +25,7 @@ uv run python src/eupy/fetchers/fetch_euroleague_live_headers.py --season=E2026
 uv run python src/eupy/transform/append_live_headers.py   # Kaggle E2025 + all deltas -> data/stage_01/header_current.csv
 ```
 
-Writes to `data/raw_data/euroleague_live/headers/`, tracks progress in `headers/_state.json`.
+Writes to `data/raw_data/euroleague_net/headers/`, tracks progress in `headers/_state.json`.
 
 **Fantasy prices** (full overwrite — re-run any time to refresh, e.g. after a new round):
 

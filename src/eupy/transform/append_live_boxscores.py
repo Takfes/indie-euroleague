@@ -6,7 +6,7 @@ fetcher (`fetch_euroleague_live_boxscores.py`) writes one delta CSV per run,
 each holding only the games ingested in that run. This script rebuilds one
 current box-score table from scratch on every run: the base season's Kaggle
 rows first (file order preserved), then every delta file under
-`data/raw_data/euroleague_live/box_score/` in filename order (the filename
+`data/raw_data/euroleague_net/box_score/` in filename order (the filename
 embeds a UTC timestamp, so this is chronological). Nothing is incremental --
 re-running from the same raw files gives byte-identical output.
 
@@ -21,7 +21,7 @@ Usage:
     python src/eupy/transform/append_live_boxscores.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
 
 Inputs: data/raw_data/kaggle_data/euroleague_box_score.csv,
-    data/raw_data/euroleague_live/box_score/{season}_delta_{utc_timestamp}.csv (all files).
+    data/raw_data/euroleague_net/box_score/{season}_delta_{utc_timestamp}.csv (all files).
 Outputs: data/stage_01/box_score_current.csv.
 Final: false -- intermediate; not exposed under data/stage_99/.
 """
@@ -34,7 +34,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_box_score.csv"
-LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_live" / "box_score"
+LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "box_score"
 OUT_PATH = REPO_ROOT / "data" / "stage_01" / "box_score_current.csv"
 
 DEFAULT_BASE_SEASON = "E2025"

@@ -2,7 +2,7 @@
 """Append EuroLeague live-API header deltas to the Kaggle base season.
 
 Header twin of `append_live_boxscores.py`. `fetch_euroleague_live_headers.py` writes one
-delta CSV per run to `data/raw_data/euroleague_live/headers/`, in the schema of
+delta CSV per run to `data/raw_data/euroleague_net/headers/`, in the schema of
 `data/raw_data/kaggle_data/euroleague_header.csv`. This script rebuilds one current header
 table from scratch on every run: the base season's Kaggle rows first (file order
 preserved), then every delta file in filename (= chronological) order. A `game_id` present
@@ -17,7 +17,7 @@ Usage:
     python src/eupy/transform/append_live_headers.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
 
 Inputs: data/raw_data/kaggle_data/euroleague_header.csv,
-    data/raw_data/euroleague_live/headers/{season}_delta_{utc_timestamp}.csv (all files).
+    data/raw_data/euroleague_net/headers/{season}_delta_{utc_timestamp}.csv (all files).
 Outputs: data/stage_01/header_current.csv.
 Final: false -- intermediate; not exposed under data/stage_99/.
 """
@@ -30,7 +30,7 @@ from pathlib import Path
 from eupy.transform.append_live_boxscores import DEFAULT_BASE_SEASON, REPO_ROOT, load_base, load_deltas, write_rows
 
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_header.csv"
-LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_live" / "headers"
+LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "headers"
 OUT_PATH = REPO_ROOT / "data" / "stage_01" / "header_current.csv"
 KEY = "game_id"
 
