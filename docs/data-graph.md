@@ -13,6 +13,7 @@ flowchart LR
     adv(["euroleague-advanced-api.eu"])
     kaggle(["Kaggle (manual download)"])
     verdicts(["verdicts JSON (--verdicts)"])
+    manual(["manual preparation"])
 
     %% scripts
     f_bs["fetch_basketballsphere_prices"]
@@ -23,6 +24,7 @@ flowchart LR
     a_p["apply_player_name_verdicts"]
     r_t["resolve_team_names"]
     a_t["apply_team_name_verdicts"]
+    o_sq["optimize_squad"]
 
     %% raw datasets (stage 0)
     d_prices[("basketballsphere_prices<br/>stage 0")]
@@ -32,10 +34,12 @@ flowchart LR
     d_sched[("euroleague_api/schedule<br/>stage 0")]
     d_kbox[("kaggle_data/euroleague_box_score<br/>stage 0")]
     d_khdr[("kaggle_data/euroleague_header<br/>stage 0")]
+    d_opt[("optimizer_input<br/>stage 0")]
 
     %% produced datasets
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
+    d_sq[["squad_solution<br/>stage 1 · final"]]
 
     bs --> f_bs --> d_prices
     dunkest --> f_fs
@@ -57,4 +61,7 @@ flowchart LR
     r_t --> d_txw
     d_txw --> a_t --> d_txw
     verdicts --> a_t
+
+    manual --> d_opt
+    d_opt --> o_sq --> d_sq
 ```
