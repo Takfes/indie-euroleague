@@ -26,6 +26,7 @@ from eupy.optimize.optimize_squad import (
     ROLE_ORDER,
     _prepare,
     build_model,
+    load_config,
     main,
     optimize_squad,
     solve,
@@ -33,10 +34,11 @@ from eupy.optimize.optimize_squad import (
 )
 
 SAMPLE = Path(__file__).parent / "data" / "optimizer_input_sample.csv"
+CONFIG_SAMPLE = Path(__file__).parent / "data" / "optimizer_config_sample.toml"
 
 # Written from rules.md, deliberately not derived from FORMATION_BOUNDS.
 LEGAL_FORMATIONS = {(2, 2, 1), (1, 2, 2), (2, 1, 2), (1, 3, 1), (3, 1, 1)}
-NEED = {"G": 4, "F": 4, "C": 2, "HC": 1}
+NEED = {"G": 4, "F": 4, "C": 2}
 EPS = 1e-6
 
 
@@ -80,10 +82,8 @@ class BruteForce:
         return self._roles[players]
 
     def squad_extra(self, squad: frozenset[int], w: float) -> float:
-        """Coach points + w * expected price change of the squad's players."""
-        coach = sum(self.exp[i] for i in squad if self.pos[i] == "HC")
-        growth = sum((self.exp[i] - 1.1 * self.price[i]) / 25 for i in squad if self.pos[i] != "HC")
-        return coach + w * growth
+        """w * expected price change of the squad's players."""
+        return w * sum((self.exp[i] - 1.1 * self.price[i]) / 25 for i in squad)
 
     def legal_squad(self, squad: frozenset[int], cash: float, max_trades: int | None) -> bool:
         buys, sells = squad - self.prev, self.prev - squad
@@ -91,7 +91,7 @@ class BruteForce:
             return False
         if sum(self.price[i] for i in buys) > cash + sum(self.price[i] for i in sells) + EPS:
             return False
-        clubs = [self.team[i] for i in squad if self.pos[i] != "HC"]
+        clubs = [self.team[i] for i in squad]
         return all(clubs.count(t) <= 6 for t in set(clubs))
 
     def solve(self, cash: float, max_trades: int | None, w: float) -> tuple[float, frozenset[int], tuple]:
@@ -101,7 +101,7 @@ class BruteForce:
             squad = frozenset(itertools.chain(*combo))
             if not self.legal_squad(squad, cash, max_trades):
                 continue
-            players = tuple(sorted(i for i in squad if self.pos[i] != "HC"))
+            players = tuple(sorted(squad))
             roles_value, roles = self.best_roles(players)
             v = roles_value + self.squad_extra(squad, w)
             if v > best[0]:
@@ -111,24 +111,24 @@ class BruteForce:
 
 def rescore(bf: BruteForce, table: pd.DataFrame, cash: float, max_trades: int | None, w: float) -> float:
     """Check a model output table is a legal squad/lineup and return its value under the rules."""
-    idx = {pid: i for i, pid in enumerate(bf.u["player_id"])}
+    idx = {name: i for i, name in enumerate(bf.u["name"])}
     squad_rows = table[table["action"] != "sell"]
-    squad = frozenset(idx[p] for p in squad_rows["player_id"])
-    assert len(squad) == 11
+    squad = frozenset(idx[n] for n in squad_rows["name"])
+    assert len(squad) == 10
     assert sorted(bf.pos[i] for i in squad) == sorted(p for p, n in NEED.items() for _ in range(n))
     assert bf.legal_squad(squad, cash, max_trades)
     # Actions are consistent with the previous roster (no player both sold and bought).
-    for pid, action in zip(table["player_id"], table["action"], strict=True):
-        was_owned = idx[pid] in bf.prev
-        assert action in (("keep", "sell") if was_owned else ("buy",)), (pid, action)
-    starters = tuple(idx[p] for p in table.loc[table["role"] == "starter", "player_id"])
-    (sixth,) = (idx[p] for p in table.loc[table["role"] == "sixth", "player_id"])
-    (captain,) = (idx[p] for p in table.loc[table["is_captain"] == 1, "player_id"])
+    for name, action in zip(table["name"], table["action"], strict=True):
+        was_owned = idx[name] in bf.prev
+        assert action in (("keep", "sell") if was_owned else ("buy",)), (name, action)
+    starters = tuple(idx[n] for n in table.loc[table["role"] == "starter", "name"])
+    (sixth,) = (idx[n] for n in table.loc[table["role"] == "sixth", "name"])
+    (captain,) = (idx[n] for n in table.loc[table["is_captain"] == 1, "name"])
     assert len(starters) == 5 and captain in starters
     assert tuple(sum(bf.pos[i] == p for i in starters) for p in ("G", "F", "C")) in LEGAL_FORMATIONS
     assert bf.adj[captain] == max(bf.adj[i] for i in starters)
     assert (table.loc[table["action"] == "sell", "role"] == "none").all()
-    players = tuple(sorted(i for i in squad if bf.pos[i] != "HC"))
+    players = tuple(sorted(squad))
     return bf.lineup_value(starters, sixth, captain, players) + bf.squad_extra(squad, w)
 
 
@@ -136,21 +136,19 @@ def rescore(bf: BruteForce, table: pd.DataFrame, cash: float, max_trades: int | 
 
 
 def random_universe(seed: int) -> pd.DataFrame:
-    """6G/5F/3C/2HC, players split 7/4/3 over 3 clubs (so the cap can bind), a legal random previous roster."""
+    """6G/5F/3C, players split 7/4/3 over 3 clubs (so the cap can bind), a legal random previous roster."""
     rng = random.Random(seed)  # noqa: S311 -- seeded test data, not crypto
     # 7 non-AAA players always allow a previous roster with <= 6 AAA players, so the loop below ends.
     clubs = ["AAA"] * 7 + ["BBB"] * 4 + ["CCC"] * 3
     rng.shuffle(clubs)
-    clubs += ["AAA", "BBB"]  # coaches
     rows = []
-    for pos, n in (("G", 6), ("F", 5), ("C", 3), ("HC", 2)):
+    for pos, n in (("G", 6), ("F", 5), ("C", 3)):
         for k in range(n):
-            price = round(rng.uniform(3, 9) if pos == "HC" else rng.uniform(3, 20), 1)
+            price = round(rng.uniform(3, 20), 1)
             # Loosely price-correlated, so cheap over-performers exist and the growth term has a real trade-off.
-            exp = round(rng.gauss(5, 8) if pos == "HC" else 0.5 * price + rng.uniform(0, 12), 1)
-            adj = round(exp + rng.gauss(0, 5), 1) if pos != "HC" and rng.random() < 0.5 else float("nan")
+            exp = round(0.5 * price + rng.uniform(0, 12), 1)
+            adj = round(exp + rng.gauss(0, 5), 1) if rng.random() < 0.5 else float("nan")
             rows.append({
-                "player_id": f"{pos}{k}",
                 "name": f"{pos} player {k}",
                 "team": clubs[len(rows)],
                 "position": pos,
@@ -163,7 +161,7 @@ def random_universe(seed: int) -> pd.DataFrame:
     u = pd.DataFrame(rows)
     while True:
         prev = [i for p, n in NEED.items() for i in rng.sample(list(u.index[u["position"] == p]), n)]
-        clubs = u.loc[prev].query("position != 'HC'")["team"].value_counts()
+        clubs = u.loc[prev]["team"].value_counts()
         if clubs.max() <= MAX_PER_CLUB:
             break
     u.loc[prev, "in_prev_roster"] = 1
@@ -179,7 +177,6 @@ def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFram
     """Rows from (position, team, price, exp_pir, in_prev_roster) tuples."""
     return pd.DataFrame([
         {
-            "player_id": k,
             "name": f"p{k}",
             "team": team,
             "position": pos,
@@ -194,7 +191,7 @@ def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFram
 
 # --------------------------------------------------------------------------- 1. brute-force equivalence
 
-SEEDS = range(8)  # seed 6 is the one where w_budget changes the decision
+SEEDS = range(14)  # seed 13 is the one where w_budget changes the decision
 W = 3.0  # early-season capital-growth weight per the spec
 
 
@@ -227,7 +224,7 @@ def test_model_matches_brute_force_and_each_feature_matters() -> None:
             results[name] = (ref_value, ref_squad, ref_roles)
 
         base_value, base_squad, (starters, sixth, captain) = results["base"]
-        players = tuple(sorted(i for i in base_squad if bf_adj.pos[i] != "HC"))
+        players = tuple(sorted(base_squad))
         # Constraints matter if relaxing them strictly improves the optimum.
         matters["budget"] |= results["no_budget"][0] > base_value + EPS
         matters["trade_limit"] |= results["no_trade_limit"][0] > base_value + EPS
@@ -273,44 +270,29 @@ def test_club_cap_binds_when_one_club_dominates() -> None:
     """A full squad of stars from one club is available and affordable; only 6 may be picked."""
     stars = [("G", "AAA", 1.0, 30.0, 0)] * 4 + [("F", "AAA", 1.0, 30.0, 0)] * 4 + [("C", "AAA", 1.0, 30.0, 0)] * 2
     filler = [("G", "BBB", 1.0, 1.0, 0)] * 4 + [("F", "CCC", 1.0, 1.0, 0)] * 4 + [("C", "BBB", 1.0, 1.0, 0)] * 2
-    u = make_universe([*stars, *filler, ("HC", "AAA", 1.0, 5.0, 0)])
+    u = make_universe([*stars, *filler])
     sol = optimize_squad(u, cash=100.0, max_trades=None)
-    squad = sol.table[(sol.table["action"] != "sell") & (sol.table["position"] != "HC")]
+    squad = sol.table[sol.table["action"] != "sell"]
     assert (squad["team"] == "AAA").sum() == 6  # rules.md; literal on purpose, not the module constant
 
 
 def _upgrade_universe() -> pd.DataFrame:
-    """Current squad of 10-point players + a 0-point coach; a 40-point coach and a 30-point guard for sale."""
+    """Current squad of 10-point players; strictly better 25-point replacements at every position."""
     current = [("G", "AAA", 5.0, 10.0, 1)] * 4 + [("F", "BBB", 5.0, 10.0, 1)] * 4 + [("C", "CCC", 5.0, 10.0, 1)] * 2
-    current.append(("HC", "AAA", 5.0, 0.0, 1))
-    market = [("HC", "BBB", 5.0, 60.0, 0), ("G", "DDD", 5.0, 30.0, 0), ("F", "DDD", 5.0, 1.0, 0)]
-    market += [("C", "DDD", 5.0, 1.0, 0)]
+    market = [("G", "DDD", 5.0, 25.0, 0)] * 4 + [("F", "EEE", 5.0, 25.0, 0)] * 4 + [("C", "FFF", 5.0, 25.0, 0)] * 2
     return make_universe(current + market)
 
 
-def test_coach_is_traded_and_counts_toward_trade_limit() -> None:
-    """With one trade the coach upgrade (+60) beats the guard (+40 incl. captaincy); with two, both happen."""
-    u = _upgrade_universe()
-    one = optimize_squad(u, cash=0.0, max_trades=1).table
-    assert one.loc[one["action"] == "buy", "position"].tolist() == ["HC"]
-    sold = one[one["action"] == "sell"]
-    assert sold["position"].tolist() == ["HC"] and sold["role"].tolist() == ["none"]
-    two = optimize_squad(u, cash=0.0, max_trades=2).table
-    assert sorted(two.loc[two["action"] == "buy", "position"]) == ["G", "HC"]
-
-
 def test_unlimited_trades_lifts_the_limit() -> None:
-    """Eight strictly better same-price replacements (coach, 30-pt guard, six 25-pt players): K=4 buys 4, None all 8."""
+    """Ten strictly better same-price replacements exist: K=4 buys 4, None buys all 10."""
     u = _upgrade_universe()
-    better = [("G", "EEE", 5.0, 25.0, 0)] * 2 + [("F", "EEE", 5.0, 25.0, 0)] * 2 + [("C", "FFF", 5.0, 25.0, 0)] * 2
-    u = pd.concat([u, make_universe(better).assign(player_id=lambda d: d["player_id"] + 100)], ignore_index=True)
     assert optimize_squad(u, cash=0.0, max_trades=np.int64(4)).trades == 4  # numpy ints are valid limits
-    assert optimize_squad(u, cash=0.0, max_trades=None).trades == 8
+    assert optimize_squad(u, cash=0.0, max_trades=None).trades == 10
 
 
 def test_row_order_does_not_change_the_solution() -> None:
     """Many interchangeable candidates (ties everywhere): a shuffled input must give the same squad."""
-    spec = [(pos, f"T{k % 4}", 5.0, 10.0, 0) for pos, n in (("G", 8), ("F", 8), ("C", 4), ("HC", 2)) for k in range(n)]
+    spec = [(pos, f"T{k % 4}", 5.0, 10.0, 0) for pos, n in (("G", 8), ("F", 8), ("C", 4)) for k in range(n)]
     u = make_universe(spec)
     a = optimize_squad(u, cash=100.0, max_trades=None).table
     b = optimize_squad(u.sample(frac=1, random_state=0), cash=100.0, max_trades=None).table
@@ -318,7 +300,7 @@ def test_row_order_does_not_change_the_solution() -> None:
 
 
 def test_fresh_team_with_trade_limit_is_infeasible_and_says_so() -> None:
-    """Round 1 needs 11 buys; a standard 4-trade limit must fail loudly, not return a partial squad."""
+    """Round 1 needs 10 buys; a standard 4-trade limit must fail loudly, not return a partial squad."""
     with pytest.raises(RuntimeError, match="termination condition infeasible"):
         optimize_squad(pd.read_csv(SAMPLE), cash=100.0, max_trades=4)
 
@@ -350,7 +332,8 @@ INVALID = {
     "missing column": (lambda d: d.drop(columns="team"), "missing required column"),
     "NaN required": (lambda d: _set(d, 0, "exp_pir", float("nan")), "NaN"),
     "non-numeric price": (lambda d: _set(d, 0, "price", "cheap"), "non-numeric"),
-    "duplicate id": (lambda d: _set(d, 1, "player_id", d.loc[0, "player_id"]), "duplicate player_id"),
+    "empty name": (lambda d: _set(d, 0, "name", ""), "empty name"),
+    "duplicate name": (lambda d: _set(d, 1, "name", d.loc[0, "name"]), "duplicate name"),
     "bad position": (lambda d: _set(d, 0, "position", "PG"), "unknown position"),
     "price zero": (lambda d: _set(d, 0, "price", 0.0), "price <= 0"),
     "turn zero": (lambda d: _set(d, 0, "turn", 0), r"turn is not an integer >= 1"),
@@ -360,10 +343,13 @@ INVALID = {
     "inf price": (lambda d: _set(d, 0, "price", math.inf), r"infinite values in column\(s\) \['price'\]"),
     "-inf exp_pir": (lambda d: _set(d, 0, "exp_pir", -math.inf), r"infinite values in column\(s\) \['exp_pir'\]"),
     "inf adj": (lambda d: _set(d, 0, "exp_pir_adj", math.inf), r"infinite values in column\(s\) \['exp_pir_adj'\]"),
-    "too few centers": (lambda d: d[~d["player_id"].isin([302, 303, 304])], "too few candidates"),
+    "too few centers": (
+        lambda d: d[~d["name"].isin(["Center Two", "Center Three", "Center Four"])],
+        "too few candidates",
+    ),
     "partial prev roster": (lambda d: _prev_roster(d, 5), "marks 5 rows"),
     "wrong prev composition": (
-        lambda d: _prev_roster(d, 11, {"G": 5, "F": 3, "C": 2, "HC": 1}),
+        lambda d: _prev_roster(d, 10, {"G": 5, "F": 3, "C": 2}),
         "previous roster composition",
     ),
 }
@@ -377,7 +363,7 @@ def test_invalid_input_raises_readable_error(case: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "df", [_sample(), _sample().drop(columns="exp_pir_adj"), _prev_roster(_sample(), 11)], ids=["r1", "no_adj", "prev"]
+    "df", [_sample(), _sample().drop(columns="exp_pir_adj"), _prev_roster(_sample(), 10)], ids=["r1", "no_adj", "prev"]
 )
 def test_valid_input_passes(df: pd.DataFrame) -> None:
     validate_input(df)
@@ -396,16 +382,15 @@ def test_invalid_scalars_raise(kwargs: dict) -> None:
 
 
 def synthetic_league(seed: int = 7) -> pd.DataFrame:
-    """~700 candidates over 20 clubs (13 G / 13 F / 8 C / 1 HC each) with a legal previous roster."""
+    """~540 candidates over 20 clubs (13 G / 13 F / 8 C each) with a legal previous roster."""
     rng = random.Random(seed)  # noqa: S311 -- seeded test data, not crypto
     rows = []
     for club in range(20):
-        for pos, n in (("G", 13), ("F", 13), ("C", 8), ("HC", 1)):
+        for pos, n in (("G", 13), ("F", 13), ("C", 8)):
             for _ in range(n):
-                price = round(rng.uniform(3, 9) if pos == "HC" else rng.uniform(1, 25), 1)
-                exp = rng.gauss(5, 8) if pos == "HC" else 1.1 * price + rng.gauss(0, 5)
+                price = round(rng.uniform(1, 25), 1)
+                exp = 1.1 * price + rng.gauss(0, 5)
                 rows.append({
-                    "player_id": 10000 + len(rows),
                     "name": f"{pos}-{club}-{len(rows)}",
                     "team": f"T{club:02d}",
                     "position": pos,
@@ -423,7 +408,7 @@ def synthetic_league(seed: int = 7) -> pd.DataFrame:
 
 def test_realistic_size_solves_fast_and_is_byte_identical(tmp_path: Path) -> None:
     u = synthetic_league()
-    assert len(u) == 700
+    assert len(u) == 680
     inp = tmp_path / "league.csv"
     u.to_csv(inp, index=False)
     outs = []
@@ -442,8 +427,53 @@ def test_cli_on_sample_writes_sorted_csv_and_report(tmp_path: Path, capsys: pyte
     table = pd.read_csv(out)
     assert list(table.columns) == OUTPUT_COLUMNS
     ranks = table["role"].map(ROLE_ORDER.index)
-    assert list(zip(ranks, table["player_id"], strict=True)) == sorted(zip(ranks, table["player_id"], strict=True))
-    assert table["role"].value_counts().to_dict() == {"starter": 5, "bench": 4, "sixth": 1, "coach": 1}
+    assert list(zip(ranks, table["name"], strict=True)) == sorted(zip(ranks, table["name"], strict=True))
+    assert table["role"].value_counts().to_dict() == {"starter": 5, "bench": 4, "sixth": 1}
     report = capsys.readouterr().out
-    for fragment in ("Objective", "Trades 11 / unlimited", "cash 100.00 ->", "Starting five:", "(C)", "6th man:"):
+    for fragment in ("Objective", "Trades 10 / unlimited", "cash 100.00 ->", "Starting five:", "(C)", "6th man:"):
         assert fragment in report
+
+
+# --------------------------------------------------------------------------- 6. config file
+
+
+def test_config_values_used_unless_a_cli_flag_overrides(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A config's `cash` is used when `--cash` is not passed; `--cash` overrides it when it is."""
+    config = tmp_path / "config.toml"
+    config.write_text(f'input = "{SAMPLE}"\ncash = 90.0\nunlimited_trades = true\n', encoding="utf-8")
+    out = tmp_path / "out.csv"
+
+    main(["--config", str(config), "--out", str(out)])
+    assert "cash 90.00 ->" in capsys.readouterr().out
+
+    main(["--config", str(config), "--cash", "65.0", "--out", str(out)])
+    assert "cash 65.00 ->" in capsys.readouterr().out
+
+
+def test_unrecognized_config_key_raises(tmp_path: Path) -> None:
+    """A typo'd config key (`max_trade` instead of `max_trades`) must not be silently ignored."""
+    config = tmp_path / "config.toml"
+    config.write_text("cash = 100.0\nmax_trade = 4\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="Unrecognized config key"):
+        load_config(config)
+
+
+def test_config_sample_round_trips_through_cli(tmp_path: Path) -> None:
+    """The documented sample config loads cleanly; --input/--unlimited-trades override its Round-1 mismatch."""
+    out = tmp_path / "out.csv"
+    main(["--config", str(CONFIG_SAMPLE), "--input", str(SAMPLE), "--unlimited-trades", "--out", str(out)])
+    assert out.is_file()
+
+
+# --------------------------------------------------------------------------- 7. Excel input
+
+
+def test_excel_input_matches_csv(tmp_path: Path) -> None:
+    """The same content as an .xlsx file gives a byte-identical output to the .csv sample."""
+    xlsx = tmp_path / "sample.xlsx"
+    pd.read_csv(SAMPLE).to_excel(xlsx, index=False)
+    out_csv = tmp_path / "out_csv.csv"
+    out_xlsx = tmp_path / "out_xlsx.csv"
+    main(["--input", str(SAMPLE), "--unlimited-trades", "--out", str(out_csv)])
+    main(["--input", str(xlsx), "--unlimited-trades", "--out", str(out_xlsx)])
+    assert out_csv.read_bytes() == out_xlsx.read_bytes()
