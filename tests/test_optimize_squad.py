@@ -19,13 +19,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import eupy.optimize.optimize_squad as opt_mod
 from eupy.optimize.optimize_squad import (
     FORMATION_BOUNDS,
     MAX_PER_CLUB,
     OUTPUT_COLUMNS,
     ROLE_ORDER,
+    Solution,
     _prepare,
     build_model,
+    explain_credit_value,
     load_config,
     main,
     optimize_squad,
@@ -81,9 +84,13 @@ class BruteForce:
             self._roles[players] = best
         return self._roles[players]
 
+    def squad_growth_credits(self, squad: frozenset[int]) -> float:
+        """Raw, unweighted expected price growth of the squad (independent of credit_value)."""
+        return sum((self.exp[i] - 1.1 * self.price[i]) / 25 for i in squad)
+
     def squad_extra(self, squad: frozenset[int], w: float) -> float:
         """w * expected price change of the squad's players."""
-        return w * sum((self.exp[i] - 1.1 * self.price[i]) / 25 for i in squad)
+        return w * self.squad_growth_credits(squad)
 
     def legal_squad(self, squad: frozenset[int], cash: float, max_trades: int | None) -> bool:
         buys, sells = squad - self.prev, self.prev - squad
@@ -109,8 +116,9 @@ class BruteForce:
         return best
 
 
-def rescore(bf: BruteForce, table: pd.DataFrame, cash: float, max_trades: int | None, w: float) -> float:
-    """Check a model output table is a legal squad/lineup and return its value under the rules."""
+def rescore(bf: BruteForce, sol: Solution, cash: float, max_trades: int | None, w: float) -> float:
+    """Check a model output's squad/lineup/growth split are legal and return its value under the rules."""
+    table = sol.table
     idx = {name: i for i, name in enumerate(bf.u["name"])}
     squad_rows = table[table["action"] != "sell"]
     squad = frozenset(idx[n] for n in squad_rows["name"])
@@ -128,6 +136,10 @@ def rescore(bf: BruteForce, table: pd.DataFrame, cash: float, max_trades: int | 
     assert tuple(sum(bf.pos[i] == p for i in starters) for p in ("G", "F", "C")) in LEGAL_FORMATIONS
     assert bf.adj[captain] == max(bf.adj[i] for i in starters)
     assert (table.loc[table["action"] == "sell", "role"] == "none").all()
+    # growth_credits/growth_term split: raw growth must match independently, and growth_term = w * it.
+    growth_credits = bf.squad_growth_credits(squad)
+    assert sol.growth_credits == pytest.approx(growth_credits, abs=EPS)
+    assert sol.growth_term == pytest.approx(w * growth_credits, abs=EPS)
     players = tuple(sorted(squad))
     return bf.lineup_value(starters, sixth, captain, players) + bf.squad_extra(squad, w)
 
@@ -170,7 +182,7 @@ def random_universe(seed: int) -> pd.DataFrame:
 
 def model_table(u: pd.DataFrame, cash: float, max_trades: int | None, w: float, use_adj: bool = True):
     df = u if use_adj else u.drop(columns="exp_pir_adj")
-    return optimize_squad(df, cash=cash, max_trades=max_trades, w_budget=w)
+    return optimize_squad(df, cash=cash, max_trades=max_trades, credit_value=w)
 
 
 def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFrame:
@@ -191,7 +203,7 @@ def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFram
 
 # --------------------------------------------------------------------------- 1. brute-force equivalence
 
-SEEDS = range(14)  # seed 13 is the one where w_budget changes the decision
+SEEDS = range(14)  # seed 13 is the one where credit_value changes the decision
 W = 3.0  # early-season capital-growth weight per the spec
 
 
@@ -204,7 +216,7 @@ def _instances():
 
 def test_model_matches_brute_force_and_each_feature_matters() -> None:
     """Model optimum == enumeration optimum in every config; each feature changes the answer somewhere."""
-    matters = {"budget": False, "trade_limit": False, "w_budget": False, "exp_pir_adj": False}
+    matters = {"budget": False, "trade_limit": False, "credit_value": False, "exp_pir_adj": False}
     for seed, u, cash in _instances():
         bf_adj, bf_exp = BruteForce(u, use_adj=True), BruteForce(u, use_adj=False)
         configs = {
@@ -220,7 +232,7 @@ def test_model_matches_brute_force_and_each_feature_matters() -> None:
             assert ref_value > -math.inf, (seed, name, "instance infeasible")
             sol = model_table(u, c, k, w, use_adj)
             assert sol.objective == pytest.approx(ref_value, abs=EPS), (seed, name)
-            assert rescore(bf, sol.table, c, k, w) == pytest.approx(sol.objective, abs=EPS), (seed, name)
+            assert rescore(bf, sol, c, k, w) == pytest.approx(sol.objective, abs=EPS), (seed, name)
             results[name] = (ref_value, ref_squad, ref_roles)
 
         base_value, base_squad, (starters, sixth, captain) = results["base"]
@@ -230,7 +242,7 @@ def test_model_matches_brute_force_and_each_feature_matters() -> None:
         matters["trade_limit"] |= results["no_trade_limit"][0] > base_value + EPS
         # w / adj matter if the base decision is strictly suboptimal when judged without them.
         base_at_w0 = bf_adj.best_roles(players)[0] + bf_adj.squad_extra(base_squad, 0.0)
-        matters["w_budget"] |= base_at_w0 < results["w0"][0] - EPS
+        matters["credit_value"] |= base_at_w0 < results["w0"][0] - EPS
         base_at_exp = bf_exp.lineup_value(starters, sixth, captain, players) + bf_exp.squad_extra(base_squad, W)
         matters["exp_pir_adj"] |= base_at_exp < results["no_adj"][0] - EPS
     assert all(matters.values()), matters
@@ -246,7 +258,7 @@ def test_player_cannot_be_both_sold_and_bought(var: str, owned: int) -> None:
     """
     _, u, _ = next(_instances())
     df = _prepare(u)
-    m = build_model(df, cash=100.0, max_trades=None, w_budget=0.0)
+    m = build_model(df, cash=100.0, max_trades=None, credit_value=0.0)
     i = int(df.index[df["in_prev_roster"] == owned][0])
     getattr(m, var)[i].fix(1)
     with pytest.raises(RuntimeError, match="termination condition infeasible"):
@@ -370,10 +382,10 @@ def test_valid_input_passes(df: pd.DataFrame) -> None:
 
 
 @pytest.mark.parametrize(
-    "kwargs", [{"cash": -1.0}, {"max_trades": -1}, {"max_trades": 2.5}, {"w_budget": -0.1}], ids=str
+    "kwargs", [{"cash": -1.0}, {"max_trades": -1}, {"max_trades": 2.5}, {"credit_value": -0.1}], ids=str
 )
 def test_invalid_scalars_raise(kwargs: dict) -> None:
-    args = {"cash": 100.0, "max_trades": None, "w_budget": 0.0, **kwargs}
+    args = {"cash": 100.0, "max_trades": None, "credit_value": 0.0, **kwargs}
     with pytest.raises(ValueError):
         optimize_squad(_sample(), **args)
 
@@ -415,7 +427,7 @@ def test_realistic_size_solves_fast_and_is_byte_identical(tmp_path: Path) -> Non
     for k in range(2):
         out = tmp_path / f"out{k}.csv"
         started = time.perf_counter()
-        main(["--input", str(inp), "--cash", "1.5", "--max-trades", "4", "--w-budget", "3.0", "--out", str(out)])
+        main(["--input", str(inp), "--cash", "1.5", "--max-trades", "4", "--credit-value", "3.0", "--out", str(out)])
         assert time.perf_counter() - started < 30
         outs.append(out.read_bytes())
     assert outs[0] == outs[1]
@@ -477,3 +489,97 @@ def test_excel_input_matches_csv(tmp_path: Path) -> None:
     main(["--input", str(SAMPLE), "--unlimited-trades", "--out", str(out_csv)])
     main(["--input", str(xlsx), "--unlimited-trades", "--out", str(out_xlsx)])
     assert out_csv.read_bytes() == out_xlsx.read_bytes()
+
+
+# --------------------------------------------------------------------------- 8. credit_value
+
+
+def test_growth_credits_is_independent_of_credit_value_when_squad_is_unchanged() -> None:
+    """`good` dominates `bad` on both active points and growth at any credit_value >= 0, so the same
+    squad is optimal at credit_value=0 and credit_value=5; growth_credits (raw) must match too.
+    """
+    good_g = [("G", "GG", 10.0, 20.0, 0)] * 4
+    bad_g = [("G", "GG", 10.0, 1.0, 0)]
+    good_f = [("F", "FF", 10.0, 20.0, 0)] * 4
+    bad_f = [("F", "FF", 10.0, 1.0, 0)]
+    good_c = [("C", "CC", 10.0, 20.0, 0)] * 2
+    bad_c = [("C", "CC", 10.0, 1.0, 0)]
+    u = make_universe([*good_g, *bad_g, *good_f, *bad_f, *good_c, *bad_c])
+    low = optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
+    high = optimize_squad(u, cash=100.0, max_trades=None, credit_value=5.0)
+    assert set(low.table["name"]) == set(high.table["name"])  # same squad chosen
+    assert low.growth_credits == pytest.approx(high.growth_credits)
+
+
+def test_relaxing_cash_by_one_credit_cannot_lower_the_pure_pir_optimum() -> None:
+    """+1 cash unlocks a strictly better G (barely unaffordable before): the PIR optimum cannot drop,
+    and on this instance it strictly rises -- explain_credit_value's shadow price measures exactly this.
+    """
+    base_g = [("G", "GG", 10.0, 10.0, 0)] * 4
+    premium_g = [("G", "GG", 11.0, 100.0, 0)]
+    base_f = [("F", "FF", 10.0, 10.0, 0)] * 4
+    base_c = [("C", "CC", 10.0, 10.0, 0)] * 2
+    u = make_universe([*base_g, *premium_g, *base_f, *base_c])
+    actual = optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
+    report = explain_credit_value(u, cash=100.0, max_trades=None, credit_value=0.0, actual=actual)
+    assert report.lambda_shadow >= 0  # invariant: relaxing cash cannot lower the PIR optimum
+    assert report.lambda_shadow > EPS  # strictly greater here (the premium G becomes affordable)
+
+
+def test_credit_value_can_strictly_cost_active_points() -> None:
+    """Seed 13's instance (see SEEDS) is where credit_value=W changes the chosen squad: the
+    credit_value=0 baseline strictly beats the actual credit_value=W squad on pure active_points.
+    """
+    seed, u, cash = next(inst for inst in _instances() if inst[0] == 13)
+    actual = optimize_squad(u, cash=cash, max_trades=2, credit_value=W)
+    report = explain_credit_value(u, cash=cash, max_trades=2, credit_value=W, actual=actual)
+    assert report.baseline_active >= actual.active_points  # invariant: credit_value=0 is the PIR max
+    assert report.baseline_active > actual.active_points + EPS  # strictly costs PIR here
+
+
+def test_explain_credit_value_skips_the_baseline_resolve_at_credit_value_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """credit_value == 0: `actual` already IS the pure-PIR baseline, so only the shadow (cash+1) solve
+    runs -- one fewer than the credit_value > 0 case, which needs both a baseline and a shadow solve.
+    """
+    u = _sample()
+    real_optimize_squad = opt_mod.optimize_squad
+    calls: list[None] = []
+
+    def counting(*args, **kwargs):
+        calls.append(None)
+        return real_optimize_squad(*args, **kwargs)
+
+    monkeypatch.setattr(opt_mod, "optimize_squad", counting)
+
+    actual_zero = real_optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
+    calls.clear()
+    explain_credit_value(u, cash=100.0, max_trades=None, credit_value=0.0, actual=actual_zero)
+    assert len(calls) == 1  # only the shadow (cash+1, credit_value=0) solve
+
+    actual_nonzero = real_optimize_squad(u, cash=100.0, max_trades=None, credit_value=W)
+    calls.clear()
+    explain_credit_value(u, cash=100.0, max_trades=None, credit_value=W, actual=actual_nonzero)
+    assert len(calls) == 2  # baseline (credit_value=0) + shadow (cash+1, credit_value=0)
+
+
+def test_cli_prints_credit_value_report_both_when_unchanged_and_when_it_costs_pir(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """format_credit_value_report's output appears in main()'s stdout: at credit_value=0 (squad
+    unchanged, trivially) and at seed 13's credit_value=W (squad changes, see SEEDS)."""
+    seed, u, cash = next(inst for inst in _instances() if inst[0] == 13)
+    inp = tmp_path / "u13.csv"
+    u.to_csv(inp, index=False)
+    out = tmp_path / "out.csv"
+
+    main(["--input", str(inp), "--cash", str(cash), "--max-trades", "2", "--credit-value", "0.0", "--out", str(out)])
+    report = capsys.readouterr().out
+    assert "Credit value:" in report
+    assert "did not change the squad" in report
+
+    main(["--input", str(inp), "--cash", str(cash), "--max-trades", "2", "--credit-value", str(W), "--out", str(out)])
+    report = capsys.readouterr().out
+    assert "Credit value:" in report
+    assert "Growth trade-off:" in report
