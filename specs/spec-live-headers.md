@@ -7,7 +7,7 @@
 
 ## Scope
 
-- `fetchers/fetch_euroleague_live_headers.py` — incremental per-season fetch → `raw_data/euroleague_live/headers/{season}_delta_{ts}.csv` (Kaggle schema) + `headers/_state.json`.
+- `fetchers/fetch_euroleague_live_headers.py` — incremental per-season fetch → `raw_data/euroleague_net/headers/{season}_delta_{ts}.csv` (Kaggle schema) + `headers/_state.json`.
 - `transform/append_live_headers.py` — stateless rebuild → `stage_01/header_current.csv` (`final: false`), twin of `append_live_boxscores.py`.
 - Out of scope: repointing `resolve_team_names.py` at the appended dataset; per-overtime splits (not in the live API).
 

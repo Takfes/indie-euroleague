@@ -32,10 +32,10 @@ flowchart LR
 
     %% raw datasets (stage 0)
     d_prices[("basketballsphere_prices<br/>stage 0")]
-    d_players[("euroleague_fantasy_stats/players<br/>stage 0")]
-    d_coaches[("euroleague_fantasy_stats/head_coaches<br/>stage 0")]
-    d_live[("euroleague_live/box_score<br/>stage 0")]
-    d_lhdr[("euroleague_live/headers<br/>stage 0")]
+    d_players[("fantasy_stats/players<br/>stage 0")]
+    d_coaches[("fantasy_stats/head_coaches<br/>stage 0")]
+    d_live[("euroleague_net/box_score<br/>stage 0")]
+    d_lhdr[("euroleague_net/headers<br/>stage 0")]
     d_sched[("euroleague_schedule/schedule<br/>stage 0")]
     d_kbox[("kaggle_data/euroleague_box_score<br/>stage 0")]
     d_khdr[("kaggle_data/euroleague_header<br/>stage 0")]

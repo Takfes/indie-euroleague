@@ -26,8 +26,8 @@ Usage:
     python src/eupy/fetchers/fetch_euroleague_live_headers.py [--season E2026] [--out-dir PATH] [--max-gap 5]
 
 Inputs: none -- fetched live from live.euroleague.net/api/Header.
-Outputs: data/raw_data/euroleague_live/headers/{season}_delta_{utc_timestamp}.csv
-    (one new file per run with new games), data/raw_data/euroleague_live/headers/_state.json
+Outputs: data/raw_data/euroleague_net/headers/{season}_delta_{utc_timestamp}.csv
+    (one new file per run with new games), data/raw_data/euroleague_net/headers/_state.json
     (updated every run).
 Final: false -- raw fetch output, not exposed under data/stage_99/.
 """
