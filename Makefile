@@ -28,6 +28,12 @@ clean-build: ## Clean build artifacts
 	@echo "🚀 Removing build artifacts"
 	@uv run python -c "import shutil; import os; shutil.rmtree('dist') if os.path.exists('dist') else None"
 
+.PHONY: clean-cache
+clean-cache: ## Remove Python/ruff/pytest caches
+	@echo "🚀 Removing __pycache__, .ruff_cache, .pytest_cache"
+	@find . -type d -name '__pycache__' -not -path './.venv/*' -exec rm -rf {} +
+	@rm -rf .ruff_cache .pytest_cache
+
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
 	@uv run mkdocs build -s
