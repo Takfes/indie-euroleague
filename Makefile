@@ -88,6 +88,10 @@ merge-worktree: ## Merge a finished task branch into main and clean up its workt
 	fi; \
 	echo "Done: '$$branch' merged, pushed, and cleaned up."
 
+.PHONY: tidy
+tidy: ## Summarise and delete merged worktrees/branches/stale locks (ARGS=--yes: no prompt, ARGS=--dry-run: no delete)
+	@uv run python src/eupy/devtools/tidy.py $(ARGS)
+
 .PHONY: help
 help:
 	@uv run python -c "import re; \
