@@ -87,3 +87,11 @@ into main and cleans up (branch + worktree, local and remote) once you
 approve the diff — prompts if more than one exists. From an interactive
 Claude Code session, the `merge-worktree` skill does the same thing
 conversationally.
+
+## Cleaning up after PRs merge
+
+`make tidy` lists merged task worktrees, local/remote branches and stale
+lock files, asks once, then deletes the safe ones (integrated, clean, not in
+use) and prints manual commands for the rest. `make tidy ARGS=--yes` skips the
+prompt and reports what it could not delete; `ARGS=--dry-run` never deletes.
+It also flags branches/worktrees that break the `<type>/<short-name>` naming.
