@@ -31,9 +31,9 @@
 
 ## Pass criteria
 
-- [ ] Opens in a browser from disk with no console errors (screenshot checked, light/dark if themed).
-- [ ] Node and edge sets equal the registry's (test on the embedded JSON payload).
-- [ ] Pipeline filter and click-through panel work (checked in browser).
-- [ ] Two generator runs byte-identical.
-- [ ] `--status` variant is git-ignored and not required for the committed file.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green; quickstart mentions the page.
+- [x] Opens in a browser from disk with no console errors (screenshot checked, light/dark if themed).
+- [x] Node and edge sets equal the registry's (test on the embedded JSON payload).
+- [x] Pipeline filter and click-through panel work (checked in browser).
+- [x] Two generator runs byte-identical.
+- [x] `--status` variant is git-ignored and not required for the committed file.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green; quickstart mentions the page.

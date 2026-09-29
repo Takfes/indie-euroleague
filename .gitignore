@@ -145,6 +145,9 @@ data/raw_data/**
 !data/raw_data/**/
 !data/raw_data/**/.gitkeep
 
+# Local DVC-status overlay of the data map (python -m eupy.registry html --status)
+docs/data-map.status.html
+
 # Claude Code worktrees
 .claude/worktrees/
 
