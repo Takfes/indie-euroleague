@@ -24,10 +24,16 @@ Verdict record shape (JSON list, one object per row to update):
 Usage:
     python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--crosswalk PATH]
 
-Inputs: data/stage_01/player_name_crosswalk.csv (existing crosswalk, must already exist),
-    a JSON verdicts file (path given via --verdicts).
-Outputs: data/stage_01/player_name_crosswalk.csv (updated in place).
-Final: true -- writes the same file resolve_player_names.py produces; see that script's header.
+Inputs:
+  - player_name_crosswalk: data/stage_01/player_name_crosswalk.csv
+Sources:
+  - JSON verdicts file (--verdicts PATH)
+Outputs:
+  - player_name_crosswalk: data/stage_01/player_name_crosswalk.csv
+Final: true
+Impure: false
+Notes: The crosswalk must already exist and is updated in place, so this script adds no stage of its own.
+  Writes the same file resolve_player_names.py produces.
 """
 
 from __future__ import annotations

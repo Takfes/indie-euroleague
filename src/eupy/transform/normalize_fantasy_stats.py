@@ -18,11 +18,18 @@ crosswalk can never leak abbreviated names into the normalized dataset.
 Usage:
     python src/eupy/transform/normalize_fantasy_stats.py [--players PATH] [--crosswalk PATH] [--out PATH]
 
-Inputs: fantasy_stats/players -- data/raw_data/fantasy_stats/players.csv;
-    fantasy_stats_player_name_crosswalk -- data/stage_01/fantasy_stats_player_name_crosswalk.csv.
-Outputs: fantasy_stats_players_normalized -- data/stage_02/fantasy_stats_players_normalized.csv
-    (overwritten each run).
-Final: true -- exposed under data/stage_99/ as a relative symlink.
+Inputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+  - fantasy_stats_player_name_crosswalk: data/stage_01/fantasy_stats_player_name_crosswalk.csv
+Sources: none
+Outputs:
+  - fantasy_stats_players_normalized: data/stage_02/fantasy_stats_players_normalized.csv
+Final: true
+Impure: false
+Notes: Overwritten each run. Output is fantasy_stats/players with the same columns and row order, name
+  replaced by the crosswalk's full name (looked up by player_id; no_match rows keep the abbreviated
+  name) and position mapped Guard/Forward/Center -> G/F/C. Refuses to run while any crosswalk row is
+  open.
 """
 
 from __future__ import annotations

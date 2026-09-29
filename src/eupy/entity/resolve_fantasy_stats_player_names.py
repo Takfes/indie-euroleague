@@ -19,11 +19,22 @@ recomputed.
 Usage:
     python src/eupy/entity/resolve_fantasy_stats_player_names.py [--verdicts PATH]
 
-Inputs: fantasy_stats/players -- data/raw_data/fantasy_stats/players.csv;
-    basketballsphere_prices; kaggle_data/euroleague_box_score; verdicts JSON (`--verdicts`, optional).
-Outputs: fantasy_stats_player_name_crosswalk -- data/stage_01/fantasy_stats_player_name_crosswalk.csv
-    (merged in place).
-Final: true -- symlinked into data/stage_99/.
+Inputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+  - basketballsphere_prices: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+  - kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv
+Sources:
+  - JSON verdicts file (--verdicts PATH, optional)
+Outputs:
+  - fantasy_stats_player_name_crosswalk: data/stage_01/fantasy_stats_player_name_crosswalk.csv
+Final: true
+Impure: false
+Notes: Merged in place (verdict-resolved rows are carried over unchanged; --verdicts applies verdicts in
+  place). Column notes. One row per fantasy player_id: player_id, name (abbreviated, e.g. C. Jones),
+  team (fantasy club code), resolved_name (full name), match_status (exact / confirmed / no_match /
+  rejected; needs_review / no_candidate are transient), match_score, matched_by, notes. Auto-accepts
+  only an exact initial + surname match within the player's own club in basketballsphere_prices;
+  every box-score-derived or fuzzy match goes through a verdict.
 """
 
 from __future__ import annotations

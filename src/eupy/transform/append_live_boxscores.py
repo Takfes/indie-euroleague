@@ -20,10 +20,16 @@ game re-ingested in a later delta) keeps its last occurrence and is reported.
 Usage:
     python src/eupy/transform/append_live_boxscores.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
 
-Inputs: data/raw_data/kaggle_data/euroleague_box_score.csv,
-    data/raw_data/euroleague_net/box_score/{season}_delta_{utc_timestamp}.csv (all files).
-Outputs: data/stage_01/box_score_current.csv.
-Final: false -- intermediate; not exposed under data/stage_99/.
+Inputs:
+  - kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv
+  - euroleague_net/box_score: data/raw_data/euroleague_net/box_score/
+Sources: none
+Outputs:
+  - box_score_current: data/stage_01/box_score_current.csv
+Final: false
+Impure: false
+Notes: Kaggle rows are limited to the base season (--base-season, default E2025); all delta files under
+  euroleague_net/box_score are appended.
 """
 
 from __future__ import annotations

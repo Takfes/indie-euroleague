@@ -47,11 +47,17 @@ carries, so there is nothing to refresh -- every other row (new, `exact`,
 Usage:
     python src/eupy/entity/resolve_team_names.py [--master PATH] [--header PATH] [--out PATH]
 
-Inputs: data/raw_data/fantasy_prices/basketballsphere_prices.csv,
-    data/raw_data/kaggle_data/euroleague_header.csv.
-Outputs: data/stage_01/team_name_crosswalk.csv (merged in place; existing
-    agent-resolved rows are preserved unchanged, see idempotency note above).
-Final: true -- feeds downstream feature work; symlinked into data/stage_99/.
+Inputs:
+  - basketballsphere_prices: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+  - kaggle_data/euroleague_header: data/raw_data/kaggle_data/euroleague_header.csv
+Sources: none
+Outputs:
+  - team_name_crosswalk: data/stage_01/team_name_crosswalk.csv
+Final: true
+Impure: false
+Notes: Merged in place: existing agent-resolved rows are preserved unchanged (see idempotency note
+  above). apply_team_name_verdicts.py also updates this crosswalk in place, so the apply_* scripts
+  add no stage of their own.
 """
 
 from __future__ import annotations

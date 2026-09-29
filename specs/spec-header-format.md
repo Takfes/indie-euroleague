@@ -37,6 +37,9 @@ Notes: <free text>                   # optional
 - Line-based grammar parsed by a tiny hand-written reader (no YAML dependency in scripts' docstrings).
 - The stage in a declared path (`stage_01`) is a **declared** value; ticket 2 checks it against the computed stage.
 - The free-text notes currently living under the catalogue tables move into `Notes:` keys (rendered by ticket 3).
+- `Refresh:` / `Notes:` values may continue on 2-space-indented lines; a parser treats any indented line after a key as its continuation.
+- Where a raw dataset is a set of templated files, its path is the directory (ending `/`) and the file-name pattern goes in `Notes:` (affects `euroleague_schedule/schedule`, whose catalogue path was `schedule_{season}.csv`; ticket 3 renders directory + pattern).
+- Resolvers that merge into their own previous output (`resolve_*`) list only their real inputs, matching the catalogue; verdict appliers (`apply_*`) list the rewritten crosswalk in both `Inputs` and `Outputs`. Ticket 2 must tolerate that self-loop.
 
 ## Out of scope
 
@@ -48,8 +51,8 @@ Notes: <free text>                   # optional
 
 ## Pass criteria
 
-- [ ] Every pipeline script has the block; prose above it is unchanged apart from removing statements now duplicated by the block.
-- [ ] Dataset names/paths in the blocks match the current `docs/data-catalogue.md` exactly (reviewed by diff against the catalogue).
-- [ ] Grammar documented in `AGENTS.md` and `docs/quickstart.md`.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
-- [ ] Catalogue + graph unchanged after regenerating (headers say the same thing as before).
+- [x] Every pipeline script has the block; prose above it is unchanged apart from removing statements now duplicated by the block.
+- [x] Dataset names/paths in the blocks match the current `docs/data-catalogue.md` exactly (reviewed by diff against the catalogue).
+- [x] Grammar documented in `AGENTS.md` and `docs/quickstart.md`.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] Catalogue + graph unchanged after regenerating (headers say the same thing as before).

@@ -19,10 +19,21 @@ Usage:
     python src/eupy/transform/build_schedule_turns.py [--season E2026] [--input PATH]
         [--out-schedule PATH] [--out-team-turns PATH]
 
-Inputs: euroleague_schedule/schedule -- data/raw_data/euroleague_schedule/schedule_{season}.csv.
-Outputs: schedule -- data/stage_01/schedule.csv; team_round_turn -- data/stage_01/team_round_turn.csv
-    (both overwritten each run).
-Final: true -- both are exposed under data/stage_99/ as relative symlinks.
+Inputs:
+  - euroleague_schedule/schedule: data/raw_data/euroleague_schedule/
+Sources: none
+Outputs:
+  - schedule: data/stage_01/schedule.csv
+  - team_round_turn: data/stage_01/team_round_turn.csv
+Final: true
+Impure: false
+Notes: Input file is schedule_{season}.csv (--season, default E2026; --input overrides). Both outputs are
+  overwritten each run. Column notes. schedule: the raw schedule (20 columns, verbatim, same row
+  order) plus a trailing turn (T1 / T2). Within each gameday, the latest date is T2 and every
+  earlier date is T1 (single-date round -> all T1). The rule is an assumption, not an API field.
+  team_round_turn: columns team (club code from homecode / awaycode), round (= raw gameday; not the
+  raw round column, which is the phase label RS), turn. One row per team per round, sorted by round,
+  team.
 """
 
 from __future__ import annotations
