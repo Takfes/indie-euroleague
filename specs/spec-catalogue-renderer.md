@@ -28,7 +28,7 @@
 
 ## Pass criteria
 
-- [ ] Running the generator twice produces byte-identical output.
-- [ ] Every dataset and script in the registry appears exactly once; row content matches the pre-existing catalogue except for intended additions (`Impure` column, note relocation) — reviewed by diff.
-- [ ] Golden-file test on a small synthetic registry; one test that a header change flows into the output.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] Running the generator twice produces byte-identical output.
+- [x] Every dataset and script in the registry appears exactly once; row content matches the pre-existing catalogue except for intended additions (`Impure` column, note relocation) — reviewed by diff.
+- [x] Golden-file test on a small synthetic registry; one test that a header change flows into the output.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
