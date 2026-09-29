@@ -12,6 +12,16 @@ Deferred work, off the critical path.
   snapshot). Not fixable by the name-resolution pipeline; worth knowing about for any future
   box-score analysis that assumes one `player_id` per player.
 
+## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`, `spec-html-viewer.md`, `spec-entity-verdicts.md`)
+
+- **Control panel.** Local server (`uv run eupy panel`, 127.0.0.1 only) serving the HTML data map
+  with run buttons per pipeline (`dvc repro <pipeline>`, log streaming, fresh/stale colouring from
+  `dvc status`). Human-gated steps would show "waiting for verdicts" instead of a button. Deferred
+  until the static viewer proves useful; a terminal `eupy run <pipeline>` covers most of the value.
+- **Scripts resolve paths through the registry.** Scripts keep hardcoding their `data/...` paths;
+  the registry only lints declared paths against computed stages. Migrating scripts to
+  `registry.path("<dataset>")` would make a stage renumber a pure re-run (no file edits).
+
 ## Squad optimizer (`src/eupy/optimize/optimize_squad.py`, spec: `specs/spec-squad-optimizer.md`)
 
 - **`TURN1` / `TURN2` are built but unused.** Real rounds can have a T3 (up to 3 game dates seen in
