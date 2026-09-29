@@ -72,6 +72,28 @@ uv run python src/eupy/transform/normalize_fantasy_stats.py
 
 Writes `data/stage_01/fantasy_stats_player_name_crosswalk.csv` and `data/stage_02/fantasy_stats_players_normalized.csv` (both symlinked in `data/stage_99/`).
 
+## Script I/O header
+
+Every pipeline script under `src/eupy/` ends its module docstring with a key-value block (the single source of truth for its inputs/outputs; catalogue and graph are generated from it). Keys in this order, one per line:
+
+```
+Inputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+Sources:
+  - JSON verdicts file (--verdicts PATH)
+Outputs:
+  - fantasy_stats_players_normalized: data/stage_02/fantasy_stats_players_normalized.csv
+Final: true
+Impure: false
+Refresh: full overwrite per run
+Notes: free text
+```
+
+- `Inputs`/`Outputs`: `- <dataset-name>: <repo-relative path>`; raw names are `<source-dir>/<logical-name>`, produced names are the file stem. Directories of per-run files end in `/`; no templated file names.
+- `Sources`: external origins and CLI-given files (live URLs, verdicts JSON), free text. Any of the three lists may be `none`.
+- `Impure: true` for anything hitting a live source (all fetchers). A verdict applier that rewrites an existing file lists it in both `Inputs` and `Outputs`; resolvers that merge into their own previous output do not (see `Notes`).
+- `Refresh` and `Notes` are optional; `Notes` may continue on 2-space-indented lines. Templated file names go in `Notes`; the path is the directory.
+
 ## Dev loop
 
 ```bash

@@ -51,9 +51,17 @@ Usage:
     python src/eupy/optimize/optimize_squad.py [--config PATH] [--input PATH] [--cash 100.0]
         [--max-trades N | --unlimited-trades] [--credit-value 0.0] [--out PATH]
 
-Inputs: optimizer_input -- data/raw_data/optimizer/optimizer_input.csv (raw; prepared manually for now).
-Outputs: squad_solution -- data/stage_01/squad_solution.csv (overwritten each run).
-Final: true -- the pipeline's end product (recommended squad); symlinked into data/stage_99/.
+Inputs:
+  - optimizer_input: data/raw_data/optimizer/optimizer_input.csv
+Sources: none
+Outputs:
+  - squad_solution: data/stage_01/squad_solution.csv
+Final: true
+Impure: false
+Notes: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run.
+  Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are
+  not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does
+  not exist yet).
 """
 
 from __future__ import annotations

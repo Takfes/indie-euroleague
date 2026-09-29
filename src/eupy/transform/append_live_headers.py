@@ -16,10 +16,16 @@ base-season game re-fetched live replaces Kaggle's per-overtime split with the c
 Usage:
     python src/eupy/transform/append_live_headers.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
 
-Inputs: data/raw_data/kaggle_data/euroleague_header.csv,
-    data/raw_data/euroleague_net/headers/{season}_delta_{utc_timestamp}.csv (all files).
-Outputs: data/stage_01/header_current.csv.
-Final: false -- intermediate; not exposed under data/stage_99/.
+Inputs:
+  - kaggle_data/euroleague_header: data/raw_data/kaggle_data/euroleague_header.csv
+  - euroleague_net/headers: data/raw_data/euroleague_net/headers/
+Sources: none
+Outputs:
+  - header_current: data/stage_01/header_current.csv
+Final: false
+Impure: false
+Notes: Kaggle rows are limited to the base season (--base-season, default E2025); all delta files under
+  euroleague_net/headers are appended.
 """
 
 from __future__ import annotations

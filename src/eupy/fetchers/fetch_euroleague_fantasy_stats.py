@@ -35,13 +35,15 @@ full-history re-derivation each time.
 Usage:
     python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--out-dir PATH]
 
-Inputs: none from disk -- fetched live from fantaking-api.dunkest.com, using
-    EUROLEAGUE_FANTASY_AUTH_TOKEN (env var, or read from a `.env` file at the
-    repo root).
-Outputs: data/raw_data/fantasy_stats/players.csv and
-    data/raw_data/fantasy_stats/head_coaches.csv (both fully
-    overwritten each run).
-Final: false -- raw fetch output, not exposed under data/stage_99/.
+Inputs: none
+Sources:
+  - fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env)
+Outputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+  - fantasy_stats/head_coaches: data/raw_data/fantasy_stats/head_coaches.csv
+Final: false
+Impure: true
+Refresh: full overwrite per run
 """
 
 from __future__ import annotations

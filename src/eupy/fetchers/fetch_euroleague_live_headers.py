@@ -25,11 +25,17 @@ and played late) is not revisited; delete the season's state entry to re-fetch i
 Usage:
     python src/eupy/fetchers/fetch_euroleague_live_headers.py [--season E2026] [--out-dir PATH] [--max-gap 5]
 
-Inputs: none -- fetched live from live.euroleague.net/api/Header.
-Outputs: data/raw_data/euroleague_net/headers/{season}_delta_{utc_timestamp}.csv
-    (one new file per run with new games), data/raw_data/euroleague_net/headers/_state.json
-    (updated every run).
-Final: false -- raw fetch output, not exposed under data/stage_99/.
+Inputs: none
+Sources:
+  - live.euroleague.net/api/Header (live)
+Outputs:
+  - euroleague_net/headers: data/raw_data/euroleague_net/headers/
+Final: false
+Impure: true
+Refresh: incremental: one delta file per run with new games
+Notes: Delta files are named {season}_delta_{utc_timestamp}.csv, in the Kaggle euroleague_header schema.
+  State file data/raw_data/euroleague_net/headers/_state.json tracks progress and is updated every
+  run.
 """
 
 from __future__ import annotations

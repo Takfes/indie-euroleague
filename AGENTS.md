@@ -120,6 +120,24 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - `data/stage_99/`: consumption layer. Datasets flagged `final: true` in their header are exposed here as **relative symlinks** to the real file. No copies.
 - Orchestration will move to DVC: script headers are the source of truth for deps/outs (future `dvc.yaml` is generated from them). Never declare `data/stage_99/` symlinks as DVC outs — DVC deps point at real stage paths.
 - Before every commit, the agent regenerates `docs/data-catalogue.md` and `docs/data-graph.md` from the headers via the `update-data-docs` skill — never hand-edited.
+- Header grammar: a strict key-value block at the **end** of each pipeline script's module docstring (line-based, hand-parseable, no YAML). Keys in this order; `Inputs`/`Sources`/`Outputs` may be `none`:
+
+  ```
+  Inputs:
+    - <dataset-name>: <repo-relative path>
+  Sources:
+    - <free text: live URL, verdicts JSON, ...>
+  Outputs:
+    - <dataset-name>: <repo-relative path>
+  Final: true|false
+  Impure: true|false
+  Refresh: <free text>     # optional
+  Notes: <free text>       # optional; may continue on 2-space-indented lines
+  ```
+
+  - Dataset name: raw = `<source-dir>/<logical-name>`, produced = file stem. A directory of per-run files ends in `/`; no templated file names in paths.
+  - `Impure: true` = hits a live source / can't be re-derived from disk (all fetchers). External origins and CLI-given files (verdicts JSON) go under `Sources`, not `Inputs`. A verdict applier that reads and rewrites an existing file lists it in both `Inputs` and `Outputs`; resolvers that merge into their own previous output list only their real inputs (the merge goes in `Notes`). `Refresh` and `Notes` are optional; `Notes` may continue on 2-space-indented lines. Paths are directories (ending `/`) where files are templated — the file-name pattern goes in `Notes`.
+  - No `Pipeline:` key. Prose above the block stays for humans; `Final:` is bare `true`/`false`.
 
 ### Manual symlink into `data/stage_99/`
 
