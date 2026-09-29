@@ -139,8 +139,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Data: raw downloads live in data/raw_data/ (produced stages are tracked)
-data/raw_data/
+# Data: raw downloads live in data/raw_data/ (produced stages are tracked).
+# Ignore raw_data's contents but keep the directory structure via .gitkeep.
+data/raw_data/**
+!data/raw_data/**/
+!data/raw_data/**/.gitkeep
 
 # Claude Code worktrees
 .claude/worktrees/
