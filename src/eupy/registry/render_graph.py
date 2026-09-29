@@ -19,6 +19,7 @@ Output is sorted and timestamp-free, so reruns are byte-identical.
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 from eupy.registry.dvc_gen import Pipeline
 from eupy.registry.model import Registry
@@ -113,11 +114,23 @@ def _declarations(reg: Registry, ids: dict[str, str]) -> tuple[dict[str, tuple[s
     return decl, classes
 
 
-def render_graph(reg: Registry, pipelines: dict[str, Pipeline] | None = None) -> str:
-    """Return the full Markdown text of the graph for `reg`; raises `GraphError` on an undrawable registry.
+@dataclass(frozen=True)
+class GraphModel:
+    """The drawable graph shared by every renderer (Mermaid markdown, HTML map).
 
-    With `pipelines`, script nodes are grouped into one subgraph per pipeline (sorted by name).
+    `ids`: registry node id (`source:`/`script:`/`dataset:` prefix) -> graph id. `decl`: node -> `(Mermaid
+    declaration, class)` in output order. `classes`: class -> Mermaid style string. `edges`: sorted
+    `(from, to)` registry node pairs -- `Registry.edges()` plus the self-loop of each in-place script.
     """
+
+    ids: dict[str, str]
+    decl: dict[str, tuple[str, str]]
+    classes: dict[str, str]
+    edges: tuple[tuple[str, str], ...]
+
+
+def build_model(reg: Registry) -> GraphModel:
+    """Nodes, ids, classes and edges of `reg`, coverage-checked; raises `GraphError` on an undrawable registry."""
     ids = _mermaid_ids(reg)
     decl, classes = _declarations(reg, ids)
 
@@ -125,12 +138,25 @@ def render_graph(reg: Registry, pipelines: dict[str, Pipeline] | None = None) ->
     for name, script in reg.scripts.items():
         for ds in script.in_place:
             edges |= {(f"dataset:{ds}", f"script:{name}"), (f"script:{name}", f"dataset:{ds}")}
-    arrows = sorted(f"{ids[a]} --> {ids[b]}" for a, b in edges)
 
     members: dict[str, list[str]] = {}
     for node, (_, cls) in decl.items():
         members.setdefault(cls, []).append(ids[node])
     _check_coverage(set(ids.values()), members, set(classes))
+    return GraphModel(ids, decl, classes, tuple(sorted(edges)))
+
+
+def render_graph(reg: Registry, pipelines: dict[str, Pipeline] | None = None) -> str:
+    """Return the full Markdown text of the graph for `reg`; raises `GraphError` on an undrawable registry.
+
+    With `pipelines`, script nodes are grouped into one subgraph per pipeline (sorted by name).
+    """
+    model = build_model(reg)
+    ids, decl, classes = model.ids, model.decl, model.classes
+    arrows = sorted(f"{ids[a]} --> {ids[b]}" for a, b in model.edges)
+    members: dict[str, list[str]] = {}
+    for node, (_, cls) in decl.items():
+        members.setdefault(cls, []).append(ids[node])
 
     lines = [BANNER, "```mermaid", "flowchart LR"]
     grouped = {f"script:{s}" for p in (pipelines or {}).values() for s in p.scripts if s in reg.scripts}

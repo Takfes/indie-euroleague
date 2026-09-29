@@ -7,6 +7,8 @@ Usage:
     uv run python -m eupy.registry graph [--stdout]      # write docs/data-graph.md (or print it)
     uv run python -m eupy.registry docs [--stdout]       # catalogue + graph
     uv run python -m eupy.registry dvc [--stdout]        # write dvc.yaml from pipelines.toml (or print it)
+    uv run python -m eupy.registry html [--stdout]       # write docs/data-map.html (interactive lineage map)
+    uv run python -m eupy.registry html --status         # also write ignored docs/data-map.status.html (DVC overlay)
 
 `--root` points at another repo checkout (default: this one).
 """
@@ -14,14 +16,18 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from graphlib import CycleError
 from pathlib import Path
 
-from eupy.registry.dvc_gen import PIPELINES_FILE, checked_pipelines, render_dvc
+from eupy.registry.dvc_gen import PIPELINES_FILE, checked_pipelines, dvc_steps, load_wrappers, render_dvc
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 from eupy.registry.render_catalogue import render_catalogue
 from eupy.registry.render_graph import GraphError, render_graph
+from eupy.registry.render_html import parse_dvc_status, render_html
+
+HTML_FILE, HTML_STATUS_FILE = "data-map.html", "data-map.status.html"
 
 DOCS = {
     "catalogue": ("data-catalogue.md", lambda reg, pipelines: render_catalogue(reg)),
@@ -66,12 +72,45 @@ def _emit(text: str, path: Path, stdout: bool) -> None:
         path.write_text(text, encoding="utf-8")
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Run `check`, `show`, `catalogue`, `graph`, `docs` or `dvc`; returns the process exit code."""
+def _dvc_status(root: Path, steps: list[str]) -> dict[str, str] | None:
+    """Fresh/stale per DVC step from `uv run dvc status --json`; `None` (with a message) when it cannot run."""
+    cmd = ["uv", "run", "dvc", "status", "--json"]
+    try:
+        proc = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=120, check=True)  # noqa: S603
+        return parse_dvc_status(proc.stdout, steps)
+    except subprocess.CalledProcessError as exc:
+        reason = f"dvc status exited {exc.returncode}: {exc.stderr.strip()[:200]}"
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        reason = str(exc)
+    print(f"warning: no DVC status overlay ({reason})", file=sys.stderr)
+    return None
+
+
+def _write_html(registry: Registry, pipelines: dict, root: Path, stdout: bool, status: bool) -> int:
+    """Write `docs/data-map.html` (and, with `status`, the git-ignored DVC overlay variant)."""
+    try:
+        wrappers = load_wrappers(root / PIPELINES_FILE)
+        page = render_html(registry, pipelines, wrappers, root)
+        overlay = _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines)]) if status else None
+        variant = render_html(registry, pipelines, wrappers, root, overlay) if overlay else None
+    except (GraphError, RegistryError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    _emit(page, root / "docs" / HTML_FILE, stdout)
+    if variant is not None and not stdout:
+        _emit(variant, root / "docs" / HTML_STATUS_FILE, False)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:  # noqa: C901 -- flat subcommand dispatch
+    """Run `check`, `show`, `catalogue`, `graph`, `docs`, `dvc` or `html`; returns the process exit code."""
     parser = argparse.ArgumentParser(prog="python -m eupy.registry", description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs", "dvc"])
+    parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs", "dvc", "html"])
     parser.add_argument(
         "--stdout", action="store_true", help="catalogue/graph/docs/dvc: print instead of writing the file"
+    )
+    parser.add_argument(
+        "--status", action="store_true", help="html: also write the ignored DVC fresh/stale overlay variant"
     )
     parser.add_argument("--root", type=Path, default=REPO_ROOT, help="repo root (default: this checkout)")
     args = parser.parse_args(argv)
@@ -81,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
         # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
         pipelines = (
             checked_pipelines(registry, args.root / PIPELINES_FILE)
-            if args.command in ("check", "dvc", "graph", "docs")
+            if args.command in ("check", "dvc", "graph", "docs", "html")
             else {}
         )
         dvc_yaml = render_dvc(registry, pipelines) if args.command == "dvc" else ""
@@ -98,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(render(registry))
     elif args.command == "dvc":
         _emit(dvc_yaml, args.root / "dvc.yaml", args.stdout)
+    elif args.command == "html":
+        return _write_html(registry, pipelines, args.root, args.stdout, args.status)
     elif args.command in ("catalogue", "graph", "docs"):
         rendered: list[tuple[str, str]] = []
         for name in DOCS if args.command == "docs" else [args.command]:
