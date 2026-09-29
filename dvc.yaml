@@ -1,0 +1,30 @@
+# GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml).
+stages:
+  append_live_boxscores:
+    cmd: uv run python src/eupy/transform/append_live_boxscores.py
+    deps:
+    - src/eupy/transform/append_live_boxscores.py
+    - data/raw_data/euroleague_net/box_score
+    - data/raw_data/kaggle_data/euroleague_box_score.csv
+    outs:
+    - data/stage_01/box_score_current.csv:
+        cache: false
+  append_live_headers:
+    cmd: uv run python src/eupy/transform/append_live_headers.py
+    deps:
+    - src/eupy/transform/append_live_headers.py
+    - data/raw_data/euroleague_net/headers
+    - data/raw_data/kaggle_data/euroleague_header.csv
+    outs:
+    - data/stage_01/header_current.csv:
+        cache: false
+  build_schedule_turns:
+    cmd: uv run python src/eupy/transform/build_schedule_turns.py
+    deps:
+    - src/eupy/transform/build_schedule_turns.py
+    - data/raw_data/euroleague_schedule
+    outs:
+    - data/stage_01/schedule.csv:
+        cache: false
+    - data/stage_01/team_round_turn.csv:
+        cache: false

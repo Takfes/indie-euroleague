@@ -104,6 +104,7 @@ uv run python -m eupy.registry show    # print the model (deterministic)
 uv run python -m eupy.registry catalogue  # (re)write docs/data-catalogue.md; --stdout prints instead
 uv run python -m eupy.registry graph      # (re)write docs/data-graph.md (Mermaid); --stdout prints instead
 uv run python -m eupy.registry docs       # both docs in one pass (what the update-data-docs skill runs)
+uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.toml; --stdout prints instead
 ```
 
 - `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `*_crosswalk.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
@@ -112,6 +113,17 @@ uv run python -m eupy.registry docs       # both docs in one pass (what the upda
 - Stage: under `data/raw_data/` = 0; otherwise `max(input stages) + 1`.
 - In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
 - Temporary: the `resolve_*` / `apply_*` name scripts may rewrite their own output (`in_place`); an `apply_*` script is an *updater* of the crosswalk, not a second producer.
+
+## DVC pipelines
+
+`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`) become DVC steps in the generated `dvc.yaml`; fetchers are not steps — run them yourself, then:
+
+```bash
+uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pipelines.toml change (never hand-edit)
+uv run dvc repro                     # rerun only the steps whose script or inputs changed
+```
+
+Outputs are `cache: false` (no copies, no remote); their fingerprints live in the committed `dvc.lock`. `data/raw_data/` is git-ignored: on a fresh clone the raw deps are missing until the fetchers (and the Kaggle download) have run, so `dvc repro` only works after that.
 
 ## Dev loop
 

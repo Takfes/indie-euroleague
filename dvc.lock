@@ -1,0 +1,65 @@
+schema: '2.0'
+stages:
+  append_live_boxscores:
+    cmd: uv run python src/eupy/transform/append_live_boxscores.py
+    deps:
+    - path: data/raw_data/euroleague_net/box_score
+      hash: md5
+      md5: 6ffbaaad7b4ac6e1afabed19a80b2560.dir
+      size: 0
+      nfiles: 1
+    - path: data/raw_data/kaggle_data/euroleague_box_score.csv
+      hash: md5
+      md5: e01bde23b29bde89daaa21c24a38672b
+      size: 18528865
+    - path: src/eupy/transform/append_live_boxscores.py
+      hash: md5
+      md5: d45054f56cb322e25c737339a2cb88de
+      size: 5414
+    outs:
+    - path: data/stage_01/box_score_current.csv
+      hash: md5
+      md5: c80cd5f1d33d57c374a46f5ff7b4b360
+      size: 1511975
+  append_live_headers:
+    cmd: uv run python src/eupy/transform/append_live_headers.py
+    deps:
+    - path: data/raw_data/euroleague_net/headers
+      hash: md5
+      md5: 6ffbaaad7b4ac6e1afabed19a80b2560.dir
+      size: 0
+      nfiles: 1
+    - path: data/raw_data/kaggle_data/euroleague_header.csv
+      hash: md5
+      md5: 78c90f4b880bfecc093a2ffd20ca5254
+      size: 1384517
+    - path: src/eupy/transform/append_live_headers.py
+      hash: md5
+      md5: d5c61d0510b2008d321a9479c92511c7
+      size: 3366
+    outs:
+    - path: data/stage_01/header_current.csv
+      hash: md5
+      md5: 4d981384b52969a550b41701d88b2343
+      size: 116376
+  build_schedule_turns:
+    cmd: uv run python src/eupy/transform/build_schedule_turns.py
+    deps:
+    - path: data/raw_data/euroleague_schedule
+      hash: md5
+      md5: d9ece5f5a8cdab17915b95300c825b9a.dir
+      size: 62258
+      nfiles: 2
+    - path: src/eupy/transform/build_schedule_turns.py
+      hash: md5
+      md5: f0a96b383628622b68332431cbc602d2
+      size: 6081
+    outs:
+    - path: data/stage_01/schedule.csv
+      hash: md5
+      md5: bd1a13241d5a727660faeabe34a9621b
+      size: 63403
+    - path: data/stage_01/team_round_turn.csv
+      hash: md5
+      md5: 13c829f5befcb029305f4da04f88070b
+      size: 7436
