@@ -32,10 +32,10 @@
 
 ## Pass criteria
 
-- [ ] Two consecutive runs are byte-identical.
-- [ ] All registry nodes/edges present; edge set equals the registry's (test).
-- [ ] Coverage invariant test passes; shapes/ids/colors follow the rules above (golden test on a synthetic registry).
-- [ ] Graph renders in `mkdocs build`/GitHub preview with no Mermaid errors (screenshot checked once).
-- [ ] Graph and catalogue agree on dataset names and stages (test).
-- [ ] `update-data-docs` skill updated; running it end to end reproduces both docs.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] Two consecutive runs are byte-identical.
+- [x] All registry nodes/edges present; edge set equals the registry's (test).
+- [x] Coverage invariant test passes; shapes/ids/colors follow the rules above (golden test on a synthetic registry).
+- [x] Graph renders in `mkdocs build`/GitHub preview with no Mermaid errors (screenshot checked once).
+- [x] Graph and catalogue agree on dataset names and stages (test).
+- [x] `update-data-docs` skill updated; running it end to end reproduces both docs.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green.

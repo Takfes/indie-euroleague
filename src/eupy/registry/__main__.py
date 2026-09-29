@@ -1,9 +1,11 @@
-"""Registry CLI: lint the script headers (`check`), print the model (`show`) or render the catalogue.
+"""Registry CLI: lint the script headers (`check`), print the model (`show`) or render the catalogue / graph.
 
 Usage:
     uv run python -m eupy.registry check   # exit 0 when consistent, 1 with one message per problem
     uv run python -m eupy.registry show    # scripts (execution order), datasets, sources; deterministic
     uv run python -m eupy.registry catalogue [--stdout]  # write docs/data-catalogue.md (or print it)
+    uv run python -m eupy.registry graph [--stdout]      # write docs/data-graph.md (or print it)
+    uv run python -m eupy.registry docs [--stdout]       # catalogue + graph
 
 `--root` points at another repo checkout (default: this one).
 """
@@ -17,6 +19,9 @@ from pathlib import Path
 
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 from eupy.registry.render_catalogue import render_catalogue
+from eupy.registry.render_graph import GraphError, render_graph
+
+DOCS = {"catalogue": ("data-catalogue.md", render_catalogue), "graph": ("data-graph.md", render_graph)}
 
 
 def render(registry: Registry) -> str:
@@ -49,10 +54,10 @@ def render(registry: Registry) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run `check`, `show` or `catalogue`; returns the process exit code."""
+    """Run `check`, `show`, `catalogue`, `graph` or `docs`; returns the process exit code."""
     parser = argparse.ArgumentParser(prog="python -m eupy.registry", description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=["check", "show", "catalogue"])
-    parser.add_argument("--stdout", action="store_true", help="catalogue: print instead of writing the file")
+    parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs"])
+    parser.add_argument("--stdout", action="store_true", help="catalogue/graph/docs: print instead of writing the file")
     parser.add_argument("--root", type=Path, default=REPO_ROOT, help="repo root (default: this checkout)")
     args = parser.parse_args(argv)
 
@@ -69,12 +74,21 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "show":
         sys.stdout.write(render(registry))
-    elif args.command == "catalogue":
-        text = render_catalogue(registry)
-        if args.stdout:
-            sys.stdout.write(text)
-        else:
-            (args.root / "docs" / "data-catalogue.md").write_text(text, encoding="utf-8")
+    elif args.command in ("catalogue", "graph", "docs"):
+        rendered: list[tuple[str, str]] = []
+        for name in DOCS if args.command == "docs" else [args.command]:
+            filename, renderer = DOCS[name]
+            try:
+                rendered.append((filename, renderer(registry)))
+            except GraphError as exc:
+                print(f"error: {exc}", file=sys.stderr)
+                return 1
+        # Render everything before writing anything, so a failure never leaves the docs out of sync.
+        for filename, text in rendered:
+            if args.stdout:
+                sys.stdout.write(text)
+            else:
+                (args.root / "docs" / filename).write_text(text, encoding="utf-8")
     else:
         print(
             f"ok: {len(registry.scripts)} scripts, {len(registry.datasets)} datasets, {len(registry.sources)} sources"
