@@ -218,6 +218,13 @@ class Registry:
                     stack.append(pred)
         return tuple(sorted(n.partition(":")[2] for n in seen if n.startswith("script:") and n != f"script:{script}"))
 
+    def edges(self) -> tuple[tuple[str, str], ...]:
+        """Every lineage edge as sorted `(from node id, to node id)`; ids are `script:`/`dataset:`/`source:` prefixed.
+
+        In-place self-loops are not edges here (see the module doc); renderers add them from `Script.in_place`.
+        """
+        return tuple(sorted((pred, node) for node, preds in self._graph.items() for pred in preds))
+
     def topo_order(self) -> tuple[str, ...]:
         """Script names in a valid execution order (ties broken alphabetically, so deterministic)."""
         return tuple(n.partition(":")[2] for n in self._order if n.startswith("script:"))

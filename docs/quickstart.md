@@ -102,12 +102,15 @@ Notes: free text
 uv run python -m eupy.registry check   # lint: exit 1 + one line per problem
 uv run python -m eupy.registry show    # print the model (deterministic)
 uv run python -m eupy.registry catalogue  # (re)write docs/data-catalogue.md; --stdout prints instead
+uv run python -m eupy.registry graph      # (re)write docs/data-graph.md (Mermaid); --stdout prints instead
+uv run python -m eupy.registry docs       # both docs in one pass (what the update-data-docs skill runs)
 ```
 
 - `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `*_crosswalk.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
 - `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
+- `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws (plus in-place self-loops).
 - Stage: under `data/raw_data/` = 0; otherwise `max(input stages) + 1`.
-- In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`.
+- In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
 - Temporary: the `resolve_*` / `apply_*` name scripts may rewrite their own output (`in_place`); an `apply_*` script is an *updater* of the crosswalk, not a second producer.
 
 ## Dev loop
