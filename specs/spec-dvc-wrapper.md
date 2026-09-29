@@ -31,10 +31,10 @@
 
 ## Pass criteria
 
-- [ ] `eupy run all` runs; a second invocation is a no-op.
-- [ ] `eupy run schedule --fetch` runs the fetcher before the steps (verified with a stub/dry mode; no live calls in tests).
-- [ ] `link-final` output equals the set of `Final: true` datasets, links relative, idempotent; stale managed link removed.
-- [ ] Graph regenerated with pipeline subgraphs; coverage invariant from ticket 4 still holds.
-- [ ] Unit tests for target resolution (wrapper expansion, unknown name error), link-final (create/idempotent/stale), subgraph rendering.
-- [ ] `docs/quickstart.md` documents `eupy run` / `eupy link-final`.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] `eupy run all` runs; a second invocation is a no-op.
+- [x] `eupy run schedule --fetch` runs the fetcher before the steps (verified with a stub/dry mode; no live calls in tests).
+- [x] `link-final` output equals the set of `Final: true` datasets, links relative, idempotent; stale managed link removed.
+- [x] Graph regenerated with pipeline subgraphs; coverage invariant from ticket 4 still holds.
+- [x] Unit tests for target resolution (wrapper expansion, unknown name error), link-final (create/idempotent/stale), subgraph rendering.
+- [x] `docs/quickstart.md` documents `eupy run` / `eupy link-final`.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green.

@@ -34,3 +34,8 @@ scripts = [
 [optimize]
 dvc = false
 scripts = ["optimize_squad"]
+
+# Wrappers: `uv run eupy run <wrapper>` runs these pipelines together. Order between them comes from the
+# DVC dependencies, not from the list.
+[wrappers]
+all = ["schedule", "net"]

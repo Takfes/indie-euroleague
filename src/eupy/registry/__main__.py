@@ -23,7 +23,10 @@ from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 from eupy.registry.render_catalogue import render_catalogue
 from eupy.registry.render_graph import GraphError, render_graph
 
-DOCS = {"catalogue": ("data-catalogue.md", render_catalogue), "graph": ("data-graph.md", render_graph)}
+DOCS = {
+    "catalogue": ("data-catalogue.md", lambda reg, pipelines: render_catalogue(reg)),
+    "graph": ("data-graph.md", render_graph),
+}
 
 
 def render(registry: Registry) -> str:
@@ -76,7 +79,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         registry = Registry.from_repo(args.root)
         # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
-        pipelines = checked_pipelines(registry, args.root / PIPELINES_FILE) if args.command in ("check", "dvc") else {}
+        pipelines = (
+            checked_pipelines(registry, args.root / PIPELINES_FILE)
+            if args.command in ("check", "dvc", "graph", "docs")
+            else {}
+        )
         dvc_yaml = render_dvc(registry, pipelines) if args.command == "dvc" else ""
     except RegistryError as exc:
         for problem in exc.problems:
@@ -96,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
         for name in DOCS if args.command == "docs" else [args.command]:
             filename, renderer = DOCS[name]
             try:
-                rendered.append((filename, renderer(registry)))
+                rendered.append((filename, renderer(registry, pipelines)))
             except GraphError as exc:
                 print(f"error: {exc}", file=sys.stderr)
                 return 1
