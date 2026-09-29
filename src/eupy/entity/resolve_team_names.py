@@ -55,8 +55,8 @@ Outputs:
   - team_name_crosswalk: data/stage_01/team_name_crosswalk.csv
 Final: true
 Impure: false
-Notes: Merged in place: existing agent-resolved rows are preserved unchanged (see idempotency note
-  above). apply_team_name_verdicts.py also updates this crosswalk in place, so the apply_* scripts
+Notes: Merged in place: existing agent-resolved rows are preserved unchanged.
+  apply_team_name_verdicts.py also updates this crosswalk in place, so the apply_* scripts
   add no stage of their own.
 """
 
