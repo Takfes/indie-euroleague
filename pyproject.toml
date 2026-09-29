@@ -27,6 +27,9 @@ Homepage = "https://Takfes.github.io/indie-euroleague/"
 Repository = "https://github.com/Takfes/indie-euroleague"
 Documentation = "https://Takfes.github.io/indie-euroleague/"
 
+[project.scripts]
+eupy = "eupy.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=7.2.0",

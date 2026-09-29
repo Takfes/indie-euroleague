@@ -8,7 +8,15 @@ from pathlib import Path
 import pytest
 
 from eupy.registry.__main__ import main
-from eupy.registry.dvc_gen import Pipeline, dvc_steps, lint_pipelines, load_pipelines, render_dvc
+from eupy.registry.dvc_gen import (
+    Pipeline,
+    dvc_steps,
+    lint_pipelines,
+    lint_wrappers,
+    load_pipelines,
+    load_wrappers,
+    render_dvc,
+)
 from eupy.registry.headers import Header
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 
@@ -129,3 +137,17 @@ def test_path_that_cannot_be_written_unquoted_is_rejected() -> None:
     reg = Registry.from_headers(headers, {})
     with pytest.raises(RegistryError, match="not safe to write unquoted"):
         dvc_steps(reg, {"main": Pipeline("main", True, ("make_a",))})
+
+
+def test_wrappers_table_is_not_a_pipeline_and_is_linted(tmp_path: Path) -> None:
+    toml = tmp_path / "pipelines.toml"
+    toml.write_text('[a]\ndvc = true\nscripts = ["x"]\n\n[wrappers]\nall = ["a"]\nbad = ["a", "nope"]\na = ["a"]\n')
+    pipes = load_pipelines(toml)
+    assert list(pipes) == ["a"]
+    wrappers = load_wrappers(toml)
+    assert wrappers["all"] == ("a",)
+    problems = lint_wrappers(pipes, wrappers)
+    assert any("unknown pipeline nope" in p for p in problems) and any("same name as a pipeline" in p for p in problems)
+    toml.write_text('[a]\ndvc = true\nscripts = []\n[wrappers]\nall = "a"\n')
+    with pytest.raises(RegistryError, match="non-empty list"):
+        load_wrappers(toml)

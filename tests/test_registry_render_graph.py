@@ -10,13 +10,14 @@ import pytest
 
 from eupy.registry import render_graph as rg
 from eupy.registry.__main__ import main
+from eupy.registry.dvc_gen import Pipeline, checked_pipelines
 from eupy.registry.headers import Header
 from eupy.registry.model import REPO_ROOT, Registry
 from eupy.registry.render_catalogue import render_catalogue
 from eupy.registry.render_graph import GraphError, render_graph
 
 RAW_SOURCES = {"manual/raw": {"origin": "Some where (manual)", "refresh": "manual"}}
-NODE = re.compile(r"^    ((?:x|s|d)_\w+)(\(\[|\[\(|\[)(\".*\")(\]\)|\)\]|\])$", re.M)
+NODE = re.compile(r"^\s+((?:x|s|d)_\w+)(\(\[|\[\(|\[)(\".*\")(\]\)|\)\]|\])$", re.M)
 EDGE = re.compile(r"^    ((?:x|s|d)_\w+) --> ((?:x|s|d)_\w+)$", re.M)
 CLASS = re.compile(r"^    class ([\w,]+) (\w+)$", re.M)
 
@@ -170,11 +171,15 @@ def test_graph_and_catalogue_agree_on_datasets_and_stages() -> None:
 
 def test_cli_graph_and_docs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     shutil.copytree(REPO_ROOT / "src" / "eupy", tmp_path / "src" / "eupy")
+    shutil.copy(REPO_ROOT / "pipelines.toml", tmp_path / "pipelines.toml")
     (tmp_path / "docs").mkdir()
     reg = Registry.from_repo()
     assert main(["graph", "--root", str(tmp_path)]) == 0
     graph = (tmp_path / "docs" / "data-graph.md").read_text()
-    assert graph == render_graph(reg) and not (tmp_path / "docs" / "data-catalogue.md").exists()
+    assert (
+        graph == render_graph(reg, checked_pipelines(reg, tmp_path / "pipelines.toml"))
+        and not (tmp_path / "docs" / "data-catalogue.md").exists()
+    )
     capsys.readouterr()
     assert main(["graph", "--stdout", "--root", str(tmp_path)]) == 0
     assert capsys.readouterr().out == graph
@@ -192,11 +197,55 @@ def test_docs_writes_nothing_when_a_renderer_fails(tmp_path: Path, monkeypatch: 
     """A graph failure must not leave a freshly written catalogue next to a stale graph."""
     import eupy.registry.__main__ as cli
 
-    def boom(_reg: Registry) -> str:
+    def boom(_reg: Registry, _pipelines: dict[str, Pipeline]) -> str:
         raise GraphError("boom")
 
     shutil.copytree(REPO_ROOT / "src" / "eupy", tmp_path / "src" / "eupy")
+    shutil.copy(REPO_ROOT / "pipelines.toml", tmp_path / "pipelines.toml")
     (tmp_path / "docs").mkdir()
     monkeypatch.setitem(cli.DOCS, "graph", (cli.DOCS["graph"][0], boom))
     assert main(["docs", "--root", str(tmp_path)]) == 1
     assert list((tmp_path / "docs").iterdir()) == []
+
+
+def _pipes() -> dict[str, Pipeline]:
+    return {
+        "zeta": Pipeline("zeta", True, ("make_b", "make_a")),
+        "alpha": Pipeline("alpha", False, ("fetch_x", "fix_a")),
+    }
+
+
+def test_pipeline_subgraphs_hold_scripts_sorted_by_name() -> None:
+    body = _mermaid(render_graph(_registry(), _pipes()))
+    assert re.findall(r'^    subgraph (\w+)\["(\w+)"\]$', body, re.M) == [("p_alpha", "alpha"), ("p_zeta", "zeta")]
+    blocks = re.findall(r"^    subgraph .*?\n(.*?)^    end$", body, re.M | re.S)
+    scripts = [re.findall(r"^        (s_\w+)\[", b, re.M) for b in blocks]
+    assert scripts == [["s_fetch_x", "s_fix_a"], ["s_make_a", "s_make_b"]]
+
+
+def test_subgraphs_keep_sources_and_datasets_outside_and_coverage() -> None:
+    reg = _registry()
+    body = _mermaid(render_graph(reg, _pipes()))
+    inside = "".join(re.findall(r"^    subgraph .*?^    end$", body, re.M | re.S))
+    assert not re.search(r"\b(?:x|d)_\w+(?:\(\[|\[\()", inside)
+    declared = [m[0] for m in NODE.findall(body)]
+    assert len(declared) == len(set(declared)) == len(reg.sources) + len(reg.scripts) + len(reg.datasets)
+    classed = [i for ids, _ in CLASS.findall(body) for i in ids.split(",")]
+    assert sorted(classed) == sorted(declared)
+
+
+def test_no_pipelines_means_flat_graph() -> None:
+    assert "subgraph" not in render_graph(_registry())
+
+
+def test_real_repo_has_a_subgraph_per_pipeline_and_covers_all() -> None:
+    reg = Registry.from_repo()
+    pipes = checked_pipelines(reg, REPO_ROOT / "pipelines.toml")
+    text = render_graph(reg, pipes)
+    body = _mermaid(text)
+    assert re.findall(r"^    subgraph p_(\w+)\[", body, re.M) == sorted(pipes)
+    declared = [m[0] for m in NODE.findall(body)]
+    assert len(declared) == len(set(declared)) == len(reg.sources) + len(reg.scripts) + len(reg.datasets)
+    classed = [i for ids, _ in CLASS.findall(body) for i in ids.split(",")]
+    assert sorted(classed) == sorted(declared)
+    assert render_graph(reg, pipes) == text

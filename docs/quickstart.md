@@ -125,6 +125,22 @@ uv run dvc repro                     # rerun only the steps whose script or inpu
 
 Outputs are `cache: false` (no copies, no remote); their fingerprints live in the committed `dvc.lock`. `data/raw_data/` is git-ignored: on a fresh clone the raw deps are missing until the fetchers (and the Kaggle download) have run, so `dvc repro` only works after that.
 
+### `eupy run` / `eupy link-final`
+
+Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "net"]`; order between pipelines comes from DVC dependencies).
+
+```bash
+uv run eupy run all                 # offline: dvc repro for schedule + net steps; a second run is a no-op
+uv run eupy run schedule --fetch    # first run the pipeline's fetchers (live API calls), then dvc repro
+uv run eupy run acquire             # dvc = false pipeline: runs its fetchers only (no DVC)
+uv run eupy run all --dry-run       # print the commands, execute nothing
+uv run eupy link-final              # refresh data/stage_99/ links (also runs after a successful `eupy run`)
+```
+
+- `entity` and `optimize` are `dvc = false` with no fetchers: `eupy run entity` exits 1 ("not runnable under DVC yet").
+- `--fetch` runs impure scripts with `uv run python <script>` in dependency order; the default run never touches the network.
+- `link-final` creates relative symlinks in `data/stage_99/` for every produced `Final: true` dataset whose file exists (missing ones are reported and skipped), removes stale symlinks it no longer manages, and never touches regular files or directories.
+
 ## Dev loop
 
 ```bash

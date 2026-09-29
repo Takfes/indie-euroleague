@@ -26,6 +26,7 @@ from pathlib import Path
 from eupy.registry.model import Registry, RegistryError
 
 PIPELINES_FILE = "pipelines.toml"
+WRAPPERS_KEY = "wrappers"  # reserved table: wrapper name -> ordered list of pipeline names (not a pipeline)
 BANNER = "# GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml)."
 _SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]+$")  # written unquoted into YAML
 
@@ -58,6 +59,8 @@ def load_pipelines(path: Path) -> dict[str, Pipeline]:
     pipelines: dict[str, Pipeline] = {}
     problems: list[str] = []
     for name, table in data.items():
+        if name == WRAPPERS_KEY:
+            continue
         dvc, scripts = (table.get("dvc"), table.get("scripts")) if isinstance(table, dict) else (None, None)
         if not isinstance(dvc, bool) or not isinstance(scripts, list) or not all(isinstance(s, str) for s in scripts):
             problems.append(f"{path.name}: [{name}] needs 'dvc' (true/false) and 'scripts' (list of script names)")
@@ -66,6 +69,30 @@ def load_pipelines(path: Path) -> dict[str, Pipeline]:
     if problems:
         raise RegistryError(problems)
     return pipelines
+
+
+def load_wrappers(path: Path) -> dict[str, tuple[str, ...]]:
+    """Parse the `[wrappers]` table of `pipelines.toml` (empty when absent); raises `RegistryError` when malformed."""
+    if not path.is_file():
+        raise RegistryError([f"{path.name}: not found at {path}"])
+    with path.open("rb") as fh:
+        table = tomllib.load(fh).get(WRAPPERS_KEY, {})
+    bad = [n for n, v in table.items() if not isinstance(v, list) or not v or not all(isinstance(p, str) for p in v)]
+    if bad:
+        raise RegistryError([
+            f"{path.name}: [{WRAPPERS_KEY}] {n} must be a non-empty list of pipeline names" for n in bad
+        ])
+    return {name: tuple(v) for name, v in table.items()}
+
+
+def lint_wrappers(pipelines: dict[str, Pipeline], wrappers: dict[str, tuple[str, ...]]) -> list[str]:
+    """Problems with wrappers: a name that is also a pipeline, or a member that is not a pipeline."""
+    problems = [
+        f"{PIPELINES_FILE}: wrapper {w} has the same name as a pipeline" for w in sorted(wrappers) if w in pipelines
+    ]
+    for w, members in sorted(wrappers.items()):
+        problems += [f"{PIPELINES_FILE}: wrapper {w} lists unknown pipeline {p}" for p in members if p not in pipelines]
+    return problems
 
 
 def lint_pipelines(registry: Registry, pipelines: dict[str, Pipeline]) -> list[str]:
@@ -88,7 +115,8 @@ def lint_pipelines(registry: Registry, pipelines: dict[str, Pipeline]) -> list[s
 def checked_pipelines(registry: Registry, path: Path) -> dict[str, Pipeline]:
     """Load `pipelines.toml` from `path` and lint it; raises `RegistryError` listing every problem."""
     pipelines = load_pipelines(path)
-    if problems := lint_pipelines(registry, pipelines):
+    problems = lint_pipelines(registry, pipelines) + lint_wrappers(pipelines, load_wrappers(path))
+    if problems:
         raise RegistryError(problems)
     return pipelines
 

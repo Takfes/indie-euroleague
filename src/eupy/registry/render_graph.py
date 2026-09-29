@@ -5,6 +5,10 @@ Nodes: external sources (stadium), scripts (rectangle), datasets (cylinder). Ids
 same id raise `GraphError`. Edges are exactly `Registry.edges()` plus the self-loop of each in-place
 (allowlisted) script (dataset -> script -> dataset), drawn until ticket 8 removes those scripts.
 
+Pipelines (optional `pipelines` argument, from `pipelines.toml`): one `subgraph p_<pipeline>["<pipeline>"]` per
+pipeline, sorted by name, holding that pipeline's script nodes. Sources and datasets stay outside. Subgraph
+ids are not nodes (they get no class and are outside the coverage check). Without `pipelines` the graph is flat.
+
 Colors: one hue per stage from the fixed `PALETTE` (index = stage; `GraphError` when a stage exceeds it).
 A dataset takes its stage hue, a `final` dataset the same hue with a thick border and a `★` label suffix;
 a script has a neutral fill with the stroke of its highest output stage; sources are gray. Every node gets
@@ -16,6 +20,7 @@ from __future__ import annotations
 
 import re
 
+from eupy.registry.dvc_gen import Pipeline
 from eupy.registry.model import Registry
 
 # (fill, stroke, text) per stage; stage N uses PALETTE[N].
@@ -40,6 +45,7 @@ BANNER = (
     "(plus `src/eupy/registry/raw_sources.toml`). Shapes: stadium = external source, rectangle = script, "
     "cylinder = dataset (raw or produced). Colors: one hue per stage (datasets take their stage hue; scripts are "
     "neutral with a stroke in the hue of their highest output stage; external sources are gray). "
+    "Boxes group scripts by pipeline (`pipelines.toml`). "
     "`★` + thick border = `final` dataset (exposed under `data/stage_99/`). "
     "A script with a loop back to its own dataset rewrites it in place. "
     "Inventory: [data-catalogue.md](data-catalogue.md).\n"
@@ -107,8 +113,11 @@ def _declarations(reg: Registry, ids: dict[str, str]) -> tuple[dict[str, tuple[s
     return decl, classes
 
 
-def render_graph(reg: Registry) -> str:
-    """Return the full Markdown text of the graph for `reg`; raises `GraphError` on an undrawable registry."""
+def render_graph(reg: Registry, pipelines: dict[str, Pipeline] | None = None) -> str:
+    """Return the full Markdown text of the graph for `reg`; raises `GraphError` on an undrawable registry.
+
+    With `pipelines`, script nodes are grouped into one subgraph per pipeline (sorted by name).
+    """
     ids = _mermaid_ids(reg)
     decl, classes = _declarations(reg, ids)
 
@@ -124,9 +133,15 @@ def render_graph(reg: Registry) -> str:
     _check_coverage(set(ids.values()), members, set(classes))
 
     lines = [BANNER, "```mermaid", "flowchart LR"]
+    grouped = {f"script:{s}" for p in (pipelines or {}).values() for s in p.scripts if s in reg.scripts}
     for title, kind in (("external sources", "source"), ("scripts", "script"), ("datasets", "dataset")):
         lines.append(f"    %% {title}")
-        lines += [f"    {d}" for node, (d, _) in decl.items() if node.startswith(f"{kind}:")]
+        lines += [f"    {d}" for node, (d, _) in decl.items() if node.startswith(f"{kind}:") and node not in grouped]
+        if kind == "script":
+            for pname, pipe in sorted((pipelines or {}).items()):
+                lines.append(f"    subgraph {_ident('p', pname)}[{_q(pname)}]")
+                lines += [f"        {decl[f'script:{s}'][0]}" for s in sorted(pipe.scripts) if s in reg.scripts]
+                lines.append("    end")
         lines.append("")
     lines += ["    %% edges", *(f"    {a}" for a in arrows), "", "    %% colors by stage"]
     lines += [f"    classDef {c} {classes[c]}" for c in sorted(classes)]
