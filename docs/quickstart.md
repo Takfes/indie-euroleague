@@ -94,6 +94,20 @@ Notes: free text
 - `Impure: true` for anything hitting a live source (all fetchers). A verdict applier that rewrites an existing file lists it in both `Inputs` and `Outputs`; resolvers that merge into their own previous output do not (see `Notes`).
 - `Refresh` and `Notes` are optional; `Notes` may continue on 2-space-indented lines. Templated file names go in `Notes`; the path is the directory.
 
+## Registry
+
+`src/eupy/registry/` derives scripts, datasets, paths, stages and lineage from those headers (read via `ast`, scripts are never imported). Raw datasets no script produces get their origin + refresh note in `src/eupy/registry/raw_sources.toml`.
+
+```bash
+uv run python -m eupy.registry check   # lint: exit 1 + one line per problem
+uv run python -m eupy.registry show    # print the model (deterministic)
+```
+
+- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `*_crosswalk.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
+- Stage: under `data/raw_data/` = 0; otherwise `max(input stages) + 1`.
+- In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`.
+- Temporary: the `resolve_*` / `apply_*` name scripts may rewrite their own output (`in_place`); an `apply_*` script is an *updater* of the crosswalk, not a second producer.
+
 ## Dev loop
 
 ```bash

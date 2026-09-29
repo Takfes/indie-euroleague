@@ -32,8 +32,8 @@
 
 ## Pass criteria
 
-- [ ] `python -m eupy.registry check` passes on the real repo.
-- [ ] Unit tests: block parsing (multi-entry, `none`, trailing-slash dirs, malformed input rejected), stage depth on a synthetic chain/diamond, non-allowlisted cycle rejected, double-producer rejected, path-vs-stage mismatch rejected.
-- [ ] Stages computed for all current datasets equal the ones in `docs/data-catalogue.md` (e.g. `fantasy_stats_players_normalized` = 2).
-- [ ] Deterministic: two runs of `show` are byte-identical.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green; module docs current.
+- [x] `python -m eupy.registry check` passes on the real repo.
+- [x] Unit tests: block parsing (multi-entry, `none`, trailing-slash dirs, malformed input rejected), stage depth on a synthetic chain/diamond, non-allowlisted cycle rejected, double-producer rejected, path-vs-stage mismatch rejected.
+- [x] Stages computed for all current datasets equal the ones in `docs/data-catalogue.md` (e.g. `fantasy_stats_players_normalized` = 2).
+- [x] Deterministic: two runs of `show` are byte-identical.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green; module docs current.
