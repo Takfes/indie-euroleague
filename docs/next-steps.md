@@ -45,6 +45,12 @@ Deferred work, off the critical path.
     optimality in ~47s. Start here next time, with the realistic-size pass criterion raised from
     30s to ~60s (this cost is permanent once shipped — the pair machinery is built regardless of
     whether `pir_std` is populated, so every future run pays it, not just a stress test).
+    *Exact repro parameters* (the scratch scripts themselves lived in a background job's tmp dir
+    and are gone): synthetic 680-row universe, seed 7, `turn` in `{1, 2}`, `pir_std` drawn
+    `U(2, 10)` per row, `cash=1.5`, `max_trades=4`, `credit_value=3.0` — spec-shaped model: 115,466
+    pairs, ~460k constraint rows, build 1.7s, solve killed after 10+ min; aggregated model: same
+    115,466 pairs, ~1.4k constraint rows, solved in 47.2s to objective 241.66 (active 228.20 +
+    option 8.22 + growth).
   - *A lossy fallback, only if 47s ever isn't enough at larger scale.* Top-K pruning (keep only each
     donor's top-K receivers by value) — faster, but changes answers, so it's a scope decision for
     whoever revisits this, not a default.
