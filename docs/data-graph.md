@@ -23,6 +23,8 @@ flowchart LR
     f_sched["fetch_euroleague_schedule"]
     b_turns["build_schedule_turns"]
     r_p["resolve_player_names"]
+    r_f["resolve_fantasy_stats_player_names"]
+    n_f["normalize_fantasy_stats"]
     a_p["apply_player_name_verdicts"]
     r_t["resolve_team_names"]
     a_t["apply_team_name_verdicts"]
@@ -46,6 +48,8 @@ flowchart LR
     d_bsc["box_score_current<br/>stage 1"]
     d_pxw[["player_name_crosswalk<br/>stage 1 · final"]]
     d_txw[["team_name_crosswalk<br/>stage 1 · final"]]
+    d_fxw[["fantasy_stats_player_name_crosswalk<br/>stage 1 · final"]]
+    d_fpn[["fantasy_stats_players_normalized<br/>stage 2 · final"]]
     d_sq[["squad_solution<br/>stage 1 · final"]]
     d_sch[["schedule<br/>stage 1 · final"]]
     d_trt[["team_round_turn<br/>stage 1 · final"]]
@@ -69,6 +73,16 @@ flowchart LR
     d_pxw --> a_p --> d_pxw
     verdicts --> a_p
 
+    d_players --> r_f
+    d_prices --> r_f
+    d_kbox --> r_f
+    verdicts --> r_f
+    r_f --> d_fxw
+    d_fxw --> r_f
+    d_players --> n_f
+    d_fxw --> n_f
+    n_f --> d_fpn
+
     d_prices --> r_t
     d_khdr --> r_t
     r_t --> d_txw
@@ -91,8 +105,10 @@ flowchart LR
     classDef script fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c
     classDef stage0 fill:#fde9d9,stroke:#c97f3a,color:#4a2c0a
     classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
+    classDef stage2 fill:#e6dcf0,stroke:#8a6bb0,color:#2e1f45
     class bs,dunkest,live,adv,kaggle,verdicts,manual external
-    class f_bs,f_fs,f_live,f_lhdr,f_sched,b_turns,r_p,a_p,r_t,a_t,o_sq,t_app,t_hdr script
+    class f_bs,f_fs,f_live,f_lhdr,f_sched,b_turns,r_p,r_f,n_f,a_p,r_t,a_t,o_sq,t_app,t_hdr script
     class d_prices,d_players,d_coaches,d_live,d_lhdr,d_sched,d_kbox,d_khdr,d_opt stage0
-    class d_hdrc,d_bsc,d_pxw,d_txw,d_sq,d_sch,d_trt stage1
+    class d_hdrc,d_bsc,d_pxw,d_txw,d_sq,d_sch,d_trt,d_fxw stage1
+    class d_fpn stage2
 ```
