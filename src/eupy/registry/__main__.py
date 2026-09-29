@@ -1,4 +1,4 @@
-"""Registry CLI: lint the script headers (`check`), print the model (`show`) or render the catalogue / graph.
+"""Registry CLI: lint the script headers (`check`), print the model (`show`) or render the catalogue / graph / dvc.yaml.
 
 Usage:
     uv run python -m eupy.registry check   # exit 0 when consistent, 1 with one message per problem
@@ -6,6 +6,7 @@ Usage:
     uv run python -m eupy.registry catalogue [--stdout]  # write docs/data-catalogue.md (or print it)
     uv run python -m eupy.registry graph [--stdout]      # write docs/data-graph.md (or print it)
     uv run python -m eupy.registry docs [--stdout]       # catalogue + graph
+    uv run python -m eupy.registry dvc [--stdout]        # write dvc.yaml from pipelines.toml (or print it)
 
 `--root` points at another repo checkout (default: this one).
 """
@@ -17,6 +18,7 @@ import sys
 from graphlib import CycleError
 from pathlib import Path
 
+from eupy.registry.dvc_gen import PIPELINES_FILE, checked_pipelines, render_dvc
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 from eupy.registry.render_catalogue import render_catalogue
 from eupy.registry.render_graph import GraphError, render_graph
@@ -53,16 +55,29 @@ def render(registry: Registry) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _emit(text: str, path: Path, stdout: bool) -> None:
+    """Print `text` (`--stdout`) or write it to `path`."""
+    if stdout:
+        sys.stdout.write(text)
+    else:
+        path.write_text(text, encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Run `check`, `show`, `catalogue`, `graph` or `docs`; returns the process exit code."""
+    """Run `check`, `show`, `catalogue`, `graph`, `docs` or `dvc`; returns the process exit code."""
     parser = argparse.ArgumentParser(prog="python -m eupy.registry", description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs"])
-    parser.add_argument("--stdout", action="store_true", help="catalogue/graph/docs: print instead of writing the file")
+    parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs", "dvc"])
+    parser.add_argument(
+        "--stdout", action="store_true", help="catalogue/graph/docs/dvc: print instead of writing the file"
+    )
     parser.add_argument("--root", type=Path, default=REPO_ROOT, help="repo root (default: this checkout)")
     args = parser.parse_args(argv)
 
     try:
         registry = Registry.from_repo(args.root)
+        # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
+        pipelines = checked_pipelines(registry, args.root / PIPELINES_FILE) if args.command in ("check", "dvc") else {}
+        dvc_yaml = render_dvc(registry, pipelines) if args.command == "dvc" else ""
     except RegistryError as exc:
         for problem in exc.problems:
             print(f"error: {problem}", file=sys.stderr)
@@ -74,6 +89,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "show":
         sys.stdout.write(render(registry))
+    elif args.command == "dvc":
+        _emit(dvc_yaml, args.root / "dvc.yaml", args.stdout)
     elif args.command in ("catalogue", "graph", "docs"):
         rendered: list[tuple[str, str]] = []
         for name in DOCS if args.command == "docs" else [args.command]:
@@ -85,13 +102,11 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
         # Render everything before writing anything, so a failure never leaves the docs out of sync.
         for filename, text in rendered:
-            if args.stdout:
-                sys.stdout.write(text)
-            else:
-                (args.root / "docs" / filename).write_text(text, encoding="utf-8")
+            _emit(text, args.root / "docs" / filename, args.stdout)
     else:
         print(
-            f"ok: {len(registry.scripts)} scripts, {len(registry.datasets)} datasets, {len(registry.sources)} sources"
+            f"ok: {len(registry.scripts)} scripts, {len(registry.datasets)} datasets, {len(registry.sources)} sources, "
+            f"{len(pipelines)} pipelines"
         )
     return 0
 

@@ -1,0 +1,36 @@
+# Pipeline membership -- the one place it lives. Every script with an I/O header sits in exactly one
+# pipeline (linted by `uv run python -m eupy.registry check`).
+# dvc = true: the pipeline's pure scripts (`Impure: false`) become DVC steps in the generated dvc.yaml
+# (`uv run python -m eupy.registry dvc`); impure fetchers are never steps -- their raw outputs are plain deps.
+
+[acquire]
+dvc = false
+scripts = ["fetch_basketballsphere_prices", "fetch_euroleague_fantasy_stats"]
+
+[schedule]
+dvc = true
+scripts = ["fetch_euroleague_schedule", "build_schedule_turns"]
+
+[net]
+dvc = true
+scripts = [
+    "fetch_euroleague_live_boxscores",
+    "fetch_euroleague_live_headers",
+    "append_live_boxscores",
+    "append_live_headers",
+]
+
+[entity]
+dvc = false
+scripts = [
+    "resolve_player_names",
+    "apply_player_name_verdicts",
+    "resolve_team_names",
+    "apply_team_name_verdicts",
+    "resolve_fantasy_stats_player_names",
+    "normalize_fantasy_stats",
+]
+
+[optimize]
+dvc = false
+scripts = ["optimize_squad"]
