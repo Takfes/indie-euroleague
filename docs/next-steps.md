@@ -14,41 +14,55 @@ Deferred work, off the critical path.
 
 ## Squad optimizer (`src/eupy/optimize/optimize_squad.py`, spec: `specs/spec-squad-optimizer.md`)
 
-- **`TURN1` / `TURN2` are built but unused.** Kept per the strategy-doc discussion; they only earn
-  their place once the option-value work below pairs T1 starters with T2 bench players. Real rounds
-  can have a T3 (up to 3 game dates seen in `schedule_E2026.csv`), which sits in neither set.
-  Extend or drop them when the option-value decision is made.
-- **Option value is not modelled — `exp_pir_adj` is only a hook.**
-  - *What the game gives you.* Between turns a field player can be swapped with a bench player who
-    has not played yet; the swapped-out player keeps 50% (`docs/rules.md`). For a T1 starter with
-    score `X` and a T2 bench player with score `Y`: no swap = `X + 0.5Y`, swap = `0.5X + Y`. The
-    swap is decided knowing `X` but not `Y`, so you swap iff `X < E[Y]`, and the expected gain is
-    `0.5 · (E[Y] − X)⁺`. Option value of a T1 starter backed by a T2 bench player is therefore a
-    put on `X`: strike = the backup's mean `μ_Y`, notional ½. For `X ~ N(μ, σ²)`:
-    `0.5 · [(μ_Y − μ)·Φ(d) + σ·φ(d)]`, `d = (μ_Y − μ)/σ`. Checked by Monte Carlo (2M draws):
-    μ=12, σ=8, backup μ=10 → +1.14 PIR; σ=2 → +0.08. Higher σ on T1 is what buys value.
-  - *Why the strategy-doc recipe is not the one to use.* It hardcodes τ = 10 as both the bench
-    cutoff and the replacement score, drops the 50% haircut (a benched `X` still counts 0.5X and the
-    backup only goes 50% → 100%), and gives the option to every T1 starter whether or not a T2
-    bench player exists. It overstates: μ=12, σ=8 → +2.29 by its own formula (the doc prints +2.85)
-    vs +1.14 under the rules; σ=2 → +0.17 vs +0.08. The cutoff is not really arbitrary — it is the
-    backup's expected score, i.e. fixed by the lineup, not by a constant.
-  - *Consequence for modelling.* The value belongs to a (T1 starter, T2 bench) pair, not to a
-    player, so a per-player coefficient can only approximate it. Options, cheapest first:
-    1. Per-player put with a fixed benchmark strike (e.g. mean of the T2 bench tier), written to
-       `exp_pir_adj` upstream — no model change.
-    2. Pairwise term: precompute `v_ij = 0.5·E[(μ_j − X_i)⁺]` for every T1 `i` / T2 `j`, add
-       assignment vars `a_ij ≤ y_start_i`, `a_ij ≤ y_bench_j` (each `i` and `j` used at most once),
-       objective `+ Σ v_ij·a_ij`. Still a MILP; conservative, since real recourse can re-match subs
-       after seeing every T1 result.
-    3. Scenario-based two-stage model (sample T1 outcomes, swap recourse per scenario): closest to
-       the game, grows with the scenario count.
-  - *New inputs.* A per-player spread (`pir_std`, or PIR p10/p50/p90 from the LightGBM plan in the
-    strategy doc); not in the input contract yet.
-  - *Rules to confirm before building.* (a) Swapping a starter with the 6th man: does the
-    swapped-out starter drop to 50% or take the 100% 6th-man slot? If the latter the option is
-    cheaper and larger and the bench is not the relevant backup. (b) The captain can be reassigned
-    between turns to a starter who has not played: a T1 captain flop moved to a T2 starter is an
-    extra ×2 option on the captain slot. (c) T3 rounds allow a second swap step.
-  - *Validate first.* A Monte Carlo round simulator (as the strategy doc suggests) should show the
-    chosen approach beats the no-option baseline before it goes into the objective.
+- **`TURN1` / `TURN2` are built but unused.** Real rounds can have a T3 (up to 3 game dates seen in
+  `schedule_E2026.csv`), which sits in neither set. Superseded by the general `turn_i < turn_j`
+  pairing in the option-value attempt below (not tied to exactly two named turns) — extend or drop
+  once that work resumes.
+- **Option value — mechanics confirmed, formulation designed, implementation attempted and
+  reverted on a performance blow-up.** Full design in `specs/spec-optimizer-option-value.md`
+  (status: deferred, not implemented — kept as the starting point, not as ready-to-build).
+  Summary for whoever picks this up next:
+  - *Confirmed mechanics (both rules questions from the previous round of this deferral are now
+    answered).* Two independent between-turn option types: (1) **bench↔active swap** — a T1 active
+    player (starter or 6th man, both 100%) can be swapped for a not-yet-played bench player (50%);
+    value is a put on the T1 player's score, strike = the bench player's mean, notional ½. (2)
+    **captain move** — the captain bonus can move to any not-yet-played starter (must remain one of
+    the starting five); same put shape, notional 1 (bigger, since the full ×2 bonus relocates, not
+    just a 50%→100% swing). Monte Carlo-verified formulas and reference values are in the spec.
+  - *Why it's not shipped.* The natural MILP encoding — a continuous assignment variable per
+    `(i, j)` pair with `turn_i < turn_j`, bounded per-pair (`a[i,j] <= y_active[i]`, `a[i,j] <=
+    y_bench[j]`, plus separate at-most-one-use constraints) — produces `O(n²)` variables and
+    constraint rows. At the ~700-candidate realistic-size benchmark this was ~115k pairs, ~460k
+    constraint rows, and HiGHS did not finish solving in 10+ minutes (killed, not viable for a
+    tool meant to run once per round).
+  - *A promising alternative, not yet built.* Replacing the per-pair bounds with one aggregated sum
+    per player — `sum_j a[i,j] <= y_active[i]`, `sum_i a[i,j] <= y_bench[j]` (and the equivalent
+    pair for the captain-move `z[i,k]`) — is mathematically equivalent, not an approximation: with
+    binary `y`/`c` capacities on both sides and non-negative objective coefficients (put values are
+    never negative), this is a bipartite transportation/assignment LP, and that polytope is totally
+    unimodular, so the LP optimum is automatically integral with no separate at-most-one
+    constraints needed. Measured on the same ~700-row scale: ~1.4k constraint rows, solves to proven
+    optimality in ~47s. Start here next time, with the realistic-size pass criterion raised from
+    30s to ~60s (this cost is permanent once shipped — the pair machinery is built regardless of
+    whether `pir_std` is populated, so every future run pays it, not just a stress test).
+    *Exact repro parameters* (the scratch scripts themselves lived in a background job's tmp dir
+    and are gone): synthetic 680-row universe, seed 7, `turn` in `{1, 2}`, `pir_std` drawn
+    `U(2, 10)` per row, `cash=1.5`, `max_trades=4`, `credit_value=3.0` — spec-shaped model: 115,466
+    pairs, ~460k constraint rows, build 1.7s, solve killed after 10+ min; aggregated model: same
+    115,466 pairs, ~1.4k constraint rows, solved in 47.2s to objective 241.66 (active 228.20 +
+    option 8.22 + growth).
+  - *A lossy fallback, only if 47s ever isn't enough at larger scale.* Top-K pruning (keep only each
+    donor's top-K receivers by value) — faster, but changes answers, so it's a scope decision for
+    whoever revisits this, not a default.
+  - *A bug in the deferred spec, for whoever fixes it up before building.* The spec's Report section
+    claims "`pir_std` absent means `option_value` is 0.0 and the term is inert" — false. At `sd=0`
+    the put value's deterministic limit is `notional * max(strike − mean, 0)`, which the starting
+    formation's constraints can force positive even with zero spread data. Keep the formula (it's
+    correct and tested), fix the wording, and scope the brute-force equivalence test to all-`turn=1`
+    universes where the terms are genuinely inert.
+  - *Accepted, still-standing approximation.* The two option types are modelled as independent
+    additive terms; a player can be valued as both a bench-swap donor and a captain-move donor in
+    one solve, which the real game's turn sequencing can't actually deliver simultaneously.
+    Confirmed acceptable for now — fixing it needs per-turn state (a scenario/two-stage model).
+  - *Validate first, once built.* A Monte Carlo round simulator should show the chosen approach
+    beats the no-option baseline before it goes into the objective for real.
