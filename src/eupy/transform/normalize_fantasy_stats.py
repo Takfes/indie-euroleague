@@ -5,21 +5,21 @@ Two changes to `fantasy_stats/players.csv`, everything else passes through uncha
 columns, same row order):
 
 * `name` -- the abbreviated `"C. Jones"` is replaced by the full name from
-  `fantasy_stats_player_crosswalk` (looked up by `player_id`, so same-abbreviation players at
+  `fantasy_stats_player_name_crosswalk` (looked up by `player_id`, so same-abbreviation players at
   different clubs stay distinct). Rows the crosswalk closed as `no_match` / `rejected` keep the
   original abbreviated name.
 * `position` -- `Guard` / `Forward` / `Center` become `G` / `F` / `C`, the role letters used by
   `basketballsphere_prices` and the optimizer input.
 
 Fails loudly if any `player_id` is missing from the crosswalk or still open (`needs_review` /
-`no_candidate`): run `resolve_fantasy_stats_names.py` (and record verdicts) first, so a stale
+`no_candidate`): run `resolve_fantasy_stats_player_names.py` (and record verdicts) first, so a stale
 crosswalk can never leak abbreviated names into the normalized dataset.
 
 Usage:
     python src/eupy/transform/normalize_fantasy_stats.py [--players PATH] [--crosswalk PATH] [--out PATH]
 
 Inputs: fantasy_stats/players -- data/raw_data/fantasy_stats/players.csv;
-    fantasy_stats_player_crosswalk -- data/stage_01/fantasy_stats_player_crosswalk.csv.
+    fantasy_stats_player_name_crosswalk -- data/stage_01/fantasy_stats_player_name_crosswalk.csv.
 Outputs: fantasy_stats_players_normalized -- data/stage_02/fantasy_stats_players_normalized.csv
     (overwritten each run).
 Final: true -- exposed under data/stage_99/ as a relative symlink.
@@ -33,7 +33,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PLAYERS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
-CROSSWALK_PATH = REPO_ROOT / "data" / "stage_01" / "fantasy_stats_player_crosswalk.csv"
+CROSSWALK_PATH = REPO_ROOT / "data" / "stage_01" / "fantasy_stats_player_name_crosswalk.csv"
 OUT_PATH = REPO_ROOT / "data" / "stage_02" / "fantasy_stats_players_normalized.csv"
 
 POSITION_ROLES = {"Guard": "G", "Forward": "F", "Center": "C"}

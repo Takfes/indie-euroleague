@@ -9,7 +9,7 @@ import pytest
 
 from eupy.transform.normalize_fantasy_stats import load_name_map, normalize_rows
 
-HEADER = ["player_id", "name", "team", "resolved_name", "match_status", "match_score", "matched_by", "source", "notes"]
+HEADER = ["player_id", "name", "team", "resolved_name", "match_status", "match_score", "matched_by", "notes"]
 
 
 def _write_crosswalk(path: Path, rows: list[tuple[str, str, str, str]]) -> Path:
@@ -17,7 +17,7 @@ def _write_crosswalk(path: Path, rows: list[tuple[str, str, str, str]]) -> Path:
         writer = csv.writer(f)
         writer.writerow(HEADER)
         for player_id, name, resolved, status in rows:
-            writer.writerow([player_id, name, "T", resolved, status, "", "", "", ""])
+            writer.writerow([player_id, name, "T", resolved, status, "", "", ""])
     return path
 
 

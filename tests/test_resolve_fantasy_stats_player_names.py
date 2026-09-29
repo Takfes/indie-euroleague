@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from eupy.entity.resolve_fantasy_stats_names import (
+from eupy.entity.resolve_fantasy_stats_player_names import (
     FANTASY_TEAM_CLUBS,
     abbreviate_name,
     abbreviated_pool,
@@ -39,9 +39,9 @@ def test_same_abbreviation_at_different_clubs_resolves_by_club() -> None:
         [_player("1", "C. Jones", "PAR"), _player("2", "C. Jones", "CZV")], prices, {}, existing={}
     )
 
-    assert [(r["resolved_name"], r["match_status"], r["source"]) for r in crosswalk] == [
-        ("Carlik Jones", "exact", "prices"),
-        ("Chris Jones", "exact", "prices"),
+    assert [(r["resolved_name"], r["match_status"]) for r in crosswalk] == [
+        ("Carlik Jones", "exact"),
+        ("Chris Jones", "exact"),
     ]
 
 
@@ -59,7 +59,7 @@ def test_boxscore_hit_is_never_auto_accepted_and_is_title_cased() -> None:
 
     row = build_row(_player("1", "B. Caboclo", "HTA"), {}, boxscore)
 
-    assert (row["match_status"], row["source"], row["resolved_name"]) == ("needs_review", "boxscore", "Bruno Caboclo")
+    assert (row["match_status"], row["resolved_name"]) == ("needs_review", "Bruno Caboclo")
 
 
 def test_unknown_player_ends_as_no_candidate() -> None:
@@ -79,7 +79,6 @@ def test_verdict_resolved_rows_are_carried_over_unchanged() -> None:
             "match_status": "confirmed",
             "match_score": "",
             "matched_by": "agent",
-            "source": "web",
             "notes": "ok",
         }
     }
@@ -99,7 +98,6 @@ def _open_rows() -> dict[str, dict[str, str]]:
             "match_status": "no_candidate",
             "match_score": "",
             "matched_by": "fuzzy",
-            "source": "",
             "notes": "",
         }
     }

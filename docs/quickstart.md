@@ -58,19 +58,19 @@ Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-
 | `resolve_team_names.py` | Builds/refreshes `team_name_crosswalk.csv` (club names). |
 | `apply_team_name_verdicts.py` | Applies agent verdicts to the team crosswalk. |
 | `team_crosswalk.py` | `TeamNameCrosswalk` — read-only lookup class. |
-| `resolve_fantasy_stats_names.py` | Builds/refreshes `fantasy_stats_player_crosswalk.csv` (fantasy stats `"C. Jones"` + club code → full name, keyed by `player_id`); `--verdicts PATH` applies agent verdicts. |
+| `resolve_fantasy_stats_player_names.py` | Builds/refreshes `fantasy_stats_player_name_crosswalk.csv` (fantasy stats `"C. Jones"` + club code → full name, keyed by `player_id`); `--verdicts PATH` applies agent verdicts. |
 
 Regenerate: `uv run python src/eupy/entity/resolve_player_names.py` (or `resolve_team_names.py`). Full exact→fuzzy→agent flow: `resolve-player-names` / `resolve-team-names` skills.
 
 Normalize the fantasy stats table (full names via the crosswalk, `Guard`/`Forward`/`Center` → `G`/`F`/`C`; refuses to run while any crosswalk row is open):
 
 ```bash
-uv run python src/eupy/entity/resolve_fantasy_stats_names.py    # after fetch_euroleague_fantasy_stats.py; new players show up as needs_review/no_candidate
-uv run python src/eupy/entity/resolve_fantasy_stats_names.py --verdicts verdicts.json   # record verdicts for those rows
+uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py    # after fetch_euroleague_fantasy_stats.py; new players show up as needs_review/no_candidate
+uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py --verdicts verdicts.json   # record verdicts for those rows
 uv run python src/eupy/transform/normalize_fantasy_stats.py
 ```
 
-Writes `data/stage_01/fantasy_stats_player_crosswalk.csv` and `data/stage_02/fantasy_stats_players_normalized.csv` (both symlinked in `data/stage_99/`).
+Writes `data/stage_01/fantasy_stats_player_name_crosswalk.csv` and `data/stage_02/fantasy_stats_players_normalized.csv` (both symlinked in `data/stage_99/`).
 
 ## Dev loop
 
