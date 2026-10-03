@@ -167,3 +167,13 @@ irreplaceable git-ignored files, not in use). Safe items come with manual
 commands; blocked ones come with the reason. `make tidy ARGS=--yes` skips the
 prompt and reports what it could not delete; `ARGS=--dry-run` never deletes.
 It also flags branches/worktrees that break the `<type>/<short-name>` naming.
+
+## Stuck in a git mess (diverged, conflicts, wrong branch)
+
+Ask Claude Code about it (the `branch-rescue` skill): it diagnoses read-only,
+explains what happened and why, gives the fix as explained commands that follow
+your `CLAUDE.md` rules, and can take over execution when you say so. The
+diagram it uses (local vs remote tracks, predicted merge) can also be made
+directly: `uv run python src/eupy/devtools/branch_rescue.py --fetch --html --open`
+(JSON snapshot without `--html`; `--against origin/main` for a drifted branch).
+The page is written under `.git/`, so it is never tracked.
