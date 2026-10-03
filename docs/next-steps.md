@@ -18,6 +18,24 @@ Deferred work, off the critical path.
   with run buttons per pipeline (`dvc repro <pipeline>`, log streaming, fresh/stale colouring from
   `dvc status`). Human-gated steps would show "waiting for verdicts" instead of a button. Deferred
   until the static viewer proves useful; a terminal `eupy run <pipeline>` covers most of the value.
+- **Recoverability of untracked data.** `data/` is structure-only in git (derived outputs are
+  fingerprinted in `dvc.lock`, no remote). Live-fetched raw data is not reproducible from a clone
+  and nothing stores the bytes. If that ever bites, add a DVC remote (local dir or object store)
+  and switch outs to `cache: true`; until then keep local backups of `data/raw_data/`.
+- **Registry lint: every dataset directory carries a `.gitkeep`** (so a fresh clone has the
+  skeleton the scripts write into).
+- **Short canonical source labels in headers** (graph/HTML source nodes currently carry long
+  free-text `Sources:` lines, with near-duplicates such as the two `--verdicts` variants and two
+  live.euroleague.net variants).
+- **Structured `Notes:`** (multi-paragraph / lists) — the column notes read as dense paragraphs.
+- **Pipeline boxes in the HTML map**, a generic hue when stages exceed the palette, clearer routing
+  for long edges.
+- **Verdict batches: ingest edge cases.** Two concurrent ingests can pick the same sequence number
+  (order stays deterministic by file name); file names assume < 10000 batches (4-digit prefix); a
+  typo'd key is accepted at ingest and only shows up as a skipped-verdict count; pruning stale
+  verdicts is undecided.
+- **Rebuild tests need the git-ignored raw snapshot** and skip without it, so CI would not run them.
+  Decide whether CI gets a (small, synthetic) raw fixture or stays local-only.
 - **Scripts resolve paths through the registry.** Scripts keep hardcoding their `data/...` paths;
   the registry only lints declared paths against computed stages. Migrating scripts to
   `registry.path("<dataset>")` would make a stage renumber a pure re-run (no file edits).

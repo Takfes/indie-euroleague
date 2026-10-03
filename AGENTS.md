@@ -111,7 +111,8 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 
 ## Data
 
-- Raw: `data/raw_data/<source>/` — git-ignored.
+- Raw: `data/raw_data/<source>/`.
+- Git versions only the `data/` skeleton (`.gitkeep`) plus an explicit allow-list in `.gitignore` (today: `data/curated/**`, the verdict batches — judgements not derivable from raw data). Everything else under `data/` is git-ignored; derived outputs are fingerprinted by the committed `dvc.lock` and rebuilt with `eupy run`.
 - Every script declares its inputs, outputs and `final` flag in its header.
 - Produced: `data/stage_XX/` (01, 02, …). Stage = max(input stages) + 1 — no dependencies within a stage.
 - Stage is computed from script I/O headers, never hand-assigned. Refer to datasets by **name**; stage numbers are display-only and may shift.
