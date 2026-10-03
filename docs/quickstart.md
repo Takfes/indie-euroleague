@@ -173,10 +173,15 @@ conversationally.
 
 ## Cleaning up after PRs merge
 
-`make tidy` (bash, inline in the `Makefile`; needs an authenticated `gh`) lists
+`make clean-git` (bash, inline in the `Makefile`; needs an authenticated `gh`) lists
 merged task worktrees, local/remote branches and stale lock files, asks once,
 then deletes the safe ones (merged PR at the exact branch tip, clean, no
 irreplaceable git-ignored files, not in use). Safe items come with manual
-commands; blocked ones come with the reason. `make tidy ARGS=--yes` skips the
+commands; blocked ones come with the reason. `make clean-git ARGS=--yes` skips the
 prompt and reports what it could not delete; `ARGS=--dry-run` never deletes.
 It also flags branches/worktrees that break the `<type>/<short-name>` naming.
+
+`make clean-cache` removes rebuildable caches (`__pycache__`, `.ruff_cache`, `.pytest_cache`,
+`.mypy_cache`, `.hypothesis`, `.ipynb_checkpoints`, `htmlcov`, `.coverage`, `.DS_Store`) and skips
+`.venv`, `.git` and `.claude` (so other task worktrees are untouched). `make clean-all` runs
+`clean-cache` then `clean-git` (`ARGS` passes through to `clean-git`).

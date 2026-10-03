@@ -20,7 +20,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Run: `uv run python src/eupy/<module>.py` (e.g. `fetchers/fetch_euroleague_live_boxscores.py`)
 - Test: `uv run pytest`
 - Lint/format: `ruff check src tests` · `ruff format --check src tests`
-- Tidy leftovers after PRs merge (worktrees, branches, stale locks): `make tidy` (summary, then asks) · `make tidy ARGS=--yes` (delete all safe items, report the rest) · `make tidy ARGS=--dry-run`
+- Cleanup: `make clean-all` = `clean-cache` (pycache/ruff/pytest/mypy caches, `.DS_Store`; skips `.venv`/`.git`/`.claude`) + `clean-git`. Git leftovers after PRs merge (worktrees, branches, stale locks): `make clean-git` (summary, then asks) · `make clean-git ARGS=--yes` (delete all safe items, report the rest) · `make clean-git ARGS=--dry-run`
 
 ## Communication
 
@@ -36,7 +36,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 
 1. Plan → spec (`specs/spec-<short-name>.md`): goal, scope, pass criteria.
 2. Spec → tickets.
-3. Per ticket: implement → verify against pass criteria → PR → merge → `make tidy`.
+3. Per ticket: implement → verify against pass criteria → PR → merge → `make clean-git`.
 
 ## Definition of done
 
@@ -47,7 +47,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - [ ] Script I/O headers current; catalogue + graph regenerated
 - [ ] Docs/specs updated; deferrals proposed and, once confirmed, logged in `docs/next-steps.md`
 - [ ] New functionality noted (briefly) in the relevant `docs/quickstart.md` section
-- [ ] Once the PR is merged: `make tidy` reports nothing left for this task (until then, the branch/worktree is "pending cleanup")
+- [ ] Once the PR is merged: `make clean-git` reports nothing left for this task (until then, the branch/worktree is "pending cleanup")
 
 ## Subagents
 
@@ -76,7 +76,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
   - Branch: `<type>/<short-name>` — `type` ∈ `feat`/`fix`/`chore`/`refactor`/`test`/`docs`; `short-name` lowercase kebab-case (e.g. `feat/optimizer-config`).
   - Worktree dir: `.claude/worktrees/<type>+<short-name>` (the `/` becomes `+`).
   - Always call `EnterWorktree` with an explicit `name` of `<type>/<short-name>`, then **immediately** rename the auto-generated branch: `git branch -m worktree-<type>+<short-name> <type>/<short-name>`. No `worktree-*` branch ever gets committed to or pushed.
-  - `make tidy` flags any branch or worktree dir that breaks this.
+  - `make clean-git` flags any branch or worktree dir that breaks this.
 - Conventional commits (`feat`/`fix`/`chore`/`refactor`/`test`/`docs`). Flag when splitting into more commits would give cleaner history.
 - Merging into main always needs my explicit go-ahead beforehand — not a report that it already happened — unless I've told you upfront to go straight through to merge.
 - Delivery mode — **default: remote** (overrides any global local-merge default), for interactive and background sessions alike.
@@ -84,15 +84,15 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
   - `local` (only when I say so, per task): main agent merges into local `main` directly, only from an interactive session in the primary checkout, via `make merge-worktree` or the `merge-worktree` skill.
 - Before merging, or opening/updating a PR: check the target checkout's `git status`. Foreign uncommitted work (not part of this task) → stop and ask; never stash, discard, or merge over it.
 - A branch that's drifted from main (e.g. a rename/refactor landed on main after the branch forked) merges main into itself first and resolves conflicts there — including redoing any mechanical refactor main introduced — before merging into main or opening/updating the PR.
-- After merge: run `make tidy` — it deletes the task branch (local + remote) and its worktree, plus stale locks, only when a merged PR matches the branch tip and it is clean, holds no irreplaceable git-ignored files (e.g. `data/raw_data/`) and is not in use (needs authenticated `gh`). Safe items come with manual commands; anything blocked is reported with a reason (dirty/ignored-data worktrees get a `--force` hint). Never force-delete around it without my go-ahead.
-  - `remote`: the merge happens on GitHub, so cleanup is a separate later step; `local`: `merge-worktree` already cleans up its own branch/worktree, `make tidy` catches the rest.
-  - Start of an interactive session: run `make tidy ARGS=--dry-run` and surface leftovers (background jobs can't clean up after themselves).
+- After merge: run `make clean-git` — it deletes the task branch (local + remote) and its worktree, plus stale locks, only when a merged PR matches the branch tip and it is clean, holds no irreplaceable git-ignored files (e.g. `data/raw_data/`) and is not in use (needs authenticated `gh`). Safe items come with manual commands; anything blocked is reported with a reason (dirty/ignored-data worktrees get a `--force` hint). Never force-delete around it without my go-ahead.
+  - `remote`: the merge happens on GitHub, so cleanup is a separate later step; `local`: `merge-worktree` already cleans up its own branch/worktree, `make clean-git` catches the rest.
+  - Start of an interactive session: run `make clean-git ARGS=--dry-run` and surface leftovers (background jobs can't clean up after themselves).
 
 ## Background jobs
 
 - Isolate in a worktree. Sandbox reaches the worktree and the remote (commit and push both work; opening a PR too, under `remote`), but never the shared main checkout — not before isolating, not after, not even for the merge step itself.
 - Finish by pushing the branch, then: under `remote` (default), open the PR and report its URL; under `local`, report the branch as ready for `merge-worktree`.
-- Final report also lists the branch + worktree as **pending cleanup** (run `make tidy` once the PR is merged, from an interactive session).
+- Final report also lists the branch + worktree as **pending cleanup** (run `make clean-git` once the PR is merged, from an interactive session).
 - Only an interactive session can run `merge-worktree` (a background job never can) — via `make merge-worktree` from a terminal, or the `merge-worktree` skill in an interactive Claude Code session; both prompt for a branch when more than one task worktree exists, stage the merge for review, and — once approved — commit and clean up the branch/worktree automatically.
 - No `git fetch` needed first: worktrees of the same repo share one object store, so a branch committed in any worktree is already visible from the primary checkout.
 

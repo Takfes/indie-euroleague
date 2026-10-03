@@ -29,10 +29,12 @@ clean-build: ## Clean build artifacts
 	@uv run python -c "import shutil; import os; shutil.rmtree('dist') if os.path.exists('dist') else None"
 
 .PHONY: clean-cache
-clean-cache: ## Remove Python/ruff/pytest caches
-	@echo "🚀 Removing __pycache__, .ruff_cache, .pytest_cache"
-	@find . -type d -name '__pycache__' -not -path './.venv/*' -exec rm -rf {} +
-	@rm -rf .ruff_cache .pytest_cache
+clean-cache: ## Remove rebuildable caches (__pycache__, .ruff_cache, .pytest_cache, .mypy_cache, ...); skips .venv, .git, .claude
+	@echo "🚀 Removing Python/tool caches and .DS_Store"
+	@find . \( -path ./.venv -o -path ./.git -o -path ./.claude \) -prune -o \
+		\( -type d \( -name __pycache__ -o -name .ruff_cache -o -name .pytest_cache -o -name .mypy_cache \
+			-o -name .hypothesis -o -name .ipynb_checkpoints -o -name htmlcov \) -exec rm -rf {} + \) -o \
+		\( -type f \( -name .coverage -o -name .DS_Store \) -exec rm -f {} + \)
 
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
@@ -89,7 +91,7 @@ merge-worktree: ## Merge a finished task branch into main and clean up its workt
 	echo "Done: '$$branch' merged, pushed, and cleaned up."
 
 define TIDY_SCRIPT
-# tidy: summarise and remove leftovers after PRs merge -- task worktrees, local/remote branches,
+# clean-git: summarise and remove leftovers after PRs merge -- task worktrees, local/remote branches,
 # stale scheduler lock. Args: --yes (no prompt), --dry-run (never delete). Needs bash >= 3.2, git, gh.
 #
 # An item is SAFE only if a PR from that branch was MERGED at exactly the branch tip and none is
@@ -106,13 +108,13 @@ for a in "$$@"; do
   case "$$a" in
     --yes|-y) YES=1 ;;
     --dry-run) DRY=1 ;;
-    *) echo "tidy: unknown argument '$$a' (use ARGS=--yes or ARGS=--dry-run)" >&2; exit 2 ;;
+    *) echo "clean-git: unknown argument '$$a' (use ARGS=--yes or ARGS=--dry-run)" >&2; exit 2 ;;
   esac
 done
 
 US=$$'\037'                       # field separator for records (non-whitespace: keeps empty fields)
 NAME_RE='^(feat|fix|chore|refactor|test|docs)/[a-z0-9]+(-[a-z0-9]+)*$$'
-here=$$(git rev-parse --show-toplevel 2>/dev/null) || { echo "tidy: not inside a git repo" >&2; exit 2; }
+here=$$(git rev-parse --show-toplevel 2>/dev/null) || { echo "clean-git: not inside a git repo" >&2; exit 2; }
 WORK=$$(mktemp -d)
 trap 'rm -rf "$$WORK"' EXIT
 ITEMS="$$WORK/items"; PRS="$$WORK/prs"; WTS="$$WORK/wts"
@@ -308,9 +310,12 @@ fi
 endef
 export TIDY_SCRIPT
 
-.PHONY: tidy
-tidy: ## Summarise + delete merged worktrees/branches/stale locks (ARGS=--yes: no prompt, ARGS=--dry-run: no delete)
-	@bash -c "$$TIDY_SCRIPT" tidy $(ARGS)
+.PHONY: clean-git
+clean-git: ## Summarise + delete merged worktrees/branches/stale locks (ARGS=--yes: no prompt, ARGS=--dry-run: no delete)
+	@bash -c "$$TIDY_SCRIPT" clean-git $(ARGS)
+
+.PHONY: clean-all
+clean-all: clean-cache clean-git ## Run clean-cache, then clean-git (ARGS passes through to clean-git)
 
 .PHONY: help
 help:

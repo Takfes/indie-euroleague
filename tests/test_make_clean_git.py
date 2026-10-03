@@ -1,8 +1,8 @@
-"""Tests for the `make tidy` Makefile target, run end to end against real throwaway git repos.
+"""Tests for the `make clean-git` Makefile target, run end to end against real throwaway git repos.
 
 `gh` is replaced by a fake executable (via the `GH` env var) that prints canned PR rows, so no
 network is touched. Each test builds a primary checkout with task worktrees under
-`.claude/worktrees/` and asserts on `make tidy`'s output and on what survives on disk.
+`.claude/worktrees/` and asserts on `make clean-git`'s output and on what survives on disk.
 """
 
 from __future__ import annotations
@@ -87,7 +87,7 @@ def branches(repo: Path) -> list[str]:
 
 
 class Tidy:
-    """Runs `make tidy` with a fake `gh` serving the given PR rows."""
+    """Runs `make clean-git` with a fake `gh` serving the given PR rows."""
 
     def __init__(self, repo: Path, tmp_path: Path) -> None:
         self.repo = repo
@@ -114,13 +114,13 @@ class Tidy:
         self.prs(*[(n, "MERGED", tip(self.repo, n)) for n in names])
 
     def run(self, *args: str, cwd: Path | None = None, gh_fails: bool = False) -> subprocess.CompletedProcess[str]:
-        """Invoke `make tidy ARGS='<args>'` (no tty, so prompts are never reached)."""
+        """Invoke `make clean-git ARGS='<args>'` (no tty, so prompts are never reached)."""
         env = {**os.environ, **GIT_ENV, "GH": str(self.gh), "FAKE_GH_ROWS": str(self.rows)}
         env.pop("FAKE_GH_FAIL", None)
         if gh_fails:
             env["FAKE_GH_FAIL"] = "1"
         return subprocess.run(  # noqa: S603
-            ["make", "-s", "-f", str(MAKEFILE), "tidy", f"ARGS={' '.join(args)}"],  # noqa: S607
+            ["make", "-s", "-f", str(MAKEFILE), "clean-git", f"ARGS={' '.join(args)}"],  # noqa: S607
             cwd=cwd or self.repo,
             env=env,
             stdin=subprocess.DEVNULL,
@@ -414,3 +414,34 @@ def test_yes_deletes_what_is_safe_and_reports_what_was_kept(repo: Path, tidy: Ti
 def test_unknown_argument_is_rejected(tidy: Tidy) -> None:
     out = tidy.run("--nope")
     assert out.returncode != 0 and "unknown argument" in out.stderr
+
+
+def test_clean_cache_removes_caches_but_spares_venv_git_and_worktrees(tmp_path: Path) -> None:
+    keep = [
+        ".venv/lib/__pycache__/x.pyc",
+        ".git/__pycache__/x.pyc",
+        ".claude/worktrees/w/__pycache__/x.pyc",
+        "src/a.py",
+    ]
+    drop = [
+        "src/__pycache__/a.pyc",
+        ".ruff_cache/x",
+        ".pytest_cache/x",
+        "pkg/.mypy_cache/x",
+        ".coverage",
+        "src/.DS_Store",
+    ]
+    for rel in keep + drop:
+        f = tmp_path / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text("x")
+    out = subprocess.run(  # noqa: S603
+        ["make", "-s", "-f", str(MAKEFILE), "clean-cache"],  # noqa: S607
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert out.returncode == 0, out.stderr
+    assert all((tmp_path / r).exists() for r in keep)
+    assert not any((tmp_path / r).exists() for r in drop)
