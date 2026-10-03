@@ -111,6 +111,19 @@ def test_cli_writes_page_and_status_degrades_gracefully(monkeypatch, capsys, tmp
     assert "no DVC status overlay" in capsys.readouterr().err
 
 
+def test_status_with_stdout_does_not_run_dvc_status(monkeypatch, capsys, tmp_path: Path) -> None:
+    (tmp_path / "pipelines.toml").write_text((REPO_ROOT / "pipelines.toml").read_text(), encoding="utf-8")
+    real = Registry.from_repo(REPO_ROOT)
+    monkeypatch.setattr(cli.Registry, "from_repo", lambda root: real)
+    calls: list[object] = []
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: calls.append(a))
+
+    assert main(["html", "--status", "--stdout", "--root", str(tmp_path)]) == 0
+
+    assert calls == []
+    assert capsys.readouterr().out.startswith("<!doctype html>")
+
+
 def test_committed_page_is_current_and_status_variant_is_ignored(repo) -> None:
     reg, pipelines, wrappers = repo
     committed = (REPO_ROOT / "docs" / "data-map.html").read_text(encoding="utf-8")

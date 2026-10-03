@@ -105,3 +105,9 @@ def test_cli_writes_file_and_stdout(tmp_path: Path, capsys: pytest.CaptureFixtur
     capsys.readouterr()
     assert main(["catalogue", "--stdout", "--root", str(tmp_path)]) == 0
     assert capsys.readouterr().out == written
+
+
+def test_committed_data_catalogue_is_fresh() -> None:
+    """docs/data-catalogue.md equals a fresh render of the real registry (regenerate: `python -m eupy.registry docs`)."""
+    fresh = render_catalogue(Registry.from_repo())
+    assert (REPO_ROOT / "docs" / "data-catalogue.md").read_text(encoding="utf-8") == fresh

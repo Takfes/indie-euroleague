@@ -17,19 +17,7 @@ Stage rules:
 * the `stage_XX` in its declared path must match, a letter suffix (`stage_01a`) being accepted when
   the numeric part matches.
 
-In-place scripts (mechanism kept, `IN_PLACE_ALLOWLIST` now empty -- nothing uses it): a script listing the same
-dataset in both `Inputs` and `Outputs` is a cycle, allowed only for allowlisted scripts. The dataset
-is recorded in the script's `in_place`, and the self-edge is dropped from the DAG and from stage
-computation:
-
-* if another script also outputs the dataset (e.g. `player_name_crosswalk` from both
-  `resolve_player_names` and `apply_player_name_verdicts`), that other script is the canonical
-  `producer` and the in-place script is an `updater` -- not a second producer. The updater keeps its
-  dataset -> script edge (it runs after the producer) and loses the script -> dataset edge;
-* otherwise the in-place script is itself the producer and loses the dataset -> script edge.
-
-Allowlisted scripts without a self-loop in their header (the `resolve_*` resolvers, which merge into
-their previous output but list only their real inputs) are plain producers.
+A dataset listed in both `Inputs` and `Outputs` of one script is a cycle and raises `CycleError`.
 """
 
 from __future__ import annotations
@@ -48,8 +36,6 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_SOURCES_PATH = Path(__file__).with_name("raw_sources.toml")
 RAW_PREFIX = "data/raw_data/"
 CURATED_PREFIX = "data/curated/"
-
-IN_PLACE_ALLOWLIST: frozenset[str] = frozenset()  # script names allowed a Inputs/Outputs self-loop (none today)
 
 _STAGE_DIR = re.compile(r"^data/stage_(\d+)([a-z]?)/")
 
@@ -82,7 +68,6 @@ class Script:
     impure: bool
     refresh: str | None
     notes: str | None
-    in_place: tuple[str, ...]  # datasets this (allowlisted) script reads and rewrites
 
 
 @dataclass(frozen=True)
@@ -94,7 +79,6 @@ class Dataset:
     stage: int
     raw: bool
     producer: str | None
-    updaters: tuple[str, ...]  # in-place scripts rewriting it after the producer
     consumers: tuple[str, ...]
     final: bool  # the producer's Final flag (False when unproduced)
     origin: str | None  # raw_sources.toml origin, for unproduced raw datasets
@@ -152,15 +136,14 @@ class Registry:
         cls,
         headers: Mapping[str, Header],
         raw_sources: RawSources,
-        allowlist: frozenset[str] = IN_PLACE_ALLOWLIST,
     ) -> Registry:
         """Build from `{repo-relative script path: Header}` and `{raw dataset name: {origin, refresh}}`.
 
         Raises `RegistryError` listing every consistency problem, `graphlib.CycleError` on a cycle.
         """
         path_of = _dataset_paths(headers)
-        scripts, problems = _scripts(headers, allowlist)
-        producer, updaters, producer_problems = _producers(scripts)
+        scripts, problems = _scripts(headers)
+        producer, producer_problems = _producers(scripts)
         problems += producer_problems + _raw_problems(path_of, scripts, raw_sources)
         if problems:
             raise RegistryError(problems)
@@ -180,7 +163,6 @@ class Registry:
                 stage=stages[ds],
                 raw=is_stage0_path(path),
                 producer=producer.get(ds),
-                updaters=updaters.get(ds, ()),
                 consumers=tuple(sorted(consumers[ds])),
                 final=scripts[producer[ds]].final if ds in producer else False,
                 origin=None if ds in producer else raw_sources[ds]["origin"],
@@ -205,7 +187,7 @@ class Registry:
         return self.datasets[name].producer
 
     def consumers(self, name: str) -> tuple[str, ...]:
-        """Scripts listing dataset `name` as an input (in-place updaters included), sorted."""
+        """Scripts listing dataset `name` as an input, sorted."""
         return self.datasets[name].consumers
 
     def upstream(self, script: str) -> tuple[str, ...]:
@@ -220,10 +202,7 @@ class Registry:
         return tuple(sorted(n.partition(":")[2] for n in seen if n.startswith("script:") and n != f"script:{script}"))
 
     def edges(self) -> tuple[tuple[str, str], ...]:
-        """Every lineage edge as sorted `(from node id, to node id)`; ids are `script:`/`dataset:`/`source:` prefixed.
-
-        In-place self-loops are not edges here (see the module doc); renderers add them from `Script.in_place`.
-        """
+        """Every lineage edge as sorted `(from node id, to node id)`; ids are `script:`/`dataset:`/`source:` prefixed."""
         return tuple(sorted((pred, node) for node, preds in self._graph.items() for pred in preds))
 
     def topo_order(self) -> tuple[str, ...]:
@@ -250,8 +229,8 @@ def _dataset_paths(headers: Mapping[str, Header]) -> dict[str, str]:
     return {name: next(iter(declared)) for name, declared in paths.items()}
 
 
-def _scripts(headers: Mapping[str, Header], allowlist: frozenset[str]) -> tuple[dict[str, Script], list[str]]:
-    """One `Script` per header, named by file stem; allowlisted self-loops recorded as `in_place`."""
+def _scripts(headers: Mapping[str, Header]) -> tuple[dict[str, Script], list[str]]:
+    """One `Script` per header, named by file stem."""
     scripts: dict[str, Script] = {}
     problems: list[str] = []
     for rel in sorted(headers):
@@ -271,32 +250,24 @@ def _scripts(headers: Mapping[str, Header], allowlist: frozenset[str]) -> tuple[
             impure=header.impure,
             refresh=header.refresh,
             notes=header.notes,
-            in_place=tuple(sorted(set(inputs) & set(outputs))) if name in allowlist else (),
         )
     return scripts, problems
 
 
-def _producers(scripts: dict[str, Script]) -> tuple[dict[str, str], dict[str, tuple[str, ...]], list[str]]:
-    """Canonical producer and in-place updaters of every written dataset (rules in the module doc)."""
+def _producers(scripts: dict[str, Script]) -> tuple[dict[str, str], list[str]]:
+    """The single producer of every written dataset; more than one writer is a problem."""
     writers: dict[str, list[str]] = defaultdict(list)
     for script in scripts.values():
         for out in script.outputs:
             writers[out].append(script.name)
     producer: dict[str, str] = {}
-    updaters: dict[str, tuple[str, ...]] = {}
     problems: list[str] = []
     for ds, names in sorted(writers.items()):
-        canonical = [s for s in names if ds not in scripts[s].in_place]
-        if len(canonical) > 1:
-            problems.append(f"dataset {ds}: produced by more than one script ({', '.join(canonical)})")
-        elif len(canonical) == 1:
-            producer[ds] = canonical[0]
-            updaters[ds] = tuple(s for s in names if s != canonical[0])
-        elif len(names) == 1:
-            producer[ds] = names[0]  # sole writer is in place: it is the producer
+        if len(names) > 1:
+            problems.append(f"dataset {ds}: produced by more than one script ({', '.join(names)})")
         else:
-            problems.append(f"dataset {ds}: only in-place updaters ({', '.join(names)}), no producer")
-    return producer, updaters, problems
+            producer[ds] = names[0]
+    return producer, problems
 
 
 def _raw_problems(path_of: dict[str, str], scripts: dict[str, Script], raw_sources: RawSources) -> list[str]:
@@ -338,13 +309,10 @@ def _sources(scripts: dict[str, Script], raw_sources: RawSources) -> dict[str, S
 def _graph(
     scripts: dict[str, Script], path_of: dict[str, str], producer: dict[str, str], raw_sources: RawSources
 ) -> dict[str, set[str]]:
-    """DAG as node -> predecessors, minus the in-place self-edges described in the module doc."""
+    """DAG as node -> predecessors."""
     graph: dict[str, set[str]] = {}
     for script in scripts.values():
-        # An in-place producer loses its dataset -> script edge; an updater loses its script -> dataset
-        # edge by simply never being a dataset's predecessor below.
-        dropped = {ds for ds in script.in_place if producer[ds] == script.name}
-        inputs = {_node("dataset", ds) for ds in script.inputs if ds not in dropped}
+        inputs = {_node("dataset", ds) for ds in script.inputs}
         graph[_node("script", script.name)] = inputs | {_node("source", s) for s in script.sources}
     for ds in path_of:
         pred = _node("script", producer[ds]) if ds in producer else _node("source", raw_sources[ds]["origin"])
@@ -378,7 +346,7 @@ def _stages(
             stages[ds] = 0
             continue
         prod = scripts[producer[ds]]
-        stages[ds] = 1 + max((stages[i] for i in prod.inputs if i not in prod.in_place), default=0)
+        stages[ds] = 1 + max((stages[i] for i in prod.inputs), default=0)
         m = _STAGE_DIR.match(path_of[ds])
         if not m or int(m.group(1)) != stages[ds]:
             declared = f"stage_{m.group(1)}{m.group(2)}" if m else "no stage_XX directory"

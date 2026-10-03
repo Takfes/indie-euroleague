@@ -44,16 +44,12 @@ def render(registry: Registry) -> str:
         lines.append(f"  {name}  [{s.path}]  {flags}")
         lines.append(f"    inputs:   {', '.join(s.inputs) or 'none'}")
         lines.append(f"    outputs:  {', '.join(s.outputs) or 'none'}")
-        if s.in_place:
-            lines.append(f"    in_place: {', '.join(s.in_place)}")
         if s.sources:
             lines.append(f"    sources:  {' | '.join(s.sources)}")
     lines += ["", "Datasets (stage, name)"]
     for d in sorted(registry.datasets.values(), key=lambda d: (d.stage, d.name)):
         lines.append(f"  [{d.stage}] {d.name}  {d.path}  final={str(d.final).lower()}")
         lines.append(f"    producer:  {d.producer or f'external: {d.origin}'}")
-        if d.updaters:
-            lines.append(f"    updaters:  {', '.join(d.updaters)}")
         lines.append(f"    consumers: {', '.join(d.consumers) or 'none'}")
         if d.refresh:
             lines.append(f"    refresh:   {d.refresh}")
@@ -91,7 +87,12 @@ def _write_html(registry: Registry, pipelines: dict, root: Path, stdout: bool, s
     try:
         wrappers = load_wrappers(root / PIPELINES_FILE)
         page = render_html(registry, pipelines, wrappers, root)
-        overlay = _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines, root)]) if status else None
+        # `--stdout` prints only the plain page, so the (slow) `dvc status` subprocess would be wasted.
+        overlay = (
+            _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines, root)])
+            if status and not stdout
+            else None
+        )
         variant = render_html(registry, pipelines, wrappers, root, overlay) if overlay else None
     except (GraphError, RegistryError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -102,7 +103,55 @@ def _write_html(registry: Registry, pipelines: dict, root: Path, stdout: bool, s
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:  # noqa: C901 -- flat subcommand dispatch
+def _load(args: argparse.Namespace) -> tuple[Registry, dict, str]:
+    """Build the registry, the checked pipelines (when the command needs them) and, for `dvc`, the rendered yaml."""
+    registry = Registry.from_repo(args.root)
+    # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
+    pipelines = (
+        checked_pipelines(registry, args.root / PIPELINES_FILE, args.root)
+        if args.command in ("check", "dvc", "graph", "docs", "html")
+        else {}
+    )
+    dvc_yaml = render_dvc(registry, pipelines, args.root) if args.command == "dvc" else ""
+    return registry, pipelines, dvc_yaml
+
+
+def _write_docs(registry: Registry, pipelines: dict, root: Path, names: list[str], stdout: bool) -> int:
+    """Render the named docs (`DOCS` keys) and then write them, so a failure never leaves the docs out of sync."""
+    rendered: list[tuple[str, str]] = []
+    for name in names:
+        filename, renderer = DOCS[name]
+        try:
+            rendered.append((filename, renderer(registry, pipelines)))
+        except GraphError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    for filename, text in rendered:
+        _emit(text, root / "docs" / filename, stdout)
+    return 0
+
+
+def _run(args: argparse.Namespace, registry: Registry, pipelines: dict, dvc_yaml: str) -> int:
+    """Execute `args.command` against an already-built registry; returns the exit code."""
+    if args.command == "show":
+        sys.stdout.write(render(registry))
+    elif args.command == "dvc":
+        _emit(dvc_yaml, args.root / "dvc.yaml", args.stdout)
+    elif args.command == "html":
+        return _write_html(registry, pipelines, args.root, args.stdout, args.status)
+    elif args.command in ("catalogue", "graph", "docs"):
+        return _write_docs(
+            registry, pipelines, args.root, list(DOCS) if args.command == "docs" else [args.command], args.stdout
+        )
+    else:
+        print(
+            f"ok: {len(registry.scripts)} scripts, {len(registry.datasets)} datasets, {len(registry.sources)} sources, "
+            f"{len(pipelines)} pipelines"
+        )
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
     """Run `check`, `show`, `catalogue`, `graph`, `docs`, `dvc` or `html`; returns the process exit code."""
     parser = argparse.ArgumentParser(prog="python -m eupy.registry", description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=["check", "show", "catalogue", "graph", "docs", "dvc", "html"])
@@ -116,47 +165,16 @@ def main(argv: list[str] | None = None) -> int:  # noqa: C901 -- flat subcommand
     args = parser.parse_args(argv)
 
     try:
-        registry = Registry.from_repo(args.root)
-        # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
-        pipelines = (
-            checked_pipelines(registry, args.root / PIPELINES_FILE, args.root)
-            if args.command in ("check", "dvc", "graph", "docs", "html")
-            else {}
-        )
-        dvc_yaml = render_dvc(registry, pipelines, args.root) if args.command == "dvc" else ""
+        loaded = _load(args)
     except RegistryError as exc:
         for problem in exc.problems:
             print(f"error: {problem}", file=sys.stderr)
         return 1
     except CycleError as exc:
         nodes = " -> ".join(exc.args[1]) if len(exc.args) > 1 else str(exc)
-        print(f"error: cycle not on the in-place allowlist: {nodes}", file=sys.stderr)
+        print(f"error: dependency cycle: {nodes}", file=sys.stderr)
         return 1
-
-    if args.command == "show":
-        sys.stdout.write(render(registry))
-    elif args.command == "dvc":
-        _emit(dvc_yaml, args.root / "dvc.yaml", args.stdout)
-    elif args.command == "html":
-        return _write_html(registry, pipelines, args.root, args.stdout, args.status)
-    elif args.command in ("catalogue", "graph", "docs"):
-        rendered: list[tuple[str, str]] = []
-        for name in DOCS if args.command == "docs" else [args.command]:
-            filename, renderer = DOCS[name]
-            try:
-                rendered.append((filename, renderer(registry, pipelines)))
-            except GraphError as exc:
-                print(f"error: {exc}", file=sys.stderr)
-                return 1
-        # Render everything before writing anything, so a failure never leaves the docs out of sync.
-        for filename, text in rendered:
-            _emit(text, args.root / "docs" / filename, args.stdout)
-    else:
-        print(
-            f"ok: {len(registry.scripts)} scripts, {len(registry.datasets)} datasets, {len(registry.sources)} sources, "
-            f"{len(pipelines)} pipelines"
-        )
-    return 0
+    return _run(args, *loaded)
 
 
 if __name__ == "__main__":

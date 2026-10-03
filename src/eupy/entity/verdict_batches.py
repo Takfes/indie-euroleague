@@ -166,11 +166,19 @@ def ingest_batch(
         Path of the written batch file.
 
     Raises:
-        ValueError: Unreadable/non-JSON/non-list/empty input, or a record violating the verdict schema.
+        ValueError: Unreadable/non-JSON/non-list/empty input, a record violating the verdict schema, or the
+            same key twice in this batch.
         FileExistsError: The target batch file already exists.
     """
     records = _read_verdict_list(verdicts_path)
-    merge_verdicts(records, key_field, target_field)  # schema validation only
+    merged = merge_verdicts(records, key_field, target_field)  # schema validation only
+    if len(merged) != len(records):
+        seen: set[str] = set()
+        dupes = sorted({k for k in (str(r[key_field]) for r in records) if k in seen or seen.add(k)})
+        raise ValueError(
+            f"{verdicts_path}: duplicate {key_field!r} within one batch: {dupes}. "
+            "A batch needs unique keys (a later batch may override an earlier one); remove the repeats and retry."
+        )
     slug = re.sub(r"[^a-z0-9]+", "-", (label or verdicts_path.stem).lower()).strip("-")
     if not slug:
         raise ValueError(f"Cannot derive a batch label from {label or verdicts_path.stem!r}; pass --label SLUG")
@@ -191,7 +199,7 @@ def ingest_batch(
 
 
 def run_ingest_cli(description: str, default_dir: Path, key_field: str, target_field: str) -> int:
-    """Shared CLI for the `apply_*_verdicts` scripts; returns the process exit code (0 ok, 1 rejected)."""
+    """Shared CLI for the `apply_*_verdicts` scripts; returns the process exit code (0 ok, 1 rejected or unwritable)."""
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--verdicts", type=Path, required=True, help="JSON file (list) of verdict records")
     parser.add_argument("--batches-dir", type=Path, default=default_dir, help="Verdict batch directory")
@@ -199,8 +207,11 @@ def run_ingest_cli(description: str, default_dir: Path, key_field: str, target_f
     args = parser.parse_args()
     try:
         path = ingest_batch(args.verdicts, args.batches_dir, key_field, target_field, label=args.label)
-    except (ValueError, FileExistsError) as exc:
+    except ValueError as exc:
         print(f"Rejected, nothing written: {exc}", file=sys.stderr)
+        return 1
+    except OSError as exc:  # incl. FileExistsError; e.g. over-long --label, unwritable directory
+        print(f"error: cannot write batch ({exc}); nothing written. Check --label and --batches-dir.", file=sys.stderr)
         return 1
     print(f"Wrote {path}")
     return 0

@@ -109,11 +109,11 @@ uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.to
 
 - `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `verdict_batches.py`, `*_crosswalk.py`, `player_sources.py`, `live_append.py`, `live_euroleague.py` exempt), a pipeline script importing another script (shared code goes in a library module), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
 - `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
-- `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws (plus in-place self-loops).
+- `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws.
 - `html` renders `docs/data-map.html`: an interactive lineage map (one self-contained file, open it from disk, no server). Same nodes/colours as the graph; pipeline/wrapper filter dims everything else; click a node for path, inputs/outputs, pipeline, docstring paragraph, `Notes`. Not part of `docs` (regenerate it when headers or `pipelines.toml` change). `html --status` also writes the git-ignored `docs/data-map.status.html` with DVC fresh/stale marks from `dvc status`.
 - Stage: under `data/raw_data/` or `data/curated/` = 0 (curated dirs are written by the impure `apply_*` ingest scripts); otherwise `max(input stages) + 1`.
 - In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
-- No script may list a dataset as both input and output (`IN_PLACE_ALLOWLIST` is empty; the mechanism is kept only for tests).
+- No script may list a dataset as both input and output (any dependency cycle is rejected).
 
 ## Data layout
 

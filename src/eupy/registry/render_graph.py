@@ -2,8 +2,7 @@
 
 Nodes: external sources (stadium), scripts (rectangle), datasets (cylinder). Ids are `x_<source>`,
 `s_<script>`, `d_<dataset>` with the full name sanitized to `[A-Za-z0-9_]`; two names that sanitize to the
-same id raise `GraphError`. Edges are exactly `Registry.edges()` plus the self-loop of each in-place
-(allowlisted) script (dataset -> script -> dataset), drawn until ticket 8 removes those scripts.
+same id raise `GraphError`. Edges are exactly `Registry.edges()`.
 
 Pipelines (optional `pipelines` argument, from `pipelines.toml`): one `subgraph p_<pipeline>["<pipeline>"]` per
 pipeline, sorted by name, holding that pipeline's script nodes. Sources and datasets stay outside. Subgraph
@@ -48,7 +47,6 @@ BANNER = (
     "neutral with a stroke in the hue of their highest output stage; external sources are gray). "
     "Boxes group scripts by pipeline (`pipelines.toml`). "
     "`★` + thick border = `final` dataset (exposed under `data/stage_99/`). "
-    "A script with a loop back to its own dataset rewrites it in place. "
     "Inventory: [data-catalogue.md](data-catalogue.md).\n"
 )
 
@@ -120,7 +118,7 @@ class GraphModel:
 
     `ids`: registry node id (`source:`/`script:`/`dataset:` prefix) -> graph id. `decl`: node -> `(Mermaid
     declaration, class)` in output order. `classes`: class -> Mermaid style string. `edges`: sorted
-    `(from, to)` registry node pairs -- `Registry.edges()` plus the self-loop of each in-place script.
+    `(from, to)` registry node pairs -- `Registry.edges()`.
     """
 
     ids: dict[str, str]
@@ -135,9 +133,6 @@ def build_model(reg: Registry) -> GraphModel:
     decl, classes = _declarations(reg, ids)
 
     edges = set(reg.edges())
-    for name, script in reg.scripts.items():
-        for ds in script.in_place:
-            edges |= {(f"dataset:{ds}", f"script:{name}"), (f"script:{name}", f"dataset:{ds}")}
 
     members: dict[str, list[str]] = {}
     for node, (_, cls) in decl.items():

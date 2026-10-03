@@ -7,7 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from eupy.entity.verdict_batches import apply_verdicts, ingest_batch, load_batches, merge_verdicts, write_batch
+from eupy.entity.verdict_batches import (
+    apply_verdicts,
+    ingest_batch,
+    load_batches,
+    merge_verdicts,
+    run_ingest_cli,
+    write_batch,
+)
 
 
 def _verdict(name: str, status: str = "no_match", notes: str = "n", **extra: str) -> dict[str, str]:
@@ -188,6 +195,7 @@ def test_ingest_batch_ingested_files_are_loadable_by_load_batches(tmp_path: Path
         ([_verdict("A", "rejected", boxscore_name="X")], "only allowed on"),
         ([{"name": "A", "match_status": "no_match"}], "no notes"),
         ([_verdict("A"), _verdict("B", "needs_review")], "match_status"),  # one bad record poisons the file
+        ([_verdict("A"), _verdict("B"), _verdict("A")], r"duplicate 'name' within one batch: \['A'\]"),
     ],
 )
 def test_ingest_batch_rejects_invalid_input_and_writes_nothing(tmp_path: Path, payload: object, message: str) -> None:
@@ -230,3 +238,17 @@ def test_ingest_batch_does_not_check_keys_against_data_and_supports_player_id_ke
     out = ingest_batch(_input(tmp_path, records), tmp_path / "b", "player_id", "resolved_name", today="d")
 
     assert json.loads(out.read_text(encoding="utf-8"))["verdicts"] == records
+
+
+def test_cli_overlong_label_exits_1_with_error_line_not_a_traceback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    batches = tmp_path / "batches"
+    argv = ["prog", "--verdicts", str(_input(tmp_path, [_verdict("A")])), "--batches-dir", str(batches)]
+    monkeypatch.setattr("sys.argv", [*argv, "--label", "x" * 300])
+
+    assert run_ingest_cli("d", batches, "name", "boxscore_name") == 1
+
+    err = capsys.readouterr().err
+    assert err.startswith("error:") and "nothing written" in err
+    assert list(batches.glob("*.json")) == []
