@@ -36,6 +36,7 @@ LIBRARY_MODULES = frozenset({
     "entity/player_crosswalk.py",
     "entity/team_crosswalk.py",
     "entity/verdict_batches.py",
+    "transform/live_append.py",
 })
 
 LIST_KEYS = ("Inputs", "Sources", "Outputs")

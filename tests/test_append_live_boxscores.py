@@ -8,7 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from eupy.transform.append_live_boxscores import append_rows, load_base, load_deltas, main
+from eupy.transform.append_live_boxscores import append_rows, main
+from eupy.transform.live_append import load_base, load_deltas
 
 HEADER = ["game_player_id", "game_id", "season_code", "is_starter", "points"]
 

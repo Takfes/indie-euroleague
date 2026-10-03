@@ -14,8 +14,12 @@ stages:
       size: 18528865
     - path: src/eupy/transform/append_live_boxscores.py
       hash: md5
-      md5: d45054f56cb322e25c737339a2cb88de
-      size: 5414
+      md5: bfc8fae5486045d4318b2d162d94f1bc
+      size: 3586
+    - path: src/eupy/transform/live_append.py
+      hash: md5
+      md5: 082fc006eab688b953b76204bc4de95b
+      size: 2315
     outs:
     - path: data/stage_01/box_score_current.csv
       hash: md5
@@ -35,8 +39,12 @@ stages:
       size: 1384517
     - path: src/eupy/transform/append_live_headers.py
       hash: md5
-      md5: d5c61d0510b2008d321a9479c92511c7
-      size: 3366
+      md5: 7ff0281b6bd53569bf3646cc02d2d0b1
+      size: 3356
+    - path: src/eupy/transform/live_append.py
+      hash: md5
+      md5: 082fc006eab688b953b76204bc4de95b
+      size: 2315
     outs:
     - path: data/stage_01/header_current.csv
       hash: md5
@@ -83,10 +91,22 @@ stages:
       hash: md5
       md5: e01bde23b29bde89daaa21c24a38672b
       size: 18528865
+    - path: src/eupy/entity/matching.py
+      hash: md5
+      md5: a1b98a245568ebcb61bb1f411047dbb0
+      size: 4431
     - path: src/eupy/entity/resolve_fantasy_stats_player_names.py
       hash: md5
       md5: 8b8db127d875632f8dca6c57915664ab
       size: 9087
+    - path: src/eupy/entity/resolve_player_names.py
+      hash: md5
+      md5: 1e0672ac3c4e6a0446996e8fc07ac5da
+      size: 9869
+    - path: src/eupy/entity/verdict_batches.py
+      hash: md5
+      md5: 23d83419e2452b7598ac44f81a50bd55
+      size: 9775
     outs:
     - path: data/stage_01/fantasy_stats_player_name_crosswalk.csv
       hash: md5
@@ -128,10 +148,18 @@ stages:
       hash: md5
       md5: e01bde23b29bde89daaa21c24a38672b
       size: 18528865
+    - path: src/eupy/entity/matching.py
+      hash: md5
+      md5: a1b98a245568ebcb61bb1f411047dbb0
+      size: 4431
     - path: src/eupy/entity/resolve_player_names.py
       hash: md5
       md5: 1e0672ac3c4e6a0446996e8fc07ac5da
       size: 9869
+    - path: src/eupy/entity/verdict_batches.py
+      hash: md5
+      md5: 23d83419e2452b7598ac44f81a50bd55
+      size: 9775
     outs:
     - path: data/stage_01/player_name_crosswalk.csv
       hash: md5
@@ -153,10 +181,18 @@ stages:
       hash: md5
       md5: 78c90f4b880bfecc093a2ffd20ca5254
       size: 1384517
+    - path: src/eupy/entity/matching.py
+      hash: md5
+      md5: a1b98a245568ebcb61bb1f411047dbb0
+      size: 4431
     - path: src/eupy/entity/resolve_team_names.py
       hash: md5
       md5: 63fcb0a9c4d47c65f6942a4fcc9118ee
       size: 9192
+    - path: src/eupy/entity/verdict_batches.py
+      hash: md5
+      md5: 23d83419e2452b7598ac44f81a50bd55
+      size: 9775
     outs:
     - path: data/stage_01/team_name_crosswalk.csv
       hash: md5

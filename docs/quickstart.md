@@ -107,7 +107,7 @@ uv run python -m eupy.registry docs       # both docs in one pass (what the upda
 uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.toml; --stdout prints instead
 ```
 
-- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `*_crosswalk.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
+- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `verdict_batches.py`, `*_crosswalk.py`, `live_append.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
 - `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
 - `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws (plus in-place self-loops).
 - `html` renders `docs/data-map.html`: an interactive lineage map (one self-contained file, open it from disk, no server). Same nodes/colours as the graph; pipeline/wrapper filter dims everything else; click a node for path, inputs/outputs, pipeline, docstring paragraph, `Notes`. Not part of `docs` (regenerate it when headers or `pipelines.toml` change). `html --status` also writes the git-ignored `docs/data-map.status.html` with DVC fresh/stale marks from `dvc status`.
@@ -135,6 +135,8 @@ uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pip
 uv run dvc repro                     # rerun only the steps whose script or inputs changed
 ```
 
+A step's deps are its script, every in-repo module it imports (transitively, so editing a library module reruns the step), then its input datasets. `eupy run` first checks that the external inputs of the steps it will run exist, and exits 1 without running anything otherwise (DVC deletes a step's outputs before running it); `--dry-run` skips the check.
+
 Outputs are `cache: false` (no copies, no remote); their fingerprints live in the committed `dvc.lock`. `data/raw_data/` is git-ignored: on a fresh clone the raw deps are missing until the fetchers (and the Kaggle download) have run, so `dvc repro` only works after that.
 
 ### `eupy run` / `eupy link-final`
@@ -150,7 +152,7 @@ uv run eupy link-final              # refresh data/stage_99/ links (also runs af
 ```
 
 - `optimize` is `dvc = false` with no fetchers: `eupy run optimize` exits 1 ("not runnable under DVC yet").
-- `--fetch` runs the pipeline's *fetchers* (impure scripts with a `(live` source) with `uv run python <script>` in dependency order; the default run never touches the network. Ingest scripts (need `--verdicts`) are never run by `eupy run`.
+- `--fetch` runs the pipeline's *fetchers* (impure scripts under `src/eupy/fetchers/`) with `uv run python <script>` in dependency order; the default run never touches the network. Ingest scripts (need `--verdicts`) are never run by `eupy run`.
 - `link-final` creates relative symlinks in `data/stage_99/` for every produced `Final: true` dataset whose file exists (missing ones are reported and skipped), removes stale symlinks it no longer manages, and never touches regular files or directories.
 
 ## Dev loop

@@ -4,6 +4,7 @@ stages:
     cmd: uv run python src/eupy/transform/append_live_boxscores.py
     deps:
     - src/eupy/transform/append_live_boxscores.py
+    - src/eupy/transform/live_append.py
     - data/raw_data/euroleague_net/box_score
     - data/raw_data/kaggle_data/euroleague_box_score.csv
     outs:
@@ -13,6 +14,7 @@ stages:
     cmd: uv run python src/eupy/transform/append_live_headers.py
     deps:
     - src/eupy/transform/append_live_headers.py
+    - src/eupy/transform/live_append.py
     - data/raw_data/euroleague_net/headers
     - data/raw_data/kaggle_data/euroleague_header.csv
     outs:
@@ -41,6 +43,9 @@ stages:
     cmd: uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py
     deps:
     - src/eupy/entity/resolve_fantasy_stats_player_names.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/resolve_player_names.py
+    - src/eupy/entity/verdict_batches.py
     - data/curated/fantasy_stats_player_name_verdicts
     - data/raw_data/fantasy_prices/basketballsphere_prices.csv
     - data/raw_data/fantasy_stats/players.csv
@@ -52,6 +57,8 @@ stages:
     cmd: uv run python src/eupy/entity/resolve_player_names.py
     deps:
     - src/eupy/entity/resolve_player_names.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/verdict_batches.py
     - data/curated/player_name_verdicts
     - data/raw_data/fantasy_prices/basketballsphere_prices.csv
     - data/raw_data/kaggle_data/euroleague_box_score.csv
@@ -62,6 +69,8 @@ stages:
     cmd: uv run python src/eupy/entity/resolve_team_names.py
     deps:
     - src/eupy/entity/resolve_team_names.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/verdict_batches.py
     - data/curated/team_name_verdicts
     - data/raw_data/fantasy_prices/basketballsphere_prices.csv
     - data/raw_data/kaggle_data/euroleague_header.csv

@@ -33,7 +33,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from eupy.transform.append_live_boxscores import DEFAULT_BASE_SEASON, REPO_ROOT, load_base, load_deltas, write_rows
+from eupy.transform.live_append import DEFAULT_BASE_SEASON, REPO_ROOT, load_base, load_deltas, write_rows
 
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_header.csv"
 LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "headers"

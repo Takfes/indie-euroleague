@@ -91,7 +91,7 @@ def _write_html(registry: Registry, pipelines: dict, root: Path, stdout: bool, s
     try:
         wrappers = load_wrappers(root / PIPELINES_FILE)
         page = render_html(registry, pipelines, wrappers, root)
-        overlay = _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines)]) if status else None
+        overlay = _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines, root)]) if status else None
         variant = render_html(registry, pipelines, wrappers, root, overlay) if overlay else None
     except (GraphError, RegistryError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -123,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: C901 -- flat subcommand
             if args.command in ("check", "dvc", "graph", "docs", "html")
             else {}
         )
-        dvc_yaml = render_dvc(registry, pipelines) if args.command == "dvc" else ""
+        dvc_yaml = render_dvc(registry, pipelines, args.root) if args.command == "dvc" else ""
     except RegistryError as exc:
         for problem in exc.problems:
             print(f"error: {problem}", file=sys.stderr)

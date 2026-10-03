@@ -8,7 +8,8 @@ DVC steps ("DVC stages" in DVC's own terms -- not the data-depth stage of the re
 script (`Impure: false`) in a pipeline with `dvc = true`, named after the script:
 
 * `cmd`: `uv run python <script path>` (the script must run with no arguments);
-* `deps`: the script file, then its input dataset paths (directories are hashed as directories);
+* `deps`: the script file, then every in-repo module it imports, transitively (`import_closure`; so editing
+  a library module reruns the step), then its input dataset paths (directories are hashed as directories);
 * `outs`: its output dataset paths, each `cache: false` (fingerprints go in `dvc.lock`, no file copies).
 
 Impure fetchers are not steps: their raw outputs are plain deps of the steps downstream, so a changed raw
@@ -18,12 +19,13 @@ has no timestamps, so regeneration is byte-identical.
 
 from __future__ import annotations
 
+import ast
 import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
-from eupy.registry.model import Registry, RegistryError
+from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 
 PIPELINES_FILE = "pipelines.toml"
 WRAPPERS_KEY = "wrappers"  # reserved table: wrapper name -> ordered list of pipeline names (not a pipeline)
@@ -121,10 +123,11 @@ def checked_pipelines(registry: Registry, path: Path) -> dict[str, Pipeline]:
     return pipelines
 
 
-def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline]) -> tuple[Step, ...]:
+def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> tuple[Step, ...]:
     """One `Step` per pure script of a `dvc = true` pipeline, sorted by name.
 
-    Raises `RegistryError` when the membership lint fails or a path cannot be written as a DVC path.
+    `root` is where the script sources are read to compute each step's import closure. Raises `RegistryError`
+    when the membership lint fails or a path cannot be written as a DVC path.
     """
     problems = lint_pipelines(registry, pipelines)
     if problems:
@@ -133,7 +136,11 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline]) -> tuple[Step,
     steps: list[Step] = []
     for name in names:
         script = registry.scripts[name]
-        deps = (script.path, *sorted(_dvc_path(registry.path(ds)) for ds in script.inputs))
+        deps = (
+            script.path,
+            *import_closure(script.path, root),
+            *sorted(_dvc_path(registry.path(ds)) for ds in script.inputs),
+        )
         outs = tuple(sorted(_dvc_path(registry.path(ds)) for ds in script.outputs))
         problems += [
             f"step {name}: path {p!r} is not safe to write unquoted" for p in (*deps, *outs) if not _SAFE_PATH.match(p)
@@ -145,15 +152,80 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline]) -> tuple[Step,
     return tuple(steps)
 
 
-def render_dvc(registry: Registry, pipelines: dict[str, Pipeline]) -> str:
+def render_dvc(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> str:
     """Full text of `dvc.yaml`; raises `RegistryError` like `dvc_steps`."""
     lines = [BANNER, "stages:"]
-    for step in dvc_steps(registry, pipelines):
+    for step in dvc_steps(registry, pipelines, root):
         lines += [f"  {step.name}:", f"    cmd: {step.cmd}", "    deps:", *(f"    - {dep}" for dep in step.deps)]
         lines.append("    outs:")
         for out in step.outs:
             lines += [f"    - {out}:", "        cache: false"]
     return "\n".join(lines) + "\n"
+
+
+def import_closure(script: str, root: Path) -> tuple[str, ...]:
+    """Repo-relative paths of the in-repo modules `script` imports, transitively (the script itself excluded).
+
+    Only modules under `src/eupy/` count (a module file, or a package's `__init__.py` when non-empty);
+    stdlib, third-party and unresolvable imports are ignored. Sorted, deduplicated, cycle-safe.
+    """
+    start = (root / script).resolve()
+    seen: set[Path] = set()
+    stack = [start]
+    while stack:
+        file = stack.pop()
+        if file in seen or not file.is_file():
+            continue
+        seen.add(file)
+        stack.extend(_imported_files(file, root))
+    seen.discard(start)
+    return tuple(sorted(p.relative_to(root.resolve()).as_posix() for p in seen))
+
+
+def _imported_files(file: Path, root: Path) -> list[Path]:
+    """Source files of the `eupy` modules (and their parent packages) that `file` imports; may include empties."""
+    try:
+        tree = ast.parse(file.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        return []
+    src = (root / "src").resolve()
+    resolved = file.resolve()
+    package = resolved.relative_to(src).with_suffix("").parts[:-1] if resolved.is_relative_to(src) else ()
+    names: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names += [a.name for a in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            if node.level:
+                base = package[: len(package) - (node.level - 1)] if node.level - 1 <= len(package) else ()
+                if not base:
+                    continue
+                prefix = ".".join(base) + (f".{node.module}" if node.module else "")
+            else:
+                prefix = node.module or ""
+            names += [prefix, *(f"{prefix}.{a.name}" for a in node.names)]
+    found: list[Path] = []
+    for name in names:
+        parts = name.split(".")
+        if parts[0] != "eupy":
+            continue
+        for i in range(1, len(parts) + 1):  # parent packages run their __init__ too
+            found += [f for f in _module_files(src, parts[:i]) if f.name != "__init__.py" or _has_code(f)]
+    return found
+
+
+def _has_code(path: Path) -> bool:
+    """False for a blank `__init__.py` (nothing to track)."""
+    return bool(path.read_text(encoding="utf-8").strip())
+
+
+def _module_files(src: Path, parts: list[str]) -> list[Path]:
+    """The file backing module `parts` (a module file, else the package `__init__.py`), as a 0/1-item list."""
+    base = src.joinpath(*parts)
+    for candidate in (base.with_suffix(".py"), base / "__init__.py"):
+        if candidate.is_file():
+            return [candidate]
+    return []
 
 
 def _dvc_path(path: str) -> str:
