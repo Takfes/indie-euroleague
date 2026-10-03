@@ -20,9 +20,9 @@ RAW = {"src/raw": "data/raw_data/src/raw.csv"}
 RAW_SOURCES = {"src/raw": {"origin": "manual", "refresh": "manual"}}
 
 
-def _build(scripts: dict[str, Header], **kwargs: object) -> Registry:
+def _build(scripts: dict[str, Header]) -> Registry:
     headers = {f"src/eupy/transform/{name}.py": h for name, h in scripts.items()}
-    return Registry.from_headers(headers, RAW_SOURCES, **kwargs)  # type: ignore[arg-type]
+    return Registry.from_headers(headers, RAW_SOURCES)
 
 
 def test_stage_depth_on_chain() -> None:
@@ -84,33 +84,13 @@ def test_cycle_between_scripts_rejected() -> None:
         })
 
 
-def test_self_loop_rejected_unless_allowlisted() -> None:
-    scripts = {
-        "resolve": _h(RAW, {"xw": "data/stage_01/xw.csv"}),
-        "apply": _h({"xw": "data/stage_01/xw.csv"}, {"xw": "data/stage_01/xw.csv"}),
-    }
+def test_self_loop_rejected() -> None:
+    # Every cycle is an error now -- including a script reading and rewriting its own dataset.
     with pytest.raises(CycleError):
-        _build({"apply": scripts["apply"], "resolve": _h(RAW, {"y": "data/stage_01/y.csv"})}, allowlist=frozenset())
-    # Not allowlisted, the applier is also just a second producer.
-    with pytest.raises(RegistryError, match="more than one script"):
-        _build(scripts, allowlist=frozenset())
-
-    # Allowlisted: the applier is an in-place updater, not a second producer, and adds no stage.
-    reg = _build(scripts, allowlist=frozenset({"apply"}))
-    assert reg.producer("xw") == "resolve"
-    assert reg.datasets["xw"].updaters == ("apply",)
-    assert reg.scripts["apply"].in_place == ("xw",)
-    assert reg.stage("xw") == 1
-    assert reg.topo_order() == ("resolve", "apply")
-
-
-def test_allowlisted_sole_in_place_writer_is_producer_and_self_input_ignored_for_stage() -> None:
-    reg = _build(
-        {"resolve": _h({**RAW, "xw": "data/stage_01/xw.csv"}, {"xw": "data/stage_01/xw.csv"})},
-        allowlist=frozenset({"resolve"}),
-    )
-    assert reg.producer("xw") == "resolve"
-    assert reg.stage("xw") == 1
+        _build({
+            "apply": _h({"xw": "data/stage_01/xw.csv"}, {"xw": "data/stage_01/xw.csv"}),
+            "resolve": _h(RAW, {"y": "data/stage_01/y.csv"}),
+        })
 
 
 def test_unproduced_non_raw_and_undeclared_raw_rejected() -> None:
@@ -152,3 +132,27 @@ def test_real_repo_check_passes_and_show_is_deterministic() -> None:
     # Guards against header drift in any future change; reads docstrings only, no data or network.
     assert main(["check"]) == 0
     assert render(Registry.from_repo()) == render(Registry.from_repo())
+
+
+def test_curated_dataset_is_stage_zero_even_when_an_ingest_script_writes_it() -> None:
+    reg = _build({
+        "ingest": _h({}, {"v": "data/curated/v/"}),
+        "resolve": _h({**RAW, "v": "data/curated/v/"}, {"xw": "data/stage_01/xw.csv"}),
+    })
+    assert reg.stage("v") == 0 and reg.datasets["v"].raw and reg.producer("v") == "ingest"
+    assert reg.stage("xw") == 1
+    assert reg.topo_order() == ("ingest", "resolve")
+
+
+def test_unproduced_curated_needs_a_raw_sources_entry_but_produced_one_does_not() -> None:
+    headers = {"src/eupy/transform/a.py": _h({"v": "data/curated/v/"}, {})}
+    with pytest.raises(RegistryError, match="not declared in raw_sources.toml"):
+        Registry.from_headers(headers, RAW_SOURCES)
+    ok = {"v": {"origin": "hand-curated", "refresh": "manual"}}
+    assert Registry.from_headers(headers, ok).stage("v") == 0
+
+
+def test_real_repo_has_no_self_loops() -> None:
+    reg = Registry.from_repo()
+    assert all(a != b for a, b in reg.edges())
+    assert all(not (set(s.inputs) & set(s.outputs)) for s in reg.scripts.values())

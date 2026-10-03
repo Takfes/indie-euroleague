@@ -1,115 +1,53 @@
 #!/usr/bin/env python3
-"""Apply agent verdicts onto the player-name crosswalk, keyed by `name`.
+"""Ingest agent verdicts for the player-name crosswalk as a new, immutable verdict batch.
 
-This is the write path for the agent stage of `resolve_player_names.py`'s
-exact -> fuzzy-candidates -> agent-verifies pipeline: after reviewing every
-`needs_review` / `no_candidate` row, an agent records its decisions as a JSON
-list of verdict records and applies them here, instead of hand-editing the
-crosswalk CSV. Each verdict must be a "confirmed" / "rejected" / "no_match"
-call with a rationale -- convention (not enforced here) is `confirmed` /
-`rejected` for rows that started as `needs_review` (a candidate held up, or
-none did), and `no_match` for rows that started as `no_candidate` (no
-candidate was ever proposed).
+The agent stage of `resolve_player_names.py`'s exact -> fuzzy-candidates ->
+agent-verifies pipeline: after reviewing every `needs_review` / `no_candidate`
+row, an agent records its decisions as a JSON list of verdict records. This
+script validates that list and writes it as the next `NNNN_<slug>.json` batch
+in `data/curated/player_name_verdicts/`; the next `resolve_player_names.py`
+run applies it (later batch wins on the same key). It never touches the
+crosswalk and never modifies or overwrites an existing batch. Invalid input
+writes nothing. Keys absent from the current data are not checked here (the
+resolver skips them).
 
 Verdict record shape (JSON list, one object per row to update):
     {
-        "name": "...",                              # required: row key
-        "match_status": "confirmed",               # required: confirmed | rejected | no_match
-        "boxscore_name": "...",                     # required for confirmed, must be empty otherwise
-        "match_score": 95.0,                        # optional
-        "matched_by": "agent",                       # optional, defaults to "agent"
-        "notes": "..."                               # required: brief rationale
+        "name": "...",                    # required: row key
+        "match_status": "confirmed",      # required: confirmed | rejected | no_match
+        "boxscore_name": "...",           # required for confirmed, must be empty otherwise
+        "match_score": 95.0,              # optional
+        "matched_by": "agent",            # optional, defaults to "agent"
+        "notes": "..."                    # required: brief rationale
     }
 
 Usage:
-    python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--crosswalk PATH]
+    python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--batches-dir DIR] [--label SLUG]
 
-Inputs:
-  - player_name_crosswalk: data/stage_01/player_name_crosswalk.csv
+Inputs: none
 Sources:
   - JSON verdicts file (--verdicts PATH)
 Outputs:
-  - player_name_crosswalk: data/stage_01/player_name_crosswalk.csv
-Final: true
-Impure: false
-Notes: The crosswalk must already exist and is updated in place, so this script adds no stage of its own.
-  Writes the same file resolve_player_names.py produces.
+  - player_name_verdicts: data/curated/player_name_verdicts/
+Final: false
+Impure: true
+Notes: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that
+  resolve_player_names.py reads.
 """
 
 from __future__ import annotations
 
-import argparse
-import json
+import sys
 from pathlib import Path
-from typing import Any
 
-from eupy.entity.resolve_player_names import CROSSWALK_PATH, load_existing_crosswalk, write_crosswalk
+from eupy.entity.verdict_batches import run_ingest_cli
 
-TERMINAL_STATUSES = {"confirmed", "rejected", "no_match"}
-
-
-def load_verdicts(path: Path) -> list[dict[str, Any]]:
-    """Load a JSON list of verdict records."""
-    return json.loads(path.read_text(encoding="utf-8"))
+VERDICTS_DIR = Path(__file__).resolve().parents[3] / "data" / "curated" / "player_name_verdicts"
 
 
-def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[str, Any]]) -> None:
-    """Apply verdicts onto crosswalk rows in place, keyed by `name`.
-
-    Raises:
-        ValueError: If a verdict targets a row not in the crosswalk, uses a
-            non-terminal `match_status`, is `confirmed` without a
-            `boxscore_name` (or non-confirmed with one), or has no `notes`
-            rationale.
-    """
-    for verdict in verdicts:
-        key = verdict["name"]
-        if key not in rows_by_key:
-            raise ValueError(f"Verdict targets a row not in the crosswalk: {key!r}")
-
-        status = verdict["match_status"]
-        if status not in TERMINAL_STATUSES:
-            raise ValueError(f"match_status must be one of {sorted(TERMINAL_STATUSES)}, got {status!r}")
-
-        boxscore_name = verdict.get("boxscore_name", "")
-        if status == "confirmed" and not boxscore_name:
-            raise ValueError(f"Verdict for {key!r} is 'confirmed' but has no boxscore_name")
-        if status != "confirmed" and boxscore_name:
-            raise ValueError(
-                f"Verdict for {key!r} is {status!r} but carries a boxscore_name -- only confirmed rows should"
-            )
-
-        notes = verdict.get("notes", "")
-        if not notes:
-            raise ValueError(f"Verdict for {key!r} has no notes -- every agent verdict needs a brief rationale")
-
-        match_score = verdict.get("match_score", "")
-        row = rows_by_key[key]
-        row["match_status"] = status
-        row["boxscore_name"] = boxscore_name
-        row["match_score"] = f"{match_score:.1f}" if isinstance(match_score, int | float) else str(match_score)
-        row["matched_by"] = verdict.get("matched_by", "agent")
-        row["notes"] = notes
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--crosswalk", type=Path, default=CROSSWALK_PATH, help="Crosswalk CSV to update")
-    parser.add_argument("--verdicts", type=Path, required=True, help="JSON file of verdict records")
-    return parser.parse_args()
-
-
-def main() -> None:
-    args = parse_args()
-    rows_by_key = load_existing_crosswalk(args.crosswalk)
-    if not rows_by_key:
-        raise ValueError(f"No crosswalk found at {args.crosswalk} -- run resolve_player_names.py first")
-
-    verdicts = load_verdicts(args.verdicts)
-    apply_verdicts(rows_by_key, verdicts)
-    write_crosswalk(list(rows_by_key.values()), args.crosswalk)
-    print(f"Applied {len(verdicts)} verdict(s) to {args.crosswalk}")
+def main() -> int:
+    return run_ingest_cli(__doc__, VERDICTS_DIR, "name", "boxscore_name")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

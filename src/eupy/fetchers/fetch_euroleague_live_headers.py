@@ -47,7 +47,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from eupy.fetchers.fetch_euroleague_live_boxscores import (
+from eupy.fetchers.live_euroleague import (
     DEFAULT_OUT_DIR,
     REQUEST_DELAY_SECONDS,
     fetch_header,

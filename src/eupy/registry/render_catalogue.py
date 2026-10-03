@@ -50,14 +50,12 @@ def _file(script: Script) -> str:
 def _produced_by(reg: Registry, ds: Dataset) -> str:
     if ds.producer is None:
         return f"external: {ds.origin}"
-    parts = [f"`{_file(reg.scripts[ds.producer])}`"]
-    parts += [f"`{_file(reg.scripts[u])}` (updates in place)" for u in ds.updaters]
-    return ", ".join(parts)
+    return f"`{_file(reg.scripts[ds.producer])}`"
 
 
 def _script_inputs(script: Script, *, with_sources: bool) -> str:
-    """Dataset inputs (in-place self-inputs excluded unless `with_sources`) plus free-text sources."""
-    parts = [f"`{i}`" for i in script.inputs if with_sources or i not in script.in_place]
+    """Dataset inputs plus free-text sources."""
+    parts = [f"`{i}`" for i in script.inputs]
     if with_sources:
         parts += list(script.sources)
     return ", ".join(parts) or "none"
@@ -116,7 +114,7 @@ def render_catalogue(reg: Registry) -> str:
     ]
     lines = [BANNER]
     lines += _section(
-        "Raw datasets (`data/raw_data/`, git-ignored)",
+        "Raw datasets (`data/raw_data/` untracked; `data/curated/` tracked)",
         _table(["Dataset", "Path", "Produced by", "Consumed by", "Refresh"], raw_rows),
         _notes(reg.scripts[n] for n in sorted(raw_writers)),
     )

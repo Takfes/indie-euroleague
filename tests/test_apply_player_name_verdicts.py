@@ -1,4 +1,4 @@
-"""Tests for applying agent verdicts onto the player-name crosswalk."""
+"""Tests for the player-name verdict ingest CLI (shared ingest logic is tested in test_verdict_batches.py)."""
 
 from __future__ import annotations
 
@@ -7,147 +7,58 @@ from pathlib import Path
 
 import pytest
 
-from eupy.entity.apply_player_name_verdicts import apply_verdicts, load_verdicts
-from eupy.entity.resolve_player_names import load_existing_crosswalk, write_crosswalk
+from eupy.entity import apply_player_name_verdicts as script
+
+VALID = {"name": "Bob Jonez", "match_status": "confirmed", "boxscore_name": "Bob JONES", "notes": "Same player."}
 
 
-def _needs_review_row() -> dict[str, str]:
-    return {
-        "name": "Bob Jonez",
-        "boxscore_name": "Bob JONES",
-        "match_status": "needs_review",
-        "match_score": "91.0",
-        "matched_by": "fuzzy",
-        "notes": "candidates: Bob JONES (91.0)",
-    }
+def _run(monkeypatch: pytest.MonkeyPatch, *args: object) -> int:
+    monkeypatch.setattr("sys.argv", ["prog", *map(str, args)])
+    return script.main()
 
 
-def _rows_by_key(*rows: dict[str, str]) -> dict[str, dict[str, str]]:
-    return {row["name"]: dict(row) for row in rows}
+def test_default_batches_dir_is_the_player_name_verdicts_directory() -> None:
+    assert script.VERDICTS_DIR.parts[-3:] == ("data", "curated", "player_name_verdicts")
 
 
-# --- apply_verdicts ------------------------------------------------------------------------
+def test_cli_writes_a_batch_and_exits_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    src = tmp_path / "v.json"
+    src.write_text(json.dumps([VALID]), encoding="utf-8")
+    batches = tmp_path / "batches"
+
+    assert _run(monkeypatch, "--verdicts", src, "--batches-dir", batches, "--label", "round-1") == 0
+
+    batch = json.loads((batches / "0001_round-1.json").read_text(encoding="utf-8"))
+    assert batch["verdicts"] == [VALID]
+    assert batch["source"] == "v.json"
 
 
-def test_apply_verdicts_confirms_a_candidate() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [
-        {
-            "name": "Bob Jonez",
-            "match_status": "confirmed",
-            "boxscore_name": "Bob JONES",
-            "match_score": 91.0,
-            "notes": "Single-letter spelling drift, same player.",
-        }
-    ]
+def test_cli_rejects_a_confirmed_verdict_without_boxscore_name_and_writes_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    src = tmp_path / "v.json"
+    src.write_text(json.dumps([{**VALID, "boxscore_name": ""}]), encoding="utf-8")
+    batches = tmp_path / "batches"
 
-    apply_verdicts(rows_by_key, verdicts)
+    assert _run(monkeypatch, "--verdicts", src, "--batches-dir", batches) == 1
 
-    row = rows_by_key["Bob Jonez"]
-    assert row["match_status"] == "confirmed"
-    assert row["boxscore_name"] == "Bob JONES"
-    assert row["match_score"] == "91.0"
-    assert row["matched_by"] == "agent"
-    assert row["notes"] == "Single-letter spelling drift, same player."
+    assert "boxscore_name" in capsys.readouterr().err
+    assert not batches.exists()
 
 
-def test_apply_verdicts_rejects_and_clears_boxscore_name() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [
-        {
-            "name": "Bob Jonez",
-            "match_status": "rejected",
-            "notes": "Candidate plays a different position and era; not the same person.",
-        }
-    ]
+def test_cli_leaves_the_crosswalk_csv_untouched(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    crosswalk = tmp_path / "player_name_crosswalk.csv"
+    crosswalk.write_text("name,boxscore_name\nBob Jonez,\n", encoding="utf-8")
+    before = crosswalk.read_bytes()
+    src = tmp_path / "v.json"
+    src.write_text(json.dumps([VALID]), encoding="utf-8")
 
-    apply_verdicts(rows_by_key, verdicts)
+    _run(monkeypatch, "--verdicts", src, "--batches-dir", tmp_path / "batches")
 
-    row = rows_by_key["Bob Jonez"]
-    assert row["match_status"] == "rejected"
-    assert row["boxscore_name"] == ""
+    assert crosswalk.read_bytes() == before
 
 
-def test_apply_verdicts_defaults_matched_by_to_agent() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Bob Jonez", "match_status": "no_match", "notes": "Genuine rookie, no history."}]
-
-    apply_verdicts(rows_by_key, verdicts)
-
-    assert rows_by_key["Bob Jonez"]["matched_by"] == "agent"
-
-
-def test_apply_verdicts_raises_for_unknown_row() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Nobody Here", "match_status": "no_match", "notes": "x"}]
-
-    with pytest.raises(ValueError, match="not in the crosswalk"):
-        apply_verdicts(rows_by_key, verdicts)
-
-
-def test_apply_verdicts_raises_for_non_terminal_status() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Bob Jonez", "match_status": "needs_review", "notes": "x"}]
-
-    with pytest.raises(ValueError, match="match_status"):
-        apply_verdicts(rows_by_key, verdicts)
-
-
-def test_apply_verdicts_raises_when_confirmed_has_no_boxscore_name() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Bob Jonez", "match_status": "confirmed", "notes": "x"}]
-
-    with pytest.raises(ValueError, match="no boxscore_name"):
-        apply_verdicts(rows_by_key, verdicts)
-
-
-def test_apply_verdicts_raises_when_non_confirmed_has_boxscore_name() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Bob Jonez", "match_status": "rejected", "boxscore_name": "Bob JONES", "notes": "x"}]
-
-    with pytest.raises(ValueError, match="only confirmed rows should"):
-        apply_verdicts(rows_by_key, verdicts)
-
-
-def test_apply_verdicts_raises_when_notes_missing() -> None:
-    rows_by_key = _rows_by_key(_needs_review_row())
-    verdicts = [{"name": "Bob Jonez", "match_status": "no_match"}]
-
-    with pytest.raises(ValueError, match="no notes"):
-        apply_verdicts(rows_by_key, verdicts)
-
-
-# --- load_verdicts -------------------------------------------------------------------------
-
-
-def test_load_verdicts_reads_json_list(tmp_path: Path) -> None:
-    path = tmp_path / "verdicts.json"
-    payload = [{"name": "Bob Jonez", "match_status": "no_match", "notes": "x"}]
-    path.write_text(json.dumps(payload), encoding="utf-8")
-
-    assert load_verdicts(path) == payload
-
-
-# --- crosswalk CSV round trip through apply_verdicts ----------------------------------------
-
-
-def test_apply_verdicts_then_write_crosswalk_round_trips_through_csv(tmp_path: Path) -> None:
-    crosswalk_path = tmp_path / "crosswalk.csv"
-    write_crosswalk([_needs_review_row()], crosswalk_path)
-
-    rows_by_key = load_existing_crosswalk(crosswalk_path)
-    apply_verdicts(
-        rows_by_key,
-        [
-            {
-                "name": "Bob Jonez",
-                "match_status": "confirmed",
-                "boxscore_name": "Bob JONES",
-                "notes": "Confirmed.",
-            }
-        ],
-    )
-    write_crosswalk(list(rows_by_key.values()), crosswalk_path)
-
-    reloaded = load_existing_crosswalk(crosswalk_path)
-    assert reloaded["Bob Jonez"]["match_status"] == "confirmed"
+def test_cli_requires_the_verdicts_argument(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(SystemExit) as exc:
+        _run(monkeypatch)
+    assert exc.value.code == 2

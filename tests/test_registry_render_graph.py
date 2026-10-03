@@ -37,11 +37,8 @@ def _registry() -> Registry:
         "src/eupy/transform/make_b.py": Header(
             (("a", "data/stage_01/a.csv"),), (), (("b", "data/stage_02/b.csv"),), False, False
         ),
-        "src/eupy/transform/fix_a.py": Header(
-            (("a", "data/stage_01/a.csv"),), (), (("a", "data/stage_01/a.csv"),), False, False
-        ),
     }
-    return Registry.from_headers(headers, RAW_SOURCES, allowlist=frozenset({"fix_a"}))
+    return Registry.from_headers(headers, RAW_SOURCES)
 
 
 def _mermaid(text: str) -> str:
@@ -76,11 +73,6 @@ def test_golden_shapes_ids_colors() -> None:
     assert "flowchart LR" in text
 
 
-def test_in_place_script_drawn_as_self_loop() -> None:
-    edges = _edges(render_graph(_registry()))
-    assert ("d_a", "s_fix_a") in edges and ("s_fix_a", "d_a") in edges
-
-
 def test_deterministic() -> None:
     assert render_graph(_registry()) == render_graph(_registry())
 
@@ -91,12 +83,6 @@ def _check_edges_equal_registry(reg: Registry) -> None:
         return rg._ident({"source": "x", "script": "s", "dataset": "d"}[kind], name)
 
     expected = {(mid(a), mid(b)) for a, b in reg.edges()}
-    for s in reg.scripts.values():
-        for ds in s.in_place:
-            expected |= {
-                (mid(f"dataset:{ds}"), mid(f"script:{s.name}")),
-                (mid(f"script:{s.name}"), mid(f"dataset:{ds}")),
-            }
     assert _edges(render_graph(reg)) == expected
 
 
@@ -162,7 +148,7 @@ def test_graph_and_catalogue_agree_on_datasets_and_stages() -> None:
     from_graph = {
         name: int(stage) for name, stage in re.findall(r'\[\("(.+?)(?: ★)?<br/>\(stage (\d+)\)"\)\]', _mermaid(graph))
     }
-    from_catalogue = {name: 0 for name in re.findall(r"^\| `([^`]+)` \| `data/raw_data/", catalogue, re.M)}
+    from_catalogue = {name: 0 for name in re.findall(r"^\| `([^`]+)` \| `data/(?:raw_data|curated)/", catalogue, re.M)}
     from_catalogue |= {
         name: int(stage) for name, stage in re.findall(r"^\| `([^`]+)` \| (\d\d) \| `data/stage_", catalogue, re.M)
     }
@@ -211,7 +197,7 @@ def test_docs_writes_nothing_when_a_renderer_fails(tmp_path: Path, monkeypatch: 
 def _pipes() -> dict[str, Pipeline]:
     return {
         "zeta": Pipeline("zeta", True, ("make_b", "make_a")),
-        "alpha": Pipeline("alpha", False, ("fetch_x", "fix_a")),
+        "alpha": Pipeline("alpha", False, ("fetch_x",)),
     }
 
 
@@ -220,7 +206,7 @@ def test_pipeline_subgraphs_hold_scripts_sorted_by_name() -> None:
     assert re.findall(r'^    subgraph (\w+)\["(\w+)"\]$', body, re.M) == [("p_alpha", "alpha"), ("p_zeta", "zeta")]
     blocks = re.findall(r"^    subgraph .*?\n(.*?)^    end$", body, re.M | re.S)
     scripts = [re.findall(r"^        (s_\w+)\[", b, re.M) for b in blocks]
-    assert scripts == [["s_fetch_x", "s_fix_a"], ["s_make_a", "s_make_b"]]
+    assert scripts == [["s_fetch_x"], ["s_make_a", "s_make_b"]]
 
 
 def test_subgraphs_keep_sources_and_datasets_outside_and_coverage() -> None:
@@ -249,3 +235,10 @@ def test_real_repo_has_a_subgraph_per_pipeline_and_covers_all() -> None:
     classed = [i for ids, _ in CLASS.findall(body) for i in ids.split(",")]
     assert sorted(classed) == sorted(declared)
     assert render_graph(reg, pipes) == text
+
+
+def test_committed_data_graph_is_fresh() -> None:
+    """docs/data-graph.md equals a fresh render of the real registry (regenerate: `python -m eupy.registry docs`)."""
+    reg = Registry.from_repo()
+    fresh = render_graph(reg, checked_pipelines(reg, REPO_ROOT / "pipelines.toml"))
+    assert (REPO_ROOT / "docs" / "data-graph.md").read_text(encoding="utf-8") == fresh

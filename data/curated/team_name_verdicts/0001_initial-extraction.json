@@ -1,0 +1,86 @@
+{
+  "ingested_at": "2026-09-30",
+  "source": "extracted from committed team_name_crosswalk.csv",
+  "verdicts": [
+    {
+      "boxscore_team_name": "LDLC ASVEL VILLEURBANNE",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "ASVEL",
+      "notes": "team_id ASV; 'LDLC ASVEL VILLEURBANNE' is the most recent box-score spelling (E2019-E2025) of the same club as the older 'ASVEL LYON'/'LDLC' variants."
+    },
+    {
+      "boxscore_team_name": "FC BARCELONA",
+      "match_score": "95.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Barcelona",
+      "notes": "team_id BAR; 'FC BARCELONA' spans the whole dataset (E2007-E2025) and is the canonical spelling, distinct from dated sponsor variants (LASSA, REGAL, AXA) of the same club."
+    },
+    {
+      "boxscore_team_name": "FC BAYERN MUNICH",
+      "match_score": "95.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Bayern Munich",
+      "notes": "Only box-score spelling for team_id MUN (E2013-E2025)."
+    },
+    {
+      "boxscore_team_name": "BESIKTAS JK ISTANBUL",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Besiktas",
+      "notes": "Only box-score spelling for team_id BES; Besiktas' sole EuroLeague season in this dataset is E2012."
+    },
+    {
+      "boxscore_team_name": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Crvena Zvezda",
+      "notes": "team_id RED; 'MERIDIANBET' is the current sponsor spelling (E2022-E2025), more recent than the MTS (E2016-E2022) and TELEKOM (E2013-E2015) variants of the same club."
+    },
+    {
+      "boxscore_team_name": "DUBAI BASKETBALL",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Dubai",
+      "notes": "Only box-score spelling for team_id DUB; Dubai Basketball is a brand-new E2025 EuroLeague entrant, present in euroleague_header.csv despite thin history."
+    },
+    {
+      "boxscore_team_name": "FENERBAHCE BEKO ISTANBUL",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Fenerbahce",
+      "notes": "team_id ULK; 'BEKO' is the current, long-running sponsor spelling (E2018-E2025) for the same club as the older ULKER-era candidates (all pre-E2018) the fuzzy stage surfaced."
+    },
+    {
+      "boxscore_team_name": "HAPOEL IBI TEL AVIV",
+      "match_score": "95.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Hapoel Tel Aviv",
+      "notes": "Only box-score spelling for team_id HTA (E2025); a distinct club/team_id from Maccabi Tel Aviv (TEL), whose spellings the fuzzy stage also surfaced as lower-scoring false positives."
+    },
+    {
+      "boxscore_team_name": "PARIS BASKETBALL",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Paris",
+      "notes": "Only box-score spelling for team_id PRS (E2024-E2025, a recent expansion club); the other fuzzy candidates (ARIS THESSALONIKI/TT BANK) are a different Greek club, a string-similarity false positive on 'aris'."
+    },
+    {
+      "boxscore_team_name": "VALENCIA BASKET",
+      "match_score": "90.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Valencia",
+      "notes": "team_id PAM; 'VALENCIA BASKET' is the current, long-running spelling (E2014-E2025), more recent than the single-season 'POWER ELECTRONICS VALENCIA' (E2010)."
+    }
+  ]
+}

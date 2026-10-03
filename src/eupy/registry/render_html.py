@@ -2,7 +2,7 @@
 
 The page draws the same graph as `docs/data-graph.md`: nodes, ids, classes and edges come from
 `render_graph.build_model` (source stadium, script rectangle, dataset cylinder; one hue per stage; final =
-star + thick border; in-place self-loops). This module only adds per-node detail (paths, docstring paragraph,
+star + thick border). This module only adds per-node detail (paths, docstring paragraph,
 `Notes`, pipelines) and serialises everything as one JSON payload; the layout and interaction are ~250 lines of
 dependency-free vanilla JS + SVG in `_PAGE` (no CDN, no library, works from `file://`).
 
@@ -21,7 +21,7 @@ from pathlib import Path
 
 from eupy.registry.dvc_gen import Pipeline
 from eupy.registry.model import Registry
-from eupy.registry.render_graph import PALETTE, GraphModel, build_model
+from eupy.registry.render_graph import PALETTE, build_model
 
 PAYLOAD_MARKER = "__PAYLOAD__"
 
@@ -71,10 +71,9 @@ def build_payload(
     wrappers: Mapping[str, tuple[str, ...]],
     root: Path,
     status: Mapping[str, str] | None = None,
-    model: GraphModel | None = None,
 ) -> dict[str, object]:
     """The JSON-serialisable page model: nodes (with panel details), edges, classes, pipelines, wrappers."""
-    model = model or build_model(reg)
+    model = build_model(reg)
     ids = model.ids
     member_of: dict[str, list[str]] = {}
     for pname, pipe in pipelines.items():
@@ -104,7 +103,6 @@ def build_payload(
                 "inputs": [ids[f"dataset:{d}"] for d in script.inputs],
                 "outputs": [ids[f"dataset:{d}"] for d in script.outputs],
                 "sources": [ids[f"source:{s}"] for s in script.sources if f"source:{s}" in ids],
-                "in_place": [ids[f"dataset:{d}"] for d in script.in_place],
                 "final": script.final,
                 "impure": script.impure,
                 "pipelines": sorted(member_of.get(name, [])),
@@ -126,7 +124,6 @@ def build_payload(
                 "raw": ds.raw,
                 "producer": ids[f"script:{ds.producer}"] if ds.producer else None,
                 "origin": ds.origin,
-                "updaters": [ids[f"script:{s}"] for s in ds.updaters],
                 "consumers": [ids[f"script:{s}"] for s in ds.consumers],
                 "final": ds.final,
                 "refresh": ds.refresh,
@@ -230,13 +227,8 @@ function svg(tag, attrs, text) { return el(tag, attrs, text, true); }
 function labelOf(n) { return n.kind === "dataset" ? n.label + (n.final ? " ★" : "") : n.label; }
 function shortOf(n) { var t = labelOf(n); return t.length > 42 ? t.slice(0, 41) + "…" : t; } // full text: tooltip + panel
 
-// ---- layout: longest-path layers (in-place loops excluded), barycenter ordering, columns ----
-var inPlace = {}; // "a>b" edges that close an in-place loop (script -> its own input dataset)
-ids.forEach(function (id) {
-  var n = D.nodes[id];
-  if (n.kind === "script") n.detail.in_place.forEach(function (d) { inPlace[id + ">" + d] = true; });
-});
-var fwd = D.edges.filter(function (e) { return !inPlace[e[0] + ">" + e[1]]; });
+// ---- layout: longest-path layers, barycenter ordering, columns ----
+var fwd = D.edges;
 var layer = {}, preds = {}, succs = {};
 ids.forEach(function (id) { preds[id] = []; succs[id] = []; });
 fwd.forEach(function (e) { preds[e[1]].push(e[0]); succs[e[0]].push(e[1]); });
@@ -300,13 +292,8 @@ var defs = svg("defs"); root.appendChild(defs);
 var edgeG = svg("g"), nodeG = svg("g"); root.appendChild(edgeG); root.appendChild(nodeG);
 var edgeEls = D.edges.map(function (e) {
   var a = e[0], b = e[1], pa = POS[a], pb = POS[b], d;
-  if (layer[b] > layer[a]) {
-    var x1 = pa.cx + W[a] / 2, x2 = pb.cx - W[b] / 2, mx = (x1 + x2) / 2;
-    d = "M" + x1 + " " + pa.cy + "C" + mx + " " + pa.cy + " " + mx + " " + pb.cy + " " + x2 + " " + pb.cy;
-  } else { // back edge (in-place loop): arc under both nodes
-    var y1 = Math.max(pa.cy + H[a] / 2, pb.cy + H[b] / 2) + 26;
-    d = "M" + pa.cx + " " + (pa.cy + H[a] / 2) + "C" + pa.cx + " " + y1 + " " + pb.cx + " " + y1 + " " + pb.cx + " " + (pb.cy + H[b] / 2);
-  }
+  var x1 = pa.cx + W[a] / 2, x2 = pb.cx - W[b] / 2, mx = (x1 + x2) / 2;
+  d = "M" + x1 + " " + pa.cy + "C" + mx + " " + pa.cy + " " + mx + " " + pb.cy + " " + x2 + " " + pb.cy;
   var p = svg("path", { "class": "edge", d: d, "marker-end": "url(#arr)" });
   edgeG.appendChild(p); return p;
 });
@@ -346,7 +333,7 @@ function chip(text, fill, stroke) {
   var s = el("span"); var sw = el("span", { "class": "sw" }); sw.style.background = fill; sw.style.borderColor = stroke;
   s.appendChild(sw); s.appendChild(document.createTextNode(text)); lg.appendChild(s);
 }
-lg.appendChild(el("span", {}, "stadium = source · rectangle = script · cylinder = dataset · ★ thick border = final · loop under nodes = in-place rewrite"));
+lg.appendChild(el("span", {}, "stadium = source · rectangle = script · cylinder = dataset · ★ thick border = final"));
 var maxStage = 0; ids.forEach(function (id) { if (D.nodes[id].stage != null) maxStage = Math.max(maxStage, D.nodes[id].stage); });
 for (var s = 0; s <= maxStage; s++) chip("stage " + s, D.palette[s].fill, D.palette[s].stroke);
 chip("source", D.classes.source.fill, D.classes.source.stroke);
@@ -419,7 +406,7 @@ function renderPanel(id) {
   panel.appendChild(el("div", { "class": "muted" }, n.kind));
   if (n.kind === "script") {
     row(dl, "path", d.path); row(dl, "description", d.doc);
-    row(dl, "inputs", d.inputs); row(dl, "outputs", d.outputs); row(dl, "in-place rewrite of", d.in_place);
+    row(dl, "inputs", d.inputs); row(dl, "outputs", d.outputs);
     row(dl, "external sources", d.sources);
     row(dl, "final", yn(d.final)); row(dl, "impure", yn(d.impure));
     row(dl, "pipeline", d.pipelines.join(", ")); row(dl, "refresh", d.refresh); row(dl, "notes", d.notes);
@@ -427,7 +414,7 @@ function renderPanel(id) {
   } else if (n.kind === "dataset") {
     row(dl, "path", d.path); row(dl, "stage", d.stage);
     row(dl, "producer", d.producer ? { id: d.producer } : (d.raw ? "none (raw" + (d.origin ? ": " + d.origin : "") + ")" : null));
-    row(dl, "updaters", d.updaters); row(dl, "consumers", d.consumers);
+    row(dl, "consumers", d.consumers);
     row(dl, "final", yn(d.final)); row(dl, "refresh", d.refresh);
   } else {
     row(dl, "feeds scripts", d.scripts); row(dl, "feeds datasets", d.datasets);

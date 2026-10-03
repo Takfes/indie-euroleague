@@ -17,11 +17,9 @@ import pytest
 from eupy.fetchers.fetch_euroleague_live_boxscores import (
     _assert_season_matches,
     build_game_rows,
-    fetch_json,
     is_game_complete,
-    load_state,
-    save_state,
 )
+from eupy.fetchers.live_euroleague import fetch_json, load_state, save_state
 
 HEADER: dict[str, Any] = {
     "Live": False,
@@ -226,7 +224,7 @@ def test_fetch_json_returns_none_for_empty_body() -> None:
     fake_response.__enter__ = Mock(return_value=fake_response)
     fake_response.__exit__ = Mock(return_value=False)
 
-    with patch("eupy.fetchers.fetch_euroleague_live_boxscores.urllib.request.urlopen", return_value=fake_response):
+    with patch("eupy.fetchers.live_euroleague.urllib.request.urlopen", return_value=fake_response):
         assert fetch_json("https://example.com") is None
 
 
@@ -238,9 +236,7 @@ def test_fetch_json_sends_non_default_user_agent() -> None:
     fake_response.__enter__ = Mock(return_value=fake_response)
     fake_response.__exit__ = Mock(return_value=False)
 
-    with patch(
-        "eupy.fetchers.fetch_euroleague_live_boxscores.urllib.request.urlopen", return_value=fake_response
-    ) as mock_urlopen:
+    with patch("eupy.fetchers.live_euroleague.urllib.request.urlopen", return_value=fake_response) as mock_urlopen:
         fetch_json("https://example.com")
 
     sent_request = mock_urlopen.call_args[0][0]

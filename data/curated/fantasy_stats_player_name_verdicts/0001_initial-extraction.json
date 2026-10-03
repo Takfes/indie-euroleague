@@ -1,0 +1,182 @@
+{
+  "ingested_at": "2026-09-30",
+  "source": "extracted from committed fantasy_stats_player_name_crosswalk.csv",
+  "verdicts": [
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Correct spelling Nkamhoua (not Nkamboua); first summer signing of Barcelona 2026-27 https://en.wikipedia.org/wiki/2026%E2%80%9327_FC_Barcelona_B%C3%A0squet_season",
+      "player_id": "11502",
+      "resolved_name": "Olivier Nkamhoua"
+    },
+    {
+      "match_score": "95.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Only Moore at Virtus Bologna in basketballsphere; fantasy app drops the Jr. suffix.",
+      "player_id": "11547",
+      "resolved_name": "Wendell Moore Jr."
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Real Madrid signed Nick Smith Jr. (ex Hornets/Lakers) through 2026-27; first name Nick (Nicholas not verified) https://www.eurohoops.net/en/euroleague/2008547/real-madrid-officially-sign-nick-smith-jr/",
+      "player_id": "12145",
+      "resolved_name": "Nick Smith Jr"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Signed with Besiktas for 2026-27 https://www.eurobasket.com/Euroleague/news/1008718/DaQuan-Jeffries-agreed-terms-with-Besiktas",
+      "player_id": "12460",
+      "resolved_name": "DaQuan Jeffries"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Academy product (b. 2009) promoted to Anadolu Efes main roster Jan 2026 https://tr.wikipedia.org/wiki/Darius_Karutasu",
+      "player_id": "12465",
+      "resolved_name": "Darius Karutasu"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Yagiz Aksu (b. 2006, guard) has a EuroLeague profile and is on Besiktas roster https://www.euroleaguebasketball.net/en/euroleague/players/yagiz-aksu/012233/profile/",
+      "player_id": "12466",
+      "resolved_name": "Yagiz Aksu"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Serbian SG #42 promoted to Bayern extended roster 2026-27 (article spells Andrijia once, Andrija elsewhere) https://fcbayern.com/basketball/en/news/2026-27/08/roster-update",
+      "player_id": "12467",
+      "resolved_name": "Andrija Susic"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Bayern promoted 'Niko Jerkic' (#39, 203 cm) to extended roster; official spelling Niko, not Nikola https://fcbayern.com/basketball/en/news/2026-27/08/roster-update",
+      "player_id": "12468",
+      "resolved_name": "Niko Jerkic"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Baskonia 2026-27 roster lists center Thierry Henry Alves de Souza Silva; FEB profile https://baloncestoenvivo.feb.es/jugador/954056/2787459 and https://basketnews.com/teams/709-kosner-baskonia-vitoria-gasteiz.html",
+      "player_id": "12469",
+      "resolved_name": "Thierry Henry Alves de Souza Silva"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Greek guard b. 2007, Olympiacos contract 2025-2027, #4 https://basketball.eurobasket.com/player/Georgios-Bourneles/734238",
+      "player_id": "12470",
+      "resolved_name": "Georgios Bourneles"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "16-year-old Greek wing joined Panathinaikos roster (#12), Greek media spell Iasonas https://scoutbasketball.com/player/iason-varvaritis and https://www.pickandroll.gr/2026/09/05/iasonas-varvaritis-poios-einai-o-16chronos-poy-entachthike-sto-roster-toy-panathinaikoy/",
+      "player_id": "12471",
+      "resolved_name": "Iason Varvaritis"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Gigantes lists Abdu Kone among six academy players joining Barcelona's 2026-27 first-team preseason (spelled Abdou Kone in a Spanish news snippet); youth interior, spelling low-confidence https://www.gigantes.com/liga-endesa/canteranos-pretemporada-barca-2026/",
+      "player_id": "12517",
+      "resolved_name": "Abdu Kone"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Valencia Basket signed Nikola Mirotic for 2026-27 https://www.valenciabasket.com/en/valencia-basket-signs-nikola-mirotic-for-the-2026-27-season",
+      "player_id": "3773",
+      "resolved_name": "Nikola Mirotic"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Listed among Hapoel Tel Aviv 2026-27 forwards https://basketball.realgm.com/international/league/1/Euroleague/team/509/Hapoel-Tel-Aviv/rosters",
+      "player_id": "3818",
+      "resolved_name": "Bruno Caboclo"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Valencia Basket signed Jasiel Rivero on a one-month contract for preseason/start of season, listed as C https://www.valenciabasket.com/en/valencia-basket-signs-nikola-mirotic-for-the-2026-27-season",
+      "player_id": "3862",
+      "resolved_name": "Jasiel Rivero"
+    },
+    {
+      "match_score": "100.0",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Twin of Panagiotis (player 4019, exact match, also PAO in the fantasy table); box score has GEORGIOS KALAITZAKIS. Web check says Georgios moved to Promitheas in Aug 2026 but the fantasy app still lists him at PAO.",
+      "player_id": "4051",
+      "resolved_name": "Georgios Kalaitzakis"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Listed as Hapoel Tel Aviv 2026-27 guard https://basketball.realgm.com/international/league/1/Euroleague/team/509/Hapoel-Tel-Aviv/rosters",
+      "player_id": "4215",
+      "resolved_name": "Max Heidegger"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Maccabi Tel Aviv signed Gur Lavy (#4), 3-year deal; EuroLeague spells Lavy https://www.euroleaguebasketball.net/en/euroleague/news/maccabi-lands-israeli-leagues-most-improved-player-gur-lavy/",
+      "player_id": "7241",
+      "resolved_name": "Gur Lavy"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Pedro Souza (Pedro Lucas Souza, b. 2008) listed in Baskonia 2026-27 roster https://basketnews.com/teams/709-kosner-baskonia-vitoria-gasteiz.html",
+      "player_id": "8677",
+      "resolved_name": "Pedro Souza"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Baskonia signed Alex Len (33, Ukrainian C) two-year deal https://www.eurobasket.com/Euroleague/news/1030223/Baskonia-tabs-Alex-Len",
+      "player_id": "8728",
+      "resolved_name": "Alex Len"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Wikipedia 2026-27 Partizan season roster lists Uros Danilovic (SF, on loan at Metalac Valjevo) https://en.wikipedia.org/wiki/2026%E2%80%9327_KK_Partizan_season",
+      "player_id": "8769",
+      "resolved_name": "Uros Danilovic"
+    },
+    {
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "notes": "Bayern promoted Caspar Vossenberg to extended 2026-27 roster https://fcbayern.com/basketball/en/news/2026-27/08/roster-update",
+      "player_id": "9006",
+      "resolved_name": "Caspar Vossenberg"
+    }
+  ]
+}

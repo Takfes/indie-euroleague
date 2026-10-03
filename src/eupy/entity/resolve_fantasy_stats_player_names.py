@@ -10,27 +10,29 @@ Pipeline (engine shared with `resolve_player_names.py`, see `matching.py`):
    abbreviated the same way. A unique exact match is the only auto-accept (`exact`).
 2. Box-score stage -- for the rest, pool = every box-score spelling (no club filter, so a hit can be
    an older namesake). Never auto-accepted: candidates become `needs_review` (title-cased).
-3. Agent stage -- `--verdicts PATH`: JSON list of `{player_id, match_status, resolved_name, notes}`
-   with status `confirmed` / `rejected` / `no_match` (`resolved_name` only on `confirmed`).
+3. Verdict stage -- every verdict batch under `data/curated/fantasy_stats_player_name_verdicts/`
+   (records `{player_id, match_status, resolved_name, notes}`, status `confirmed` / `rejected` /
+   `no_match`, `resolved_name` only on `confirmed`; see `verdict_batches.py`) is applied on top,
+   a later batch winning on the same `player_id`.
 
-Idempotent: verdict-resolved rows are carried over unchanged (keyed on `player_id`); the rest are
-recomputed.
+Pure: the crosswalk is a function of the raw inputs + the verdict batches only; the previous output is
+never read, so a rebuild from scratch reproduces it exactly.
 
 Usage:
-    python src/eupy/entity/resolve_fantasy_stats_player_names.py [--verdicts PATH]
+    python src/eupy/entity/resolve_fantasy_stats_player_names.py [--verdicts-dir DIR] [--out PATH]
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - basketballsphere_prices: data/raw_data/fantasy_prices/basketballsphere_prices.csv
   - kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv
-Sources:
-  - JSON verdicts file (--verdicts PATH, optional)
+  - fantasy_stats_player_name_verdicts: data/curated/fantasy_stats_player_name_verdicts/
+Sources: none
 Outputs:
   - fantasy_stats_player_name_crosswalk: data/stage_01/fantasy_stats_player_name_crosswalk.csv
 Final: true
 Impure: false
-Notes: Merged in place (verdict-resolved rows are carried over unchanged; --verdicts applies verdicts in
-  place). Column notes. One row per fantasy player_id: player_id, name (abbreviated, e.g. C. Jones),
+Notes: Verdict batches are applied in file-name order; a later batch wins on the same player_id.
+  Column notes. One row per fantasy player_id: player_id, name (abbreviated, e.g. C. Jones),
   team (fantasy club code), resolved_name (full name), match_status (exact / confirmed / no_match /
   rejected; needs_review / no_candidate are transient), match_score, matched_by, notes. Auto-accepts
   only an exact initial + surname match within the player's own club in basketballsphere_prices;
@@ -41,17 +43,18 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
 from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
-from eupy.entity.resolve_player_names import BOXSCORE_PATH, MASTER_PATH, load_boxscore_spellings, load_master_rows
+from eupy.entity.player_sources import BOXSCORE_PATH, MASTER_PATH, load_boxscore_spellings, load_master_rows
+from eupy.entity.verdict_batches import apply_verdicts, load_batches, merge_verdicts
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PLAYERS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 CROSSWALK_PATH = REPO_ROOT / "data" / "stage_01" / "fantasy_stats_player_name_crosswalk.csv"
+VERDICTS_DIR = REPO_ROOT / "data" / "curated" / "fantasy_stats_player_name_verdicts"
 CROSSWALK_FIELDNAMES = [
     "player_id",
     "name",
@@ -62,7 +65,6 @@ CROSSWALK_FIELDNAMES = [
     "matched_by",
     "notes",
 ]
-RESOLVED_STATUSES = {"confirmed", "rejected", "no_match"}
 
 # The app's club codes differ from the schedule's (PAR = Partizan, PBB = Paris), so they are mapped
 # by hand. Checked against every initial+surname match: each code votes for exactly one club.
@@ -137,14 +139,6 @@ def build_row(
     return row
 
 
-def load_existing_crosswalk(path: Path) -> dict[str, dict[str, str]]:
-    """Existing crosswalk keyed by `player_id`, or `{}` if it doesn't exist yet."""
-    if not path.exists():
-        return {}
-    with path.open(newline="", encoding="utf-8") as f:
-        return {row["player_id"]: row for row in csv.DictReader(f)}
-
-
 def load_fantasy_players(path: Path) -> list[dict[str, str]]:
     """One `{player_id, name, team}` record per distinct `player_id`, ordered by id."""
     with path.open(newline="", encoding="utf-8") as f:
@@ -156,71 +150,39 @@ def build_crosswalk(
     players: list[dict[str, str]],
     prices_rows: list[dict[str, str]],
     boxscore_spellings: dict[str, set[str]],
-    existing: dict[str, dict[str, str]],
+    verdicts: dict[str, dict[str, Any]],
 ) -> list[dict[str, str]]:
-    """Full crosswalk: verdict-resolved rows carried over unchanged, the rest recomputed."""
+    """Full crosswalk: every row computed fresh, then `verdicts` (merged by `player_id`) applied on top.
+
+    Verdicts for a `player_id` not in the snapshot are skipped.
+    """
     club_names: dict[str, list[str]] = defaultdict(list)
     for row in prices_rows:
         club_names[row["club"]].append(row["name"])
     club_pools = {club: abbreviated_pool(names) for club, names in club_names.items()}
     boxscore_pool = abbreviated_pool(list(boxscore_spellings))
 
-    crosswalk = []
-    for player in players:
-        prior = existing.get(player["player_id"])
-        if prior is not None and prior["match_status"] in RESOLVED_STATUSES:
-            crosswalk.append({field: prior.get(field, "") for field in CROSSWALK_FIELDNAMES})
-        else:
-            crosswalk.append(build_row(player, club_pools, boxscore_pool))
+    crosswalk = [build_row(player, club_pools, boxscore_pool) for player in players]
+    apply_verdicts({row["player_id"]: row for row in crosswalk}, verdicts, "resolved_name")
     return crosswalk
 
 
-def apply_verdicts(rows_by_key: dict[str, dict[str, str]], verdicts: list[dict[str, Any]]) -> None:
-    """Apply verdicts in place, keyed by `player_id`.
-
-    Raises:
-        ValueError: On an unknown `player_id`, a status outside `RESOLVED_STATUSES`, `confirmed`
-            without `resolved_name` (or any other status with one), or a missing `notes` rationale.
-    """
-    for verdict in verdicts:
-        key = str(verdict["player_id"])
-        status, resolved_name = verdict["match_status"], verdict.get("resolved_name", "")
-        if key not in rows_by_key:
-            raise ValueError(f"Verdict targets a player_id not in the crosswalk: {key!r}")
-        if status not in RESOLVED_STATUSES:
-            raise ValueError(f"match_status must be one of {sorted(RESOLVED_STATUSES)}, got {status!r}")
-        if (status == "confirmed") != bool(resolved_name):
-            raise ValueError(f"Verdict for {key!r}: resolved_name is required for, and only allowed on, 'confirmed'")
-        if not verdict.get("notes"):
-            raise ValueError(f"Verdict for {key!r} has no notes -- every verdict needs a brief rationale")
-
-        score = verdict.get("match_score", "")
-        rows_by_key[key] |= {
-            "match_status": status,
-            "resolved_name": resolved_name,
-            "match_score": f"{score:.1f}" if isinstance(score, int | float) else str(score),
-            "matched_by": verdict.get("matched_by", "agent"),
-            "notes": verdict["notes"],
-        }
-
-
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--players", type=Path, default=PLAYERS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--prices", type=Path, default=MASTER_PATH, help="basketballsphere_prices.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="euroleague_box_score.csv path")
+    parser.add_argument("--verdicts-dir", type=Path, default=VERDICTS_DIR, help="Verdict batch directory")
     parser.add_argument("--out", type=Path, default=CROSSWALK_PATH, help="Crosswalk CSV output path")
-    parser.add_argument("--verdicts", type=Path, help="JSON list of verdicts to apply after resolving")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
+    verdicts = merge_verdicts(load_batches(args.verdicts_dir), "player_id", "resolved_name")
     rows = build_crosswalk(
         load_fantasy_players(args.players),
         load_master_rows(args.prices),
         load_boxscore_spellings(args.boxscore),
-        load_existing_crosswalk(args.out),
+        verdicts,
     )
-    if args.verdicts:
-        apply_verdicts({row["player_id"]: row for row in rows}, json.loads(args.verdicts.read_text(encoding="utf-8")))
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", newline="", encoding="utf-8") as f:
@@ -228,7 +190,8 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(rows)
     summary = ", ".join(f"{s}={n}" for s, n in sorted(Counter(r["match_status"] for r in rows).items()))
-    print(f"Wrote {len(rows)} rows to {args.out}: {summary}")
+    stale = len(set(verdicts) - {r["player_id"] for r in rows})
+    print(f"Wrote {len(rows)} rows to {args.out}: {summary} ({stale} verdict(s) for ids not in this snapshot)")
 
 
 if __name__ == "__main__":

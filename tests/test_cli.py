@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from eupy.cli import CliError, main, plan_run, resolve_target
+from eupy.cli import CliError, is_fetcher, main, plan_run, resolve_target
 from eupy.registry.dvc_gen import Pipeline
 from eupy.registry.headers import Header
-from eupy.registry.model import REPO_ROOT, Registry
+from eupy.registry.model import REPO_ROOT, Registry, is_stage0_path
 
 RAW_SOURCES: dict[str, dict[str, str]] = {}
 
@@ -109,9 +109,24 @@ def test_run_schedule_fetch_orders_fetcher_then_repro_then_links(
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
 
 
+def _stage_raw(root: Path) -> list[str]:
+    """Create every stage-0 (raw / curated) dataset path of the real registry under `root`; returns the paths."""
+    registry = Registry.from_repo(root)
+    paths = sorted(registry.path(ds) for ds in registry.datasets if is_stage0_path(registry.path(ds)))
+    for path in paths:
+        target = root / path
+        if path.endswith("/"):
+            target.mkdir(parents=True, exist_ok=True)
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("x")
+    return paths
+
+
 def test_run_all_wrapper_is_offline_by_default(tmp_path: Path) -> None:
-    fake = _Fake()
-    assert main(["run", "all"], runner=fake, root=_repo(tmp_path)) == 0
+    fake, root = _Fake(), _repo(tmp_path)
+    _stage_raw(root)
+    assert main(["run", "all"], runner=fake, root=root) == 0
     assert len(fake.calls) == 1 and fake.calls[0][:4] == ["uv", "run", "dvc", "repro"]
 
 
@@ -134,7 +149,7 @@ def test_failure_stops_and_skips_link_final(tmp_path: Path) -> None:
 def test_unknown_and_non_dvc_targets_exit_nonzero(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root, fake = _repo(tmp_path), _Fake()
     assert main(["run", "bogus"], runner=fake, root=root) == 1
-    assert main(["run", "entity"], runner=fake, root=root) == 1
+    assert main(["run", "optimize"], runner=fake, root=root) == 1
     err = capsys.readouterr().err
     assert "unknown target 'bogus'" in err and "not runnable under DVC yet" in err
     assert fake.calls == []
@@ -157,3 +172,62 @@ def test_link_final_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
     assert main(["link-final"], root=root) == 0
     assert "linked" not in capsys.readouterr().out  # second run: only skip notes, no changes
+
+
+def test_ingest_scripts_are_never_fetchers() -> None:
+    headers = {
+        "src/eupy/e/ingest.py": Header(
+            (), ("JSON verdicts file (--verdicts PATH)",), (("v", "data/curated/v/"),), False, True
+        ),
+        "src/eupy/e/resolve.py": Header(
+            (("v", "data/curated/v/"),), (), (("xw", "data/stage_01/xw.csv"),), False, False
+        ),
+    }
+    reg = Registry.from_headers(headers, RAW_SOURCES)
+    pipes = {"ent": Pipeline("ent", True, ("ingest", "resolve"))}
+    assert plan_run(reg, pipes, ["ent"], fetch=True) == [["uv", "run", "dvc", "repro", "resolve"]]
+    assert not is_fetcher(reg, "ingest")
+
+
+def test_missing_raw_input_blocks_before_anything_runs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    root, fake = _repo(tmp_path), _Fake()
+    assert main(["run", "all"], runner=fake, root=root) == 1
+    err = capsys.readouterr().err
+    assert fake.calls == [] and not (root / "data/stage_99").exists()
+    assert "kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv" in err
+    assert "eupy run acquire" in err and "Kaggle" in err
+    # Only absent paths are listed: stage them all but one.
+    assert _stage_raw(root)
+    (root / "data/raw_data/kaggle_data/euroleague_box_score.csv").unlink()
+    assert main(["run", "all"], runner=fake, root=root) == 1
+    err = capsys.readouterr().err
+    assert err.count("data/raw_data/") == 1 and "euroleague_box_score.csv" in err and fake.calls == []
+
+
+def test_fetch_covers_fetched_raw_inputs_but_not_the_rest(tmp_path: Path) -> None:
+    root = _repo(tmp_path)
+    # schedule's only raw input is produced by its fetcher: fine with --fetch, blocked without.
+    assert main(["run", "schedule", "--fetch"], runner=_Fake(), root=root) == 0
+    fake = _Fake()
+    assert main(["run", "schedule"], runner=fake, root=root) == 1
+    assert fake.calls == []
+
+
+def test_dry_run_skips_the_precheck(tmp_path: Path) -> None:
+    fake = _Fake()
+    assert main(["run", "all", "--dry-run"], runner=fake, root=_repo(tmp_path)) == 0
+    assert fake.calls == []
+
+
+def test_is_fetcher_is_path_based() -> None:
+    headers = {
+        "src/eupy/fetchers/fetch_q.py": Header((), ("plain label",), (("q", "data/raw_data/q/"),), False, True),
+        "src/eupy/entity/live_ingest.py": Header(
+            (), ("api.example.com (live)",), (("v", "data/curated/v/"),), False, True
+        ),
+        "src/eupy/fetchers/pure_one.py": Header((), (), (("p", "data/stage_01/p.csv"),), False, False),
+    }
+    reg = Registry.from_headers(headers, RAW_SOURCES)
+    assert is_fetcher(reg, "fetch_q")  # under fetchers/, impure, no "(live" marker needed
+    assert not is_fetcher(reg, "live_ingest")  # "(live" source but outside fetchers/
+    assert not is_fetcher(reg, "pure_one")  # under fetchers/ but pure

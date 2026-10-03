@@ -5,10 +5,9 @@ datasets, paths, stages and lineage edges. CLI: `uv run python -m eupy.registry 
 """
 
 from eupy.registry.headers import Header, HeaderError
-from eupy.registry.model import IN_PLACE_ALLOWLIST, Dataset, Registry, RegistryError, Script, Source
+from eupy.registry.model import Dataset, Registry, RegistryError, Script, Source
 
 __all__ = [
-    "IN_PLACE_ALLOWLIST",
     "Dataset",
     "Header",
     "HeaderError",

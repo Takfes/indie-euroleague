@@ -11,7 +11,9 @@ from eupy.registry.__main__ import main
 from eupy.registry.dvc_gen import (
     Pipeline,
     dvc_steps,
+    import_closure,
     lint_pipelines,
+    lint_script_imports,
     lint_wrappers,
     load_pipelines,
     load_wrappers,
@@ -126,7 +128,7 @@ def test_cli_dvc_writes_and_check_lints_membership(tmp_path: Path, capsys: pytes
 def test_committed_dvc_yaml_is_current() -> None:
     # Guards against a header or pipelines.toml change landing without regenerating dvc.yaml.
     registry = Registry.from_repo()
-    expected = render_dvc(registry, load_pipelines(REPO_ROOT / "pipelines.toml"))
+    expected = render_dvc(registry, load_pipelines(REPO_ROOT / "pipelines.toml"), REPO_ROOT)
     assert (REPO_ROOT / "dvc.yaml").read_text(encoding="utf-8") == expected
 
 
@@ -151,3 +153,113 @@ def test_wrappers_table_is_not_a_pipeline_and_is_linted(tmp_path: Path) -> None:
     toml.write_text('[a]\ndvc = true\nscripts = []\n[wrappers]\nall = "a"\n')
     with pytest.raises(RegistryError, match="non-empty list"):
         load_wrappers(toml)
+
+
+def _pkg(tmp_path: Path, files: dict[str, str]) -> None:
+    for rel, text in files.items():
+        f = tmp_path / "src" / "eupy" / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text, encoding="utf-8")
+
+
+def test_import_closure_resolves_direct_transitive_from_package_and_relative(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "__init__.py": "",
+            "lib/__init__.py": "",  # empty package markers are skipped
+            "lib/a.py": "import json\nimport pandas\nfrom eupy.lib import b\n",
+            "lib/b.py": "from . import c\n",
+            "lib/c.py": "from .d import thing\nimport eupy.other.e\n",
+            "lib/d.py": "thing = 1\n",
+            "other/__init__.py": "X = 1\n",  # non-empty package init is a dep
+            "other/e.py": "",
+            "other/unused.py": "",
+            "run/script.py": "import eupy.lib.a\nfrom eupy.nope import missing\nimport eupy.nope2\n",
+        },
+    )
+    assert import_closure("src/eupy/run/script.py", tmp_path) == (
+        "src/eupy/lib/a.py",
+        "src/eupy/lib/b.py",
+        "src/eupy/lib/c.py",
+        "src/eupy/lib/d.py",
+        "src/eupy/other/__init__.py",
+        "src/eupy/other/e.py",
+    )
+
+
+def test_import_closure_is_cycle_safe_and_excludes_the_script(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "x/a.py": "from eupy.x import b\n",
+            "x/b.py": "import eupy.x.a\nimport eupy.x.b\n",
+            "x/s.py": "import eupy.x.a\n",
+        },
+    )
+    assert import_closure("src/eupy/x/s.py", tmp_path) == ("src/eupy/x/a.py", "src/eupy/x/b.py")
+    assert import_closure("src/eupy/x/a.py", tmp_path) == ("src/eupy/x/b.py",)  # a <-> b cycle; a itself dropped
+
+
+def test_import_closure_of_missing_or_unparsable_script_is_empty(tmp_path: Path) -> None:
+    _pkg(tmp_path, {"x/bad.py": "def (:\n"})
+    assert import_closure("src/eupy/x/gone.py", tmp_path) == ()
+    assert import_closure("src/eupy/x/bad.py", tmp_path) == ()
+
+
+def test_step_deps_include_import_closure_between_script_and_inputs(tmp_path: Path) -> None:
+    _pkg(tmp_path, {"transform/make_a.py": "from eupy.lib import helper\n", "lib/helper.py": ""})
+    (step,) = dvc_steps(_registry(), _pipelines(), tmp_path)
+    assert step.deps == (
+        "src/eupy/transform/make_a.py",
+        "src/eupy/lib/helper.py",
+        "data/raw_data/manual/raw.csv",
+        "data/raw_data/x",
+    )
+
+
+def _script_registry() -> Registry:
+    """Two pure scripts, `src/eupy/transform/s1.py` and `s2.py`, each producing one dataset from none."""
+    headers = {
+        f"src/eupy/transform/{n}.py": Header((), (), ((f"out_{n}", f"data/stage_01/{n}.csv"),), False, False)
+        for n in ("s1", "s2")
+    }
+    return Registry.from_headers(headers, {})
+
+
+def test_script_importing_another_script_is_rejected_naming_both(tmp_path: Path) -> None:
+    _pkg(tmp_path, {"transform/s1.py": "from eupy.transform.s2 import x\n", "transform/s2.py": "x = 1\n"})
+    problems = lint_script_imports(_script_registry(), tmp_path, ())
+    assert len(problems) == 1
+    assert "script s1" in problems[0] and "script s2" in problems[0] and "library module" in problems[0]
+
+
+def test_script_importing_a_library_is_accepted_even_transitively(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/s1.py": "from eupy.transform.lib_a import x\n",
+            "transform/s2.py": "import eupy.transform.lib_b\n",
+            "transform/lib_a.py": "from eupy.transform import lib_b\n",
+            "transform/lib_b.py": "x = 1\n",
+        },
+    )
+    assert lint_script_imports(_script_registry(), tmp_path, ("transform/lib_a.py", "transform/lib_b.py")) == []
+
+
+def test_library_importing_a_script_is_rejected(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/s1.py": "from eupy.transform.lib_a import x\n",
+            "transform/s2.py": "y = 1\n",
+            "transform/lib_a.py": "from eupy.transform.s2 import y\nx = y\n",
+        },
+    )
+    problems = lint_script_imports(_script_registry(), tmp_path, ("transform/lib_a.py",))
+    assert len(problems) == 1
+    assert "library module transform/lib_a.py" in problems[0] and "script s2" in problems[0]
+
+
+def test_real_repo_has_no_script_importing_a_script() -> None:
+    assert lint_script_imports(Registry.from_repo(REPO_ROOT)) == []
