@@ -26,11 +26,16 @@ Each run appends at most one delta CSV (only newly ingested games) and updates
 the season's `last_ingested_gamecode` in the state file. If there's nothing new,
 no delta file is written and the state's `last_checked_at` is bumped.
 
-Inputs: none -- fetched live from live.euroleague.net/api/{Header,BoxScore}.
-Outputs: data/raw_data/euroleague_net/box_score/{season}_delta_{utc_timestamp}.csv
-    (one new file per run with new data), data/raw_data/euroleague_net/_state.json
-    (updated every run).
-Final: false -- raw fetch output, not exposed under data/stage_99/.
+Inputs: none
+Sources:
+  - live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live)
+Outputs:
+  - euroleague_net/box_score: data/raw_data/euroleague_net/box_score/
+Final: false
+Impure: true
+Refresh: incremental: one delta file per run with new games
+Notes: Delta files are named {season}_delta_{utc_timestamp}.csv. State file
+  data/raw_data/euroleague_net/_state.json tracks progress and is updated every run.
 """
 
 from __future__ import annotations

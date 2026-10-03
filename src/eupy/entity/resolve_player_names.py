@@ -46,11 +46,17 @@ is nothing to refresh -- every other row (new, `exact`, `needs_review`,
 Usage:
     python src/eupy/entity/resolve_player_names.py [--master PATH] [--boxscore PATH] [--out PATH]
 
-Inputs: data/raw_data/fantasy_prices/basketballsphere_prices.csv,
-    data/raw_data/kaggle_data/euroleague_box_score.csv.
-Outputs: data/stage_01/player_name_crosswalk.csv (merged in place; existing
-    agent-resolved rows are preserved unchanged, see idempotency note above).
-Final: true -- feeds downstream feature work; symlinked into data/stage_99/.
+Inputs:
+  - basketballsphere_prices: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+  - kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv
+Sources: none
+Outputs:
+  - player_name_crosswalk: data/stage_01/player_name_crosswalk.csv
+Final: true
+Impure: false
+Notes: Merged in place: existing agent-resolved rows are preserved unchanged.
+  apply_player_name_verdicts.py also updates this crosswalk in place, so the apply_* scripts
+  add no stage of their own.
 """
 
 from __future__ import annotations

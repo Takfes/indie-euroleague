@@ -35,11 +35,11 @@
 
 ## Pass criteria
 
-- [ ] `dvc repro` builds all `dvc = true` pipelines from raw inputs on a clean checkout of the outputs.
-- [ ] Immediate second `dvc repro` is a no-op.
-- [ ] Touching one raw input reruns only its downstream steps (checked on a `net` input).
-- [ ] Outputs after `dvc repro` are byte-identical to the previous committed/known outputs (reproducibility).
-- [ ] `dvc.yaml` regeneration is idempotent; lint rejects a script in zero or two pipelines.
-- [ ] Unit tests: stage generation (deps/outs/cmd/`cache: false`), impure scripts skipped, `dvc = false` pipelines skipped.
-- [ ] `dvc.lock` committed; `docs/quickstart.md` notes `dvc repro`.
-- [ ] `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] `dvc repro` builds all `dvc = true` pipelines from raw inputs on a clean checkout of the outputs.
+- [x] Immediate second `dvc repro` is a no-op.
+- [x] Touching one raw input reruns only its downstream steps (checked on a `net` input).
+- [x] Outputs after `dvc repro` are byte-identical to the previous committed/known outputs (reproducibility).
+- [x] `dvc.yaml` regeneration is idempotent; lint rejects a script in zero or two pipelines.
+- [x] Unit tests: stage generation (deps/outs/cmd/`cache: false`), impure scripts skipped, `dvc = false` pipelines skipped.
+- [x] `dvc.lock` committed; `docs/quickstart.md` notes `dvc repro`.
+- [x] `ruff check` + `ruff format --check` clean; `uv run pytest` green.

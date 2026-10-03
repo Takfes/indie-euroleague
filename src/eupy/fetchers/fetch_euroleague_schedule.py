@@ -20,9 +20,15 @@ Usage:
 `--season` takes the same code as the live box-score fetcher (`E` + 4-digit start year); the API's
 integer `season` parameter is derived from it (`E2026` -> `2026`).
 
-Inputs: none -- fetched live from https://euroleague-advanced-api.eu/Euroleague/schedule?season={year}.
-Outputs: data/raw_data/euroleague_schedule/schedule_{season}.csv (overwritten each run).
-Final: false -- raw fetch output, not exposed under data/stage_99/.
+Inputs: none
+Sources:
+  - https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live)
+Outputs:
+  - euroleague_schedule/schedule: data/raw_data/euroleague_schedule/
+Final: false
+Impure: true
+Refresh: full overwrite per run (per season)
+Notes: One file per season, named schedule_{season}.csv.
 """
 
 from __future__ import annotations

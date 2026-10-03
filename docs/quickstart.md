@@ -72,6 +72,76 @@ uv run python src/eupy/transform/normalize_fantasy_stats.py
 
 Writes `data/stage_01/fantasy_stats_player_name_crosswalk.csv` and `data/stage_02/fantasy_stats_players_normalized.csv` (both symlinked in `data/stage_99/`).
 
+## Script I/O header
+
+Every pipeline script under `src/eupy/` ends its module docstring with a key-value block (the single source of truth for its inputs/outputs; catalogue and graph are generated from it). Keys in this order, one per line:
+
+```
+Inputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+Sources:
+  - JSON verdicts file (--verdicts PATH)
+Outputs:
+  - fantasy_stats_players_normalized: data/stage_02/fantasy_stats_players_normalized.csv
+Final: true
+Impure: false
+Refresh: full overwrite per run
+Notes: free text
+```
+
+- `Inputs`/`Outputs`: `- <dataset-name>: <repo-relative path>`; raw names are `<source-dir>/<logical-name>`, produced names are the file stem. Directories of per-run files end in `/`; no templated file names.
+- `Sources`: external origins and CLI-given files (live URLs, verdicts JSON), free text. Any of the three lists may be `none`.
+- `Impure: true` for anything hitting a live source (all fetchers). A verdict applier that rewrites an existing file lists it in both `Inputs` and `Outputs`; resolvers that merge into their own previous output do not (see `Notes`).
+- `Refresh` and `Notes` are optional; `Notes` may continue on 2-space-indented lines. Templated file names go in `Notes`; the path is the directory.
+
+## Registry
+
+`src/eupy/registry/` derives scripts, datasets, paths, stages and lineage from those headers (read via `ast`, scripts are never imported). Raw datasets no script produces get their origin + refresh note in `src/eupy/registry/raw_sources.toml`.
+
+```bash
+uv run python -m eupy.registry check   # lint: exit 1 + one line per problem
+uv run python -m eupy.registry show    # print the model (deterministic)
+uv run python -m eupy.registry catalogue  # (re)write docs/data-catalogue.md; --stdout prints instead
+uv run python -m eupy.registry graph      # (re)write docs/data-graph.md (Mermaid); --stdout prints instead
+uv run python -m eupy.registry docs       # both docs in one pass (what the update-data-docs skill runs)
+uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.toml; --stdout prints instead
+```
+
+- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `*_crosswalk.py` exempt), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
+- `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
+- `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws (plus in-place self-loops).
+- `html` renders `docs/data-map.html`: an interactive lineage map (one self-contained file, open it from disk, no server). Same nodes/colours as the graph; pipeline/wrapper filter dims everything else; click a node for path, inputs/outputs, pipeline, docstring paragraph, `Notes`. Not part of `docs` (regenerate it when headers or `pipelines.toml` change). `html --status` also writes the git-ignored `docs/data-map.status.html` with DVC fresh/stale marks from `dvc status`.
+- Stage: under `data/raw_data/` = 0; otherwise `max(input stages) + 1`.
+- In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
+- Temporary: the `resolve_*` / `apply_*` name scripts may rewrite their own output (`in_place`); an `apply_*` script is an *updater* of the crosswalk, not a second producer.
+
+## DVC pipelines
+
+`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`) become DVC steps in the generated `dvc.yaml`; fetchers are not steps — run them yourself, then:
+
+```bash
+uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pipelines.toml change (never hand-edit)
+uv run dvc repro                     # rerun only the steps whose script or inputs changed
+```
+
+Outputs are `cache: false` (no copies, no remote); their fingerprints live in the committed `dvc.lock`. `data/raw_data/` is git-ignored: on a fresh clone the raw deps are missing until the fetchers (and the Kaggle download) have run, so `dvc repro` only works after that.
+
+### `eupy run` / `eupy link-final`
+
+Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "net"]`; order between pipelines comes from DVC dependencies).
+
+```bash
+uv run eupy run all                 # offline: dvc repro for schedule + net steps; a second run is a no-op
+uv run eupy run schedule --fetch    # first run the pipeline's fetchers (live API calls), then dvc repro
+uv run eupy run acquire             # dvc = false pipeline: runs its fetchers only (no DVC)
+uv run eupy run all --dry-run       # print the commands, execute nothing
+uv run eupy link-final              # refresh data/stage_99/ links (also runs after a successful `eupy run`)
+```
+
+- `entity` and `optimize` are `dvc = false` with no fetchers: `eupy run entity` exits 1 ("not runnable under DVC yet").
+- `--fetch` runs impure scripts with `uv run python <script>` in dependency order; the default run never touches the network.
+- `link-final` creates relative symlinks in `data/stage_99/` for every produced `Final: true` dataset whose file exists (missing ones are reported and skipped), removes stale symlinks it no longer manages, and never touches regular files or directories.
+
 ## Dev loop
 
 ```bash
