@@ -5,9 +5,9 @@ stages:
     deps:
     - path: data/raw_data/euroleague_net/box_score
       hash: md5
-      md5: 6ffbaaad7b4ac6e1afabed19a80b2560.dir
+      md5: d751713988987e9331980363e24189ce.dir
       size: 0
-      nfiles: 1
+      nfiles: 0
     - path: data/raw_data/kaggle_data/euroleague_box_score.csv
       hash: md5
       md5: e01bde23b29bde89daaa21c24a38672b
@@ -26,9 +26,9 @@ stages:
     deps:
     - path: data/raw_data/euroleague_net/headers
       hash: md5
-      md5: 6ffbaaad7b4ac6e1afabed19a80b2560.dir
+      md5: d751713988987e9331980363e24189ce.dir
       size: 0
-      nfiles: 1
+      nfiles: 0
     - path: data/raw_data/kaggle_data/euroleague_header.csv
       hash: md5
       md5: 78c90f4b880bfecc093a2ffd20ca5254
@@ -47,9 +47,9 @@ stages:
     deps:
     - path: data/raw_data/euroleague_schedule
       hash: md5
-      md5: d9ece5f5a8cdab17915b95300c825b9a.dir
+      md5: 0087a5a266aa11c5bd6eed1e412fff66.dir
       size: 62258
-      nfiles: 2
+      nfiles: 1
     - path: src/eupy/transform/build_schedule_turns.py
       hash: md5
       md5: f0a96b383628622b68332431cbc602d2

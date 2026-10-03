@@ -139,11 +139,18 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Data: raw downloads live in data/raw_data/ (produced stages are tracked).
-# Ignore raw_data's contents but keep the directory structure via .gitkeep.
-data/raw_data/**
-!data/raw_data/**/
-!data/raw_data/**/.gitkeep
+# ============================================================================
+# data/ layout  (structure only)
+# Nothing under data/ is versioned except directory skeletons (.gitkeep) and
+# the allow-list below; derived data is fingerprinted by dvc.lock, not by git.
+# ============================================================================
+data/**
+!data/**/
+!data/**/.gitkeep
+
+# ALLOW-LIST (add exceptions here, one per line, with a reason)
+# data/curated: verdict batches are human/agent judgements, not derivable from raw data.
+!data/curated/**
 
 # Local DVC-status overlay of the data map (python -m eupy.registry html --status)
 docs/data-map.status.html

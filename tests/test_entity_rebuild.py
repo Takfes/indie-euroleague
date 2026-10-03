@@ -1,9 +1,9 @@
 """Crosswalks are a pure function of raw data + tracked verdict batches.
 
 Two groups:
-- Real-data rebuilds: each committed `data/stage_01` crosswalk is rebuilt from the (git-ignored) raw
-  snapshot + the tracked `data/curated/*_verdicts/` batches and must be byte-identical. Skipped when
-  the raw files are absent.
+- Real-data rebuilds: each crosswalk is rebuilt from the (untracked) raw snapshot + the versioned
+  `data/curated/*_verdicts/` batches; its md5 must equal the md5 recorded for that out in the
+  committed `dvc.lock` (data/ itself is structure-only). Skipped when the raw files are absent.
 - Synthetic purity checks: a resolver never reads its previous output (deleted or poisoned output
   gives the same result), and rerunning gives identical bytes.
 """
@@ -11,18 +11,20 @@ Two groups:
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from eupy.devtools import extract_initial_verdicts
 from eupy.entity import resolve_fantasy_stats_player_names, resolve_player_names, resolve_team_names
 from eupy.entity.verdict_batches import write_batch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-STAGE_01 = REPO_ROOT / "data" / "stage_01"
 CURATED = REPO_ROOT / "data" / "curated"
+DVC_LOCK = REPO_ROOT / "dvc.lock"
 
 PRICES = resolve_player_names.MASTER_PATH
 BOXSCORE = resolve_player_names.BOXSCORE_PATH
@@ -34,31 +36,58 @@ def _missing(*paths: Path) -> bool:
     return not all(p.exists() for p in paths)
 
 
-# --- real-data rebuilds (byte-identical to the committed crosswalks) ----------------------
+def locked_md5(lock_path: Path, out_path: str) -> str:
+    """md5 recorded in a dvc.lock for the stage out `out_path` (repo-relative, posix)."""
+    stages = yaml.safe_load(lock_path.read_text())["stages"]
+    hits = [o["md5"] for st in stages.values() for o in st.get("outs", []) if o["path"] == out_path]
+    assert len(hits) == 1, f"{out_path}: expected exactly one lock entry, found {len(hits)}"
+    return hits[0]
+
+
+def _md5(path: Path) -> str:
+    return hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()  # DVC fingerprint, not security
+
+
+def test_locked_md5_reads_synthetic_lock(tmp_path: Path) -> None:
+    lock = tmp_path / "dvc.lock"
+    lock.write_text(
+        "schema: '2.0'\n"
+        "stages:\n"
+        "  a:\n    outs:\n    - path: data/stage_01/x.csv\n      md5: abc\n"
+        "  b:\n    deps:\n    - path: data/stage_01/x.csv\n      md5: zzz\n"
+        "    outs:\n    - path: data/stage_01/y.csv\n      md5: def\n"
+    )
+    assert locked_md5(lock, "data/stage_01/x.csv") == "abc"  # dep entry (zzz) is ignored
+    assert locked_md5(lock, "data/stage_01/y.csv") == "def"
+    with pytest.raises(AssertionError):
+        locked_md5(lock, "data/stage_01/missing.csv")
+
+
+# --- real-data rebuilds (md5 equal to the one recorded in the committed dvc.lock) ---------
 
 
 @pytest.mark.skipif(_missing(PRICES, BOXSCORE), reason="raw prices / box-score data not staged")
-def test_player_name_crosswalk_rebuilds_byte_identical(tmp_path: Path) -> None:
+def test_player_name_crosswalk_rebuilds_to_locked_md5(tmp_path: Path) -> None:
     out = tmp_path / "player_name_crosswalk.csv"
     resolve_player_names.main(["--out", str(out)])
 
-    assert out.read_bytes() == (STAGE_01 / "player_name_crosswalk.csv").read_bytes()
+    assert _md5(out) == locked_md5(DVC_LOCK, "data/stage_01/player_name_crosswalk.csv")
 
 
 @pytest.mark.skipif(_missing(PRICES, HEADER), reason="raw prices / header data not staged")
-def test_team_name_crosswalk_rebuilds_byte_identical(tmp_path: Path) -> None:
+def test_team_name_crosswalk_rebuilds_to_locked_md5(tmp_path: Path) -> None:
     out = tmp_path / "team_name_crosswalk.csv"
     resolve_team_names.main(["--out", str(out)])
 
-    assert out.read_bytes() == (STAGE_01 / "team_name_crosswalk.csv").read_bytes()
+    assert _md5(out) == locked_md5(DVC_LOCK, "data/stage_01/team_name_crosswalk.csv")
 
 
 @pytest.mark.skipif(_missing(PLAYERS, PRICES, BOXSCORE), reason="raw fantasy stats / prices / box-score not staged")
-def test_fantasy_stats_player_name_crosswalk_rebuilds_byte_identical(tmp_path: Path) -> None:
+def test_fantasy_stats_player_name_crosswalk_rebuilds_to_locked_md5(tmp_path: Path) -> None:
     out = tmp_path / "fantasy_stats_player_name_crosswalk.csv"
     resolve_fantasy_stats_player_names.main(["--out", str(out)])
 
-    assert out.read_bytes() == (STAGE_01 / "fantasy_stats_player_name_crosswalk.csv").read_bytes()
+    assert _md5(out) == locked_md5(DVC_LOCK, "data/stage_01/fantasy_stats_player_name_crosswalk.csv")
 
 
 def test_extraction_keeps_only_agent_resolved_rows_sorted_and_is_reproducible(tmp_path: Path) -> None:

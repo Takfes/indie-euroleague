@@ -115,6 +115,17 @@ uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.to
 - In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
 - No script may list a dataset as both input and output (`IN_PLACE_ALLOWLIST` is empty; the mechanism is kept only for tests).
 
+## Data layout
+
+`data/` is versioned as **structure only**: directory skeletons (`.gitkeep`) plus the allow-list in `.gitignore` (section "data/ layout"). Everything else under `data/` is ignored.
+
+- Versioned: the skeleton and `data/curated/**` (verdict batches are human/agent judgements, not derivable from raw data).
+- Derived outputs (`data/stage_*`) are not in git; their md5s are fingerprinted in the committed `dvc.lock`. Rebuild them with `uv run eupy run all`.
+- Raw data (`data/raw_data/`) must be fetched/downloaded first (fetchers, Kaggle); a fresh clone has only empty directories.
+- `data/stage_99/` symlinks are untracked too: `uv run eupy link-final` recreates them.
+- New exception: add one `!data/<path>` line under `# ALLOW-LIST` in `.gitignore`, with a reason comment. A new data directory needs a `.gitkeep`.
+- `.dvcignore` excludes `.gitkeep` and `_state.json` so directory-dep hashes ignore skeleton/state files.
+
 ## DVC pipelines
 
 `pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`, `entity`) become DVC steps in the generated `dvc.yaml`; impure scripts (fetchers, entity ingest) are not steps — run them yourself, then:
