@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branch situation</title>
+<style>
+:root {
+  --paper: #eceff2; --card: #ffffff; --ink: #12232d; --muted: #5d7280; --line: #c9d3da;
+  --local: #2457d6; --remote: #c96a0a; --bad: #b3123a; --good: #1b8458; --warn: #9a6b00;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --head: "Avenir Next Condensed", "DIN Alternate", "Arial Narrow", system-ui, sans-serif;
+  --body: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1a21; --card: #14252e; --ink: #e4edf2; --muted: #8fa4b1; --line: #2a4150;
+    --local: #6f94ff; --remote: #f0953a; --bad: #ff5c80; --good: #3fcf94; --warn: #e6b84a;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1a21; --card: #14252e; --ink: #e4edf2; --muted: #8fa4b1; --line: #2a4150;
+  --local: #6f94ff; --remote: #f0953a; --bad: #ff5c80; --good: #3fcf94; --warn: #e6b84a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); }
+main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 16px; }
+.chip { font: 700 13px var(--head); letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px;
+  border: 2px solid currentColor; border-radius: 3px; }
+.chip.bad { color: var(--bad); } .chip.good { color: var(--good); } .chip.warn { color: var(--warn); }
+h1 { margin: 0; font: 700 26px/1.15 var(--head); letter-spacing: .01em; flex: 1 1 360px; min-width: 0; }
+.meaning { margin: 0 0 16px; color: var(--muted); max-width: 70ch; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 16px; margin-bottom: 16px; min-width: 0; }
+.card h2 { margin: 0 0 10px; font: 700 13px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.yard { overflow-x: auto; padding: 0; }
+.yard svg { display: block; max-width: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 10px 16px; border-top: 1px solid var(--line);
+  font: 12px var(--mono); color: var(--muted); }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 6px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 800px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 14px; }
+dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+ul.plain { margin: 0; padding-left: 18px; } ul.plain li { margin: 3px 0; }
+ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+ol.steps li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+ol.steps li:first-child { border-top: 0; padding-top: 0; }
+.dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); margin-top: 4px; }
+.dot.done { background: var(--good); border-color: var(--good); } .dot.failed { background: var(--bad); border-color: var(--bad); }
+.cmd { display: flex; gap: 8px; align-items: flex-start; background: var(--paper); border: 1px solid var(--line);
+  border-radius: 4px; padding: 6px 8px; }
+.cmd code { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmd button { font: 12px var(--mono); color: var(--ink); background: var(--card); border: 1px solid var(--line);
+  border-radius: 3px; padding: 2px 8px; cursor: pointer; }
+.cmd button:focus-visible, .yard:focus-visible { outline: 2px solid var(--local); outline-offset: 2px; }
+.does { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.files { margin: 4px 0 0; padding-left: 18px; font: 12px var(--mono); }
+svg text { font-family: var(--mono); }
+svg .sub { font-family: var(--body); }
+@media (prefers-reduced-motion: no-preference) { .pulse { animation: pulse 2.2s ease-in-out infinite; } }
+@keyframes pulse { 50% { opacity: .45; } }
+</style>
+</head>
+<body>
+<main>
+  <header><span class="chip" id="chip"></span><h1 id="headline"></h1></header>
+  <p class="meaning" id="meaning"></p>
+  <section class="card yard" aria-label="Branch diagram">
+    <div id="yard" tabindex="0"></div>
+    <div class="legend">
+      <span><i style="border-color:var(--remote)"></i>remote track</span>
+      <span><i style="border-color:var(--local)"></i>local track</span>
+      <span>&#9670; merge commit</span>
+      <span>dashed = not real yet</span>
+      <span>lamp: green clean / red conflicts / grey unknown</span>
+    </div>
+  </section>
+  <div class="cols">
+    <section class="card"><h2>Facts</h2><dl id="facts"></dl></section>
+    <div id="side"></div>
+  </div>
+</main>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+(() => {
+  const { snapshot: S, plan: P } = JSON.parse(document.getElementById("payload").textContent);
+  const NS = "http://www.w3.org/2000/svg";
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const el = (tag, attrs = {}, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (text !== undefined) n.textContent = text;
+    return n;
+  };
+  const html = (tag, props = {}, ...kids) => {
+    const n = Object.assign(document.createElement(tag), props);
+    kids.forEach((k) => n.append(k));
+    return n;
+  };
+  const clip = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+  const MEANING = {
+    diverged: "Both sides added commits the other lacks. Git cannot fast-forward: one side must be merged into, or replayed onto, the other.",
+    behind: "The remote has commits you lack. A fast-forward brings them in; nothing of yours is at risk.",
+    ahead: "You have commits the remote lacks. Nothing to integrate: push, or open a PR.",
+    "in-sync": "Local and remote point at the same commit.",
+    conflicted: "A merge/rebase hit overlapping edits and stopped. Resolve the marked files, then continue or abort.",
+    "in-progress": "An operation is paused with no conflicts left. Continue it or abort it.",
+    detached: "HEAD points at a commit, not a branch. New commits are reachable only through the reflog until a branch names them.",
+    "no-upstream": "This branch has no remote counterpart to compare with. Push with -u, or pass --against <ref>.",
+  };
+  const TONE = { diverged: "bad", conflicted: "bad", detached: "bad", "in-progress": "warn", behind: "warn", ahead: "warn", "no-upstream": "warn", "in-sync": "good" };
+
+  const chip = document.getElementById("chip");
+  chip.textContent = S.state;
+  chip.className = "chip " + (TONE[S.state] || "warn");
+  document.getElementById("headline").textContent = S.headline;
+  document.getElementById("meaning").textContent = MEANING[S.state] || "";
+  document.title = `${S.repo}: ${S.state}`;
+
+  // ---- diagram -------------------------------------------------------------------------------
+  const STEP = 140, X0 = 80, Y_REMOTE = 64, Y_TRUNK = 160, Y_LOCAL = 256, H = 320;
+  const [cLocal, cRemote, cBad, cGood, cInk, cMuted, cCard] = ["--local", "--remote", "--bad", "--good", "--ink", "--muted", "--card"].map(css);
+  const lanes = { remote: S.remote_only, local: S.local_only };
+  const longest = Math.max(lanes.remote.length, lanes.local.length, 0);
+  const forked = S.base && (lanes.remote.length || lanes.local.length);
+  const mergeX = X0 + STEP * (longest + 1);
+  const showMerge = (lanes.remote.length && lanes.local.length) || S.operation;
+  const W = (showMerge ? mergeX : X0 + STEP * (longest + 0.5)) + 150;
+  // crop to the tracks that exist: an empty remote/local lane would only add dead space
+  const top = lanes.remote.length ? 0 : Y_TRUNK - 90;
+  const bottom = lanes.local.length ? H : showMerge ? Y_TRUNK + 100 : Y_TRUNK + 90;
+  const svg = el("svg", { viewBox: `0 ${top} ${W} ${bottom - top}`, width: W, height: bottom - top, role: "img", "aria-label": S.headline });
+
+  const laneY = { remote: Y_REMOTE, local: Y_LOCAL };
+  const laneColor = { remote: cRemote, local: cLocal };
+  const nodeX = (i) => X0 + STEP * (i + 1);
+  const headNode = (side) => (lanes[side].length ? { x: nodeX(lanes[side].length - 1), y: laneY[side] } : { x: X0, y: Y_TRUNK });
+
+  // sleepers (the ties of the track), drawn first so they sit under the rails
+  for (const side of ["remote", "local"]) {
+    if (!lanes[side].length) continue;
+    for (let x = X0 + STEP * 0.5; x < nodeX(lanes[side].length - 1) + 40; x += 22)
+      svg.append(el("line", { x1: x, x2: x, y1: laneY[side] - 9, y2: laneY[side] + 9, stroke: cMuted, "stroke-width": 1.5, opacity: 0.35 }));
+  }
+  const rail = (d, color, dashed) => svg.append(el("path", { d, fill: "none", stroke: color, "stroke-width": 4, "stroke-linecap": "round", ...(dashed ? { "stroke-dasharray": "3 9" } : {}) }));
+  const trunkStart = S.base ? X0 - 56 : X0;
+  if (S.base) rail(`M ${trunkStart} ${Y_TRUNK} L ${X0} ${Y_TRUNK}`, cMuted);
+  for (const side of ["remote", "local"]) {
+    const n = lanes[side].length;
+    if (!n) continue;
+    const y = laneY[side], x1 = nodeX(0);
+    rail(`M ${X0} ${Y_TRUNK} C ${X0 + STEP * 0.5} ${Y_TRUNK}, ${x1 - STEP * 0.5} ${y}, ${x1} ${y}`, laneColor[side]);
+    if (n > 1) rail(`M ${x1} ${y} L ${nodeX(n - 1)} ${y}`, laneColor[side]);
+    if (S.hidden[side]) svg.append(el("text", { x: X0 + STEP * 0.5, y: y + (side === "remote" ? -14 : 24), "text-anchor": "middle", fill: cMuted, "font-size": 11 }, `+${S.hidden[side]} earlier`));
+  }
+
+  // predicted merge / stopped operation: a signal lamp at the end of the line
+  if (showMerge) {
+    const lampColor = S.operation ? (S.state === "conflicted" ? cBad : cMuted) : S.predicted_merge ? (S.predicted_merge.clean ? cGood : cBad) : cMuted;
+    for (const side of ["remote", "local"]) {
+      const h = headNode(side);
+      rail(`M ${h.x} ${h.y} C ${h.x + STEP * 0.6} ${h.y}, ${mergeX - STEP * 0.6} ${Y_TRUNK}, ${mergeX} ${Y_TRUNK}`, laneColor[side], true);
+    }
+    svg.append(el("line", { x1: mergeX, x2: mergeX, y1: Y_TRUNK + 14, y2: Y_TRUNK + 40, stroke: cMuted, "stroke-width": 3 }));
+    svg.append(el("circle", { cx: mergeX, cy: Y_TRUNK, r: 15, fill: cCard, stroke: lampColor, "stroke-width": 3 }));
+    svg.append(el("circle", { cx: mergeX, cy: Y_TRUNK, r: 8, fill: lampColor, class: lampColor === cBad ? "pulse" : "" }));
+    const label = S.operation ? `${S.operation} ${S.state === "conflicted" ? "stopped" : "paused"}` : "predicted merge";
+    const detail = S.operation ? `${S.status.conflicted.length} conflict(s)` : S.predicted_merge ? (S.predicted_merge.clean ? "clean" : `${S.predicted_merge.conflicts.length} conflict(s)`) : "unknown";
+    svg.append(el("text", { x: mergeX, y: Y_TRUNK + 62, "text-anchor": "middle", fill: cInk, "font-size": 12, "font-weight": 700 }, label));
+    svg.append(el("text", { x: mergeX, y: Y_TRUNK + 78, "text-anchor": "middle", fill: lampColor, "font-size": 12 }, detail));
+  }
+
+  // commits
+  const refsAt = (sha) => (S.refs[sha] || []).filter((r) => r.name !== S.against?.name && r.name !== S.head.branch);
+  const commit = (c, x, y, color, pos, hollow) => {
+    const g = el("g");
+    g.append(el("title", {}, `${c.short} ${c.subject}\n${c.author}, ${c.date}`));
+    const mark = c.merge
+      ? el("rect", { x: x - 8, y: y - 8, width: 16, height: 16, transform: `rotate(45 ${x} ${y})`, fill: cCard, stroke: color, "stroke-width": 3 })
+      : el("circle", { cx: x, cy: y, r: 8, fill: hollow ? cCard : color, stroke: color, "stroke-width": 3 });
+    g.append(mark);
+    const right = pos === "right", above = pos === "above";
+    const tx = right ? x + 64 : x, anchor = right ? "start" : "middle";
+    const ty = right ? y - 2 : above ? y - 24 : y + 26;
+    g.append(el("text", { x: tx, y: ty, "text-anchor": anchor, fill: cInk, "font-size": 12, "font-weight": 700 }, c.short));
+    g.append(el("text", { x: tx, y: right ? ty + 15 : ty + (above ? -15 : 15), "text-anchor": anchor, fill: cMuted, "font-size": 11, class: "sub" }, clip(c.subject, 20)));
+    svg.append(g);
+  };
+  // the shared ancestor's label avoids whichever side its branch flag sits on
+  const basePos = !lanes.remote.length && !lanes.local.length ? "right" : !lanes.local.length ? "above" : "below";
+  if (S.base) commit(S.base, X0, Y_TRUNK, cMuted, basePos, true);
+  lanes.remote.forEach((c, i) => commit(c, nodeX(i), Y_REMOTE, cRemote, "below"));
+  lanes.local.forEach((c, i) => commit(c, nodeX(i), Y_LOCAL, cLocal, "above"));
+  if (!S.base && !S.against) commit({ short: S.head.short, subject: "HEAD", author: "", date: "", merge: false }, X0, Y_TRUNK, cLocal, "above");
+
+  // flags: branch names ride on the outer side of each track
+  const flag = (text, x, y, color, up, solid) => {
+    const w = text.length * 7.4 + 18, top = up ? y - 30 : y + 30;
+    const g = el("g");
+    g.append(el("line", { x1: x, x2: x, y1: y + (up ? -10 : 10), y2: top + (up ? 24 : 0), stroke: color, "stroke-width": 2 }));
+    g.append(el("rect", { x: x - w / 2, y: top, width: w, height: 24, rx: 3, fill: solid ? color : cCard, stroke: color, "stroke-width": 2 }));
+    g.append(el("text", { x, y: top + 16, "text-anchor": "middle", fill: solid ? cCard : color, "font-size": 12, "font-weight": 700 }, text));
+    svg.append(g);
+  };
+  if (S.against) {
+    const h = headNode("remote");
+    flag(S.against.name, h.x, h.y, cRemote, true, true);
+  }
+  const headText = S.head.branch ? `${S.head.branch} ← HEAD` : "HEAD (detached)";
+  const hl = headNode("local");
+  flag(headText, hl.x, hl.y, S.head.branch ? cLocal : cBad, false, true);
+  // other branches / tags that sit on drawn commits
+  const extras = [...lanes.remote, ...lanes.local, ...(S.base ? [S.base] : [])];
+  extras.forEach((c) => {
+    const rs = refsAt(c.sha).slice(0, 2);
+    if (!rs.length) return;
+    const onRemote = lanes.remote.includes(c), onLocal = lanes.local.includes(c);
+    const idx = onRemote ? lanes.remote.indexOf(c) : onLocal ? lanes.local.indexOf(c) : -1;
+    const x = idx >= 0 ? nodeX(idx) : X0, y = onRemote ? Y_REMOTE - 18 : onLocal ? Y_LOCAL + 24 + 12 : Y_TRUNK - 20;
+    svg.append(el("text", { x, y: y - (onRemote ? 18 : 0), "text-anchor": "middle", fill: cMuted, "font-size": 10 }, rs.map((r) => r.name).join(" · ")));
+  });
+  document.getElementById("yard").append(svg);
+
+  // ---- facts ---------------------------------------------------------------------------------
+  const facts = document.getElementById("facts");
+  const row = (k, v) => { if (v !== null && v !== undefined && v !== "") facts.append(html("dt", { textContent: k }), v instanceof Node ? html("dd", {}, v) : html("dd", { textContent: v })); };
+  const mono = (t) => html("code", { textContent: t });
+  row("Branch", S.head.branch ? mono(S.head.branch) : "detached at " + S.head.short);
+  row("Compared with", S.against && mono(`${S.against.name} (${S.against.short})`));
+  row("Ahead / behind", S.against && `${S.ahead} ahead, ${S.behind} behind`);
+  row("Shared ancestor", S.base && mono(`${S.base.short} ${clip(S.base.subject, 40)}`));
+  if (S.criss_cross) row("Note", "several merge bases (criss-cross history)");
+  row("Operation", S.operation);
+  const st = S.status;
+  row("Work tree", st.staged + st.unstaged + st.untracked + st.conflicted.length ? `${st.staged} staged, ${st.unstaged} modified, ${st.untracked} untracked` : "clean");
+  if (st.conflicted.length) row("In conflict", html("ul", { className: "files" }, ...st.conflicted.map((f) => html("li", { textContent: f }))));
+  if (S.predicted_merge) row("Dry-run merge", S.predicted_merge.clean ? "clean, no conflicts" : html("span", {}, "conflicts in ", html("ul", { className: "files" }, ...S.predicted_merge.conflicts.map((f) => html("li", { textContent: f })))));
+  if (S.both_touched.length) row("Edited on both sides", html("ul", { className: "files" }, ...S.both_touched.slice(0, 12).map((f) => html("li", { textContent: f }))));
+  else if (S.ahead && S.behind) row("Edited on both sides", "no file in common");
+  const cfg = Object.entries(S.config).map(([k, v]) => `${k}=${v ?? "unset"}`).join("\n");
+  row("Git config", html("code", { textContent: cfg, style: "white-space:pre" }));
+  if (S.worktrees.length > 1) row("Worktrees", S.worktrees.map((w) => `${w.branch || "detached"}${w.locked ? " (locked)" : ""}`).join(", "));
+
+  // ---- plan ----------------------------------------------------------------------------------
+  const side = document.getElementById("side");
+  const section = (title, ...kids) => side.append(html("section", { className: "card" }, html("h2", { textContent: title }), ...kids));
+  if (P) {
+    if (P.policy && P.policy.length) section("Policy applied", html("ul", { className: "plain" }, ...P.policy.map((t) => html("li", { textContent: t }))));
+    if (P.steps && P.steps.length) {
+      section(P.title || "Plan", html("ol", { className: "steps" }, ...P.steps.map((s) => {
+        const btn = html("button", { textContent: "copy", type: "button", ariaLabel: "Copy command" });
+        btn.onclick = () => { try { navigator.clipboard.writeText(s.cmd); btn.textContent = "copied"; } catch (e) { btn.textContent = "select + copy"; } };
+        return html("li", {}, html("span", { className: "dot " + (s.status || "pending"), title: s.status || "pending" }),
+          html("div", {}, html("div", { className: "cmd" }, html("code", { textContent: s.cmd }), btn), html("p", { className: "does", textContent: s.does })));
+      })));
+    }
+    if (P.prevent && P.prevent.length) section("Prevent next time", html("ul", { className: "plain" }, ...P.prevent.map((t) => html("li", { textContent: t }))));
+  } else {
+    section("Plan", html("p", { className: "does", textContent: "No plan attached. The agent adds one with --plan." }));
+  }
+})();
+</script>
+</body>
+</html>
