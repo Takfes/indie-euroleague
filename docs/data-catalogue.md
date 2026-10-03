@@ -11,10 +11,10 @@
 | `basketballsphere_prices` | `data/raw_data/fantasy_prices/basketballsphere_prices.csv` | `fetch_basketballsphere_prices.py` | `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py`, `resolve_team_names.py` | full overwrite per run |
 | `euroleague_net/box_score` | `data/raw_data/euroleague_net/box_score/` | `fetch_euroleague_live_boxscores.py` | `append_live_boxscores.py` | incremental: one delta file per run with new games |
 | `euroleague_net/headers` | `data/raw_data/euroleague_net/headers/` | `fetch_euroleague_live_headers.py` | `append_live_headers.py` | incremental: one delta file per run with new games |
-| `euroleague_schedule/schedule` | `data/raw_data/euroleague_schedule/` | `fetch_euroleague_schedule.py` | `build_schedule_turns.py` | full overwrite per run (per season) |
 | `fantasy_stats/head_coaches` | `data/raw_data/fantasy_stats/head_coaches.csv` | `fetch_euroleague_fantasy_stats.py` | — | full overwrite per run |
 | `fantasy_stats/players` | `data/raw_data/fantasy_stats/players.csv` | `fetch_euroleague_fantasy_stats.py` | `normalize_fantasy_stats.py`, `resolve_fantasy_stats_player_names.py` | full overwrite per run |
 | `fantasy_stats_player_name_verdicts` | `data/curated/fantasy_stats_player_name_verdicts/` | `apply_fantasy_stats_player_name_verdicts.py` | `resolve_fantasy_stats_player_names.py` | — |
+| `game_schedule/schedule` | `data/raw_data/game_schedule/` | `fetch_game_schedule.py` | `build_schedule_turns.py` | full overwrite per run (per season) |
 | `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | external: Kaggle (manual download) | `append_live_boxscores.py`, `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py` | manual |
 | `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | external: Kaggle (manual download) | `append_live_headers.py`, `resolve_team_names.py` | manual |
 | `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external: prepared manually (upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
@@ -28,7 +28,7 @@ Notes:
 - `apply_team_name_verdicts.py`: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that resolve_team_names.py reads.
 - `fetch_euroleague_live_boxscores.py`: Delta files are named {season}_delta_{utc_timestamp}.csv. State file data/raw_data/euroleague_net/_state.json tracks progress and is updated every run.
 - `fetch_euroleague_live_headers.py`: Delta files are named {season}_delta_{utc_timestamp}.csv, in the Kaggle euroleague_header schema. State file data/raw_data/euroleague_net/headers/_state.json tracks progress and is updated every run.
-- `fetch_euroleague_schedule.py`: One file per season, named schedule_{season}.csv.
+- `fetch_game_schedule.py`: One file per season, named schedule_{season}.csv.
 
 ## Produced datasets (`data/stage_XX/`)
 
@@ -38,10 +38,10 @@ Notes:
 | `fantasy_stats_player_name_crosswalk` | 01 | `data/stage_01/fantasy_stats_player_name_crosswalk.csv` | `resolve_fantasy_stats_player_names.py` | `fantasy_stats/players`, `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `fantasy_stats_player_name_verdicts` | true | `data/stage_99/fantasy_stats_player_name_crosswalk.csv` |
 | `header_current` | 01 | `data/stage_01/header_current.csv` | `append_live_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | false | — |
 | `player_name_crosswalk` | 01 | `data/stage_01/player_name_crosswalk.csv` | `resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `player_name_verdicts` | true | `data/stage_99/player_name_crosswalk.csv` |
-| `schedule` | 01 | `data/stage_01/schedule.csv` | `build_schedule_turns.py` | `euroleague_schedule/schedule` | true | `data/stage_99/schedule.csv` |
+| `schedule` | 01 | `data/stage_01/schedule.csv` | `build_schedule_turns.py` | `game_schedule/schedule` | true | `data/stage_99/schedule.csv` |
 | `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` |
 | `team_name_crosswalk` | 01 | `data/stage_01/team_name_crosswalk.csv` | `resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header`, `team_name_verdicts` | true | `data/stage_99/team_name_crosswalk.csv` |
-| `team_round_turn` | 01 | `data/stage_01/team_round_turn.csv` | `build_schedule_turns.py` | `euroleague_schedule/schedule` | true | `data/stage_99/team_round_turn.csv` |
+| `team_round_turn` | 01 | `data/stage_01/team_round_turn.csv` | `build_schedule_turns.py` | `game_schedule/schedule` | true | `data/stage_99/team_round_turn.csv` |
 | `fantasy_stats_players_normalized` | 02 | `data/stage_02/fantasy_stats_players_normalized.csv` | `normalize_fantasy_stats.py` | `fantasy_stats/players`, `fantasy_stats_player_name_crosswalk` | true | `data/stage_99/fantasy_stats_players_normalized.csv` |
 
 Notes:
@@ -66,12 +66,12 @@ Notes:
 | `src/eupy/fetchers/fetch_euroleague_fantasy_stats.py` | fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env) | `fantasy_stats/players`, `fantasy_stats/head_coaches` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_boxscores.py` | live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live) | `euroleague_net/box_score` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_headers.py` | live.euroleague.net/api/Header (live) | `euroleague_net/headers` | false | true |
-| `src/eupy/fetchers/fetch_euroleague_schedule.py` | https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live) | `euroleague_schedule/schedule` | false | true |
+| `src/eupy/fetchers/fetch_game_schedule.py` | https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live) | `game_schedule/schedule` | false | true |
 | `src/eupy/entity/resolve_fantasy_stats_player_names.py` | `fantasy_stats/players`, `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `fantasy_stats_player_name_verdicts` | `fantasy_stats_player_name_crosswalk` | true | false |
 | `src/eupy/entity/resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `player_name_verdicts` | `player_name_crosswalk` | true | false |
 | `src/eupy/entity/resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header`, `team_name_verdicts` | `team_name_crosswalk` | true | false |
 | `src/eupy/optimize/optimize_squad.py` | `optimizer_input` | `squad_solution` | true | false |
 | `src/eupy/transform/append_live_boxscores.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | `box_score_current` | false | false |
 | `src/eupy/transform/append_live_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | `header_current` | false | false |
-| `src/eupy/transform/build_schedule_turns.py` | `euroleague_schedule/schedule` | `schedule`, `team_round_turn` | true | false |
+| `src/eupy/transform/build_schedule_turns.py` | `game_schedule/schedule` | `schedule`, `team_round_turn` | true | false |
 | `src/eupy/transform/normalize_fantasy_stats.py` | `fantasy_stats/players`, `fantasy_stats_player_name_crosswalk` | `fantasy_stats_players_normalized` | true | false |

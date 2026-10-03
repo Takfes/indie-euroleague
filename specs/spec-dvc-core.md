@@ -9,7 +9,7 @@
 
 - Add `dvc` as a dev dependency; `dvc init`; no remote; hash-only (no data versioning).
 - `pipelines.toml` (repo root) — the one place pipeline membership lives:
-  - `schedule`: `fetch_euroleague_schedule`, `build_schedule_turns`
+  - `schedule`: `fetch_game_schedule`, `build_schedule_turns`
   - `net`: `fetch_euroleague_live_boxscores`, `fetch_euroleague_live_headers`, `append_live_boxscores`, `append_live_headers`
   - `entity` and `optimize`: listed with `dvc = false` (complete membership, not yet runnable under DVC)
   - fetchers of other sources sit in `acquire` (`dvc = false`, impure).

@@ -15,7 +15,7 @@ a failed request or a bad payload never truncates the previous good file (the wr
 atomic -- a crash mid-write could).
 
 Usage:
-    python src/eupy/fetchers/fetch_euroleague_schedule.py [--season E2026] [--out-dir PATH]
+    python src/eupy/fetchers/fetch_game_schedule.py [--season E2026] [--out-dir PATH]
 
 `--season` takes the same code as the live box-score fetcher (`E` + 4-digit start year); the API's
 integer `season` parameter is derived from it (`E2026` -> `2026`).
@@ -24,7 +24,7 @@ Inputs: none
 Sources:
   - https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live)
 Outputs:
-  - euroleague_schedule/schedule: data/raw_data/euroleague_schedule/
+  - game_schedule/schedule: data/raw_data/game_schedule/
 Final: false
 Impure: true
 Refresh: full overwrite per run (per season)
@@ -45,9 +45,9 @@ SCHEDULE_URL = "https://euroleague-advanced-api.eu/Euroleague/schedule"
 
 # The live.euroleague.net sibling fetchers need a non-default UA (it 403s urllib's). This API was
 # only verified with curl's own UA, so a descriptive one is sent to match the convention.
-USER_AGENT = "Mozilla/5.0 (compatible; euroleague-schedule-fetcher/1.0)"
+USER_AGENT = "Mozilla/5.0 (compatible; game-schedule-fetcher/1.0)"
 
-DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_schedule"
+DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "game_schedule"
 
 # [0-9], not \d: \d also matches non-ASCII digits, which would slip through to the request.
 SEASON_CODE_RE = re.compile(r"E([0-9]{4})")
