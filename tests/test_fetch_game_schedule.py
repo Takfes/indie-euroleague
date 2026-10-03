@@ -17,9 +17,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from eupy.fetchers.fetch_euroleague_schedule import fetch_schedule, main, parse_season_year
+from eupy.fetchers.fetch_game_schedule import fetch_schedule, main, parse_season_year
 
-URLOPEN = "eupy.fetchers.fetch_euroleague_schedule.urllib.request.urlopen"
+URLOPEN = "eupy.fetchers.fetch_game_schedule.urllib.request.urlopen"
 
 # "E2026" with Arabic-Indic digits (U+0660 is zero), built by code point so the source stays ASCII.
 ARABIC_INDIC_E2026 = "E" + "".join(chr(0x0660 + int(digit)) for digit in "2026")
@@ -88,7 +88,7 @@ def _api_returns(payload: Any) -> MagicMock:
 
 
 def _run_main(monkeypatch: pytest.MonkeyPatch, out_dir: Path, *extra_args: str) -> None:
-    monkeypatch.setattr(sys, "argv", ["fetch_euroleague_schedule.py", "--out-dir", str(out_dir), *extra_args])
+    monkeypatch.setattr(sys, "argv", ["fetch_game_schedule.py", "--out-dir", str(out_dir), *extra_args])
     main()
 
 
@@ -155,8 +155,8 @@ def test_main_writes_named_csv_with_api_columns_and_verbatim_values(
 
 
 def test_main_creates_missing_output_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    # First real run on a fresh checkout: data/raw_data/euroleague_schedule/ doesn't exist yet.
-    out_dir = tmp_path / "raw_data" / "euroleague_schedule"
+    # First real run on a fresh checkout: data/raw_data/game_schedule/ doesn't exist yet.
+    out_dir = tmp_path / "raw_data" / "game_schedule"
     with patch(URLOPEN, return_value=_api_returns([_game(7)])):
         _run_main(monkeypatch, out_dir)
 

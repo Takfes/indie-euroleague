@@ -37,7 +37,7 @@ Writes to `data/raw_data/fantasy_prices/basketballsphere_prices.csv`.
 
 ## Schedule turns
 
-Adds `turn` (T1/T2 within each round) to the raw schedule and derives a per-team `(team, round, turn)` table. Needs `fetch_euroleague_schedule.py` to have run first:
+Adds `turn` (T1/T2 within each round) to the raw schedule and derives a per-team `(team, round, turn)` table. Needs `fetch_game_schedule.py` to have run first:
 
 ```bash
 uv run python src/eupy/transform/build_schedule_turns.py --season=E2026

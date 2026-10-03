@@ -9,7 +9,7 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
 
 ## Scope
 
-- One script: `src/eupy/fetchers/fetch_euroleague_schedule.py`.
+- One script: `src/eupy/fetchers/fetch_game_schedule.py`.
 - One endpoint: `GET https://euroleague-advanced-api.eu/Euroleague/schedule?season={year}`
   (OpenAPI operation `schedule__competition__schedule_get`; swagger at
   `https://euroleague-advanced-api.eu/docs`, machine-readable spec at
@@ -19,7 +19,7 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
 - One season per run, selected with `--season E2026` (same code format and
   default as `fetch_euroleague_live_boxscores.py`); the script derives the API's
   integer year (`2026`) from it.
-- Output: `data/raw_data/euroleague_schedule/schedule_{season}.csv`
+- Output: `data/raw_data/game_schedule/schedule_{season}.csv`
   (e.g. `schedule_E2026.csv`). Source-level directory, matching
   `euroleague_net/` and `kaggle_data/` — future endpoints of the same API land
   beside it.
@@ -54,7 +54,7 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
 
 - `fetch_schedule(season_code)` → list of dicts; `write_schedule_csv(rows, path)`;
   `main()` with `--season` (default `E2026`) and `--out-dir`
-  (default the repo's `data/raw_data/euroleague_schedule`).
+  (default the repo's `data/raw_data/game_schedule`).
 - Send a descriptive `User-Agent` (convention in the other fetchers).
 - Fail loudly, with what/why/next, on: malformed season code (before any
   request), HTTP/network error, non-list payload, empty payload (a season with
@@ -78,8 +78,8 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
 
 ## Pass criteria
 
-1. `uv run python src/eupy/fetchers/fetch_euroleague_schedule.py` writes
-   `data/raw_data/euroleague_schedule/schedule_E2026.csv`: header is the 20
+1. `uv run python src/eupy/fetchers/fetch_game_schedule.py` writes
+   `data/raw_data/game_schedule/schedule_E2026.csv`: header is the 20
    API fields in API order; row count equals the API's array length (380 at time
    of writing); `gamecode` unique and all prefixed `E2026_`.
 2. Second run against an unchanged API produces a byte-identical file.
@@ -87,7 +87,7 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
    no request; an empty or non-list payload raises and leaves an existing output
    file untouched.
 4. Script header (module docstring) lists Inputs / Outputs / Final.
-5. Tests in `tests/test_fetch_euroleague_schedule.py`, network mocked,
+5. Tests in `tests/test_fetch_game_schedule.py`, network mocked,
    covering: season-code parsing/validation, CSV column order + verbatim values,
    failure modes that must not clobber the existing file, deterministic
    re-write. Each test idea adversarially reviewed first; no coverage-only tests.

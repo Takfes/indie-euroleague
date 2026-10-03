@@ -10,7 +10,7 @@ scripts = ["fetch_basketballsphere_prices", "fetch_euroleague_fantasy_stats"]
 
 [schedule]
 dvc = true
-scripts = ["fetch_euroleague_schedule", "build_schedule_turns"]
+scripts = ["fetch_game_schedule", "build_schedule_turns"]
 
 [net]
 dvc = true

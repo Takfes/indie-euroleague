@@ -102,7 +102,7 @@ def test_run_schedule_fetch_orders_fetcher_then_repro_then_links(
     (root / "data/stage_01/schedule.csv").write_text("x")
     assert main(["run", "schedule", "--fetch"], runner=fake, root=root) == 0
     assert fake.calls == [
-        ["uv", "run", "python", "src/eupy/fetchers/fetch_euroleague_schedule.py"],
+        ["uv", "run", "python", "src/eupy/fetchers/fetch_game_schedule.py"],
         ["uv", "run", "dvc", "repro", "build_schedule_turns"],
     ]
     assert (root / "data/stage_99/schedule.csv").is_symlink()
@@ -135,7 +135,7 @@ def test_dry_run_prints_and_never_executes(tmp_path: Path, capsys: pytest.Captur
     assert main(["run", "schedule", "--fetch", "--dry-run"], runner=fake, root=root) == 0
     out = capsys.readouterr().out
     assert fake.calls == []
-    assert out.index("fetch_euroleague_schedule.py") < out.index("dvc repro")
+    assert out.index("fetch_game_schedule.py") < out.index("dvc repro")
     assert not (root / "data/stage_99").exists()
 
 

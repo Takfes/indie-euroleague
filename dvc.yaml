@@ -24,7 +24,7 @@ stages:
     cmd: uv run python src/eupy/transform/build_schedule_turns.py
     deps:
     - src/eupy/transform/build_schedule_turns.py
-    - data/raw_data/euroleague_schedule
+    - data/raw_data/game_schedule
     outs:
     - data/stage_01/schedule.csv:
         cache: false
