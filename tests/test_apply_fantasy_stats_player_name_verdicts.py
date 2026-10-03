@@ -1,4 +1,4 @@
-"""Tests for the player-name verdict ingest CLI (shared ingest logic is tested in test_verdict_batches.py)."""
+"""Tests for the fantasy-stats player-name verdict ingest CLI (shared logic: test_verdict_batches.py)."""
 
 from __future__ import annotations
 
@@ -7,9 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from eupy.entity import apply_player_name_verdicts as script
+from eupy.entity import apply_fantasy_stats_player_name_verdicts as script
 
-VALID = {"name": "Bob Jonez", "match_status": "confirmed", "boxscore_name": "Bob JONES", "notes": "Same player."}
+VALID = {
+    "player_id": "11502",
+    "match_status": "confirmed",
+    "resolved_name": "Olivier Nkamhoua",
+    "notes": "Correct spelling.",
+}
 
 
 def _run(monkeypatch: pytest.MonkeyPatch, *args: object) -> int:
@@ -17,8 +22,8 @@ def _run(monkeypatch: pytest.MonkeyPatch, *args: object) -> int:
     return script.main()
 
 
-def test_default_batches_dir_is_the_player_name_verdicts_directory() -> None:
-    assert script.VERDICTS_DIR.parts[-3:] == ("data", "curated", "player_name_verdicts")
+def test_default_batches_dir_is_the_fantasy_verdicts_directory() -> None:
+    assert script.VERDICTS_DIR.parts[-3:] == ("data", "curated", "fantasy_stats_player_name_verdicts")
 
 
 def test_cli_writes_a_batch_and_exits_zero(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -30,25 +35,33 @@ def test_cli_writes_a_batch_and_exits_zero(tmp_path: Path, monkeypatch: pytest.M
 
     batch = json.loads((batches / "0001_round-1.json").read_text(encoding="utf-8"))
     assert batch["verdicts"] == [VALID]
-    assert batch["source"] == "v.json"
 
 
-def test_cli_rejects_a_confirmed_verdict_without_boxscore_name_and_writes_nothing(
+def test_cli_rejects_a_record_keyed_by_name_instead_of_player_id(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     src = tmp_path / "v.json"
-    src.write_text(json.dumps([{**VALID, "boxscore_name": ""}]), encoding="utf-8")
+    src.write_text(json.dumps([{"name": "x", "match_status": "no_match", "notes": "n"}]), encoding="utf-8")
     batches = tmp_path / "batches"
 
     assert _run(monkeypatch, "--verdicts", src, "--batches-dir", batches) == 1
 
-    assert "boxscore_name" in capsys.readouterr().err
+    assert "player_id" in capsys.readouterr().err
+    assert not batches.exists()
+
+
+def test_cli_rejects_a_confirmed_verdict_without_resolved_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    src = tmp_path / "v.json"
+    src.write_text(json.dumps([{**VALID, "resolved_name": ""}]), encoding="utf-8")
+    batches = tmp_path / "batches"
+
+    assert _run(monkeypatch, "--verdicts", src, "--batches-dir", batches) == 1
     assert not batches.exists()
 
 
 def test_cli_leaves_the_crosswalk_csv_untouched(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    crosswalk = tmp_path / "player_name_crosswalk.csv"
-    crosswalk.write_text("name,boxscore_name\nBob Jonez,\n", encoding="utf-8")
+    crosswalk = tmp_path / "fantasy_stats_player_name_crosswalk.csv"
+    crosswalk.write_text("player_id,resolved_name\n11502,\n", encoding="utf-8")
     before = crosswalk.read_bytes()
     src = tmp_path / "v.json"
     src.write_text(json.dumps([VALID]), encoding="utf-8")
@@ -56,9 +69,3 @@ def test_cli_leaves_the_crosswalk_csv_untouched(tmp_path: Path, monkeypatch: pyt
     _run(monkeypatch, "--verdicts", src, "--batches-dir", tmp_path / "batches")
 
     assert crosswalk.read_bytes() == before
-
-
-def test_cli_requires_the_verdicts_argument(monkeypatch: pytest.MonkeyPatch) -> None:
-    with pytest.raises(SystemExit) as exc:
-        _run(monkeypatch)
-    assert exc.value.code == 2

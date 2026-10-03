@@ -53,21 +53,21 @@ Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-
 |---|---|
 | `matching.py` | Shared exact→fuzzy matching engine (no CLI). |
 | `resolve_player_names.py` | Builds/refreshes `player_name_crosswalk.csv` (player names). |
-| `apply_player_name_verdicts.py` | Applies agent verdicts to the player crosswalk. |
+| `apply_player_name_verdicts.py` | Ingest: appends a verdict batch to `data/curated/player_name_verdicts/`. |
 | `player_crosswalk.py` | `PlayerNameCrosswalk` — read-only lookup class. |
 | `resolve_team_names.py` | Builds/refreshes `team_name_crosswalk.csv` (club names). |
-| `apply_team_name_verdicts.py` | Applies agent verdicts to the team crosswalk. |
+| `apply_team_name_verdicts.py` | Ingest: appends a verdict batch to `data/curated/team_name_verdicts/`. |
 | `team_crosswalk.py` | `TeamNameCrosswalk` — read-only lookup class. |
-| `resolve_fantasy_stats_player_names.py` | Builds/refreshes `fantasy_stats_player_name_crosswalk.csv` (fantasy stats `"C. Jones"` + club code → full name, keyed by `player_id`); `--verdicts PATH` applies agent verdicts. |
+| `resolve_fantasy_stats_player_names.py` | Builds/refreshes `fantasy_stats_player_name_crosswalk.csv` (fantasy stats `"C. Jones"` + club code → full name, keyed by `player_id`); reads the batches in `data/curated/fantasy_stats_player_name_verdicts/`. |
+| `apply_fantasy_stats_player_name_verdicts.py` | Ingest: appends a verdict batch to that directory. |
 
-Regenerate: `uv run python src/eupy/entity/resolve_player_names.py` (or `resolve_team_names.py`). Full exact→fuzzy→agent flow: `resolve-player-names` / `resolve-team-names` skills.
+Resolvers are pure functions of raw data + the verdict batch dirs `data/curated/<x>_verdicts/` (append-only `NNNN_<slug>.json`, tracked in git); they never rewrite their own output. Record verdicts with the `apply_*_verdicts.py --verdicts PATH` ingest scripts (impure, no DVC step, never run by `eupy run`), then rebuild: `uv run dvc repro resolve_player_names resolve_team_names resolve_fantasy_stats_player_names normalize_fantasy_stats` (or `uv run eupy run entity`) — only the steps whose batches changed rerun. Full exact→fuzzy→agent flow: `resolve-player-names` / `resolve-team-names` skills.
 
 Normalize the fantasy stats table (full names via the crosswalk, `Guard`/`Forward`/`Center` → `G`/`F`/`C`; refuses to run while any crosswalk row is open):
 
 ```bash
-uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py    # after fetch_euroleague_fantasy_stats.py; new players show up as needs_review/no_candidate
-uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py --verdicts verdicts.json   # record verdicts for those rows
-uv run python src/eupy/transform/normalize_fantasy_stats.py
+uv run eupy run entity                                                       # after fetch_euroleague_fantasy_stats.py; new players show up as needs_review/no_candidate
+uv run python src/eupy/entity/apply_fantasy_stats_player_name_verdicts.py --verdicts verdicts.json   # record verdicts for those rows, then rerun the line above
 ```
 
 Writes `data/stage_01/fantasy_stats_player_name_crosswalk.csv` and `data/stage_02/fantasy_stats_players_normalized.csv` (both symlinked in `data/stage_99/`).
@@ -111,13 +111,13 @@ uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.to
 - `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
 - `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws (plus in-place self-loops).
 - `html` renders `docs/data-map.html`: an interactive lineage map (one self-contained file, open it from disk, no server). Same nodes/colours as the graph; pipeline/wrapper filter dims everything else; click a node for path, inputs/outputs, pipeline, docstring paragraph, `Notes`. Not part of `docs` (regenerate it when headers or `pipelines.toml` change). `html --status` also writes the git-ignored `docs/data-map.status.html` with DVC fresh/stale marks from `dvc status`.
-- Stage: under `data/raw_data/` = 0; otherwise `max(input stages) + 1`.
+- Stage: under `data/raw_data/` or `data/curated/` = 0 (curated dirs are written by the impure `apply_*` ingest scripts); otherwise `max(input stages) + 1`.
 - In code: `Registry.from_repo()` → `.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`, `.edges()`.
-- Temporary: the `resolve_*` / `apply_*` name scripts may rewrite their own output (`in_place`); an `apply_*` script is an *updater* of the crosswalk, not a second producer.
+- No script may list a dataset as both input and output (`IN_PLACE_ALLOWLIST` is empty; the mechanism is kept only for tests).
 
 ## DVC pipelines
 
-`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`) become DVC steps in the generated `dvc.yaml`; fetchers are not steps — run them yourself, then:
+`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`, `entity`) become DVC steps in the generated `dvc.yaml`; impure scripts (fetchers, entity ingest) are not steps — run them yourself, then:
 
 ```bash
 uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pipelines.toml change (never hand-edit)
@@ -128,18 +128,18 @@ Outputs are `cache: false` (no copies, no remote); their fingerprints live in th
 
 ### `eupy run` / `eupy link-final`
 
-Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "net"]`; order between pipelines comes from DVC dependencies).
+Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "net", "entity"]`; order between pipelines comes from DVC dependencies).
 
 ```bash
-uv run eupy run all                 # offline: dvc repro for schedule + net steps; a second run is a no-op
+uv run eupy run all                 # offline: dvc repro for schedule + net + entity steps; a second run is a no-op
 uv run eupy run schedule --fetch    # first run the pipeline's fetchers (live API calls), then dvc repro
 uv run eupy run acquire             # dvc = false pipeline: runs its fetchers only (no DVC)
 uv run eupy run all --dry-run       # print the commands, execute nothing
 uv run eupy link-final              # refresh data/stage_99/ links (also runs after a successful `eupy run`)
 ```
 
-- `entity` and `optimize` are `dvc = false` with no fetchers: `eupy run entity` exits 1 ("not runnable under DVC yet").
-- `--fetch` runs impure scripts with `uv run python <script>` in dependency order; the default run never touches the network.
+- `optimize` is `dvc = false` with no fetchers: `eupy run optimize` exits 1 ("not runnable under DVC yet").
+- `--fetch` runs the pipeline's *fetchers* (impure scripts with a `(live` source) with `uv run python <script>` in dependency order; the default run never touches the network. Ingest scripts (need `--verdicts`) are never run by `eupy run`.
 - `link-final` creates relative symlinks in `data/stage_99/` for every produced `Final: true` dataset whose file exists (missing ones are reported and skipped), removes stale symlinks it no longer manages, and never touches regular files or directories.
 
 ## Dev loop

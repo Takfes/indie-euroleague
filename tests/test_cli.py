@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from eupy.cli import CliError, main, plan_run, resolve_target
+from eupy.cli import CliError, is_fetcher, main, plan_run, resolve_target
 from eupy.registry.dvc_gen import Pipeline
 from eupy.registry.headers import Header
 from eupy.registry.model import REPO_ROOT, Registry
@@ -134,7 +134,7 @@ def test_failure_stops_and_skips_link_final(tmp_path: Path) -> None:
 def test_unknown_and_non_dvc_targets_exit_nonzero(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root, fake = _repo(tmp_path), _Fake()
     assert main(["run", "bogus"], runner=fake, root=root) == 1
-    assert main(["run", "entity"], runner=fake, root=root) == 1
+    assert main(["run", "optimize"], runner=fake, root=root) == 1
     err = capsys.readouterr().err
     assert "unknown target 'bogus'" in err and "not runnable under DVC yet" in err
     assert fake.calls == []
@@ -157,3 +157,18 @@ def test_link_final_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
     assert main(["link-final"], root=root) == 0
     assert "linked" not in capsys.readouterr().out  # second run: only skip notes, no changes
+
+
+def test_ingest_scripts_are_never_fetchers() -> None:
+    headers = {
+        "src/eupy/e/ingest.py": Header(
+            (), ("JSON verdicts file (--verdicts PATH)",), (("v", "data/curated/v/"),), False, True
+        ),
+        "src/eupy/e/resolve.py": Header(
+            (("v", "data/curated/v/"),), (), (("xw", "data/stage_01/xw.csv"),), False, False
+        ),
+    }
+    reg = Registry.from_headers(headers, RAW_SOURCES)
+    pipes = {"ent": Pipeline("ent", True, ("ingest", "resolve"))}
+    assert plan_run(reg, pipes, ["ent"], fetch=True) == [["uv", "run", "dvc", "repro", "resolve"]]
+    assert not is_fetcher(reg, "ingest")

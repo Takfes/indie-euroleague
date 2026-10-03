@@ -6,14 +6,14 @@ description: |
   unresolved player-name matches (needs_review / no_candidate rows) in
   data/stage_01/player_name_crosswalk.csv. Covers mapping
   basketballsphere_prices.csv names to euroleague_box_score.csv display names
-  and recording confirm/reject/no_match verdicts.
+  and recording confirm/reject/no_match verdicts as append-only batches.
 ---
 
 # Resolve Player Names
 
 ## Overview
 
-Builds and maintains `data/stage_01/player_name_crosswalk.csv`, a left-join
+Rebuilds `data/stage_01/player_name_crosswalk.csv`, a left-join
 **name map** from current-season EuroLeague Fantasy prices
 (`data/raw_data/fantasy_prices/basketballsphere_prices.csv`) to historical
 box-score display names (`data/raw_data/kaggle_data/euroleague_box_score.csv`,
@@ -23,8 +23,8 @@ resolution process's own metadata -- no `club`/`position`/`price`/`player_id`
 from either source file. Consumers needing those read them from their own
 source files directly.
 
-Two scripts do the mechanical work (exact-match, then fuzzy-candidate
-generation via rapidfuzz); a dispatched Sonnet subagent does the judgment
+The resolver (a DVC step in the `entity` pipeline) does the mechanical work
+(exact-match, then fuzzy-candidate generation via rapidfuzz); a dispatched Sonnet subagent does the judgment
 calls the fuzzy stage can't make on its own — that's the point of this skill.
 
 ## When to Use
@@ -36,17 +36,20 @@ calls the fuzzy stage can't make on its own — that's the point of this skill.
 
 ## Procedure
 
-### 1. Run the exact + fuzzy stage
+### 1. Rebuild the crosswalk with the current verdict batches
 
 ```bash
-uv run python src/eupy/entity/resolve_player_names.py
+uv run eupy run entity
 ```
 
-Reads both raw CSVs, merges into `data/stage_01/player_name_crosswalk.csv`.
-Rows already resolved by a prior verdict pass (`confirmed` / `rejected` /
-`no_match`) are carried over completely unchanged; everything else (`exact`,
-`needs_review`, `no_candidate`, new rows) is recomputed fresh. Prints a
-`match_status` count summary — check it before moving on.
+Runs `resolve_player_names.py` (plus the other entity steps if their inputs changed;
+unchanged steps are skipped). The crosswalk is a pure function of the raw
+data + the append-only batches in `data/curated/player_name_verdicts/`:
+everything a batch covers comes out `confirmed` / `rejected` / `no_match`,
+the rest is `exact`, `needs_review` or `no_candidate`. A changed price
+snapshot legitimately reruns this step. Verdicts whose key is no longer in
+the snapshot are skipped and counted as stale in the run summary — not an
+error. Check the `match_status` summary before moving on.
 
 ### 2. Dispatch a subagent to review every `needs_review` and `no_candidate` row
 
@@ -56,7 +59,7 @@ rows = list(csv.DictReader(open("data/stage_01/player_name_crosswalk.csv", encod
 review = [r for r in rows if r["match_status"] in ("needs_review", "no_candidate")]
 ```
 
-If `review` is empty, skip to step 4. Otherwise, use the Agent tool to
+If `review` is empty, you are done. Otherwise, use the Agent tool to
 dispatch one subagent (a general implementation/analysis agent, `model:
 sonnet`) with a self-contained brief covering:
 
@@ -133,28 +136,34 @@ Rules: `match_status` must be `confirmed` / `rejected` / `no_match`.
 verdict — a one-sentence rationale. Convention: `needs_review` rows resolve
 to `confirmed` or `rejected`; `no_candidate` rows resolve to `no_match`.
 
-Save the subagent's JSON to a file, then apply:
+Save the subagent's JSON to a file (e.g. under `/tmp`), then ingest it:
 
 ```bash
-uv run python src/eupy/entity/apply_player_name_verdicts.py --verdicts /path/to/verdicts.json
+uv run python src/eupy/entity/apply_player_name_verdicts.py --verdicts /path/to/verdicts.json [--label SLUG]
 ```
 
-### 4. Re-run and verify
+This validates the records and appends a new batch file
+`data/curated/player_name_verdicts/NNNN_<slug>.json`. It never touches the
+crosswalk or earlier batches.
+
+### 4. Rebuild, verify, commit
 
 ```bash
-uv run python src/eupy/entity/resolve_player_names.py
+uv run eupy run entity
 ```
 
-Confirm the summary shows zero `needs_review` / `no_candidate`, and that
-running it again afterward produces no diff (idempotency — verdict-resolved
-rows must not regress).
+Confirm the summary shows zero `needs_review` / `no_candidate`, and that a
+second run does nothing (all steps up to date). Review `git diff` (the new
+batch file + the changed `data/stage_01/player_name_crosswalk.csv`), then commit
+both together.
 
 ## Quick Reference
 
 | Step | Command |
 |---|---|
-| Rebuild crosswalk | `uv run python src/eupy/entity/resolve_player_names.py` |
-| Apply verdicts | `uv run python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH` |
+| Rebuild crosswalk | `uv run eupy run entity` |
+| Record verdicts (new batch) | `uv run python src/eupy/entity/apply_player_name_verdicts.py --verdicts PATH [--label SLUG]` |
+| Batches | `data/curated/player_name_verdicts/` (append-only, tracked in git) |
 | Crosswalk location | `data/stage_01/player_name_crosswalk.csv` (symlinked into `data/stage_99/`) |
 
 `match_status` values: `exact` / `needs_review` / `confirmed` / `rejected` /
@@ -171,9 +180,10 @@ rows must not regress).
 - **Forcing a match to avoid leaving a row unresolved.** `no_match` /
   `rejected` are correct, complete answers. A rookie with no EuroLeague
   history should end as `no_match`, not a guessed candidate.
-- **Hand-editing the crosswalk CSV.** Always go through
+- **Hand-editing the crosswalk CSV or an old batch.** The crosswalk is
+  regenerated output and batches are append-only; always go through
   `apply_player_name_verdicts.py` — it validates the verdict shape (required
-  `notes`, `boxscore_name` only on `confirmed`) and keeps the merge
+  `notes`, `boxscore_name` only on `confirmed`) and keeps the result
   reproducible and testable.
 - **Skipping the surname check before rejecting/no-matching.** The fuzzy
   candidate list is not exhaustive below its score floor; a real match can
@@ -183,5 +193,5 @@ rows must not regress).
   (`"LAST, First"`) and is quoted — naive `cut` misaligns columns. Use
   `csv.DictReader` instead.
 - **Letting the subagent apply its own verdicts.** It returns the JSON; the
-  invoking session runs `apply_player_name_verdicts.py`, so the merge stays
+  invoking session runs `apply_player_name_verdicts.py`, so the batch stays
   reproducible and testable.

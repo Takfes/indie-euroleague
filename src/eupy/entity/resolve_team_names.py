@@ -34,30 +34,28 @@ exact->fuzzy engine itself lives in `matching.py` and is shared with
    `TAU CERAMICA` -> `BASKONIA`), so many real misses need agent domain
    knowledge rather than string similarity -- see the `resolve-team-names`
    skill.
-3. Agent stage (skill) -- out of scope for this script; see
-   `apply_team_name_verdicts.py` and the `resolve-team-names` skill.
+3. Verdict stage -- every agent verdict recorded under
+   `data/curated/team_name_verdicts/` (batch files, later batch wins on the same `name`; see
+   `verdict_batches.py`) is applied on top, setting the row to `confirmed` / `rejected` /
+   `no_match`. Producing verdicts is the `resolve-team-names` skill's job.
 
-Idempotency: rows the agent stage already resolved (`match_status` in
-`confirmed` / `rejected` / `no_match`) are carried over to the new output
-completely unchanged, keyed on `name` (the club string). There is nothing on
-the master side (other than `name`, the key itself) that this artifact
-carries, so there is nothing to refresh -- every other row (new, `exact`,
-`needs_review`, `no_candidate`) is recomputed fresh.
+Pure: the crosswalk is a function of the raw inputs + the verdict batches only; the previous
+output is never read, so a rebuild from scratch reproduces it exactly.
 
 Usage:
-    python src/eupy/entity/resolve_team_names.py [--master PATH] [--header PATH] [--out PATH]
+    python src/eupy/entity/resolve_team_names.py [--master PATH] [--header PATH]
+        [--verdicts-dir DIR] [--out PATH]
 
 Inputs:
   - basketballsphere_prices: data/raw_data/fantasy_prices/basketballsphere_prices.csv
   - kaggle_data/euroleague_header: data/raw_data/kaggle_data/euroleague_header.csv
+  - team_name_verdicts: data/curated/team_name_verdicts/
 Sources: none
 Outputs:
   - team_name_crosswalk: data/stage_01/team_name_crosswalk.csv
 Final: true
 Impure: false
-Notes: Merged in place: existing agent-resolved rows are preserved unchanged.
-  apply_team_name_verdicts.py also updates this crosswalk in place, so the apply_* scripts
-  add no stage of their own.
+Notes: Verdict batches are applied in file-name order; a later batch wins on the same name.
 """
 
 from __future__ import annotations
@@ -66,14 +64,17 @@ import argparse
 import csv
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any
 
 from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
+from eupy.entity.verdict_batches import apply_verdicts, load_batches, merge_verdicts
 
 MASTER_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_prices" / "basketballsphere_prices.csv"
 )
 HEADER_PATH = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "kaggle_data" / "euroleague_header.csv"
 CROSSWALK_PATH = Path(__file__).resolve().parents[3] / "data" / "stage_01" / "team_name_crosswalk.csv"
+VERDICTS_DIR = Path(__file__).resolve().parents[3] / "data" / "curated" / "team_name_verdicts"
 
 CROSSWALK_FIELDNAMES = [
     "name",
@@ -83,8 +84,6 @@ CROSSWALK_FIELDNAMES = [
     "matched_by",
     "notes",
 ]
-
-RESOLVED_STATUSES = {"confirmed", "rejected", "no_match"}
 
 
 def load_master_clubs(path: Path) -> list[str]:
@@ -154,35 +153,22 @@ def build_row(
     }
 
 
-def load_existing_crosswalk(path: Path) -> dict[str, dict[str, str]]:
-    """Load an existing crosswalk keyed by `name`, or an empty dict if it doesn't exist yet."""
-    if not path.exists():
-        return {}
-    with path.open(newline="", encoding="utf-8") as f:
-        return {row["name"]: row for row in csv.DictReader(f)}
-
-
 def build_crosswalk(
     clubs: list[str],
     spelling_team_ids: dict[str, set[str]],
-    existing: dict[str, dict[str, str]],
+    verdicts: dict[str, dict[str, Any]],
 ) -> list[dict[str, str]]:
-    """Build the full crosswalk for the current master snapshot.
+    """Build the full crosswalk for the current master snapshot, then apply verdicts.
 
-    Rows already resolved by the agent stage (`RESOLVED_STATUSES`) are
-    carried over completely unchanged. Everything else is recomputed from
-    scratch.
+    Every row is computed fresh from the raw inputs; `verdicts` (merged by
+    `name`, see `verdict_batches.merge_verdicts`) then overwrite the matching
+    rows' resolution fields. Verdicts for clubs not in the snapshot are skipped.
     """
     normalized_index = build_normalized_index(spelling_team_ids)
     normalized_spellings = {spelling: normalize_name(spelling) for spelling in spelling_team_ids}
 
-    crosswalk = []
-    for club in clubs:
-        prior = existing.get(club)
-        if prior is not None and prior["match_status"] in RESOLVED_STATUSES:
-            crosswalk.append({field: prior.get(field, "") for field in CROSSWALK_FIELDNAMES})
-            continue
-        crosswalk.append(build_row(club, spelling_team_ids, normalized_index, normalized_spellings))
+    crosswalk = [build_row(club, spelling_team_ids, normalized_index, normalized_spellings) for club in clubs]
+    apply_verdicts({row["name"]: row for row in crosswalk}, verdicts, "boxscore_team_name")
     return crosswalk
 
 
@@ -194,26 +180,28 @@ def write_crosswalk(rows: list[dict[str, str]], out_path: Path) -> None:
         writer.writerows(rows)
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--master", type=Path, default=MASTER_PATH, help="basketballsphere_prices.csv path")
     parser.add_argument("--header", type=Path, default=HEADER_PATH, help="euroleague_header.csv path")
+    parser.add_argument("--verdicts-dir", type=Path, default=VERDICTS_DIR, help="Verdict batch directory")
     parser.add_argument("--out", type=Path, default=CROSSWALK_PATH, help="Crosswalk CSV output path")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
     clubs = load_master_clubs(args.master)
     spelling_team_ids = load_boxscore_team_spellings(args.header)
-    existing = load_existing_crosswalk(args.out)
+    verdicts = merge_verdicts(load_batches(args.verdicts_dir), "name", "boxscore_team_name")
 
-    rows = build_crosswalk(clubs, spelling_team_ids, existing)
+    rows = build_crosswalk(clubs, spelling_team_ids, verdicts)
     write_crosswalk(rows, args.out)
 
     counts = Counter(row["match_status"] for row in rows)
     summary = ", ".join(f"{status}={count}" for status, count in sorted(counts.items()))
-    print(f"Wrote {len(rows)} rows to {args.out}: {summary}")
+    stale = len(set(verdicts) - {row["name"] for row in rows})
+    print(f"Wrote {len(rows)} rows to {args.out}: {summary} ({stale} verdict(s) for clubs not in this snapshot)")
 
 
 if __name__ == "__main__":

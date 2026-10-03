@@ -152,3 +152,31 @@ def test_real_repo_check_passes_and_show_is_deterministic() -> None:
     # Guards against header drift in any future change; reads docstrings only, no data or network.
     assert main(["check"]) == 0
     assert render(Registry.from_repo()) == render(Registry.from_repo())
+
+
+def test_curated_dataset_is_stage_zero_even_when_an_ingest_script_writes_it() -> None:
+    reg = _build({
+        "ingest": _h({}, {"v": "data/curated/v/"}),
+        "resolve": _h({**RAW, "v": "data/curated/v/"}, {"xw": "data/stage_01/xw.csv"}),
+    })
+    assert reg.stage("v") == 0 and reg.datasets["v"].raw and reg.producer("v") == "ingest"
+    assert reg.stage("xw") == 1
+    assert reg.topo_order() == ("ingest", "resolve")
+
+
+def test_unproduced_curated_needs_a_raw_sources_entry_but_produced_one_does_not() -> None:
+    headers = {"src/eupy/transform/a.py": _h({"v": "data/curated/v/"}, {})}
+    with pytest.raises(RegistryError, match="not declared in raw_sources.toml"):
+        Registry.from_headers(headers, RAW_SOURCES)
+    ok = {"v": {"origin": "hand-curated", "refresh": "manual"}}
+    assert Registry.from_headers(headers, ok).stage("v") == 0
+
+
+def test_real_repo_has_no_in_place_scripts_and_no_self_loops() -> None:
+    from eupy.registry import IN_PLACE_ALLOWLIST
+
+    reg = Registry.from_repo()
+    assert frozenset() == IN_PLACE_ALLOWLIST
+    assert all(not s.in_place for s in reg.scripts.values())
+    assert all(a != b for a, b in reg.edges())
+    assert all(not (set(s.inputs) & set(s.outputs)) for s in reg.scripts.values())

@@ -13,9 +13,9 @@
 ## Scope
 
 - **Extraction (first step, test-first):** derive the existing agent-resolved rows from the three crosswalks into an initial verdict batch per crosswalk.
-- **Verdict storage:** immutable batch files in tracked directories under `data/curated/` (e.g. `player_name_verdicts/`, `team_name_verdicts/`, `fantasy_stats_player_name_verdicts/`) — same pattern as the live delta folders. Declared in `raw_sources.toml` as manual raw datasets (stage 0). Later batch wins on the same key.
+- **Verdict storage:** immutable batch files in tracked directories under `data/curated/` (e.g. `player_name_verdicts/`, `team_name_verdicts/`, `fantasy_stats_player_name_verdicts/`) — same pattern as the live delta folders. Stage-0 datasets: the registry treats `data/curated/` like `data/raw_data/`. They are declared as `Outputs` of the `apply_*` ingest scripts (not in `raw_sources.toml`, which only holds datasets no script produces). Later batch (by file name) wins on the same key; keys absent from the current snapshot are skipped and counted.
 - **`resolve_*`:** become pure — inputs = raw data + verdict directory; output = crosswalk (no read of the previous output).
-- **`apply_*_verdicts`:** become an ingest step — validate a verdicts JSON and write it as a new batch file. Manual/`Impure: true`, not a DVC step, no in-place write.
+- **`apply_*_verdicts`** (a third, `apply_fantasy_stats_player_name_verdicts`, is added for the fantasy-stats crosswalk): become an ingest step — validate a verdicts JSON and write it as a new batch file. Manual/`Impure: true`, not a DVC step, no in-place write.
 - Update `resolve-player-names` and `resolve-team-names` skills to append batches instead of patching crosswalks.
 - Enable `entity` in `pipelines.toml` (`dvc = true`), add it to `all`, empty the registry cycle allowlist, regenerate `dvc.yaml`, catalogue, graph, HTML.
 
@@ -35,10 +35,10 @@
 
 ## Pass criteria
 
-- [ ] Extraction test written first: rebuilding each crosswalk from raw data + extracted batches is **byte-identical** to today's committed file (player, team, fantasy-stats player).
-- [ ] No script reads its own output; registry `check` passes with an empty allowlist; graph has no self-loops.
-- [ ] `dvc repro entity` runs from raw data; second run is a no-op; adding a batch file reruns only affected crosswalks and downstream (`fantasy_stats_players_normalized`).
-- [ ] `eupy run all` includes `entity`.
-- [ ] Ingest step: valid batch written, invalid batch rejected, existing batches never modified (tests).
-- [ ] Both `resolve-*` skills updated and walked end to end once on a synthetic verdict.
-- [ ] Docs/graph/catalogue/HTML regenerated; `ruff check` + `ruff format --check` clean; `uv run pytest` green.
+- [x] Extraction test written first: rebuilding each crosswalk from raw data + extracted batches is **byte-identical** to today's committed file (player, team, fantasy-stats player).
+- [x] No script reads its own output; registry `check` passes with an empty allowlist; graph has no self-loops.
+- [x] `dvc repro entity` runs from raw data; second run is a no-op; adding a batch file reruns only affected crosswalks and downstream (`fantasy_stats_players_normalized`).
+- [x] `eupy run all` includes `entity`.
+- [x] Ingest step: valid batch written, invalid batch rejected, existing batches never modified (tests).
+- [x] Both `resolve-*` skills updated and walked end to end once on a synthetic verdict.
+- [x] Docs/graph/catalogue/HTML regenerated; `ruff check` + `ruff format --check` clean; `uv run pytest` green.

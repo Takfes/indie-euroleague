@@ -63,3 +63,102 @@ stages:
       hash: md5
       md5: 13c829f5befcb029305f4da04f88070b
       size: 7436
+  resolve_fantasy_stats_player_names:
+    cmd: uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py
+    deps:
+    - path: data/curated/fantasy_stats_player_name_verdicts
+      hash: md5
+      md5: ea756654fcf342d32c6c18b0bd75f04d.dir
+      size: 7929
+      nfiles: 1
+    - path: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+      hash: md5
+      md5: 8030562f6d4d07884ea3086c1bb8b817
+      size: 15188
+    - path: data/raw_data/fantasy_stats/players.csv
+      hash: md5
+      md5: c26911bfa25aab3e10775648b264bd47
+      size: 45737
+    - path: data/raw_data/kaggle_data/euroleague_box_score.csv
+      hash: md5
+      md5: e01bde23b29bde89daaa21c24a38672b
+      size: 18528865
+    - path: src/eupy/entity/resolve_fantasy_stats_player_names.py
+      hash: md5
+      md5: 8b8db127d875632f8dca6c57915664ab
+      size: 9087
+    outs:
+    - path: data/stage_01/fantasy_stats_player_name_crosswalk.csv
+      hash: md5
+      md5: 484323ecf81c5e73bf0582b48536a393
+      size: 22628
+  normalize_fantasy_stats:
+    cmd: uv run python src/eupy/transform/normalize_fantasy_stats.py
+    deps:
+    - path: data/raw_data/fantasy_stats/players.csv
+      hash: md5
+      md5: c26911bfa25aab3e10775648b264bd47
+      size: 45737
+    - path: data/stage_01/fantasy_stats_player_name_crosswalk.csv
+      hash: md5
+      md5: 484323ecf81c5e73bf0582b48536a393
+      size: 22628
+    - path: src/eupy/transform/normalize_fantasy_stats.py
+      hash: md5
+      md5: 4b3e8d597b7d4923b97947712575e155
+      size: 4895
+    outs:
+    - path: data/stage_02/fantasy_stats_players_normalized.csv
+      hash: md5
+      md5: af070bb7e278f257531d3210fdda2ac8
+      size: 44874
+  resolve_player_names:
+    cmd: uv run python src/eupy/entity/resolve_player_names.py
+    deps:
+    - path: data/curated/player_name_verdicts
+      hash: md5
+      md5: 906fe08717cc925602dac1c1c8817ec3.dir
+      size: 25730
+      nfiles: 1
+    - path: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+      hash: md5
+      md5: 8030562f6d4d07884ea3086c1bb8b817
+      size: 15188
+    - path: data/raw_data/kaggle_data/euroleague_box_score.csv
+      hash: md5
+      md5: e01bde23b29bde89daaa21c24a38672b
+      size: 18528865
+    - path: src/eupy/entity/resolve_player_names.py
+      hash: md5
+      md5: 1e0672ac3c4e6a0446996e8fc07ac5da
+      size: 9869
+    outs:
+    - path: data/stage_01/player_name_crosswalk.csv
+      hash: md5
+      md5: 6134da02bebd5f9dcb907f285c286a38
+      size: 26674
+  resolve_team_names:
+    cmd: uv run python src/eupy/entity/resolve_team_names.py
+    deps:
+    - path: data/curated/team_name_verdicts
+      hash: md5
+      md5: cd04e1ce00618ff4e3749a888d27d601.dir
+      size: 3654
+      nfiles: 1
+    - path: data/raw_data/fantasy_prices/basketballsphere_prices.csv
+      hash: md5
+      md5: 8030562f6d4d07884ea3086c1bb8b817
+      size: 15188
+    - path: data/raw_data/kaggle_data/euroleague_header.csv
+      hash: md5
+      md5: 78c90f4b880bfecc093a2ffd20ca5254
+      size: 1384517
+    - path: src/eupy/entity/resolve_team_names.py
+      hash: md5
+      md5: 63fcb0a9c4d47c65f6942a4fcc9118ee
+      size: 9192
+    outs:
+    - path: data/stage_01/team_name_crosswalk.csv
+      hash: md5
+      md5: 0eac703b26c21b9084dacf363b7f56ec
+      size: 2559

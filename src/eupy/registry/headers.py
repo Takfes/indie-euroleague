@@ -31,7 +31,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 PIPELINE_DIRS = frozenset({"fetchers", "transform", "entity", "optimize"})
-LIBRARY_MODULES = frozenset({"entity/matching.py", "entity/player_crosswalk.py", "entity/team_crosswalk.py"})
+LIBRARY_MODULES = frozenset({
+    "entity/matching.py",
+    "entity/player_crosswalk.py",
+    "entity/team_crosswalk.py",
+    "entity/verdict_batches.py",
+})
 
 LIST_KEYS = ("Inputs", "Sources", "Outputs")
 KEY_ORDER = ("Inputs", "Sources", "Outputs", "Final", "Impure", "Refresh", "Notes")

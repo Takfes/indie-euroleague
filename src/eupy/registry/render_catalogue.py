@@ -116,7 +116,7 @@ def render_catalogue(reg: Registry) -> str:
     ]
     lines = [BANNER]
     lines += _section(
-        "Raw datasets (`data/raw_data/`, git-ignored)",
+        "Raw datasets (`data/raw_data/` untracked; `data/curated/` tracked)",
         _table(["Dataset", "Path", "Produced by", "Consumed by", "Refresh"], raw_rows),
         _notes(reg.scripts[n] for n in sorted(raw_writers)),
     )

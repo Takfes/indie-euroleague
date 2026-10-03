@@ -8,10 +8,13 @@ Targets come from `pipelines.toml`: a pipeline name, or a wrapper (an ordered li
 between them is enforced by the DVC dependencies, not by the list).
 
 * `dvc = true` pipeline: `uv run dvc repro <steps>` for its pure scripts (DVC also reruns upstream steps).
-  Fully offline by default; `--fetch` first runs the pipeline's impure members (fetchers) directly with
+  Fully offline by default; `--fetch` first runs the pipeline's fetchers directly with
   `uv run python <script>`, in dependency order -- those hit live sources.
-* `dvc = false` pipeline: no DVC steps. `eupy run` runs only its impure members (so `eupy run acquire` runs the
-  fetchers); a pipeline without any (`entity`, `optimize`) fails with a "not runnable under DVC yet" message.
+* A *fetcher* is an impure script with a live source (a `Sources:` entry containing `(live`). Other impure
+  scripts (the `entity` `apply_*_verdicts` ingest scripts, which need `--verdicts`) are never run by `eupy run`,
+  with or without `--fetch`.
+* `dvc = false` pipeline: no DVC steps. `eupy run` runs only its fetchers (so `eupy run acquire` runs them);
+  a pipeline without any (`optimize`) fails with a "not runnable under DVC yet" message.
 * After a successful run, `link-final` refreshes `data/stage_99/`.
 
 Every command goes through one injectable `Runner`; `--dry-run` prints the commands instead of executing them.
@@ -48,6 +51,12 @@ def resolve_target(target: str, pipelines: dict[str, Pipeline], wrappers: dict[s
     )
 
 
+def is_fetcher(registry: Registry, script: str) -> bool:
+    """Impure script reading a live source (`Sources:` entry containing `(live`); ingest scripts are not fetchers."""
+    s = registry.scripts[script]
+    return s.impure and any("(live" in src for src in s.sources)
+
+
 def plan_run(registry: Registry, pipelines: dict[str, Pipeline], names: list[str], fetch: bool) -> list[list[str]]:
     """Commands for the given pipelines, in order: impure scripts (when fetching or non-DVC), then one `dvc repro`.
 
@@ -58,7 +67,7 @@ def plan_run(registry: Registry, pipelines: dict[str, Pipeline], names: list[str
     steps: list[str] = []
     for name in names:
         pipe = pipelines[name]
-        impure = [s for s in pipe.scripts if registry.scripts[s].impure]
+        impure = [s for s in pipe.scripts if is_fetcher(registry, s)]
         if not pipe.dvc and not impure:
             raise CliError(
                 f"pipeline {name!r} is not runnable under DVC yet (dvc = false in {PIPELINES_FILE}, no fetchers)"
@@ -72,7 +81,7 @@ def plan_run(registry: Registry, pipelines: dict[str, Pipeline], names: list[str
         for s in sorted(dict.fromkeys(fetchers), key=order.__getitem__)
     ]
     if not commands and not steps:
-        raise CliError("nothing to run (all members are impure fetchers); use --fetch")
+        raise CliError("nothing to run (all members are impure scripts); use --fetch")
     if steps:
         commands.append(["uv", "run", "dvc", "repro", *sorted(dict.fromkeys(steps), key=order.__getitem__)])
     return commands

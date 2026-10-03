@@ -10,13 +10,14 @@ DAG: nodes are scripts, datasets and external sources (ids `script:<stem>`, `dat
 
 Stage rules:
 
-* a dataset whose path is under `data/raw_data/` is stage 0, whether or not a (fetcher) script
-  produces it;
+* a dataset whose path is under `data/raw_data/` or `data/curated/` is stage 0 (tracked manual inputs --
+  see `is_stage0_path`), whether or not a script produces it: fetchers write raw data, the impure `apply_*`
+  ingest scripts append verdict batches to curated dirs;
 * any other dataset is `max(stage of its producer's inputs) + 1` (1 when the producer has none);
 * the `stage_XX` in its declared path must match, a letter suffix (`stage_01a`) being accepted when
   the numeric part matches.
 
-In-place scripts (temporary; `IN_PLACE_ALLOWLIST`, emptied in ticket 8): a script listing the same
+In-place scripts (mechanism kept, `IN_PLACE_ALLOWLIST` now empty -- nothing uses it): a script listing the same
 dataset in both `Inputs` and `Outputs` is a cycle, allowed only for allowlisted scripts. The dataset
 is recorded in the script's `in_place`, and the self-edge is dropped from the DAG and from stage
 computation:
@@ -46,18 +47,18 @@ from eupy.registry.headers import Header, discover_headers
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_SOURCES_PATH = Path(__file__).with_name("raw_sources.toml")
 RAW_PREFIX = "data/raw_data/"
+CURATED_PREFIX = "data/curated/"
 
-IN_PLACE_ALLOWLIST = frozenset({
-    "resolve_player_names",
-    "resolve_team_names",
-    "resolve_fantasy_stats_player_names",
-    "apply_player_name_verdicts",
-    "apply_team_name_verdicts",
-})
+IN_PLACE_ALLOWLIST: frozenset[str] = frozenset()  # script names allowed a Inputs/Outputs self-loop (none today)
 
 _STAGE_DIR = re.compile(r"^data/stage_(\d+)([a-z]?)/")
 
 RawSources = Mapping[str, Mapping[str, str]]  # raw dataset name -> {"origin": ..., "refresh": ...}
+
+
+def is_stage0_path(path: str) -> bool:
+    """True for paths under `data/raw_data/` or `data/curated/`: stage 0, never produced by the DAG proper."""
+    return path.startswith((RAW_PREFIX, CURATED_PREFIX))
 
 
 class RegistryError(Exception):
@@ -177,7 +178,7 @@ class Registry:
                 name=ds,
                 path=path,
                 stage=stages[ds],
-                raw=path.startswith(RAW_PREFIX),
+                raw=is_stage0_path(path),
                 producer=producer.get(ds),
                 updaters=updaters.get(ds, ()),
                 consumers=tuple(sorted(consumers[ds])),
@@ -305,12 +306,14 @@ def _raw_problems(path_of: dict[str, str], scripts: dict[str, Script], raw_sourc
     for ds, path in sorted(path_of.items()):
         if ds in written:
             continue
-        if not path.startswith(RAW_PREFIX):
-            problems.append(f"dataset {ds}: no script produces it and its path is not under {RAW_PREFIX}")
+        if not is_stage0_path(path):
+            problems.append(
+                f"dataset {ds}: no script produces it and its path is not under {RAW_PREFIX} or {CURATED_PREFIX}"
+            )
         elif ds not in raw_sources:
             problems.append(f"dataset {ds}: raw and unproduced, but not declared in raw_sources.toml")
     for ds, decl in sorted(raw_sources.items()):
-        if ds not in path_of or ds in written or not path_of[ds].startswith(RAW_PREFIX):
+        if ds not in path_of or ds in written or not is_stage0_path(path_of[ds]):
             problems.append(f"raw_sources.toml: {ds} is not an unproduced raw dataset in any header")
         elif not decl.get("origin") or not decl.get("refresh"):
             problems.append(f"raw_sources.toml: {ds} needs both 'origin' and 'refresh'")
@@ -371,7 +374,7 @@ def _stages(
         kind, _, ds = node.partition(":")
         if kind != "dataset":
             continue
-        if path_of[ds].startswith(RAW_PREFIX):
+        if is_stage0_path(path_of[ds]):
             stages[ds] = 0
             continue
         prod = scripts[producer[ds]]
