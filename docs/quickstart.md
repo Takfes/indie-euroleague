@@ -160,8 +160,10 @@ conversationally.
 
 ## Cleaning up after PRs merge
 
-`make tidy` lists merged task worktrees, local/remote branches and stale
-lock files, asks once, then deletes the safe ones (integrated, clean, not in
-use) and prints manual commands for the rest. `make tidy ARGS=--yes` skips the
+`make tidy` (bash, inline in the `Makefile`; needs an authenticated `gh`) lists
+merged task worktrees, local/remote branches and stale lock files, asks once,
+then deletes the safe ones (merged PR at the exact branch tip, clean, no
+irreplaceable git-ignored files, not in use). Safe items come with manual
+commands; blocked ones come with the reason. `make tidy ARGS=--yes` skips the
 prompt and reports what it could not delete; `ARGS=--dry-run` never deletes.
 It also flags branches/worktrees that break the `<type>/<short-name>` naming.
