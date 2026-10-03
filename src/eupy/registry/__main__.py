@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: C901 -- flat subcommand
         registry = Registry.from_repo(args.root)
         # Pipeline membership is linted by `check` and needed by `dvc`; rendering happens before any write.
         pipelines = (
-            checked_pipelines(registry, args.root / PIPELINES_FILE)
+            checked_pipelines(registry, args.root / PIPELINES_FILE, args.root)
             if args.command in ("check", "dvc", "graph", "docs", "html")
             else {}
         )

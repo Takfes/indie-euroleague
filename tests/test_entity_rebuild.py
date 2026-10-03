@@ -19,15 +19,15 @@ import pytest
 import yaml
 
 from eupy.devtools import extract_initial_verdicts
-from eupy.entity import resolve_fantasy_stats_player_names, resolve_player_names, resolve_team_names
+from eupy.entity import player_sources, resolve_fantasy_stats_player_names, resolve_player_names, resolve_team_names
 from eupy.entity.verdict_batches import write_batch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CURATED = REPO_ROOT / "data" / "curated"
 DVC_LOCK = REPO_ROOT / "dvc.lock"
 
-PRICES = resolve_player_names.MASTER_PATH
-BOXSCORE = resolve_player_names.BOXSCORE_PATH
+PRICES = player_sources.MASTER_PATH
+BOXSCORE = player_sources.BOXSCORE_PATH
 HEADER = resolve_team_names.HEADER_PATH
 PLAYERS = resolve_fantasy_stats_player_names.PLAYERS_PATH
 

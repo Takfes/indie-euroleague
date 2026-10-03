@@ -33,9 +33,11 @@ from pathlib import Path
 PIPELINE_DIRS = frozenset({"fetchers", "transform", "entity", "optimize"})
 LIBRARY_MODULES = frozenset({
     "entity/matching.py",
+    "entity/player_sources.py",
     "entity/player_crosswalk.py",
     "entity/team_crosswalk.py",
     "entity/verdict_batches.py",
+    "fetchers/live_euroleague.py",
     "transform/live_append.py",
 })
 

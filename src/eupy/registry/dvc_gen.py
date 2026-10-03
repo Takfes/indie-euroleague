@@ -2,7 +2,7 @@
 
 `pipelines.toml` (repo root) holds pipeline membership: one table per pipeline, each with `dvc` (bool)
 and `scripts` (script names). Lint: every registry script sits in exactly one pipeline, and every listed
-name is a registry script.
+name is a registry script. No pipeline script (or library module) imports another script (`lint_script_imports`).
 
 DVC steps ("DVC stages" in DVC's own terms -- not the data-depth stage of the registry): one per pure
 script (`Impure: false`) in a pipeline with `dvc = true`, named after the script:
@@ -22,9 +22,11 @@ from __future__ import annotations
 import ast
 import re
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from eupy.registry.headers import LIBRARY_MODULES
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 
 PIPELINES_FILE = "pipelines.toml"
@@ -114,10 +116,37 @@ def lint_pipelines(registry: Registry, pipelines: dict[str, Pipeline]) -> list[s
     return problems
 
 
-def checked_pipelines(registry: Registry, path: Path) -> dict[str, Pipeline]:
+def lint_script_imports(
+    registry: Registry, root: Path = REPO_ROOT, libraries: Iterable[str] = LIBRARY_MODULES
+) -> list[str]:
+    """Problems with direct imports between pipeline scripts, or from a library module into a script.
+
+    Shared code lives in library modules (`libraries`, paths relative to `src/eupy/`); a script importing another
+    script hides the dependency from the registry's I/O view, so it is rejected, and so is a library importing a
+    script. A script reaching another script through a library is caught at the library's own import.
+    """
+    script_files = {(root / s.path).resolve(): name for name, s in registry.scripts.items()}
+    sources = {(root / s.path).resolve(): f"script {name}" for name, s in registry.scripts.items()}
+    sources |= {(root / "src" / "eupy" / lib).resolve(): f"library module {lib}" for lib in libraries}
+    problems: list[str] = []
+    for file, label in sorted(sources.items(), key=lambda kv: kv[1]):
+        for imported in sorted({f.resolve() for f in _imported_files(file, root)}):
+            if imported in script_files and imported != file:
+                problems.append(
+                    f"{label} imports script {script_files[imported]}; pipeline scripts must not be imported "
+                    "-- move the shared code into a library module (see LIBRARY_MODULES in registry/headers.py)"
+                )
+    return problems
+
+
+def checked_pipelines(registry: Registry, path: Path, root: Path = REPO_ROOT) -> dict[str, Pipeline]:
     """Load `pipelines.toml` from `path` and lint it; raises `RegistryError` listing every problem."""
     pipelines = load_pipelines(path)
-    problems = lint_pipelines(registry, pipelines) + lint_wrappers(pipelines, load_wrappers(path))
+    problems = (
+        lint_pipelines(registry, pipelines)
+        + lint_wrappers(pipelines, load_wrappers(path))
+        + lint_script_imports(registry, root)
+    )
     if problems:
         raise RegistryError(problems)
     return pipelines

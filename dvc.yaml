@@ -44,7 +44,7 @@ stages:
     deps:
     - src/eupy/entity/resolve_fantasy_stats_player_names.py
     - src/eupy/entity/matching.py
-    - src/eupy/entity/resolve_player_names.py
+    - src/eupy/entity/player_sources.py
     - src/eupy/entity/verdict_batches.py
     - data/curated/fantasy_stats_player_name_verdicts
     - data/raw_data/fantasy_prices/basketballsphere_prices.csv
@@ -58,6 +58,7 @@ stages:
     deps:
     - src/eupy/entity/resolve_player_names.py
     - src/eupy/entity/matching.py
+    - src/eupy/entity/player_sources.py
     - src/eupy/entity/verdict_batches.py
     - data/curated/player_name_verdicts
     - data/raw_data/fantasy_prices/basketballsphere_prices.csv

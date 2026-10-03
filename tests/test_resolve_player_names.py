@@ -6,12 +6,10 @@ import csv
 from pathlib import Path
 
 from eupy.entity.matching import build_normalized_index, normalize_name
+from eupy.entity.player_sources import load_boxscore_spellings, load_master_rows, reorder_boxscore_name
 from eupy.entity.resolve_player_names import (
     build_crosswalk,
     build_row,
-    load_boxscore_spellings,
-    load_master_rows,
-    reorder_boxscore_name,
     write_crosswalk,
 )
 

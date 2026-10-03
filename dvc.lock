@@ -95,14 +95,14 @@ stages:
       hash: md5
       md5: a1b98a245568ebcb61bb1f411047dbb0
       size: 4431
+    - path: src/eupy/entity/player_sources.py
+      hash: md5
+      md5: 3a7d34704cad683e1576d215832bae4a
+      size: 2347
     - path: src/eupy/entity/resolve_fantasy_stats_player_names.py
       hash: md5
-      md5: 8b8db127d875632f8dca6c57915664ab
-      size: 9087
-    - path: src/eupy/entity/resolve_player_names.py
-      hash: md5
-      md5: 1e0672ac3c4e6a0446996e8fc07ac5da
-      size: 9869
+      md5: 2fb16f2d185d132f0ce1c0fbb3a29c46
+      size: 9081
     - path: src/eupy/entity/verdict_batches.py
       hash: md5
       md5: 23d83419e2452b7598ac44f81a50bd55
@@ -152,10 +152,14 @@ stages:
       hash: md5
       md5: a1b98a245568ebcb61bb1f411047dbb0
       size: 4431
+    - path: src/eupy/entity/player_sources.py
+      hash: md5
+      md5: 3a7d34704cad683e1576d215832bae4a
+      size: 2347
     - path: src/eupy/entity/resolve_player_names.py
       hash: md5
-      md5: 1e0672ac3c4e6a0446996e8fc07ac5da
-      size: 9869
+      md5: 495da601aaec5dbc3ccfd193a0bb5c78
+      size: 8124
     - path: src/eupy/entity/verdict_batches.py
       hash: md5
       md5: 23d83419e2452b7598ac44f81a50bd55

@@ -48,7 +48,7 @@ from pathlib import Path
 from typing import Any
 
 from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
-from eupy.entity.resolve_player_names import BOXSCORE_PATH, MASTER_PATH, load_boxscore_spellings, load_master_rows
+from eupy.entity.player_sources import BOXSCORE_PATH, MASTER_PATH, load_boxscore_spellings, load_master_rows
 from eupy.entity.verdict_batches import apply_verdicts, load_batches, merge_verdicts
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

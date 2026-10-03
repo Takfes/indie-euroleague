@@ -13,6 +13,7 @@ from eupy.registry.dvc_gen import (
     dvc_steps,
     import_closure,
     lint_pipelines,
+    lint_script_imports,
     lint_wrappers,
     load_pipelines,
     load_wrappers,
@@ -215,3 +216,50 @@ def test_step_deps_include_import_closure_between_script_and_inputs(tmp_path: Pa
         "data/raw_data/manual/raw.csv",
         "data/raw_data/x",
     )
+
+
+def _script_registry() -> Registry:
+    """Two pure scripts, `src/eupy/transform/s1.py` and `s2.py`, each producing one dataset from none."""
+    headers = {
+        f"src/eupy/transform/{n}.py": Header((), (), ((f"out_{n}", f"data/stage_01/{n}.csv"),), False, False)
+        for n in ("s1", "s2")
+    }
+    return Registry.from_headers(headers, {})
+
+
+def test_script_importing_another_script_is_rejected_naming_both(tmp_path: Path) -> None:
+    _pkg(tmp_path, {"transform/s1.py": "from eupy.transform.s2 import x\n", "transform/s2.py": "x = 1\n"})
+    problems = lint_script_imports(_script_registry(), tmp_path, ())
+    assert len(problems) == 1
+    assert "script s1" in problems[0] and "script s2" in problems[0] and "library module" in problems[0]
+
+
+def test_script_importing_a_library_is_accepted_even_transitively(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/s1.py": "from eupy.transform.lib_a import x\n",
+            "transform/s2.py": "import eupy.transform.lib_b\n",
+            "transform/lib_a.py": "from eupy.transform import lib_b\n",
+            "transform/lib_b.py": "x = 1\n",
+        },
+    )
+    assert lint_script_imports(_script_registry(), tmp_path, ("transform/lib_a.py", "transform/lib_b.py")) == []
+
+
+def test_library_importing_a_script_is_rejected(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/s1.py": "from eupy.transform.lib_a import x\n",
+            "transform/s2.py": "y = 1\n",
+            "transform/lib_a.py": "from eupy.transform.s2 import y\nx = y\n",
+        },
+    )
+    problems = lint_script_imports(_script_registry(), tmp_path, ("transform/lib_a.py",))
+    assert len(problems) == 1
+    assert "library module transform/lib_a.py" in problems[0] and "script s2" in problems[0]
+
+
+def test_real_repo_has_no_script_importing_a_script() -> None:
+    assert lint_script_imports(Registry.from_repo(REPO_ROOT)) == []
