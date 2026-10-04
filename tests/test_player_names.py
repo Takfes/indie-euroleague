@@ -15,6 +15,7 @@ from eupy.entity.build_player_name_map import (
     abbreviate_name,
     build_entries,
     build_rows,
+    load_agent_decisions,
     load_boxscore_pools,
     load_stats_players,
     reorder_boxscore_name,
@@ -22,7 +23,6 @@ from eupy.entity.build_player_name_map import (
 from eupy.entity.matching import AmbiguousNameError, UnknownNameError
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
-from eupy.entity.verdict_batches import load_batches, merge_verdicts, write_batch
 
 TEAMS = TeamNames([
     {"name": "Panathinaikos", "variants": ["PAN", "PAO"]},
@@ -63,9 +63,9 @@ def _pools(tmp_path: Path) -> BoxscorePools:
     return load_boxscore_pools(_box_csv(tmp_path / "box.csv"), TEAMS, recent_seasons=2)
 
 
-def _rows(tmp_path: Path, pairs: list[tuple[str, str]], verdicts: dict[str, dict[str, Any]] | None = None):
+def _rows(tmp_path: Path, pairs: list[tuple[str, str]], decisions: dict[str, dict[str, str]] | None = None):
     players = [{"team": t, "name": n} for t, n in pairs]
-    return build_rows(players, _pools(tmp_path), TEAMS, verdicts or {})
+    return build_rows(players, _pools(tmp_path), TEAMS, decisions or {})
 
 
 def test_name_helpers() -> None:
@@ -127,28 +127,54 @@ def test_unknown_team_code_is_noted_not_fatal(tmp_path: Path) -> None:
     assert row["match_status"] == "needs_review"  # no club pool, so never an auto-accept
 
 
-def test_confirmed_verdict_overrides_and_later_batch_wins(tmp_path: Path) -> None:
-    write_batch(tmp_path / "0001_a.json", [_verdict("rejected")], ingested_at="2026-10-01", source="a")
-    write_batch(
-        tmp_path / "0002_b.json", [_verdict("confirmed", "Sam Francisco")], ingested_at="2026-10-02", source="b"
-    )
-    verdicts = merge_verdicts(load_batches(tmp_path), ("team", "name"), "resolved_name")
-    row = _rows(tmp_path, [("PAO", "S. Francisco")], verdicts)[0]
+def _decision(status: str, resolved: str = "") -> dict[str, str]:
+    return {"match_status": status, "resolved_name": resolved, "notes": "n"}
+
+
+def test_agent_decision_is_applied_to_an_open_player(tmp_path: Path) -> None:
+    decisions = {"PAO|S. Francisco": _decision("confirmed", "Sam Francisco")}
+    row = _rows(tmp_path, [("PAO", "S. Francisco")], decisions)[0]
     assert (row["match_status"], row["resolved_name"], row["matched_by"]) == ("confirmed", "Sam Francisco", "agent")
 
 
-def _verdict(status: str, resolved: str = "") -> dict[str, Any]:
-    return {
-        "team": "PAO",
-        "name": "S. Francisco",
-        "match_status": status,
-        "resolved_name": resolved,
-        "notes": "n",
+def test_agent_decision_never_replaces_an_exact_match(tmp_path: Path) -> None:
+    row = _rows(tmp_path, [("PAO", "C. Jones")], {"PAO|C. Jones": _decision("confirmed", "Someone Else")})[0]
+    assert (row["match_status"], row["resolved_name"]) == ("exact", "Carlik Jones")
+
+
+def _write_map(path: Path, *entries: dict[str, object]) -> Path:
+    path.write_text(json.dumps({"players": list(entries)}), encoding="utf-8")
+    return path
+
+
+def _map_entry(status: str, name: str = "Full Name", notes: str = "n", stats_name: str = "F. Campazzo") -> dict:
+    return {"stats_team": "PAO", "stats_name": stats_name, "match_status": status, "name": name, "notes": notes}
+
+
+def test_load_agent_decisions_reads_only_agent_statuses(tmp_path: Path) -> None:
+    path = _write_map(
+        tmp_path / "m.json",
+        _map_entry("confirmed", "Facundo Campazzo"),
+        _map_entry("rejected", stats_name="R. Eject"),
+        _map_entry("exact", stats_name="C. Jones"),
+        _map_entry("needs_review", stats_name="O. Pen"),
+    )
+    assert load_agent_decisions(path) == {
+        "PAO|F. Campazzo": {"match_status": "confirmed", "resolved_name": "Facundo Campazzo", "notes": "n"},
+        "PAO|R. Eject": {"match_status": "rejected", "resolved_name": "", "notes": "n"},
     }
+    assert load_agent_decisions(tmp_path / "missing.json") == {}
 
 
-def _entries(tmp_path: Path, pairs: list[tuple[str, str]], verdicts=None) -> list[dict[str, object]]:
-    return build_entries(_rows(tmp_path, pairs, verdicts), _pools(tmp_path))
+def test_load_agent_decisions_rejects_a_decision_without_notes_or_name(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="notes"):
+        load_agent_decisions(_write_map(tmp_path / "a.json", _map_entry("confirmed", notes="")))
+    with pytest.raises(ValueError, match="full player `name`"):
+        load_agent_decisions(_write_map(tmp_path / "b.json", _map_entry("confirmed", name="")))
+
+
+def _entries(tmp_path: Path, pairs: list[tuple[str, str]], decisions=None) -> list[dict[str, object]]:
+    return build_entries(_rows(tmp_path, pairs, decisions), _pools(tmp_path))
 
 
 def test_entries_carry_every_spelling_and_the_club(tmp_path: Path) -> None:
@@ -196,9 +222,8 @@ def test_open_entries_are_listed_not_looked_up(tmp_path: Path) -> None:
 
 
 def test_rejected_entry_keeps_the_stats_spelling(tmp_path: Path) -> None:
-    verdict = _verdict("rejected") | {"team": "PAO", "name": "F. Campazzo", "resolved_name": ""}
-    verdicts = merge_verdicts([verdict], ("team", "name"), "resolved_name")
-    players = PlayerNames(_entries(tmp_path, [("PAO", "F. Campazzo")], verdicts), TEAMS)
+    decisions = {"PAO|F. Campazzo": _decision("rejected")}
+    players = PlayerNames(_entries(tmp_path, [("PAO", "F. Campazzo")], decisions), TEAMS)
     assert players.normalize("F. Campazzo") == "F. Campazzo"
     assert players.unresolved() == []
 
@@ -210,7 +235,7 @@ def test_builder_writes_stable_json_that_loads(tmp_path: Path, monkeypatch: pyte
     stats = _stats_csv(tmp_path / "stats.csv", [("PAO", "C. Jones")])
     out, csv_out = tmp_path / "players.json", tmp_path / "players.csv"
     args = ["--stats", str(stats), "--boxscore", str(_box_csv(tmp_path / "box.csv")), "--out", str(out)]
-    args += ["--csv-out", str(csv_out), "--verdicts-dir", str(tmp_path / "no-verdicts-yet")]
+    args += ["--csv-out", str(csv_out)]
     build_player_name_map.main(args)
     first = (out.read_bytes(), csv_out.read_bytes())
     build_player_name_map.main(args)
@@ -220,6 +245,33 @@ def test_builder_writes_stable_json_that_loads(tmp_path: Path, monkeypatch: pyte
         'PAO,C. Jones,Panathinaikos,Carlik Jones,"C. Jones | Carlik Jones | JONES, CARLIK",exact,exact,',
     ]
     assert PlayerNames.load(out, TeamNames.load(team_map)).normalize("JONES, CARLIK") == "Carlik Jones"
+
+
+def test_agent_decisions_in_the_json_survive_a_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    team_map = tmp_path / "team_map.json"
+    team_map.write_text(json.dumps({"teams": TEAMS_JSON}), encoding="utf-8")
+    monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)
+    stats = _stats_csv(tmp_path / "stats.csv", [("PAO", "C. Jones"), ("PAO", "F. Campazzo")])
+    out, csv_out = tmp_path / "players.json", tmp_path / "players.csv"
+    args = ["--stats", str(stats), "--boxscore", str(_box_csv(tmp_path / "box.csv")), "--out", str(out)]
+    args += ["--csv-out", str(csv_out)]
+
+    build_player_name_map.main(args)  # first run: Campazzo plays for Madrid, so he is open
+    data = json.loads(out.read_text(encoding="utf-8"))
+    campazzo = next(e for e in data["players"] if e["stats_name"] == "F. Campazzo")
+    assert campazzo["match_status"] == "needs_review"
+    campazzo |= {"match_status": "confirmed", "name": "Facundo Campazzo", "notes": "Moved to Panathinaikos"}
+    data["players"].append(_map_entry("no_match", stats_name="G.One"))  # a player who left the stats data
+    out.write_text(json.dumps(data), encoding="utf-8")
+
+    build_player_name_map.main(args)  # the decision is carried forward, the vanished player is dropped
+    rebuilt = {e["stats_name"]: e for e in json.loads(out.read_text(encoding="utf-8"))["players"]}
+    assert set(rebuilt) == {"C. Jones", "F. Campazzo"}
+    assert (rebuilt["F. Campazzo"]["match_status"], rebuilt["F. Campazzo"]["matched_by"]) == ("confirmed", "agent")
+    assert PlayerNames.load(out, TeamNames.load(team_map)).normalize("F. Campazzo") == "Facundo Campazzo"
+    first = out.read_bytes()
+    build_player_name_map.main(args)
+    assert out.read_bytes() == first
 
 
 TEAMS_JSON = [

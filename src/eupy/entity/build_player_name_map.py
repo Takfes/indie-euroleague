@@ -11,27 +11,27 @@ box score is only the source of full names. Stages, in order (see specs/spec-nam
 2. Exact, unscoped -- everything else is looked up across every box-score spelling in history. A hit is
    `needs_review`, never accepted: it may be an older namesake or the player at a previous club. No hit is
    `no_candidate`. There is no approximate matching.
-3. Verdicts -- agent decisions recorded in `data/curated/player_name_verdicts/` (`confirmed` with the full name,
-   `rejected`, `no_match`) are applied on top, a later batch winning on the same key. The agent covers what the
-   first two stages leave open: players who just moved club (no games for it yet) and rookies without box-score
-   history.
+3. Agent decisions -- for the players the first two stages leave open (a player who just moved club has no games
+   for it yet; a rookie has no box-score history), the agent sets `match_status` to `confirmed` (with the full
+   name in `name`), `rejected` or `no_match` on the entry in `maps/player_name_map.json`, with a short `notes`
+   rationale. The builder reads those entries back from the existing JSON and carries them into every rebuild,
+   so the agent only ever decides new players. A player that has since become `exact` keeps the exact match.
 
 Row key: `"<team>|<name>"`. Normalized form: the box-score spelling reordered to `First Last`, title-cased.
 
 Two files are written from the same entries: `maps/player_name_map.json`, which `PlayerNames`
-(`player_names.py`) loads, and the CSV `data/stage_02/player_name_map.csv` for inspection and joins. Entries
-still open after the verdicts (`needs_review`, `no_candidate`) are written with their candidates in `notes` and
-listed in the summary; resolving them is the `build-name-maps` skill's job.
+(`player_names.py`) loads and which holds the agent decisions, and the CSV `data/stage_02/player_name_map.csv`
+for inspection and joins. Entries still open (`needs_review`, `no_candidate`) are written with their candidates in
+`notes` and listed in the summary; resolving them is the `build-name-maps` skill's job.
 
 Usage:
-    python -m eupy.entity.build_player_name_map [--stats PATH] [--boxscore PATH] [--verdicts-dir DIR]
-        [--recent-seasons N] [--out PATH] [--csv-out PATH]
+    python -m eupy.entity.build_player_name_map [--stats PATH] [--boxscore PATH] [--recent-seasons N]
+        [--out PATH] [--csv-out PATH]
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
   - team_name_map: data/stage_01/team_name_map.csv
-  - player_name_verdicts: data/curated/player_name_verdicts/
 Sources: none
 Outputs:
   - player_name_map: data/stage_02/player_name_map.csv
@@ -39,9 +39,9 @@ Final: false
 Impure: false
 Notes: Also writes the JSON copy src/eupy/entity/maps/player_name_map.json (committed with the package, read by
   PlayerNames); the CSV is the registered dataset. Reads the team map through TeamNames (the JSON copy of
-  team_name_map). Verdict batches are applied in file-name order; a later batch wins on the same team|name key.
-  A missing verdicts directory means no verdicts yet. Rerunning on the same inputs rewrites identical bytes. The
-  previous map is never read.
+  team_name_map). It also reads the existing JSON map back, but only for the agent decisions in it (not declared
+  as an input: it is this script's own output); everything else is recomputed from the inputs. Rerunning on the
+  same inputs and decisions rewrites identical bytes.
   CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined
   with " | "), match_status, matched_by, notes.
 """
@@ -54,7 +54,6 @@ import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from eupy.entity.matching import (
     OPEN_STATUSES,
@@ -64,13 +63,11 @@ from eupy.entity.matching import (
     normalize_name,
 )
 from eupy.entity.team_names import TeamNames
-from eupy.entity.verdict_batches import PLAYER_VERDICT_KEY_FIELDS, apply_verdicts, load_batches, merge_verdicts
 from eupy.quality import validate
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 STATS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 BOXSCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.csv"
-VERDICTS_DIR = REPO_ROOT / "data" / "curated" / "player_name_verdicts"
 OUT_PATH = Path(__file__).resolve().parent / "maps" / "player_name_map.json"
 CSV_PATH = REPO_ROOT / "data" / "stage_02" / "player_name_map.csv"
 CSV_FIELDS = [
@@ -85,6 +82,7 @@ CSV_FIELDS = [
 ]
 
 RECENT_SEASONS = 2
+AGENT_STATUSES = frozenset({"confirmed", "rejected", "no_match"})
 
 # (stats name, stats team code) per distinct stats player
 StatsPlayer = dict[str, str]
@@ -170,7 +168,7 @@ def _match(name: str, pool: Pool) -> tuple[str, list[str], str]:
 
 
 def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str, str]:
-    """Build one fresh row (no verdict state) for a stats player whose club normalizes to `club` (`""` if unknown)."""
+    """Build one fresh row (no agent decision applied) for a stats player whose club normalizes to `club` (`""` if unknown)."""
     status, candidates, matched_by = _match(player["name"], pools.by_club.get(club, {}))
     if status == "no_candidate":
         status, candidates, matched_by = _match(player["name"], pools.all)
@@ -195,12 +193,41 @@ def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str,
     return row
 
 
-def build_rows(
-    players: list[StatsPlayer], pools: BoxscorePools, teams: TeamNames, verdicts: dict[str, dict[str, Any]]
-) -> list[dict[str, str]]:
-    """Rows for every stats player, then `verdicts` (keyed `"<team>|<name>"`) applied on top.
+def load_agent_decisions(path: Path) -> dict[str, dict[str, str]]:
+    """Agent decisions recorded in the existing JSON map, keyed `"<team>|<name>"`; `{}` if there is no map yet.
 
-    Verdicts for a key that is not among `players` are skipped.
+    An entry is a decision when its `match_status` is `confirmed`, `rejected` or `no_match`. Only the status,
+    the full name (`confirmed` only) and `notes` are taken; everything else is recomputed.
+
+    Raises:
+        ValueError: If a decision has no `notes` rationale, or is `confirmed` without a full `name`.
+    """
+    if not path.exists():
+        return {}
+    decisions = {}
+    for entry in json.loads(path.read_text(encoding="utf-8"))["players"]:
+        status = entry["match_status"]
+        if status not in AGENT_STATUSES:
+            continue
+        key = f"{entry['stats_team']}|{entry['stats_name']}"
+        if not str(entry.get("notes", "")).strip():
+            raise ValueError(f"{key}: an agent decision needs a short `notes` rationale (in {path})")
+        if status == "confirmed" and not str(entry.get("name", "")).strip():
+            raise ValueError(f"{key}: a `confirmed` decision needs the full player `name` (in {path})")
+        decisions[key] = {
+            "match_status": status,
+            "resolved_name": str(entry["name"]).strip() if status == "confirmed" else "",
+            "notes": str(entry["notes"]).strip(),
+        }
+    return decisions
+
+
+def build_rows(
+    players: list[StatsPlayer], pools: BoxscorePools, teams: TeamNames, decisions: dict[str, dict[str, str]]
+) -> list[dict[str, str]]:
+    """Rows for every stats player, then the agent `decisions` (keyed `"<team>|<name>"`) applied on top.
+
+    A decision never replaces an `exact` match, and one for a player no longer in `players` is dropped.
     """
     rows = []
     for player in players:
@@ -208,8 +235,11 @@ def build_rows(
             club = teams.normalize(player["team"])
         except UnknownNameError:
             club = ""
-        rows.append(build_row(player, club, pools))
-    apply_verdicts({f"{r['team']}|{r['name']}": r for r in rows}, verdicts, "resolved_name")
+        row = build_row(player, club, pools)
+        decision = decisions.get(f"{row['team']}|{row['name']}")
+        if decision and row["match_status"] != "exact":
+            row |= decision | {"matched_by": "agent"}
+        rows.append(row)
     return rows
 
 
@@ -261,7 +291,6 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
-    parser.add_argument("--verdicts-dir", type=Path, default=VERDICTS_DIR, help="Verdict batch directory")
     parser.add_argument("--recent-seasons", type=int, default=RECENT_SEASONS, help="Seasons that scope the club pools")
     parser.add_argument("--out", type=Path, default=OUT_PATH, help="Player map JSON output path")
     parser.add_argument("--csv-out", type=Path, default=CSV_PATH, help="Player map CSV output path")
@@ -272,10 +301,9 @@ def main(argv: list[str] | None = None) -> None:
     if not players:
         raise ValueError(f"No players in {args.stats}; refetch with `uv run dvc repro fetch_euroleague_fantasy_stats`")
     pools = load_boxscore_pools(args.boxscore, teams, args.recent_seasons)
-    batches = load_batches(args.verdicts_dir) if args.verdicts_dir.is_dir() else []
-    verdicts = merge_verdicts(batches, PLAYER_VERDICT_KEY_FIELDS, "resolved_name")
+    decisions = load_agent_decisions(args.out)
 
-    entries = build_entries(build_rows(players, pools, teams, verdicts), pools)
+    entries = build_entries(build_rows(players, pools, teams, decisions), pools)
     validate(entries, ["stats_team", "stats_name"], "player_name_map")
     write_map(entries, args.out)
     write_csv(entries, args.csv_out)
@@ -283,7 +311,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Wrote {len(entries)} players to {args.out} and {args.csv_out}: {summary}")
     open_count = sum(1 for e in entries if e["match_status"] in OPEN_STATUSES)
     if open_count:
-        print(f"{open_count} open entries need a verdict (see `notes` in the map).")
+        print(f"{open_count} open entries need an agent decision (see `notes` in the map).")
 
 
 if __name__ == "__main__":

@@ -60,11 +60,10 @@ Refresh both maps with the `build-name-maps` skill (`.claude/skills/build-name-m
 
 ```bash
 uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSON + CSV)
-uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + verdicts -> player map (JSON + CSV)
-uv run python -m eupy.entity.apply_player_name_verdicts --verdicts <file>.json --label <slug>   # record agent verdicts
+uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions in the JSON -> player map (JSON + CSV)
 ```
 
-Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need a verdict (new transfers, rookies); the builder prints how many. Verdict batches live in `data/curated/player_name_verdicts/` (append-only, tracked in git). The `entity` pipeline is `dvc = false` for now.
+Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need an agent decision (new transfers, rookies); the builder prints how many. The agent writes the decision on the entry in `src/eupy/entity/maps/player_name_map.json`, and every rebuild carries it forward, so only new players are ever decided. The `entity` pipeline is `dvc = false` for now.
 
 ## Config, checks, log
 
@@ -96,7 +95,7 @@ Every pipeline script under `src/eupy/` ends its module docstring with this bloc
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
 Sources:
-  - JSON verdicts file (--verdicts PATH)
+  - CLI-given file (--input PATH)
 Outputs:
   - fantasy_stats_players_normalized: data/stage_02/fantasy_stats_players_normalized.csv
 Final: true
@@ -129,7 +128,7 @@ uv run python -m eupy.registry dvc        # dvc.yaml
 
 ## Data layout
 
-`data/` is versioned as structure only: `.gitkeep` skeletons plus the allow-list in `.gitignore` (today `data/curated/**`). Everything else is ignored; derived outputs are fingerprinted by `dvc.lock`.
+`data/` is versioned as structure only: `.gitkeep` skeletons plus the allow-list in `.gitignore` (`data/curated/**` is allowed for tracked judgements; nothing is stored there today). Everything else is ignored; derived outputs are fingerprinted by `dvc.lock`.
 
 - Raw data must be fetched first; a fresh clone has only empty directories.
 - `data/stage_99/` holds relative symlinks to `Final: true` datasets; `uv run eupy link-final` recreates them.

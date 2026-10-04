@@ -11,8 +11,7 @@ DAG: nodes are scripts, datasets and external sources (ids `script:<stem>`, `dat
 Stage rules:
 
 * a dataset whose path is under `data/raw_data/` or `data/curated/` is stage 0 (tracked manual inputs --
-  see `is_stage0_path`), whether or not a script produces it: fetchers write raw data, the impure `apply_*`
-  ingest scripts append verdict batches to curated dirs;
+  see `is_stage0_path`), whether or not a script produces it (fetchers write raw data);
 * any other dataset is `max(stage of its producer's inputs) + 1` (1 when the producer has none);
 * the `stage_XX` in its declared path must match, a letter suffix (`stage_01a`) being accepted when
   the numeric part matches.

@@ -16,11 +16,9 @@
 | `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | `fetch_kaggle_euroleague.py` | `merge_boxscore.py` | manual: the dataset is a static dump through E2025 |
 | `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | `fetch_kaggle_euroleague.py` | `merge_headers.py` | manual: the dataset is a static dump through E2025 |
 | `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external: prepared manually (upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
-| `player_name_verdicts` | `data/curated/player_name_verdicts/` | `apply_player_name_verdicts.py` | `build_player_name_map.py` | — |
 
 Notes:
 
-- `apply_player_name_verdicts.py`: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that build_player_name_map.py reads.
 - `fetch_euroleague_live_boxscores.py`: Delta files are named {season}_delta_{utc_timestamp}.csv. State file data/raw_data/euroleague_net/box_score/_state.json tracks progress and is updated every run.
 - `fetch_euroleague_live_headers.py`: Delta files are named {season}_delta_{utc_timestamp}.csv, in the Kaggle euroleague_header schema. State file data/raw_data/euroleague_net/headers/_state.json tracks progress and is updated every run.
 - `fetch_game_schedule.py`: One file per season, named schedule_{season}.csv.
@@ -36,12 +34,12 @@ Notes:
 | `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` |
 | `team_name_map` | 01 | `data/stage_01/team_name_map.csv` | `build_team_name_map.py` | `game_schedule/schedule` | false | — |
 | `team_round_turn` | 01 | `data/stage_01/team_round_turn.csv` | `build_schedule_turns.py` | `game_schedule/schedule` | true | `data/stage_99/team_round_turn.csv` |
-| `player_name_map` | 02 | `data/stage_02/player_name_map.csv` | `build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `team_name_map`, `player_name_verdicts` | false | — |
+| `player_name_map` | 02 | `data/stage_02/player_name_map.csv` | `build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `team_name_map` | false | — |
 | `fantasy_stats_players_normalized` | 03 | `data/stage_03/fantasy_stats_players_normalized.csv` | `normalize_fantasy_stats.py` | `fantasy_stats/players`, `player_name_map`, `team_name_map` | true | `data/stage_99/fantasy_stats_players_normalized.csv` |
 
 Notes:
 
-- `build_player_name_map.py`: Also writes the JSON copy src/eupy/entity/maps/player_name_map.json (committed with the package, read by PlayerNames); the CSV is the registered dataset. Reads the team map through TeamNames (the JSON copy of team_name_map). Verdict batches are applied in file-name order; a later batch wins on the same team|name key. A missing verdicts directory means no verdicts yet. Rerunning on the same inputs rewrites identical bytes. The previous map is never read. CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined with " | "), match_status, matched_by, notes.
+- `build_player_name_map.py`: Also writes the JSON copy src/eupy/entity/maps/player_name_map.json (committed with the package, read by PlayerNames); the CSV is the registered dataset. Reads the team map through TeamNames (the JSON copy of team_name_map). It also reads the existing JSON map back, but only for the agent decisions in it (not declared as an input: it is this script's own output); everything else is recomputed from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes. CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined with " | "), match_status, matched_by, notes.
 - `build_team_name_map.py`: Also writes the JSON copy src/eupy/entity/maps/team_name_map.json (committed with the package, read by TeamNames); the CSV is the registered dataset. Reads every schedule_*.csv in the directory; rerunning on the same schedule rewrites identical bytes. CSV columns: name (normalized team name), variants (joined with " | ").
 - `optimize_squad.py`: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run. Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does not exist yet).
 - `build_schedule_turns.py`: Input file is schedule_{season}.csv (--season, default E2026; --input overrides). Both outputs are overwritten each run. Column notes. schedule: the raw schedule (20 columns, verbatim, same row order) plus a trailing turn (T1 / T2). Within each gameday, the latest date is T2 and every earlier date is T1 (single-date round -> all T1). The rule is an assumption, not an API field. team_round_turn: columns team (club code from homecode / awaycode), round (= raw gameday; not the raw round column, which is the phase label RS), turn. One row per team per round, sorted by round, team.
@@ -53,7 +51,6 @@ Notes:
 
 | Script | Inputs | Outputs | Final | Impure |
 | --- | --- | --- | --- | --- |
-| `src/eupy/entity/apply_player_name_verdicts.py` | JSON verdicts file (--verdicts PATH) | `player_name_verdicts` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_fantasy_stats.py` | fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env) | `fantasy_stats/players`, `fantasy_stats/head_coaches` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_boxscores.py` | live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live) | `euroleague_net/box_score` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_headers.py` | live.euroleague.net/api/Header (live) | `euroleague_net/headers` | false | true |
@@ -64,5 +61,5 @@ Notes:
 | `src/eupy/transform/build_schedule_turns.py` | `game_schedule/schedule` | `schedule`, `team_round_turn` | true | false |
 | `src/eupy/transform/merge_boxscore.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | `euroleague_box_score_merged` | false | false |
 | `src/eupy/transform/merge_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | `euroleague_header_merged` | false | false |
-| `src/eupy/entity/build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `team_name_map`, `player_name_verdicts` | `player_name_map` | false | false |
+| `src/eupy/entity/build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `team_name_map` | `player_name_map` | false | false |
 | `src/eupy/transform/normalize_fantasy_stats.py` | `fantasy_stats/players`, `player_name_map`, `team_name_map` | `fantasy_stats_players_normalized` | true | false |

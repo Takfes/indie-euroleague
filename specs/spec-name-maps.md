@@ -35,10 +35,8 @@ src/eupy/entity/
   team_names.py                    class TeamNames
   player_names.py                  class PlayerNames
   build_team_name_map.py           script: schedule -> team_name_map (JSON + CSV)
-  build_player_name_map.py         script: stats + box score + verdicts -> player_name_map (JSON + CSV); holds the engine
-  apply_player_name_verdicts.py    ingest script: agent verdicts -> data/curated/player_name_verdicts/
+  build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (JSON + CSV); holds the engine
   matching.py                      library: normalize_name, exact candidate finder, lookup errors
-  verdict_batches.py               library: append-only verdict batch store (load, merge, apply, ingest)
   maps/team_name_map.json          committed, written only by build_team_name_map.py, read by TeamNames
   maps/player_name_map.json        committed, written only by build_player_name_map.py, read by PlayerNames
 data/stage_01/team_name_map.csv    same entries as the team JSON, registered dataset
@@ -49,8 +47,11 @@ The JSON maps live in the package so the classes need no data folder. They are c
 judgements that cannot be re-derived from raw data. Each builder also writes the same entries as a CSV under
 `data/stage_NN/` (`team_name_map` at stage 1, `player_name_map` at stage 2): that CSV is the dataset the registry,
 the catalogue and the graph know, and the JSON is its in-package copy, written by the same run. Stage numbers are
-computed from the headers (the player map depends on the merged box score, a stage-1 dataset), not chosen. The verdict batches stay in `data/curated/`, the tracked record the
-builder re-applies on every run. A rebuild from the same raw data and verdicts reproduces the map byte for byte.
+computed from the headers (the player map depends on the merged box score, a stage-1 dataset), not chosen. The agent's decisions live in the committed player JSON itself.
+The builder recomputes everything it can from the inputs, reads the existing JSON back only for those decisions and
+carries them into every rebuild, so a rerun on the same inputs and decisions rewrites the same bytes. Deleting the
+JSON loses the decisions (they remain in git history), so there is no separate decision store, ingest script or
+batch folder.
 
 ### Lookup behaviour (both classes)
 
@@ -89,10 +90,12 @@ Stages, in order:
    (`matched_by` `exact_other_club`), never auto-accepted, because it may be an older namesake or the player at a
    previous club. No hit is `no_candidate`. There is no approximate (fuzzy) matching: it produced mostly wrong
    suggestions, and the agent stage covers every remaining case.
-3. Agent verdicts. Each batch in `data/curated/player_name_verdicts/` is applied on top; a later batch wins on the same key.
-   The agent handles what the first two stages leave open, typically players who just moved clubs (no games for the new
-   club yet) and rookies with no box-score history. Statuses: `confirmed` (with the full name, which need not exist in the
-   box score), `rejected`, `no_match`.
+3. Agent decisions. For the players the first two stages leave open, the agent sets `match_status` on the entry in
+   `maps/player_name_map.json`: `confirmed` (with the full name in `name`, which need not exist in the box score),
+   `rejected` or `no_match`, plus a short `notes` rationale. The builder carries these entries forward on every
+   rebuild and validates them (`notes` required, `confirmed` needs a `name`). A decision never replaces an `exact`
+   match, and one for a player who left the stats data is dropped. The agent typically handles players who just
+   moved clubs (no games for the new club yet) and rookies with no box-score history.
 
 Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "notes"}`;
 the CSV has the same columns, `variants` joined with ` | `.
@@ -110,8 +113,8 @@ One skill in `.claude/skills/build-name-maps/` refreshes both maps:
 
 1. Check the prerequisite files exist (schedule CSV, merged box score, stats players) and name the fetch/merge step if not.
 2. Run `build_team_name_map.py`, then `build_player_name_map.py`.
-3. For each open entry the builder reports, research it (box-score history, the web), write a verdicts JSON, ingest it with
-   `apply_player_name_verdicts.py` and rebuild; repeat until nothing is open.
+3. For each open entry the builder reports, research it (box-score history, the web), record the decision on that entry
+   in the player JSON, and rebuild; repeat until nothing is open.
 4. Report the counts per status.
 
 The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.md` documents it.
@@ -123,7 +126,7 @@ The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.m
 - Builders are deterministic, validate their input (empty or conflicting data fails loudly) and write unchanged bytes
   on a rerun.
 - Engine tests cover: club-scoped exact accept, same-abbreviation collision, out-of-club hit going to review,
-  near-miss spelling left without candidate, verdict override with later batch winning, transfer and rookie via `confirmed`.
+  near-miss spelling left without candidate, agent decision carried across a rebuild, never overriding an exact match, dropped when the player leaves the stats.
 - `src/eupy/entity/` holds only the files in the layout above; the old resolvers, crosswalk accessors, `player_sources.py`
   and their tests are gone, and no spec, doc or header mentions them.
 - `ruff check`, `ruff format --check` and the entity tests pass.

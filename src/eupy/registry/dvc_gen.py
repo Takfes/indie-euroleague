@@ -6,8 +6,7 @@ name is a registry script. No pipeline script (or library module) imports anothe
 
 DVC steps ("DVC stages" in DVC's own terms -- not the data-depth stage of the registry): one per pure
 script in a pipeline with `dvc = true`, named after the script. Pure scripts (`Impure: false`) and fetchers
-(impure scripts under `src/eupy/fetchers/`) are steps; other impure scripts (entity ingest, which needs
-`--verdicts`) never are:
+(impure scripts under `src/eupy/fetchers/`) are steps; other impure scripts never are:
 
 * `cmd`: `uv run python -m <module>`, the script run as a module (it must run with no arguments);
 * `deps`: the script file, then every in-repo module it imports, transitively (`import_closure`; so editing

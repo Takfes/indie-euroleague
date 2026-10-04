@@ -149,7 +149,7 @@ data/**
 !data/**/.gitkeep
 
 # ALLOW-LIST (add exceptions here, one per line, with a reason)
-# data/curated: verdict batches are human/agent judgements, not derivable from raw data.
+# data/curated: tracked human/agent judgements, not derivable from raw data (none stored today).
 !data/curated/**
 
 # Local DVC-status overlay of the data map (python -m eupy.registry html --status)

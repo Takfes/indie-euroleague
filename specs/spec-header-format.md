@@ -17,7 +17,7 @@
 Inputs:
   - <dataset-name>: <path>          # one entry per input dataset
 Sources:
-  - <free-text external origin>      # e.g. live.euroleague.net, verdicts JSON (--verdicts)
+  - <free-text external origin>      # e.g. live.euroleague.net, a CLI-given file
 Outputs:
   - <dataset-name>: <path>
 Final: true|false
@@ -39,7 +39,7 @@ Notes: <free text>                   # optional
 - The free-text notes currently living under the catalogue tables move into `Notes:` keys (rendered by ticket 3).
 - `Refresh:` / `Notes:` values may continue on 2-space-indented lines; a parser treats any indented line after a key as its continuation.
 - Where a raw dataset is a set of templated files, its path is the directory (ending `/`) and the file-name pattern goes in `Notes:` (affects `game_schedule/schedule`, whose catalogue path was `schedule_{season}.csv`; ticket 3 renders directory + pattern).
-- Builders (`build_*`) list only their real inputs, matching the catalogue; verdict ingest scripts (`apply_*`) list only the verdict directory they append to, under `Outputs`, with the verdicts file under `Sources`.
+- Builders (`build_*`) list only their real inputs, matching the catalogue; scripts that read their own previous output (the player name map builder) list only their real inputs and describe the merge in `Notes`.
 
 ## Out of scope
 

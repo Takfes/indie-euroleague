@@ -1,8 +1,8 @@
 # Pipeline membership -- the one place it lives. Every script with an I/O header sits in exactly one
 # pipeline (linted by `uv run python -m eupy.registry check`).
 # dvc = true: the pipeline's pure scripts (`Impure: false`) become DVC steps in the generated dvc.yaml
-# (`uv run python -m eupy.registry dvc`); impure scripts (fetchers, entity ingest) are never steps -- their
-# outputs (raw data, verdict batch dirs) are plain deps.
+# (`uv run python -m eupy.registry dvc`); impure scripts (fetchers) are never steps -- their
+# outputs (raw data) are plain deps.
 
 [fetch_raw]
 dvc = true
@@ -27,7 +27,6 @@ dvc = false
 scripts = [
     "build_team_name_map",
     "build_player_name_map",
-    "apply_player_name_verdicts",
     "normalize_fantasy_stats",
 ]
 

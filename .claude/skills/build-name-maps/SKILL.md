@@ -2,10 +2,10 @@
 name: build-name-maps
 description: |
   Rebuild indie-euroleague's two name maps (JSON in `src/eupy/entity/maps/` plus the CSVs
-  `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`) behind the `TeamNames` and `PlayerNames` lookups. Checks the prerequisite data,
-  runs the two builders, then works through every open player (new transfers, rookies, odd spellings) with
-  verdicts until none is left. Use after a new fetch brings new stats players, a new season's schedule, or
-  whenever the maps look stale or `PlayerNames.unresolved()` is not empty.
+  `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`) behind the `TeamNames` and
+  `PlayerNames` lookups. Checks the prerequisite data, runs the two builders, then decides every open player
+  (new transfers, rookies, odd spellings) until none is left. Use after a new fetch brings new stats players, a
+  new season's schedule, or whenever the maps look stale or `PlayerNames.unresolved()` is not empty.
 ---
 
 # Build Name Maps
@@ -28,37 +28,43 @@ uv run python -m eupy.entity.build_team_name_map
 uv run python -m eupy.entity.build_player_name_map
 ```
 
-The team map must come first: the player engine uses it to scope candidates to the player's club. Read the
-summary line. If a stats team code is missing from the team map, the entry's `notes` say so; fix the team map
-source (the schedule), do not work around it in verdicts.
+The team map must come first: the player engine uses it to scope matches to the player's club. Read the summary
+line. If a stats team code is missing from the team map, the entry's `notes` say so; fix the team map source (the
+schedule), do not work around it with a decision.
 
-## 3. Resolve what is open
+The player builder recomputes every exact match from scratch. The decisions the agent made in earlier runs are read
+back from `src/eupy/entity/maps/player_name_map.json` and carried forward, so only players with no decision yet are
+open.
 
-Open entries are in `data/stage_02/player_name_map.csv` (and the JSON next to the package) with `match_status` `needs_review` or
-`no_candidate` (`PlayerNames.load().unresolved()` lists them). For each one:
+## 3. Decide what is open
 
-- The row key is `stats_team` + `stats_name`. `notes` lists the box-score players with the same name elsewhere in history, who can be older namesakes; there is no approximate matching, so a spelling difference leaves no candidate at all.
+Open entries are in `src/eupy/entity/maps/player_name_map.json` with `match_status` `needs_review` or
+`no_candidate` (`data/stage_02/player_name_map.csv` shows the same rows). For each one:
+
+- The entry is identified by `stats_team` + `stats_name`. `notes` lists box-score players with the same name
+  elsewhere in history, who can be older namesakes; there is no approximate matching, so a spelling difference
+  leaves no candidate at all.
 - Decide the full name: use the candidates, the box-score history, and the web when the player is new to the club
-  or the league (a transfer has no games for the new club yet; a rookie has no box-score history).
-- Record one verdict per player:
-  - `confirmed` with `resolved_name` set to the full `First Last` name (it need not exist in the box score),
-  - `no_match` when the player cannot be identified,
-  - `rejected` when every candidate is wrong and the stats name should stay as it is.
-  Every verdict needs a short `notes` rationale.
+  or the league (a transfer has no games for the new club yet; a rookie has no box-score history). When the player
+  is in the box score, use that spelling reordered to `First Last` and title-cased (for example
+  `Mckinley Wright Iv`), so the box-score spelling stays a variant.
+- Record the decision on that entry in the JSON by setting two fields:
+  - `match_status`: `confirmed` (also set `name` to the full `First Last` name), `no_match` when the player cannot
+    be identified, or `rejected` when every candidate is wrong and the stats name should stay as it is;
+  - `notes`: a short rationale, which names the source for a web-researched decision.
 
-Write the verdicts to a JSON list, then ingest them as a new batch and rebuild:
+Then rebuild, which validates the decisions (`notes` is required, `confirmed` needs a `name`), recomputes the
+variants and rewrites the JSON and the CSV:
 
 ```bash
-uv run python -m eupy.entity.apply_player_name_verdicts --verdicts <file>.json --label <short-slug>
 uv run python -m eupy.entity.build_player_name_map
 ```
 
-The record shape is in the docstring of `apply_player_name_verdicts.py`. Batches are append-only files under
-`data/curated/player_name_verdicts/`; a later batch wins on the same key. Never edit a batch or the map by hand.
-Repeat until the summary reports no open entries.
+Repeat until the summary reports no open entries. Edit only open entries: a decision never overrides an `exact`
+match, and changing any other field has no effect because the builder recomputes it.
 
 ## 4. Report
 
 Give the number of entries per `match_status` for the player map, the number of teams in the team map, and the
-verdicts recorded this run. The JSON maps are committed with the package (the CSVs are git-ignored data), so list the
-JSON files as changed and commit them together with the new verdict batches.
+decisions recorded this run. The JSON maps are committed with the package (the CSVs are git-ignored data), so list
+the JSON files as changed and commit them: the player JSON holds the agent's decisions.
