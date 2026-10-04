@@ -10,9 +10,10 @@ DAG: nodes are scripts, datasets and external sources (ids `script:<stem>`, `dat
 
 Stage rules:
 
-* a dataset whose path is under `data/raw_data/` or `data/curated/` is stage 0 (tracked manual inputs --
-  see `is_stage0_path`), whether or not a script produces it: fetchers write raw data, the impure `apply_*`
-  ingest scripts append verdict batches to curated dirs;
+* a dataset whose path is under `data/raw_data/`, `data/curated/` or `src/eupy/entity/maps/` is stage 0
+  (tracked inputs -- see `is_stage0_path`), whether or not a script produces it: fetchers write raw data, the
+  impure `apply_*` ingest scripts append verdict batches to curated dirs, and the name-map builders write the
+  JSON maps that ship inside the package;
 * any other dataset is `max(stage of its producer's inputs) + 1` (1 when the producer has none);
 * the `stage_XX` in its declared path must match, a letter suffix (`stage_01a`) being accepted when
   the numeric part matches.
@@ -36,6 +37,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_SOURCES_PATH = Path(__file__).with_name("raw_sources.toml")
 RAW_PREFIX = "data/raw_data/"
 CURATED_PREFIX = "data/curated/"
+MAPS_PREFIX = "src/eupy/entity/maps/"
 
 _STAGE_DIR = re.compile(r"^data/stage_(\d+)([a-z]?)/")
 
@@ -43,8 +45,8 @@ RawSources = Mapping[str, Mapping[str, str]]  # raw dataset name -> {"origin": .
 
 
 def is_stage0_path(path: str) -> bool:
-    """True for paths under `data/raw_data/` or `data/curated/`: stage 0, never produced by the DAG proper."""
-    return path.startswith((RAW_PREFIX, CURATED_PREFIX))
+    """True for paths under `data/raw_data/`, `data/curated/` or the packaged name maps: stage 0 (tracked inputs)."""
+    return path.startswith((RAW_PREFIX, CURATED_PREFIX, MAPS_PREFIX))
 
 
 class RegistryError(Exception):
@@ -279,7 +281,7 @@ def _raw_problems(path_of: dict[str, str], scripts: dict[str, Script], raw_sourc
             continue
         if not is_stage0_path(path):
             problems.append(
-                f"dataset {ds}: no script produces it and its path is not under {RAW_PREFIX} or {CURATED_PREFIX}"
+                f"dataset {ds}: no script produces it and its path is not under {RAW_PREFIX}, {CURATED_PREFIX} or {MAPS_PREFIX}"
             )
         elif ds not in raw_sources:
             problems.append(f"dataset {ds}: raw and unproduced, but not declared in raw_sources.toml")

@@ -1,7 +1,7 @@
-"""Verdict batches: the tracked, append-only record of agent decisions on a crosswalk.
+"""Verdict batches: the tracked, append-only record of agent decisions on a name map.
 
-The `resolve_*` scripts build their crosswalk from raw data alone, then apply every agent verdict
-recorded in a verdict directory (`data/curated/<crosswalk>_verdicts/`). Each directory holds
+`build_player_name_map.py` builds the player map from raw data alone, then applies every agent verdict
+recorded in the verdict directory (`data/curated/player_name_verdicts/`). Each directory holds
 immutable batch files, applied in file-name order (hence the zero-padded `0001_...json` prefix);
 a later batch wins on the same key.
 
@@ -12,9 +12,9 @@ Batch file shape (one JSON object per file):
         "verdicts": [ {...}, ... ]       # verdict records, see below
     }
 
-Verdict record (the schema `apply_*_verdicts.py` and the resolve-* skills already use):
+Verdict record (the schema `apply_player_name_verdicts.py` and the `build-name-maps` skill use):
     {
-        "<key>": "...",                  # row key: `name` (player/team) or `player_id` (fantasy)
+        "<key>": "...",                  # row key field(s); the player map uses `team` + `name`
         "match_status": "confirmed",     # confirmed | rejected | no_match
         "<target>": "...",               # matched name: required on confirmed, empty otherwise
         "match_score": 95.0,             # optional; numbers render as "95.0", strings verbatim
@@ -22,8 +22,8 @@ Verdict record (the schema `apply_*_verdicts.py` and the resolve-* skills alread
         "notes": "..."                   # required rationale
     }
 
-Library module (no I/O header): imported by the three resolvers and the three `apply_*_verdicts`
-ingest scripts (`ingest_batch` / `run_ingest_cli`).
+Library module (no I/O header): imported by `build_player_name_map.py` and
+`apply_player_name_verdicts.py` (`ingest_batch` / `run_ingest_cli`).
 """
 
 from __future__ import annotations

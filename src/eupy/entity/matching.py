@@ -1,26 +1,24 @@
-"""Shared exact -> fuzzy name-matching engine for entity-resolution pipelines.
+"""Name-matching primitives shared by the entity module.
 
-Generic over a spelling pool shaped `{spelling: {owner_id, ...}}` -- an
-"owner_id" is whatever uniquely identifies the real-world entity behind a
-spelling (a `player_id` for the player crosswalk, a `team_id` for the team
-crosswalk). Used by both `resolve_player_names.py` and
-`resolve_team_names.py`, which differ only in where the pool comes from and
-what they call the matched output column.
+Library module (no I/O header, never run directly):
 
-Pipeline:
-1. Exact stage (`find_candidates`'s first branch) -- normalize both sides
-   (strip accents, upper-case, letters/spaces only) and exact-match the
-   normalized string against the distinct pool spellings. Two ambiguity
-   cases are NOT auto-matched, surfaced as `needs_review` instead:
-   - `exact_collision` -- one raw spelling shared by more than one distinct
-     owner id (two different real-world entities could share a name string).
-   - `exact_ambiguous_spelling` -- more than one distinct raw spelling
-     shares one normalized value (e.g. an accented vs. unaccented variant).
-2. Fuzzy stage -- for still-unmatched names, score the normalized name
-   against every distinct pool spelling using rapidfuzz. The top
-   `FUZZY_LIMIT` candidates at or above `FUZZY_SCORE_CUTOFF` become a
-   `needs_review` row (never auto-accepted); nothing above the floor
-   becomes `no_candidate`.
+- `normalize_name` reduces a spelling to a comparison key (accents stripped, upper-case, letters and spaces only);
+  the `TeamNames` / `PlayerNames` lookups and the engine all compare through it.
+- `find_candidates` is the exact -> fuzzy candidate finder of the player engine (`player_matching.py`). It is
+  generic over a spelling pool shaped `{spelling: {owner, ...}}`, an "owner" being whatever identifies the
+  real-world entity behind a spelling.
+- `UnknownNameError` / `AmbiguousNameError` are what the lookup classes raise; `OPEN_STATUSES` are the match
+  statuses of entries still awaiting a decision.
+
+Candidate finder stages:
+1. Exact stage -- normalize both sides and exact-match the normalized string against the distinct pool
+   spellings. Two ambiguity cases are NOT auto-matched, surfaced as `needs_review` instead:
+   - `exact_collision` -- one raw spelling shared by more than one distinct owner.
+   - `exact_ambiguous_spelling` -- more than one distinct raw spelling shares one normalized value (e.g. an
+     accented vs. unaccented variant).
+2. Fuzzy stage -- for still-unmatched names, score the normalized name against every distinct pool spelling
+   using rapidfuzz. The top `FUZZY_LIMIT` candidates at or above `FUZZY_SCORE_CUTOFF` become a `needs_review`
+   row (never auto-accepted); nothing above the floor becomes `no_candidate`.
 """
 
 from __future__ import annotations
@@ -31,11 +29,20 @@ from collections import defaultdict
 
 from rapidfuzz import fuzz, process
 
+OPEN_STATUSES = frozenset({"needs_review", "no_candidate"})
 FUZZY_LIMIT = 3
 FUZZY_SCORE_CUTOFF = 80.0
 
 # (spelling, match_score)
 Candidate = tuple[str, float]
+
+
+class UnknownNameError(LookupError):
+    """The spelling is not a variant of any entry in the map."""
+
+
+class AmbiguousNameError(LookupError):
+    """The spelling is a variant of more than one entry; more context (e.g. the club) is needed."""
 
 
 def normalize_name(name: str) -> str:

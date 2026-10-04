@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from eupy.entity.lookup import UnknownNameError, lookup_key
+from eupy.entity.matching import UnknownNameError, normalize_name
 
 MAP_PATH = Path(__file__).resolve().parent / "maps" / "team_name_map.json"
 
@@ -26,7 +26,7 @@ class TeamNames:
         for entry in entries:
             name = str(entry["name"])
             for variant in [name, *entry["variants"]]:  # type: ignore[union-attr]
-                key = lookup_key(str(variant))
+                key = normalize_name(str(variant))
                 if self._index.setdefault(key, name) != name:
                     raise ValueError(f"Team spelling {variant!r} belongs to both {self._index[key]!r} and {name!r}")
 
@@ -45,6 +45,6 @@ class TeamNames:
             UnknownNameError: If `text` is not a spelling of any team in the map.
         """
         try:
-            return self._index[lookup_key(text)]
+            return self._index[normalize_name(text)]
         except KeyError:
             raise UnknownNameError(f"Unknown team {text!r}; rebuild the team map if it is a new team") from None

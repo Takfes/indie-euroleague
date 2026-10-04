@@ -19,11 +19,12 @@ The fantasy stats data is the trusted set. Players that do not appear in it are 
 
 In scope: the `src/eupy/entity/` module rebuild, as below.
 
+Also in scope: `transform/normalize_fantasy_stats.py` now takes names from `PlayerNames` (it used the removed crosswalk),
+and the registry treats `src/eupy/entity/maps/` as stage 0, like `data/curated/`: tracked, committed inputs.
+
 Out of scope, handled in follow-up reviews:
 
 - DVC stages for the two builders (the entity pipeline stays `dvc = false`).
-- Adapting `transform/normalize_fantasy_stats.py` to the new classes. It still reads the removed crosswalk, so the registry
-  stays red until that is done.
 - Season history for teams: the team map covers whatever the schedule dataset covers (today the current season).
 
 ## Design
@@ -34,14 +35,13 @@ Two classes, two committed JSON maps inside the package, two builder scripts, on
 src/eupy/entity/
   maps/team_name_map.json          committed, written only by build_team_name_map.py
   maps/player_name_map.json        committed, written only by build_player_name_map.py
-  lookup.py                        shared: UnknownNameError, AmbiguousNameError, lookup_key()
   team_names.py                    class TeamNames
   player_names.py                  class PlayerNames
   build_team_name_map.py           script: schedule -> team_name_map.json
   player_matching.py               the matching engine (library)
   build_player_name_map.py         script: stats + box score + verdicts -> player_name_map.json
   apply_player_name_verdicts.py    ingest script: agent verdicts -> data/curated/player_name_verdicts/
-  matching.py                      kept: normalize_name, exact -> fuzzy candidate finder
+  matching.py                      kept: normalize_name, exact -> fuzzy candidate finder, lookup errors
   verdict_batches.py               kept: append-only verdict batch store
 ```
 

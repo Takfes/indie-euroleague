@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from eupy.entity.build_team_name_map import build_team_entries, load_schedule_rows, main, write_map
-from eupy.entity.lookup import UnknownNameError
+from eupy.entity.matching import UnknownNameError
 from eupy.entity.team_names import TeamNames
 
 ROWS = [

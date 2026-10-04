@@ -16,8 +16,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from eupy.entity.lookup import AmbiguousNameError, UnknownNameError, lookup_key
-from eupy.entity.player_matching import OPEN_STATUSES
+from eupy.entity.matching import OPEN_STATUSES, AmbiguousNameError, UnknownNameError, normalize_name
 from eupy.entity.team_names import TeamNames
 
 MAP_PATH = Path(__file__).resolve().parent / "maps" / "player_name_map.json"
@@ -35,7 +34,7 @@ class PlayerNames:
             if entry["match_status"] in OPEN_STATUSES:
                 continue
             for variant in entry["variants"]:  # type: ignore[union-attr]
-                self._index[lookup_key(str(variant))].append(entry)
+                self._index[normalize_name(str(variant))].append(entry)
 
     @classmethod
     def load(cls, path: Path | None = None, teams: TeamNames | None = None) -> PlayerNames:
@@ -58,7 +57,7 @@ class PlayerNames:
             UnknownNameError: If `name` is not in the map, or `team` is needed but unknown to the team map.
             AmbiguousNameError: If several players share `name` and `team` is missing or does not single one out.
         """
-        entries = self._index.get(lookup_key(name), [])
+        entries = self._index.get(normalize_name(name), [])
         names = {str(e["name"]) for e in entries}
         if not names:
             raise UnknownNameError(f"Unknown player {name!r}; rebuild the player map if they are new")

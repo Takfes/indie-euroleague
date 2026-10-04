@@ -25,14 +25,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from eupy.entity.lookup import UnknownNameError
-from eupy.entity.matching import build_normalized_index, find_candidates, format_candidates_note, normalize_name
+from eupy.entity.matching import (
+    UnknownNameError,
+    build_normalized_index,
+    find_candidates,
+    format_candidates_note,
+    normalize_name,
+)
 from eupy.entity.team_names import TeamNames
 from eupy.entity.verdict_batches import apply_verdicts
 
 RECENT_SEASONS = 2
 VERDICT_KEY_FIELDS = ("team", "name")
-OPEN_STATUSES = {"needs_review", "no_candidate"}
 
 # (stats name, stats team code) per distinct stats player
 StatsPlayer = dict[str, str]

@@ -31,7 +31,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from eupy.entity.lookup import lookup_key
+from eupy.entity.matching import normalize_name
 from eupy.quality import validate
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -72,7 +72,7 @@ def build_team_entries(rows: list[dict[str, str]]) -> list[dict[str, object]]:
     owners: dict[str, str] = {}
     for entry in entries:
         for variant in entry["variants"]:  # type: ignore[union-attr]
-            key = lookup_key(str(variant))
+            key = normalize_name(str(variant))
             if owners.setdefault(key, str(entry["name"])) != entry["name"]:
                 raise ValueError(f"Spelling {variant!r} belongs to both {owners[key]!r} and {entry['name']!r}")
     return entries

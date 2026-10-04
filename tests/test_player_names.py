@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from eupy.entity import build_player_name_map
-from eupy.entity.lookup import AmbiguousNameError, UnknownNameError
+from eupy.entity.matching import AmbiguousNameError, UnknownNameError
 from eupy.entity.player_matching import (
     BoxscorePools,
     abbreviate_name,
