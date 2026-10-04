@@ -1,0 +1,14 @@
+# Overrides for the built-in defaults in src/eupy/config/defaults.py. Only list what you change.
+# Unknown sections/keys raise. Commented lines show the defaults.
+
+[acquisition]
+# season = "E2026"
+# request_delay = 0.3
+# max_gap = 5
+
+[transformation]
+# base_season = "E2025"   # default: unset = full Kaggle history
+
+[logging]
+# path = "logs/log.log"
+# level = "INFO"
