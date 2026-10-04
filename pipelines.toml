@@ -25,10 +25,6 @@ scripts = ["merge_boxscore", "merge_headers"]
 [entity]
 dvc = false
 scripts = [
-    "resolve_player_names",
-    "apply_player_name_verdicts",
-    "resolve_team_names",
-    "apply_team_name_verdicts",
     "resolve_fantasy_stats_player_names",
     "apply_fantasy_stats_player_name_verdicts",
     "normalize_fantasy_stats",
