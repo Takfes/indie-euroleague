@@ -38,8 +38,7 @@ scripts = [
 dvc = false
 scripts = ["optimize_squad"]
 
-# Wrappers: `uv run eupy run <wrapper>` runs these pipelines together. Order between them comes from the
-# DVC dependencies, not from the list.
+# Wrappers: named lists of pipelines, used by the data-map HTML's pipeline/wrapper filter.
 [wrappers]
 all = ["merge_history_live"]
 full = ["fetch_raw", "merge_history_live"]

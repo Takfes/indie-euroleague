@@ -1,5 +1,7 @@
 # Spec: pipeline wrapper CLI, `stage_99` links, pipeline subgraphs (ticket 6/8)
 
+> Status: `eupy run` was removed; pipelines run through `dvc repro` directly. Only `eupy link-final` remains. The `eupy run` items below are historical.
+
 ## Goal
 
 - Run any pipeline, or a group of pipelines, with one command.
