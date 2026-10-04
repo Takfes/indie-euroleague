@@ -21,7 +21,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - Run: `uv run python src/eupy/<module>.py` (e.g. `fetchers/fetch_euroleague_live_boxscores.py`)
 - Test: `uv run pytest`
 - Lint/format: `ruff check src tests` · `ruff format --check src tests`
-- Cleanup: `make clean-all` = `clean-cache` (pycache/ruff/pytest/mypy caches, `.DS_Store`; skips `.venv`/`.git`/`.claude`) + `clean-git`. Git leftovers after PRs merge (worktrees, branches, stale locks): `make clean-git` (summary, then asks) · `make clean-git ARGS=--yes` (delete all safe items, report the rest) · `make clean-git ARGS=--dry-run`
+- Cleanup: `make clean-all` = `clean-cache` (pycache/ruff/pytest/mypy caches, `.DS_Store`; skips `.venv`/`.git`/`.claude`) + `clean-git`. Git leftovers after PRs merge (worktrees, branches, stale locks): `make clean-git` (summary, then asks) · `make clean-git ARGS=--yes` (delete all safe items, report the rest) · `make clean-git ARGS=--dry-run` · Raw data: `make clean-data-raw` deletes every file under `data/raw_data/` except `.gitkeep` (`ARGS=--dry-run` lists only; not part of `clean-all`)
 
 ## Communication
 

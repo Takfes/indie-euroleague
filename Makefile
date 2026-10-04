@@ -36,6 +36,15 @@ clean-cache: ## Remove rebuildable caches (__pycache__, .ruff_cache, .pytest_cac
 			-o -name .hypothesis -o -name .ipynb_checkpoints -o -name htmlcov \) -exec rm -rf {} + \) -o \
 		\( -type f \( -name .coverage -o -name .DS_Store \) -exec rm -f {} + \)
 
+.PHONY: clean-data-raw
+clean-data-raw: ## Delete every data file under data/raw_data, keeping the folders and .gitkeep files (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		find data/raw_data -type f ! -name .gitkeep -print; \
+	else \
+		echo "🚀 Removing raw data files (keeping folders and .gitkeep)"; \
+		find data/raw_data -type f ! -name .gitkeep -print -delete; \
+	fi
+
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
 	@uv run mkdocs build -s

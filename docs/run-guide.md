@@ -24,7 +24,7 @@ uv run python -m eupy.fetchers.fetch_kaggle_euroleague   # the same script, untr
 
 | Fetcher module (`eupy.fetchers.`) | Source | Writes (`data/raw_data/`) | Refresh |
 |---|---|---|---|
-| `fetch_game_schedule` | EuroLeague schedule API | `game_schedule/schedule_<season>.csv` | full overwrite |
+| `fetch_game_schedule` | EuroLeague schedule API | `game_schedule/schedule_<season>.csv` (`gamecode` zero-padded, e.g. `E2026_007`) | full overwrite |
 | `fetch_euroleague_fantasy_stats` | fantasy API (token) | `fantasy_stats/players.csv`, `head_coaches.csv` | full overwrite |
 | `fetch_kaggle_euroleague` | Kaggle dataset | `kaggle_data/euroleague_box_score.csv`, `euroleague_header.csv` | full overwrite; validated before replacing the old files |
 | `fetch_euroleague_live_boxscores` | live.euroleague.net | `euroleague_net/box_score/<season>_delta_<ts>.csv` | incremental, state in `box_score/_state.json` |
@@ -138,3 +138,4 @@ ruff format --check src tests
 - `make merge-worktree` (or the `merge-worktree` skill) merges a finished branch under `.claude/worktrees/` into main after you approve the diff, then removes the branch and worktree.
 - `make clean-git` lists merged task worktrees, branches and stale locks, then deletes the safe ones (needs an authenticated `gh`); `ARGS=--yes` skips the prompt, `ARGS=--dry-run` never deletes.
 - `make clean-cache` removes rebuildable caches; `make clean-all` runs both.
+- `make clean-data-raw` deletes every data file under `data/raw_data/`, keeping the folders and `.gitkeep` files (`ARGS=--dry-run` only lists them). `make clean-all` does not include it.
