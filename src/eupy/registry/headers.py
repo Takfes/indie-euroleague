@@ -1,7 +1,7 @@
 """Read pipeline-script I/O headers: the key-value block at the end of each module docstring.
 
 The docstring is read with `ast` -- scripts are never imported, so a script with heavy or broken
-imports still parses. Grammar (see `specs/spec-header-format.md` and `docs/quickstart.md`), keys in
+imports still parses. Grammar (see `specs/spec-header-format.md` and `docs/run-guide.md`), keys in
 this exact order, the last two optional:
 
     Inputs:            list of `- <dataset-name>: <path>` entries, or `none`

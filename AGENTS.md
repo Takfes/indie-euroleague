@@ -9,6 +9,7 @@ Hobby pipeline: scrape/acquire data → KPIs/features → ML predictions (PIR, v
 | `contx/`                                        | Context: future ideas, KPIs, what others do, viz inspiration |
 | `docs/resources.md`                             | External URLs                                                |
 | `docs/next-steps.md`                            | Deferred work                                                |
+| `docs/run-guide.md`                             | How to run everything (Claude-maintained)                    |
 | `specs/spec-<short-name>.md`                    | Execution specs                                              |
 | `docs/data-catalogue.md` · `docs/data-graph.md` | Data inventory · lineage (agent-generated)                   |
 | `data/stage_99/`                                | Consumption layer (symlinks)                                 |
@@ -32,6 +33,12 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - While subagents run: brief status — progress, things to be aware of, decisions I need to make.
 - `update` → from git log + active specs, grouped summary of **done** vs **ongoing/remaining**. Abstract; not one line per commit/spec.
 
+## Run guide
+
+- `docs/run-guide.md` is the Claude-maintained reference for running the project (fetchers, DVC stages, config, registry, data layout, dev loop). It is not user-managed.
+- When I ask how to run, set up or configure something, answer from it, checking the claim against the code first.
+- In the same commit as any change to a command, DVC stage, script path, config key or data path, update the affected section. If it is stale or missing something, fix it and say so.
+
 ## Workflow
 
 1. Plan → spec (`specs/spec-<short-name>.md`): goal, scope, pass criteria.
@@ -46,7 +53,7 @@ Earlier implementations are archived as tags: `archive/v2-2026-09` (fetchers, Ka
 - [ ] Reproducible: re-running from raw data gives the same outputs
 - [ ] Script I/O headers current; catalogue + graph regenerated
 - [ ] Docs/specs updated; deferrals proposed and, once confirmed, logged in `docs/next-steps.md`
-- [ ] New functionality noted (briefly) in the relevant `docs/quickstart.md` section
+- [ ] `docs/run-guide.md` updated for any changed command, stage, path or config key
 - [ ] Once the PR is merged: `make clean-git` reports nothing left for this task (until then, the branch/worktree is "pending cleanup")
 
 ## Subagents
