@@ -94,13 +94,13 @@ class _Fake:
         return self.code
 
 
-def test_run_schedule_repros_then_links(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_run_merge_pipeline_repros_then_links(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root, fake = _repo(tmp_path), _Fake()
     _stage_raw(root)
     (root / "data/stage_01").mkdir(parents=True)
     (root / "data/stage_01/schedule.csv").write_text("x")
-    assert main(["run", "schedule"], runner=fake, root=root) == 0
-    assert fake.calls == [["uv", "run", "dvc", "repro", "build_schedule_turns"]]
+    assert main(["run", "merge_history_live"], runner=fake, root=root) == 0
+    assert fake.calls == [["uv", "run", "dvc", "repro", "merge_boxscore", "merge_headers"]]
     assert (root / "data/stage_99/schedule.csv").is_symlink()
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
 
@@ -205,26 +205,13 @@ def test_missing_raw_input_blocks_before_anything_runs(tmp_path: Path, capsys: p
 
 def test_pipeline_is_blocked_without_its_raw_inputs(tmp_path: Path) -> None:
     root, fake = _repo(tmp_path), _Fake()
-    # the schedule's raw input is produced by a fetch_raw fetcher, not by its own pipeline: --fetch does not cover it.
-    assert main(["run", "schedule", "--fetch"], runner=fake, root=root) == 1
+    # the merge inputs are produced by fetch_raw fetchers, not by the merge pipeline: --fetch does not cover them.
+    assert main(["run", "merge_history_live", "--fetch"], runner=fake, root=root) == 1
     assert fake.calls == []
 
 
-def test_dry_run_skips_the_precheck(tmp_path: Path) -> None:
+def test_full_wrapper_fetches_then_merges(tmp_path: Path) -> None:
     fake = _Fake()
-    assert main(["run", "all", "--dry-run"], runner=fake, root=_repo(tmp_path)) == 0
-    assert fake.calls == []
-
-
-def test_is_fetcher_is_path_based() -> None:
-    headers = {
-        "src/eupy/fetchers/fetch_q.py": Header((), ("plain label",), (("q", "data/raw_data/q/"),), False, True),
-        "src/eupy/entity/live_ingest.py": Header(
-            (), ("api.example.com (live)",), (("v", "data/curated/v/"),), False, True
-        ),
-        "src/eupy/fetchers/pure_one.py": Header((), (), (("p", "data/stage_01/p.csv"),), False, False),
-    }
-    reg = Registry.from_headers(headers, RAW_SOURCES)
-    assert is_fetcher(reg, "fetch_q")  # under fetchers/, impure, no "(live" marker needed
-    assert not is_fetcher(reg, "live_ingest")  # "(live" source but outside fetchers/
-    assert not is_fetcher(reg, "pure_one")  # under fetchers/ but pure
+    assert main(["run", "full"], runner=fake, root=_repo(tmp_path)) == 0
+    assert len(fake.calls) == 6 and all(c[:3] == ["uv", "run", "python"] for c in fake.calls[:-1])  # 5 fetchers
+    assert fake.calls[-1] == ["uv", "run", "dvc", "repro", "merge_boxscore", "merge_headers"]

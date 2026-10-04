@@ -15,7 +15,7 @@ scripts = [
 ]
 
 [schedule]
-dvc = true
+dvc = false
 scripts = ["build_schedule_turns"]
 
 [merge_history_live]
@@ -23,7 +23,7 @@ dvc = true
 scripts = ["merge_boxscore", "merge_headers"]
 
 [entity]
-dvc = true
+dvc = false
 scripts = [
     "resolve_player_names",
     "apply_player_name_verdicts",
@@ -41,4 +41,5 @@ scripts = ["optimize_squad"]
 # Wrappers: `uv run eupy run <wrapper>` runs these pipelines together. Order between them comes from the
 # DVC dependencies, not from the list.
 [wrappers]
-all = ["schedule", "merge_history_live", "entity"]
+all = ["merge_history_live"]
+full = ["fetch_raw", "merge_history_live"]
