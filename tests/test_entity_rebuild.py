@@ -18,7 +18,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-from eupy.devtools import extract_initial_verdicts
 from eupy.entity import player_sources, resolve_fantasy_stats_player_names, resolve_player_names, resolve_team_names
 from eupy.entity.verdict_batches import write_batch
 
@@ -88,33 +87,6 @@ def test_fantasy_stats_player_name_crosswalk_rebuilds_to_locked_md5(tmp_path: Pa
     resolve_fantasy_stats_player_names.main(["--out", str(out)])
 
     assert _md5(out) == locked_md5(DVC_LOCK, "data/stage_01/fantasy_stats_player_name_crosswalk.csv")
-
-
-def test_extraction_keeps_only_agent_resolved_rows_sorted_and_is_reproducible(tmp_path: Path) -> None:
-    """Synthetic crosswalks, so the test does not depend on (or break with) later committed batches."""
-    stage, out_a, out_b = tmp_path / "stage", tmp_path / "a", tmp_path / "b"
-    stage.mkdir()
-    for csv_name, _dir, key_field, target_field in extract_initial_verdicts.CROSSWALKS:
-        fields = [key_field, "match_status", target_field, "match_score", "matched_by", "notes"]
-        rows = [
-            dict(zip(fields, ["z", "confirmed", "Z Full", "95.0", "agent", "ok"], strict=True)),
-            dict(zip(fields, ["m", "exact", "M Full", "100.0", "exact", ""], strict=True)),
-            dict(zip(fields, ["a", "no_match", "", "", "agent", "none"], strict=True)),
-            dict(zip(fields, ["q", "needs_review", "", "70.0", "fuzzy", ""], strict=True)),
-        ]
-        with (stage / csv_name).open("w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fields)
-            writer.writeheader()
-            writer.writerows(rows)
-
-    extract_initial_verdicts.main(["--stage-dir", str(stage), "--curated-dir", str(out_a)])
-    extract_initial_verdicts.main(["--stage-dir", str(stage), "--curated-dir", str(out_b)])
-
-    for _csv, verdict_dir, key_field, _target in extract_initial_verdicts.CROSSWALKS:
-        rel = Path(verdict_dir) / extract_initial_verdicts.BATCH_NAME
-        assert (out_a / rel).read_bytes() == (out_b / rel).read_bytes()
-        keys = [v[key_field] for v in json.loads((out_a / rel).read_text())["verdicts"]]
-        assert keys == ["a", "z"]  # exact / needs_review rows are not verdicts; sorted by key
 
 
 # --- synthetic purity checks -------------------------------------------------------------

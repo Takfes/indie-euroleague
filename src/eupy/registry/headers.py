@@ -20,7 +20,7 @@ inside the block, templated or space-containing paths, duplicate names -- is a `
 Discovery rule (`discover_headers`): every `*.py` under `src/eupy/` except `__init__.py` is read.
 A module with a block is a pipeline script wherever it lives. A module without a block is an error
 only inside the pipeline dirs (`PIPELINE_DIRS`), unless it is one of the known library modules
-(`LIBRARY_MODULES`); everywhere else (`devtools/`, this `registry/` package, ...) it is skipped.
+(`LIBRARY_MODULES`); everywhere else (this `registry/` package, ...) it is skipped.
 """
 
 from __future__ import annotations
