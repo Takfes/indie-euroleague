@@ -11,13 +11,16 @@ import pytest
 from eupy.fetchers.fetch_euroleague_fantasy_stats import (
     HEAD_COACH_CSV_FIELDNAMES,
     PLAYER_CSV_FIELDNAMES,
+    drop_duplicate_players,
     fetch_round_rows,
     get_auth_token,
     matchday_ids_by_round,
     max_round_to_fetch,
+    run,
     sanitize_column_name,
     write_csv,
 )
+from eupy.quality import DataQualityError, validate
 
 CONFIG_FIXTURE = {
     "current_competition_id": 49,
@@ -157,3 +160,52 @@ def test_write_csv_head_coaches_drops_player_only_columns(tmp_path: Path) -> Non
         reader = csv.DictReader(f)
         assert "win_1_10" in reader.fieldnames
         assert "pts" not in reader.fieldnames
+
+
+def _player(round_number: int, player_id: str, rank: int, name: str = "A. Kone") -> dict[str, object]:
+    return {"round": round_number, "player_id": player_id, "rank": rank, "name": name}
+
+
+def test_duplicate_players_fail_validation_until_dropped() -> None:
+    rows = [_player(1, "12517", 303), _player(1, "7", 5, "B. Other"), _player(1, "12517", 291)]
+    with pytest.raises(DataQualityError, match="1 duplicate key"):
+        validate(rows, ["round", "player_id"], "fantasy_stats/players")
+    validate(drop_duplicate_players(rows), ["round", "player_id"], "fantasy_stats/players")
+
+
+def test_drop_duplicate_players_keeps_lowest_rank_in_original_order() -> None:
+    rows = [
+        _player(1, "12517", 303),
+        _player(1, "7", 5, "B. Other"),
+        _player(1, "12517", 291),
+        _player(2, "12517", 278),
+    ]
+    kept = drop_duplicate_players(rows)
+    assert kept == [_player(1, "7", 5, "B. Other"), _player(1, "12517", 291), _player(2, "12517", 278)]
+    assert drop_duplicate_players(kept) == kept  # nothing left to drop
+
+
+def test_run_drops_duplicates_validates_and_writes(tmp_path: Path) -> None:
+    config = {
+        "current_competition_id": 49,
+        "previous_matchday": {"id": 1528, "number": 1},
+        "current_matchday": {"id": 1528, "number": 1},
+        "matchdays": [{"id": 1528, "number": 1, "display_name": None}],
+    }
+    player_rows = [
+        {**_player(1, "12517", 303), "position": "Guard"},
+        {**_player(1, "12517", 291), "position": "Guard"},
+    ]
+    coach_rows = [{**_player(1, "900", 1, "Some Coach"), "position": "Head Coach"}]
+    with (
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_config", return_value=config),
+        patch(
+            "eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_round_rows",
+            side_effect=[player_rows, coach_rows],
+        ),
+    ):
+        run(tmp_path, "token")
+
+    written = list(csv.DictReader((tmp_path / "players.csv").open(encoding="utf-8")))
+    assert [(r["player_id"], r["rank"]) for r in written] == [("12517", "291")]
+    assert (tmp_path / "head_coaches.csv").exists()

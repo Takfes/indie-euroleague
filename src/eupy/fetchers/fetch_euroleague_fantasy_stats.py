@@ -32,6 +32,10 @@ CSVs from scratch (no incremental state) -- cheap enough given the season's
 round count, and avoids state-file complexity for what's ultimately a
 full-history re-derivation each time.
 
+Before writing, players the API listed twice in a round are reduced to their
+lowest-rank row (`drop_duplicate_players`, logged as a warning), then both
+tables pass the shared duplicate/empty-row validation, which fails the run.
+
 Usage:
     python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--out-dir PATH]
 
@@ -58,6 +62,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.logging_setup import get_logger
 from eupy.quality import validate
 
 CONFIG_URL = "https://fantaking-api.dunkest.com/api/v1/leagues/10/config"
@@ -228,6 +233,28 @@ def fetch_round_rows(
     return rows
 
 
+def drop_duplicate_players(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one row per `(round, player_id)`: the one with the lowest `rank`.
+
+    The API sometimes lists a zero-point player twice in a round, with the same values and two different ranks.
+    Every dropped row is logged as a warning; row order is otherwise preserved.
+    """
+    best: dict[tuple[str, str], int] = {}
+    for i, row in enumerate(rows):
+        key = (str(row["round"]), str(row["player_id"]))
+        if key not in best or int(rows[best[key]]["rank"]) > int(row["rank"]):
+            best[key] = i
+    kept = set(best.values())
+    dropped = [row for i, row in enumerate(rows) if i not in kept]
+    if dropped:
+        get_logger("fetch_euroleague_fantasy_stats").warning(
+            "fantasy_stats/players: dropped %d duplicate (round, player_id) row(s), kept the lowest rank: %s",
+            len(dropped),
+            [(r["round"], r["player_id"], r["name"], r["rank"]) for r in dropped],
+        )
+    return [row for i, row in enumerate(rows) if i in kept]
+
+
 def write_csv(rows: list[dict[str, Any]], out_path: Path, fieldnames: list[str]) -> None:
     """Write rows to CSV (full overwrite), creating parent dirs as needed.
 
@@ -258,6 +285,7 @@ def run(out_dir: Path, token: str) -> None:
             fetch_round_rows(competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token)
         )
 
+    players_rows = drop_duplicate_players(players_rows)
     validate(players_rows, ["round", "player_id"], "fantasy_stats/players")
     validate(head_coaches_rows, ["round", "player_id"], "fantasy_stats/head_coaches")
     players_path = out_dir / "players.csv"
