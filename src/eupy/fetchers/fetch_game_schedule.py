@@ -41,6 +41,9 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
+from eupy.quality import validate
+
 SCHEDULE_URL = "https://euroleague-advanced-api.eu/Euroleague/schedule"
 
 # The live.euroleague.net sibling fetchers need a non-default UA (it 403s urllib's). This API was
@@ -177,7 +180,10 @@ def _season_arg(value: str) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--season", type=_season_arg, default="E2026", help="Season code, e.g. E2026 (default: %(default)s)"
+        "--season",
+        type=_season_arg,
+        default=get_config().acquisition.season,
+        help="Season code, e.g. E2026 (default: %(default)s)",
     )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
     return parser.parse_args()
@@ -187,6 +193,7 @@ def main() -> None:
     args = parse_args()
     rows = fetch_schedule(args.season)
     out_path = args.out_dir / f"schedule_{args.season}.csv"
+    validate(rows, "gamecode", "game_schedule/schedule")
     write_schedule_csv(rows, out_path)
     print(f"Wrote {len(rows)} games to {out_path}")
 

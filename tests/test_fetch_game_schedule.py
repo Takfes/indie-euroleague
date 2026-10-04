@@ -252,3 +252,17 @@ def test_main_bad_season_exits_with_usage_error_and_makes_no_request(
     assert "Invalid season code" in capsys.readouterr().err
     mock_urlopen.assert_not_called()
     assert list(tmp_path.iterdir()) == []
+
+
+def test_main_duplicate_gamecode_fails_validation_and_writes_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from eupy.quality import DataQualityError
+
+    out_dir = tmp_path / "raw"
+    with (
+        patch(URLOPEN, return_value=_api_returns([_game(1), _game(1)])),
+        pytest.raises(DataQualityError, match="duplicate"),
+    ):
+        _run_main(monkeypatch, out_dir)
+    assert not list(out_dir.glob("*.csv"))

@@ -38,6 +38,8 @@ import re
 import urllib.request
 from pathlib import Path
 
+from eupy.quality import validate
+
 URL = "https://basketballsphere.com/en/euroleague-fantasy-player-prices/"
 
 DEFAULT_OUT = (
@@ -114,6 +116,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     rows = parse_rows(fetch_html(URL))
+    validate(rows, ["name", "club"], "fantasy_prices/basketballsphere_prices")
     write_csv(rows, args.out)
 
     players = sum(1 for r in rows if r["role"] == "player")

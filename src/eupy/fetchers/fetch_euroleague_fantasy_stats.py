@@ -58,6 +58,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.quality import validate
+
 CONFIG_URL = "https://fantaking-api.dunkest.com/api/v1/leagues/10/config"
 STATS_URL_TEMPLATE = "https://fantaking-api.dunkest.com/api/v1/competitions/{competition_id}/stats/players/table"
 
@@ -256,6 +258,8 @@ def run(out_dir: Path, token: str) -> None:
             fetch_round_rows(competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token)
         )
 
+    validate(players_rows, ["round", "player_id"], "fantasy_stats/players")
+    validate(head_coaches_rows, ["round", "player_id"], "fantasy_stats/head_coaches")
     players_path = out_dir / "players.csv"
     head_coaches_path = out_dir / "head_coaches.csv"
     write_csv(players_rows, players_path, PLAYER_CSV_FIELDNAMES)

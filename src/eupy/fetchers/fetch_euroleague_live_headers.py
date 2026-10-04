@@ -47,6 +47,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
 from eupy.fetchers.live_euroleague import (
     DEFAULT_OUT_DIR,
     REQUEST_DELAY_SECONDS,
@@ -54,8 +55,9 @@ from eupy.fetchers.live_euroleague import (
     load_state,
     save_state,
 )
+from eupy.quality import validate
 
-DEFAULT_MAX_GAP = 5
+DEFAULT_MAX_GAP = get_config().acquisition.max_gap
 
 CSV_FIELDNAMES = [
     "game_id",
@@ -201,6 +203,7 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         season_state["last_ingested_gamecode"] = last_ingested
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         delta_path = headers_dir / f"{season}_delta_{timestamp}.csv"
+        validate(rows, "game_id", "euroleague_net/headers")
         write_delta_csv(rows, delta_path)
         print(f"Wrote {len(rows)} header row(s) to {delta_path}")
     else:
@@ -212,7 +215,9 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--season", default="E2026", help="Season code, e.g. E2026 (default: %(default)s)")
+    parser.add_argument(
+        "--season", default=get_config().acquisition.season, help="Season code, e.g. E2026 (default: %(default)s)"
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
     parser.add_argument(
         "--max-gap",

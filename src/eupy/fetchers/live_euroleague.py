@@ -12,6 +12,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
+
 HEADER_URL = "https://live.euroleague.net/api/Header"
 BOXSCORE_URL = "https://live.euroleague.net/api/BoxScore"
 
@@ -20,7 +22,7 @@ BOXSCORE_URL = "https://live.euroleague.net/api/BoxScore"
 USER_AGENT = "Mozilla/5.0 (compatible; euroleague-live-fetcher/1.0)"
 
 # Polite-client delay between sequential requests.
-REQUEST_DELAY_SECONDS = 0.3
+REQUEST_DELAY_SECONDS = get_config().acquisition.request_delay
 
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_net"
 
