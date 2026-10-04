@@ -8,10 +8,10 @@
 flowchart LR
     %% external sources
     x_JSON_verdicts_file____verdicts_PATH_(["JSON verdicts file (--verdicts PATH)"])
-    x_Kaggle__manual_download_(["Kaggle (manual download)"])
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_(["fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env)"])
     x_https___basketballsphere_com_en_euroleague_fantasy_player_prices___live_(["https://basketballsphere.com/en/euroleague-fantasy-player-prices/ (live)"])
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_(["https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live)"])
+    x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_(["kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API)"])
     x_live_euroleague_net_api_Header__live_(["live.euroleague.net/api/Header (live)"])
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_(["live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live)"])
     x_prepared_manually__upstream_feature_prediction_script_not_built_yet_(["prepared manually (upstream feature/prediction script not built yet)"])
@@ -20,6 +20,7 @@ flowchart LR
     subgraph p_acquire["acquire"]
         s_fetch_basketballsphere_prices["fetch_basketballsphere_prices"]
         s_fetch_euroleague_fantasy_stats["fetch_euroleague_fantasy_stats"]
+        s_fetch_kaggle_euroleague["fetch_kaggle_euroleague"]
     end
     subgraph p_entity["entity"]
         s_apply_fantasy_stats_player_name_verdicts["apply_fantasy_stats_player_name_verdicts"]
@@ -97,6 +98,8 @@ flowchart LR
     s_fetch_euroleague_live_boxscores --> d_euroleague_net_box_score
     s_fetch_euroleague_live_headers --> d_euroleague_net_headers
     s_fetch_game_schedule --> d_game_schedule_schedule
+    s_fetch_kaggle_euroleague --> d_kaggle_data_euroleague_box_score
+    s_fetch_kaggle_euroleague --> d_kaggle_data_euroleague_header
     s_merge_boxscore --> d_euroleague_box_score_merged
     s_merge_headers --> d_euroleague_header_merged
     s_normalize_fantasy_stats --> d_fantasy_stats_players_normalized
@@ -107,11 +110,10 @@ flowchart LR
     x_JSON_verdicts_file____verdicts_PATH_ --> s_apply_fantasy_stats_player_name_verdicts
     x_JSON_verdicts_file____verdicts_PATH_ --> s_apply_player_name_verdicts
     x_JSON_verdicts_file____verdicts_PATH_ --> s_apply_team_name_verdicts
-    x_Kaggle__manual_download_ --> d_kaggle_data_euroleague_box_score
-    x_Kaggle__manual_download_ --> d_kaggle_data_euroleague_header
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_ --> s_fetch_euroleague_fantasy_stats
     x_https___basketballsphere_com_en_euroleague_fantasy_player_prices___live_ --> s_fetch_basketballsphere_prices
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_ --> s_fetch_game_schedule
+    x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_ --> s_fetch_kaggle_euroleague
     x_live_euroleague_net_api_Header__live_ --> s_fetch_euroleague_live_headers
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ --> s_fetch_euroleague_live_boxscores
     x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ --> d_optimizer_input
@@ -125,10 +127,10 @@ flowchart LR
     classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
     classDef stage1_final fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e,stroke-width:4px
     classDef stage2_final fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c,stroke-width:4px
-    class s_apply_fantasy_stats_player_name_verdicts,s_apply_player_name_verdicts,s_apply_team_name_verdicts,s_fetch_basketballsphere_prices,s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule script_stage0
+    class s_apply_fantasy_stats_player_name_verdicts,s_apply_player_name_verdicts,s_apply_team_name_verdicts,s_fetch_basketballsphere_prices,s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule,s_fetch_kaggle_euroleague script_stage0
     class s_build_schedule_turns,s_merge_boxscore,s_merge_headers,s_optimize_squad,s_resolve_fantasy_stats_player_names,s_resolve_player_names,s_resolve_team_names script_stage1
     class s_normalize_fantasy_stats script_stage2
-    class x_JSON_verdicts_file____verdicts_PATH_,x_Kaggle__manual_download_,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___basketballsphere_com_en_euroleague_fantasy_player_prices___live_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_,x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ source
+    class x_JSON_verdicts_file____verdicts_PATH_,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___basketballsphere_com_en_euroleague_fantasy_player_prices___live_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_,x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ source
     class d_basketballsphere_prices,d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_player_name_verdicts,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_optimizer_input,d_player_name_verdicts,d_team_name_verdicts stage0
     class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
     class d_fantasy_stats_player_name_crosswalk,d_player_name_crosswalk,d_schedule,d_squad_solution,d_team_name_crosswalk,d_team_round_turn stage1_final

@@ -3,14 +3,6 @@
 # `python -m eupy.registry check` fails if an unproduced raw dataset is missing here, or if an entry
 # here is not an unproduced raw dataset in some header.
 
-[datasets."kaggle_data/euroleague_box_score"]
-origin = "Kaggle (manual download)"
-refresh = "manual"
-
-[datasets."kaggle_data/euroleague_header"]
-origin = "Kaggle (manual download)"
-refresh = "manual"
-
 [datasets.optimizer_input]
 origin = "prepared manually (upstream feature/prediction script not built yet)"
 refresh = "manual"

@@ -161,6 +161,7 @@ def test_acquire_runs_fetchers_only(tmp_path: Path) -> None:
     assert [c[3] for c in fake.calls] == [
         "src/eupy/fetchers/fetch_basketballsphere_prices.py",
         "src/eupy/fetchers/fetch_euroleague_fantasy_stats.py",
+        "src/eupy/fetchers/fetch_kaggle_euroleague.py",
     ]
 
 

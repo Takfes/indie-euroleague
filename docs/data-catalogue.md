@@ -15,8 +15,8 @@
 | `fantasy_stats/players` | `data/raw_data/fantasy_stats/players.csv` | `fetch_euroleague_fantasy_stats.py` | `normalize_fantasy_stats.py`, `resolve_fantasy_stats_player_names.py` | full overwrite per run |
 | `fantasy_stats_player_name_verdicts` | `data/curated/fantasy_stats_player_name_verdicts/` | `apply_fantasy_stats_player_name_verdicts.py` | `resolve_fantasy_stats_player_names.py` | — |
 | `game_schedule/schedule` | `data/raw_data/game_schedule/` | `fetch_game_schedule.py` | `build_schedule_turns.py` | full overwrite per run (per season) |
-| `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | external: Kaggle (manual download) | `merge_boxscore.py`, `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py` | manual |
-| `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | external: Kaggle (manual download) | `merge_headers.py`, `resolve_team_names.py` | manual |
+| `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | `fetch_kaggle_euroleague.py` | `merge_boxscore.py`, `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py` | manual: the dataset is a static dump through E2025 |
+| `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | `fetch_kaggle_euroleague.py` | `merge_headers.py`, `resolve_team_names.py` | manual: the dataset is a static dump through E2025 |
 | `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external: prepared manually (upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
 | `player_name_verdicts` | `data/curated/player_name_verdicts/` | `apply_player_name_verdicts.py` | `resolve_player_names.py` | — |
 | `team_name_verdicts` | `data/curated/team_name_verdicts/` | `apply_team_name_verdicts.py` | `resolve_team_names.py` | — |
@@ -29,6 +29,7 @@ Notes:
 - `fetch_euroleague_live_boxscores.py`: Delta files are named {season}_delta_{utc_timestamp}.csv. State file data/raw_data/euroleague_net/box_score/_state.json tracks progress and is updated every run.
 - `fetch_euroleague_live_headers.py`: Delta files are named {season}_delta_{utc_timestamp}.csv, in the Kaggle euroleague_header schema. State file data/raw_data/euroleague_net/headers/_state.json tracks progress and is updated every run.
 - `fetch_game_schedule.py`: One file per season, named schedule_{season}.csv.
+- `fetch_kaggle_euroleague.py`: Only the two named CSVs are kept; every other file in the Kaggle archive is dropped.
 
 ## Produced datasets (`data/stage_XX/`)
 
@@ -67,6 +68,7 @@ Notes:
 | `src/eupy/fetchers/fetch_euroleague_live_boxscores.py` | live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live) | `euroleague_net/box_score` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_headers.py` | live.euroleague.net/api/Header (live) | `euroleague_net/headers` | false | true |
 | `src/eupy/fetchers/fetch_game_schedule.py` | https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live) | `game_schedule/schedule` | false | true |
+| `src/eupy/fetchers/fetch_kaggle_euroleague.py` | kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API) | `kaggle_data/euroleague_box_score`, `kaggle_data/euroleague_header` | false | true |
 | `src/eupy/entity/resolve_fantasy_stats_player_names.py` | `fantasy_stats/players`, `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `fantasy_stats_player_name_verdicts` | `fantasy_stats_player_name_crosswalk` | true | false |
 | `src/eupy/entity/resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `player_name_verdicts` | `player_name_crosswalk` | true | false |
 | `src/eupy/entity/resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header`, `team_name_verdicts` | `team_name_crosswalk` | true | false |

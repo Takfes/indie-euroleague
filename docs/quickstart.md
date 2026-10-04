@@ -6,9 +6,15 @@
 uv sync
 ```
 
-Requires Python 3.12+ (managed automatically by `uv`). No `.env` or secrets needed for the fetchers below — they hit public, unauthenticated endpoints.
+Requires Python 3.12+ (managed automatically by `uv`). No `.env` or secrets needed for the fetchers below — they hit public, unauthenticated endpoints — except the Kaggle download, which needs Kaggle credentials (`~/.kaggle/kaggle.json` or `KAGGLE_USERNAME`/`KAGGLE_KEY`).
 
 ## Running fetchers
+
+**Kaggle history** (box scores + headers, E2007-E2025; keeps only the two files the pipeline reads, validated before they replace the previous ones):
+
+```bash
+uv run python src/eupy/fetchers/fetch_kaggle_euroleague.py
+```
 
 **Live box scores** (incremental — polls new gamecodes since the last run, writes a delta CSV if any completed games are found):
 
