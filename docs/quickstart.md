@@ -16,7 +16,7 @@ Requires Python 3.12+ (managed automatically by `uv`). No `.env` or secrets need
 uv run python src/eupy/fetchers/fetch_euroleague_live_boxscores.py --season=E2026
 ```
 
-Writes to `data/raw_data/euroleague_net/box_score/`, tracks progress in `data/raw_data/euroleague_net/_state.json`.
+Writes to `data/raw_data/euroleague_net/box_score/`, tracks progress in `data/raw_data/euroleague_net/box_score/_state.json`.
 
 **Live headers** (same incremental pattern; Kaggle `euroleague_header` schema, works for any season — `--season=E2022` replicates a Kaggle season from live):
 

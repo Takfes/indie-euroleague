@@ -51,6 +51,11 @@ def fetch_boxscore(season: str, gamecode: int) -> dict[str, Any] | None:
     return fetch_json(f"{BOXSCORE_URL}?gamecode={gamecode}&seasoncode={season}")
 
 
+def state_path(source_dir: Path) -> Path:
+    """The ingestion state file of one live source: `<source_dir>/_state.json` (one per source subdir)."""
+    return source_dir / "_state.json"
+
+
 def load_state(state_path: Path) -> dict[str, dict[str, Any]]:
     """Load the ingestion state file, or an empty dict if it doesn't exist yet."""
     if not state_path.exists():

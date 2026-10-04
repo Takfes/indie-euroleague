@@ -35,7 +35,7 @@ Final: false
 Impure: true
 Refresh: incremental: one delta file per run with new games
 Notes: Delta files are named {season}_delta_{utc_timestamp}.csv. State file
-  data/raw_data/euroleague_net/_state.json tracks progress and is updated every run.
+  data/raw_data/euroleague_net/box_score/_state.json tracks progress and is updated every run.
 """
 
 from __future__ import annotations
@@ -55,6 +55,7 @@ from eupy.fetchers.live_euroleague import (
     fetch_header,
     load_state,
     save_state,
+    state_path,
 )
 from eupy.quality import validate
 
@@ -230,8 +231,9 @@ def write_delta_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
 
 def run(season: str, out_dir: Path) -> None:
     """Poll new gamecodes for `season`, write a delta CSV if any completed, update state."""
-    state_path = out_dir / "_state.json"
-    state = load_state(state_path)
+    box_score_dir = out_dir / "box_score"
+    path = state_path(box_score_dir)
+    state = load_state(path)
     season_state = state.get(season, {})
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
@@ -257,7 +259,7 @@ def run(season: str, out_dir: Path) -> None:
     if rows:
         season_state["last_ingested_gamecode"] = last_ingested
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        delta_path = out_dir / "box_score" / f"{season}_delta_{timestamp}.csv"
+        delta_path = box_score_dir / f"{season}_delta_{timestamp}.csv"
         validate(rows, "game_player_id", "euroleague_net/box_score")
         write_delta_csv(rows, delta_path)
         num_games = gamecode - start_gamecode
@@ -266,7 +268,7 @@ def run(season: str, out_dir: Path) -> None:
         print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
 
     state[season] = season_state
-    save_state(state, state_path)
+    save_state(state, path)
 
 
 def parse_args() -> argparse.Namespace:

@@ -26,7 +26,7 @@ Notes:
 - `apply_fantasy_stats_player_name_verdicts.py`: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that resolve_fantasy_stats_player_names.py reads.
 - `apply_player_name_verdicts.py`: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that resolve_player_names.py reads.
 - `apply_team_name_verdicts.py`: Manual ingest, append-only batches, no DVC step. The batch directory is the tracked record that resolve_team_names.py reads.
-- `fetch_euroleague_live_boxscores.py`: Delta files are named {season}_delta_{utc_timestamp}.csv. State file data/raw_data/euroleague_net/_state.json tracks progress and is updated every run.
+- `fetch_euroleague_live_boxscores.py`: Delta files are named {season}_delta_{utc_timestamp}.csv. State file data/raw_data/euroleague_net/box_score/_state.json tracks progress and is updated every run.
 - `fetch_euroleague_live_headers.py`: Delta files are named {season}_delta_{utc_timestamp}.csv, in the Kaggle euroleague_header schema. State file data/raw_data/euroleague_net/headers/_state.json tracks progress and is updated every run.
 - `fetch_game_schedule.py`: One file per season, named schedule_{season}.csv.
 

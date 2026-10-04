@@ -54,6 +54,7 @@ from eupy.fetchers.live_euroleague import (
     fetch_header,
     load_state,
     save_state,
+    state_path,
 )
 from eupy.quality import validate
 
@@ -174,8 +175,8 @@ def write_delta_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
 def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
     """Poll new gamecodes for `season`, write a delta CSV if any completed, update state."""
     headers_dir = out_dir / "headers"
-    state_path = headers_dir / "_state.json"
-    state = load_state(state_path)
+    path = state_path(headers_dir)
+    state = load_state(path)
     season_state = state.get(season, {})
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
@@ -210,7 +211,7 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
 
     state[season] = season_state
-    save_state(state, state_path)
+    save_state(state, path)
 
 
 def parse_args() -> argparse.Namespace:
