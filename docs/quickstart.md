@@ -18,11 +18,17 @@ uv run python src/eupy/fetchers/fetch_euroleague_live_boxscores.py --season=E202
 
 Writes to `data/raw_data/euroleague_net/box_score/`, tracks progress in `data/raw_data/euroleague_net/box_score/_state.json`.
 
+```bash
+uv run python src/eupy/transform/merge_boxscore.py   # Kaggle history + all deltas -> data/stage_01/euroleague_box_score_merged.csv
+```
+
+**Config, checks, log** — `config/config.toml` (optional; keys in `src/eupy/config/defaults.py`) overrides built-in defaults, e.g. `[transformation] base_season = "E2025"` restricts the merges to one Kaggle season (default: full history). Every fetcher and merge script calls `eupy.quality.validate(rows, key, name)` before writing: empty rows or duplicate keys are logged to `logs/log.log` (git-ignored) and fail the run.
+
 **Live headers** (same incremental pattern; Kaggle `euroleague_header` schema, works for any season — `--season=E2022` replicates a Kaggle season from live):
 
 ```bash
 uv run python src/eupy/fetchers/fetch_euroleague_live_headers.py --season=E2026
-uv run python src/eupy/transform/append_live_headers.py   # Kaggle E2025 + all deltas -> data/stage_01/header_current.csv
+uv run python src/eupy/transform/merge_headers.py   # Kaggle history + all deltas -> data/stage_01/euroleague_header_merged.csv
 ```
 
 Writes to `data/raw_data/euroleague_net/headers/`, tracks progress in `headers/_state.json`.
@@ -107,7 +113,7 @@ uv run python -m eupy.registry docs       # both docs in one pass (what the upda
 uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.toml; --stdout prints instead
 ```
 
-- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `verdict_batches.py`, `*_crosswalk.py`, `player_sources.py`, `live_append.py`, `live_euroleague.py` exempt), a pipeline script importing another script (shared code goes in a library module), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
+- `check` fails on: a malformed/missing block in `fetchers/`, `transform/`, `entity/`, `optimize/` (library modules `matching.py`, `verdict_batches.py`, `*_crosswalk.py`, `player_sources.py`, `merge_common.py`, `live_euroleague.py` exempt), a pipeline script importing another script (shared code goes in a library module), a dataset with two producers, a declared `stage_XX` ≠ computed stage, a cycle, a raw dataset missing from / stale in `raw_sources.toml`.
 - `catalogue` renders `docs/data-catalogue.md` from the registry (never hand-edit). `Notes:` header text is printed verbatim under the raw table (scripts writing raw data) or the produced table (all other scripts).
 - `graph` renders `docs/data-graph.md`: stadium = external source, rectangle = script, cylinder = dataset; one hue per stage, `★` + thick border = `final`. `Registry.edges()` is the edge list it draws.
 - `html` renders `docs/data-map.html`: an interactive lineage map (one self-contained file, open it from disk, no server). Same nodes/colours as the graph; pipeline/wrapper filter dims everything else; click a node for path, inputs/outputs, pipeline, docstring paragraph, `Notes`. Not part of `docs` (regenerate it when headers or `pipelines.toml` change). `html --status` also writes the git-ignored `docs/data-map.status.html` with DVC fresh/stale marks from `dvc status`.

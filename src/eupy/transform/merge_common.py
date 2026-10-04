@@ -1,4 +1,4 @@
-"""Shared helpers of the live-append scripts (`append_live_boxscores.py`, `append_live_headers.py`).
+"""Shared helpers of the merge scripts (`merge_boxscore.py`, `merge_headers.py`).
 
 Library module (no I/O header, never run directly): CSV read/write and the Kaggle-base + live-delta loaders
 both scripts use. Scripts import it instead of each other, so DVC sees it in their dependency closure.
@@ -10,7 +10,6 @@ import csv
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_BASE_SEASON = "E2025"
 
 
 def read_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -20,12 +19,16 @@ def read_rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
         return list(reader.fieldnames or []), list(reader)
 
 
-def load_base(path: Path, season: str) -> tuple[list[str], list[dict[str, str]]]:
-    """Kaggle rows of one season, in file order. Raises if the season is absent."""
+def load_base(path: Path, season: str | None) -> tuple[list[str], list[dict[str, str]]]:
+    """Kaggle rows in file order: every row when `season` is None, else that season's. Raises if it is absent."""
     header, rows = read_rows(path)
+    if season is None:
+        return header, rows
     base = [row for row in rows if row["season_code"] == season]
     if not base:
-        raise ValueError(f"No rows with season_code={season!r} in {path}; check --base-season.")
+        raise ValueError(
+            f"No rows with season_code={season!r} in {path}; check the base season (--base-season / [transformation] base_season)."
+        )
     return header, base
 
 

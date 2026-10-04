@@ -5,7 +5,7 @@ The live API's `Header` endpoint (`live.euroleague.net/api/Header?gamecode=N&sea
 returns one JSON object per game. This script polls gamecodes upward from where the last
 run left off (per season) and writes each newly *completed* game as one row in the schema of
 `data/raw_data/kaggle_data/euroleague_header.csv` -- so live deltas and the Kaggle history
-can be stacked (see `append_live_headers.py`).
+can be stacked (see `merge_headers.py`).
 
 Mapping notes (verified against Kaggle rows for E2022 / E2025):
 - `game_id` is `{season}_{gamecode:03d}` (zero-padded, as in Kaggle).

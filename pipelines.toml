@@ -17,8 +17,8 @@ dvc = true
 scripts = [
     "fetch_euroleague_live_boxscores",
     "fetch_euroleague_live_headers",
-    "append_live_boxscores",
-    "append_live_headers",
+    "merge_boxscore",
+    "merge_headers",
 ]
 
 [entity]

@@ -9,14 +9,14 @@
 | Dataset | Path | Produced by | Consumed by | Refresh |
 | --- | --- | --- | --- | --- |
 | `basketballsphere_prices` | `data/raw_data/fantasy_prices/basketballsphere_prices.csv` | `fetch_basketballsphere_prices.py` | `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py`, `resolve_team_names.py` | full overwrite per run |
-| `euroleague_net/box_score` | `data/raw_data/euroleague_net/box_score/` | `fetch_euroleague_live_boxscores.py` | `append_live_boxscores.py` | incremental: one delta file per run with new games |
-| `euroleague_net/headers` | `data/raw_data/euroleague_net/headers/` | `fetch_euroleague_live_headers.py` | `append_live_headers.py` | incremental: one delta file per run with new games |
+| `euroleague_net/box_score` | `data/raw_data/euroleague_net/box_score/` | `fetch_euroleague_live_boxscores.py` | `merge_boxscore.py` | incremental: one delta file per run with new games |
+| `euroleague_net/headers` | `data/raw_data/euroleague_net/headers/` | `fetch_euroleague_live_headers.py` | `merge_headers.py` | incremental: one delta file per run with new games |
 | `fantasy_stats/head_coaches` | `data/raw_data/fantasy_stats/head_coaches.csv` | `fetch_euroleague_fantasy_stats.py` | — | full overwrite per run |
 | `fantasy_stats/players` | `data/raw_data/fantasy_stats/players.csv` | `fetch_euroleague_fantasy_stats.py` | `normalize_fantasy_stats.py`, `resolve_fantasy_stats_player_names.py` | full overwrite per run |
 | `fantasy_stats_player_name_verdicts` | `data/curated/fantasy_stats_player_name_verdicts/` | `apply_fantasy_stats_player_name_verdicts.py` | `resolve_fantasy_stats_player_names.py` | — |
 | `game_schedule/schedule` | `data/raw_data/game_schedule/` | `fetch_game_schedule.py` | `build_schedule_turns.py` | full overwrite per run (per season) |
-| `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | external: Kaggle (manual download) | `append_live_boxscores.py`, `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py` | manual |
-| `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | external: Kaggle (manual download) | `append_live_headers.py`, `resolve_team_names.py` | manual |
+| `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | external: Kaggle (manual download) | `merge_boxscore.py`, `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py` | manual |
+| `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | external: Kaggle (manual download) | `merge_headers.py`, `resolve_team_names.py` | manual |
 | `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external: prepared manually (upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
 | `player_name_verdicts` | `data/curated/player_name_verdicts/` | `apply_player_name_verdicts.py` | `resolve_player_names.py` | — |
 | `team_name_verdicts` | `data/curated/team_name_verdicts/` | `apply_team_name_verdicts.py` | `resolve_team_names.py` | — |
@@ -34,9 +34,9 @@ Notes:
 
 | Dataset | Stage | Path | Produced by | Inputs | Final | `stage_99` symlink |
 | --- | --- | --- | --- | --- | --- | --- |
-| `box_score_current` | 01 | `data/stage_01/box_score_current.csv` | `append_live_boxscores.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | false | — |
+| `euroleague_box_score_merged` | 01 | `data/stage_01/euroleague_box_score_merged.csv` | `merge_boxscore.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | false | — |
+| `euroleague_header_merged` | 01 | `data/stage_01/euroleague_header_merged.csv` | `merge_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | false | — |
 | `fantasy_stats_player_name_crosswalk` | 01 | `data/stage_01/fantasy_stats_player_name_crosswalk.csv` | `resolve_fantasy_stats_player_names.py` | `fantasy_stats/players`, `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `fantasy_stats_player_name_verdicts` | true | `data/stage_99/fantasy_stats_player_name_crosswalk.csv` |
-| `header_current` | 01 | `data/stage_01/header_current.csv` | `append_live_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | false | — |
 | `player_name_crosswalk` | 01 | `data/stage_01/player_name_crosswalk.csv` | `resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `player_name_verdicts` | true | `data/stage_99/player_name_crosswalk.csv` |
 | `schedule` | 01 | `data/stage_01/schedule.csv` | `build_schedule_turns.py` | `game_schedule/schedule` | true | `data/stage_99/schedule.csv` |
 | `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` |
@@ -50,9 +50,9 @@ Notes:
 - `resolve_player_names.py`: Verdict batches are applied in file-name order; a later batch wins on the same name.
 - `resolve_team_names.py`: Verdict batches are applied in file-name order; a later batch wins on the same name.
 - `optimize_squad.py`: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run. Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does not exist yet).
-- `append_live_boxscores.py`: Kaggle rows are limited to the base season (--base-season, default E2025); all delta files under euroleague_net/box_score are appended.
-- `append_live_headers.py`: Kaggle rows are limited to the base season (--base-season, default E2025); all delta files under euroleague_net/headers are appended.
 - `build_schedule_turns.py`: Input file is schedule_{season}.csv (--season, default E2026; --input overrides). Both outputs are overwritten each run. Column notes. schedule: the raw schedule (20 columns, verbatim, same row order) plus a trailing turn (T1 / T2). Within each gameday, the latest date is T2 and every earlier date is T1 (single-date round -> all T1). The rule is an assumption, not an API field. team_round_turn: columns team (club code from homecode / awaycode), round (= raw gameday; not the raw round column, which is the phase label RS), turn. One row per team per round, sorted by round, team.
+- `merge_boxscore.py`: Full Kaggle history by default (config transformation.base_season / --base-season restricts it); all delta files under euroleague_net/box_score are appended.
+- `merge_headers.py`: Full Kaggle history by default (config transformation.base_season / --base-season restricts it); all delta files under euroleague_net/headers are appended.
 - `normalize_fantasy_stats.py`: Overwritten each run. Output is fantasy_stats/players with the same columns and row order, name replaced by the crosswalk's full name (looked up by player_id; no_match rows keep the abbreviated name) and position mapped Guard/Forward/Center -> G/F/C. Refuses to run while any crosswalk row is open.
 
 ## Scripts
@@ -71,7 +71,7 @@ Notes:
 | `src/eupy/entity/resolve_player_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_box_score`, `player_name_verdicts` | `player_name_crosswalk` | true | false |
 | `src/eupy/entity/resolve_team_names.py` | `basketballsphere_prices`, `kaggle_data/euroleague_header`, `team_name_verdicts` | `team_name_crosswalk` | true | false |
 | `src/eupy/optimize/optimize_squad.py` | `optimizer_input` | `squad_solution` | true | false |
-| `src/eupy/transform/append_live_boxscores.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | `box_score_current` | false | false |
-| `src/eupy/transform/append_live_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | `header_current` | false | false |
 | `src/eupy/transform/build_schedule_turns.py` | `game_schedule/schedule` | `schedule`, `team_round_turn` | true | false |
+| `src/eupy/transform/merge_boxscore.py` | `kaggle_data/euroleague_box_score`, `euroleague_net/box_score` | `euroleague_box_score_merged` | false | false |
+| `src/eupy/transform/merge_headers.py` | `kaggle_data/euroleague_header`, `euroleague_net/headers` | `euroleague_header_merged` | false | false |
 | `src/eupy/transform/normalize_fantasy_stats.py` | `fantasy_stats/players`, `fantasy_stats_player_name_crosswalk` | `fantasy_stats_players_normalized` | true | false |

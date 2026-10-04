@@ -1,4 +1,4 @@
-"""Tests for the Kaggle-base + live-delta box-score append."""
+"""Tests for the Kaggle + live-delta box-score merge."""
 
 from __future__ import annotations
 
@@ -8,8 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from eupy.transform.append_live_boxscores import append_rows, main
-from eupy.transform.live_append import load_base, load_deltas
+from eupy.quality import DataQualityError
+from eupy.transform.merge_boxscore import main
+from eupy.transform.merge_common import load_base, load_deltas
 
 HEADER = ["game_player_id", "game_id", "season_code", "is_starter", "points"]
 
@@ -18,6 +19,11 @@ def write_csv(path: Path, rows: list[list[str]], header: list[str] = HEADER) -> 
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows([header, *rows])
+
+
+def read_ids(path: Path) -> list[str]:
+    with path.open(newline="", encoding="utf-8") as f:
+        return [r["game_player_id"] for r in csv.DictReader(f)]
 
 
 @pytest.fixture
@@ -34,7 +40,13 @@ def raw(tmp_path: Path) -> tuple[Path, Path]:
     return kaggle, tmp_path / "live"
 
 
-def test_base_season_only_and_deltas_in_timestamp_order(
+def run_main(monkeypatch: pytest.MonkeyPatch, kaggle: Path, live: Path, out: Path, *extra: str) -> None:
+    argv = ["prog", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out), *extra]
+    monkeypatch.setattr(sys, "argv", argv)
+    main()
+
+
+def test_full_history_by_default_and_deltas_in_timestamp_order(
     raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     kaggle, live = raw
@@ -42,18 +54,23 @@ def test_base_season_only_and_deltas_in_timestamp_order(
     write_csv(live / "E2026_delta_20260929T100000Z.csv", [["E2026_2_A", "E2026_2", "E2026", "1", "7"]])
     write_csv(live / "E2026_delta_20260927T100000Z.csv", [["E2026_1_A", "E2026_1", "E2026", "0", "3"]])
     out = tmp_path / "out.csv"
-    monkeypatch.setattr(sys, "argv", ["prog", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)])
-    main()
-    with out.open(newline="", encoding="utf-8") as f:
-        ids = [r["game_player_id"] for r in csv.DictReader(f)]
-    assert ids == ["E2025_1_A", "E2025_1_B", "E2026_1_A", "E2026_2_A"]  # E2024 excluded
+    run_main(monkeypatch, kaggle, live, out)
+    assert read_ids(out) == ["E2024_1_A", "E2025_1_A", "E2025_1_B", "E2026_1_A", "E2026_2_A"]
+
+
+def test_base_season_restricts_kaggle_rows(raw: tuple[Path, Path], tmp_path: Path, monkeypatch) -> None:
+    kaggle, live = raw
+    out = tmp_path / "out.csv"
+    live.mkdir()
+    run_main(monkeypatch, kaggle, live, out, "--base-season", "E2025")
+    assert read_ids(out) == ["E2025_1_A", "E2025_1_B"]
 
 
 def test_values_copied_as_text(raw: tuple[Path, Path]) -> None:
     kaggle, live = raw
     write_csv(live / "E2026_delta_1.csv", [["E2026_1_A", "E2026_1", "E2026", "1", "3"]])
     header, base = load_base(kaggle, "E2025")
-    rows, _ = append_rows(base, load_deltas(live, header))
+    rows = [*base, *load_deltas(live, header)]
     assert [r["is_starter"] for r in rows] == ["1.0", "0.0", "1"]  # no float/int normalization
 
 
@@ -65,14 +82,16 @@ def test_schema_mismatch_raises(raw: tuple[Path, Path]) -> None:
         load_deltas(live, header)
 
 
-def test_reingested_game_keeps_last_and_reports(raw: tuple[Path, Path]) -> None:
+def test_duplicate_key_across_deltas_fails_and_writes_nothing(
+    raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     kaggle, live = raw
     write_csv(live / "E2026_delta_1.csv", [["E2026_1_A", "E2026_1", "E2026", "1", "3"]])
     write_csv(live / "E2026_delta_2.csv", [["E2026_1_A", "E2026_1", "E2026", "1", "5"]])
-    header, base = load_base(kaggle, "E2025")
-    rows, dropped = append_rows(base, load_deltas(live, header))
-    assert dropped == 1
-    assert [r["points"] for r in rows if r["game_player_id"] == "E2026_1_A"] == ["5"]
+    out = tmp_path / "out.csv"
+    with pytest.raises(DataQualityError, match="duplicate"):
+        run_main(monkeypatch, kaggle, live, out)
+    assert not out.exists()
 
 
 def test_unknown_base_season_raises(raw: tuple[Path, Path]) -> None:
@@ -80,9 +99,9 @@ def test_unknown_base_season_raises(raw: tuple[Path, Path]) -> None:
         load_base(raw[0], "E1999")
 
 
-def test_no_deltas_yields_base_only(raw: tuple[Path, Path]) -> None:
+def test_no_deltas_yields_kaggle_only(raw: tuple[Path, Path], tmp_path: Path, monkeypatch) -> None:
     kaggle, live = raw
     live.mkdir()
-    header, base = load_base(kaggle, "E2025")
-    rows, dropped = append_rows(base, load_deltas(live, header))
-    assert len(rows) == 2 and dropped == 0
+    out = tmp_path / "out.csv"
+    run_main(monkeypatch, kaggle, live, out)
+    assert len(read_ids(out)) == 3

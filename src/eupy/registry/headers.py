@@ -38,7 +38,7 @@ LIBRARY_MODULES = frozenset({
     "entity/team_crosswalk.py",
     "entity/verdict_batches.py",
     "fetchers/live_euroleague.py",
-    "transform/live_append.py",
+    "transform/merge_common.py",
 })
 
 LIST_KEYS = ("Inputs", "Sources", "Outputs")

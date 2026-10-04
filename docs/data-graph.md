@@ -31,10 +31,10 @@ flowchart LR
         s_resolve_team_names["resolve_team_names"]
     end
     subgraph p_net["net"]
-        s_append_live_boxscores["append_live_boxscores"]
-        s_append_live_headers["append_live_headers"]
         s_fetch_euroleague_live_boxscores["fetch_euroleague_live_boxscores"]
         s_fetch_euroleague_live_headers["fetch_euroleague_live_headers"]
+        s_merge_boxscore["merge_boxscore"]
+        s_merge_headers["merge_headers"]
     end
     subgraph p_optimize["optimize"]
         s_optimize_squad["optimize_squad"]
@@ -57,9 +57,9 @@ flowchart LR
     d_optimizer_input[("optimizer_input<br/>(stage 0)")]
     d_player_name_verdicts[("player_name_verdicts<br/>(stage 0)")]
     d_team_name_verdicts[("team_name_verdicts<br/>(stage 0)")]
-    d_box_score_current[("box_score_current<br/>(stage 1)")]
+    d_euroleague_box_score_merged[("euroleague_box_score_merged<br/>(stage 1)")]
+    d_euroleague_header_merged[("euroleague_header_merged<br/>(stage 1)")]
     d_fantasy_stats_player_name_crosswalk[("fantasy_stats_player_name_crosswalk ★<br/>(stage 1)")]
-    d_header_current[("header_current<br/>(stage 1)")]
     d_player_name_crosswalk[("player_name_crosswalk ★<br/>(stage 1)")]
     d_schedule[("schedule ★<br/>(stage 1)")]
     d_squad_solution[("squad_solution ★<br/>(stage 1)")]
@@ -71,23 +71,21 @@ flowchart LR
     d_basketballsphere_prices --> s_resolve_fantasy_stats_player_names
     d_basketballsphere_prices --> s_resolve_player_names
     d_basketballsphere_prices --> s_resolve_team_names
-    d_euroleague_net_box_score --> s_append_live_boxscores
-    d_euroleague_net_headers --> s_append_live_headers
+    d_euroleague_net_box_score --> s_merge_boxscore
+    d_euroleague_net_headers --> s_merge_headers
     d_fantasy_stats_player_name_crosswalk --> s_normalize_fantasy_stats
     d_fantasy_stats_player_name_verdicts --> s_resolve_fantasy_stats_player_names
     d_fantasy_stats_players --> s_normalize_fantasy_stats
     d_fantasy_stats_players --> s_resolve_fantasy_stats_player_names
     d_game_schedule_schedule --> s_build_schedule_turns
-    d_kaggle_data_euroleague_box_score --> s_append_live_boxscores
+    d_kaggle_data_euroleague_box_score --> s_merge_boxscore
     d_kaggle_data_euroleague_box_score --> s_resolve_fantasy_stats_player_names
     d_kaggle_data_euroleague_box_score --> s_resolve_player_names
-    d_kaggle_data_euroleague_header --> s_append_live_headers
+    d_kaggle_data_euroleague_header --> s_merge_headers
     d_kaggle_data_euroleague_header --> s_resolve_team_names
     d_optimizer_input --> s_optimize_squad
     d_player_name_verdicts --> s_resolve_player_names
     d_team_name_verdicts --> s_resolve_team_names
-    s_append_live_boxscores --> d_box_score_current
-    s_append_live_headers --> d_header_current
     s_apply_fantasy_stats_player_name_verdicts --> d_fantasy_stats_player_name_verdicts
     s_apply_player_name_verdicts --> d_player_name_verdicts
     s_apply_team_name_verdicts --> d_team_name_verdicts
@@ -99,6 +97,8 @@ flowchart LR
     s_fetch_euroleague_live_boxscores --> d_euroleague_net_box_score
     s_fetch_euroleague_live_headers --> d_euroleague_net_headers
     s_fetch_game_schedule --> d_game_schedule_schedule
+    s_merge_boxscore --> d_euroleague_box_score_merged
+    s_merge_headers --> d_euroleague_header_merged
     s_normalize_fantasy_stats --> d_fantasy_stats_players_normalized
     s_optimize_squad --> d_squad_solution
     s_resolve_fantasy_stats_player_names --> d_fantasy_stats_player_name_crosswalk
@@ -126,11 +126,11 @@ flowchart LR
     classDef stage1_final fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e,stroke-width:4px
     classDef stage2_final fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c,stroke-width:4px
     class s_apply_fantasy_stats_player_name_verdicts,s_apply_player_name_verdicts,s_apply_team_name_verdicts,s_fetch_basketballsphere_prices,s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule script_stage0
-    class s_append_live_boxscores,s_append_live_headers,s_build_schedule_turns,s_optimize_squad,s_resolve_fantasy_stats_player_names,s_resolve_player_names,s_resolve_team_names script_stage1
+    class s_build_schedule_turns,s_merge_boxscore,s_merge_headers,s_optimize_squad,s_resolve_fantasy_stats_player_names,s_resolve_player_names,s_resolve_team_names script_stage1
     class s_normalize_fantasy_stats script_stage2
     class x_JSON_verdicts_file____verdicts_PATH_,x_Kaggle__manual_download_,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___basketballsphere_com_en_euroleague_fantasy_player_prices___live_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_,x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ source
     class d_basketballsphere_prices,d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_player_name_verdicts,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_optimizer_input,d_player_name_verdicts,d_team_name_verdicts stage0
-    class d_box_score_current,d_header_current stage1
+    class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
     class d_fantasy_stats_player_name_crosswalk,d_player_name_crosswalk,d_schedule,d_squad_solution,d_team_name_crosswalk,d_team_round_turn stage1_final
     class d_fantasy_stats_players_normalized stage2_final
 ```
