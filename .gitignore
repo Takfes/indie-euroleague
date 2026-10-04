@@ -163,3 +163,6 @@ docs/data-map.status.html
 
 # Office lock files
 ~$*
+
+# Script log (eupy.logging_setup)
+logs/
