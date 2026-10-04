@@ -52,9 +52,19 @@ uv run python -m eupy.transform.build_schedule_turns --season=E2026
 
 Needs the schedule fetched first. Writes `data/stage_01/schedule.csv` and `team_round_turn.csv` (the round's latest date is T2, earlier dates T1). Not a DVC stage yet.
 
-## Entity resolution (broken, pending rework)
+## Name maps (players and teams)
 
-The resolvers in `src/eupy/entity/` still read `basketballsphere_prices`, whose fetcher was removed; the fantasy stats dataset is to replace it. Until then the registry check fails on that input, and the `entity` pipeline is `dvc = false`. Shared pieces: `matching.py` (exact→fuzzy engine), `verdict_batches.py`, `player_crosswalk.py` / `team_crosswalk.py` (read-only lookups). Verdict batches live in `data/curated/<x>_verdicts/` (append-only, tracked in git); the `apply_*_verdicts.py --verdicts PATH` ingest scripts append them.
+`TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. Each class reads a JSON map committed in `src/eupy/entity/maps/` (`team_name_map.json`, `player_name_map.json`), so no data folder is needed at lookup time. Design: `specs/spec-name-maps.md`.
+
+Refresh both maps with the `build-name-maps` skill (`.claude/skills/build-name-maps/`). By hand:
+
+```bash
+uv run python -m eupy.entity.build_team_name_map     # schedule -> team map
+uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + verdicts -> player map
+uv run python -m eupy.entity.apply_player_name_verdicts --verdicts <file>.json --label <slug>   # record agent verdicts
+```
+
+Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need a verdict (new transfers, rookies); the builder prints how many. Verdict batches live in `data/curated/player_name_verdicts/` (append-only, tracked in git). The `entity` pipeline is `dvc = false` for now.
 
 ## Config, checks, log
 

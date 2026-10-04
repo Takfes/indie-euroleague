@@ -11,7 +11,7 @@ The pipeline reads the same players and teams from several sources, each spellin
 Give downstream code two small, self-contained classes that turn any of these spellings into one normalized form:
 
 - `PlayerNames.normalize("JONES, CARLIK")` and `PlayerNames.normalize("C. Jones", team="PAO")` both return `Carlik Jones`.
-- `TeamNames.normalize("PAN")` and `TeamNames.normalize("PAO")` both return `Panathinaikos`.
+- `TeamNames.normalize("PAN")` and `TeamNames.normalize("PAO")` return the same team name (the schedule's `hometeam`).
 
 The fantasy stats data is the trusted set. Players that do not appear in it are out of scope: they never get an entry.
 
@@ -62,7 +62,8 @@ builder re-applies on every run. A rebuild from the same raw data and verdicts r
 
 - Builder input: `data/raw_data/game_schedule/schedule_*.csv`. Distinct `(hometeam, homecode, hometv)`.
 - Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name.
-- The normalized name is the schedule's `hometeam` verbatim.
+- The normalized name is the schedule's `hometeam` verbatim. On the real 2026 schedule these are long upper-case
+  names (`PANATHINAIKOS AKTOR ATHENS`, `FC BARCELONA`); a shorter display name would be a later, separate change.
 - Fails loudly if one code points to two teams or one team has two code pairs, and on an empty schedule.
 - Whether the box-score `team_id` equals `homecode` or `hometv`, and whether the fantasy codes all appear, is checked
   against real data after the first fetch. A code missing from the map is reported by the player builder, never guessed.
