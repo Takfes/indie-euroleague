@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from eupy.fetchers.fetch_game_schedule import fetch_schedule, main, parse_season_year
+from eupy.fetchers.fetch_game_schedule import fetch_schedule, main, pad_gamecodes, parse_season_year
 
 URLOPEN = "eupy.fetchers.fetch_game_schedule.urllib.request.urlopen"
 
@@ -134,7 +134,7 @@ def test_fetch_schedule_requests_the_api_year_with_a_custom_user_agent() -> None
     assert "python-urllib" not in user_agent.lower()
 
 
-def test_main_writes_named_csv_with_api_columns_and_verbatim_values(
+def test_main_writes_named_csv_with_api_columns_and_padded_gamecode(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     played = _game(7)
@@ -146,11 +146,11 @@ def test_main_writes_named_csv_with_api_columns_and_verbatim_values(
     assert lines[0] == ",".join(FIELDS)
     # The comma inside the date must be quoted; booleans stay the API's "true"/"false" strings.
     assert lines[1] == (
-        '1,RS,AUM,TELEKOM CENTER ATHENS,18500,"Sep 24, 2026",20:15,23:45,Regular Season,7,E2026_7,'
+        '1,RS,AUM,TELEKOM CENTER ATHENS,18500,"Sep 24, 2026",20:15,23:45,Regular Season,7,E2026_007,'
         "PANATHINAIKOS AKTOR ATHENS,PAN,PAO,PARIS BASKETBALL,PRS,PBB,true,true,true"
     )
     assert lines[2].startswith('2,RS,AUM,TELEKOM CENTER ATHENS,18500,"Sep 25, 2026"')
-    assert lines[2].endswith(",E2026_8,PANATHINAIKOS AKTOR ATHENS,PAN,PAO,PARIS BASKETBALL,PRS,PBB,true,false,false")
+    assert lines[2].endswith(",E2026_008,PANATHINAIKOS AKTOR ATHENS,PAN,PAO,PARIS BASKETBALL,PRS,PBB,true,false,false")
     assert len(lines) == 3
 
 
@@ -266,3 +266,10 @@ def test_main_duplicate_gamecode_fails_validation_and_writes_nothing(
     ):
         _run_main(monkeypatch, out_dir)
     assert not list(out_dir.glob("*.csv"))
+
+
+def test_pad_gamecodes_pads_to_three_digits_and_rejects_non_numeric() -> None:
+    rows = [_game(7), _game(142)]
+    assert [r["gamecode"] for r in pad_gamecodes(rows)] == ["E2026_007", "E2026_142"]
+    with pytest.raises(ValueError, match="E2026_x"):
+        pad_gamecodes([{**GAME, "gamecode": "E2026_x"}])

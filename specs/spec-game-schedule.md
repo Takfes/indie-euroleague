@@ -45,9 +45,9 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
   homecode, hometv, awayteam, awaycode, awaytv, confirmeddate, confirmedtime,
   played`. All values are strings except `gameday` (int). Booleans arrive as the
   strings `"true"`/`"false"`. `date` is `"Sep 24, 2026"`.
-- `gamecode` looks like `E2026_7` (unpadded, kept verbatim in the raw layer). The
-  box-score and header `game_id` is zero-padded (`E2026_007`), so a join on it
-  needs the schedule's `gamecode` normalised first.
+- The API's `gamecode` looks like `E2026_7`; the fetcher writes it zero-padded
+  (`E2026_007`), the only value it changes, so it equals the `game_id` of Kaggle,
+  the live box scores and the live headers and is the join key to them.
 - Swagger UI warns full-season payloads are big for browsers; ~170 KB here, fine
   programmatically. One request per run, no delay needed.
 

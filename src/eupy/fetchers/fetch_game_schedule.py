@@ -4,13 +4,13 @@
 `GET https://euroleague-advanced-api.eu/Euroleague/schedule?season={year}` is free and
 unauthenticated (only the API's advanced-stats endpoints need a subscription) and returns a JSON
 array with one flat object per game: round/gameday, date, tip-off time, arena, home/away teams and
-a `played` flag. Its `gamecode` (e.g. `E2026_7`) has the same format as the live box-score
-fetcher's `game_id`, so it is the join key between the two.
+a `played` flag. The API's `gamecode` (e.g. `E2026_7`) is written zero-padded (`E2026_007`) so that it
+equals the `game_id` of Kaggle, the live box scores and the live headers, and is the join key to them.
 
 The schedule is mutable (`played`, dates and times get confirmed or changed), so every run
 refetches and fully overwrites the season's file -- no state file, no timestamps. The raw layer
-keeps values verbatim and columns in the API's order; the same API response therefore yields a
-byte-identical file. The response is fetched and validated before the output file is opened, so
+keeps values as returned (except that `gamecode` is zero-padded) and columns in the API's
+order; the same API response therefore yields a byte-identical file. The response is fetched and validated before the output file is opened, so
 a failed request or a bad payload never truncates the previous good file (the write itself is not
 atomic -- a crash mid-write could).
 
@@ -122,6 +122,20 @@ def validate_schedule(payload: Any, season_code: str, url: str) -> list[dict[str
     return payload
 
 
+def pad_gamecodes(payload: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Zero-pad the game number of every `gamecode` to three digits (`E2026_7` -> `E2026_007`), in place.
+
+    Raises:
+        ValueError: If a game number is not an integer.
+    """
+    for index, row in enumerate(payload):
+        season, _, number = row["gamecode"].rpartition("_")
+        if not number.isdigit():
+            raise ValueError(f"Row {index} has gamecode {row['gamecode']!r}; expected `<season>_<game number>`.")
+        row["gamecode"] = f"{season}_{int(number):03d}"
+    return payload
+
+
 def fetch_schedule(season_code: str) -> list[dict[str, Any]]:
     """Download and validate the full-season schedule.
 
@@ -151,7 +165,7 @@ def fetch_schedule(season_code: str) -> list[dict[str, Any]]:
         payload = json.loads(body.decode("utf-8"))
     except ValueError as e:  # JSONDecodeError and UnicodeDecodeError both subclass ValueError
         raise ValueError(f"Response from {url} is not valid UTF-8 JSON: {e}. Nothing was written; re-run later.") from e
-    return validate_schedule(payload, season_code, url)
+    return pad_gamecodes(validate_schedule(payload, season_code, url))
 
 
 def write_schedule_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
