@@ -5,7 +5,7 @@
 # outputs (raw data, verdict batch dirs) are plain deps.
 
 [fetch_raw]
-dvc = false
+dvc = true
 scripts = [
     "fetch_game_schedule",
     "fetch_euroleague_fantasy_stats",

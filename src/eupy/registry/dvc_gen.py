@@ -5,16 +5,26 @@ and `scripts` (script names). Lint: every registry script sits in exactly one pi
 name is a registry script. No pipeline script (or library module) imports another script (`lint_script_imports`).
 
 DVC steps ("DVC stages" in DVC's own terms -- not the data-depth stage of the registry): one per pure
-script (`Impure: false`) in a pipeline with `dvc = true`, named after the script:
+script in a pipeline with `dvc = true`, named after the script. Pure scripts (`Impure: false`) and fetchers
+(impure scripts under `src/eupy/fetchers/`) are steps; other impure scripts (entity ingest, which needs
+`--verdicts`) never are:
 
 * `cmd`: `uv run python <script path>` (the script must run with no arguments);
 * `deps`: the script file, then every in-repo module it imports, transitively (`import_closure`; so editing
-  a library module reruns the step), then its input dataset paths (directories are hashed as directories);
+  a library module reruns the step), then `config/config.toml` when the closure reads the config, then its
+  input dataset paths (directories are hashed as directories);
 * `outs`: its output dataset paths, each `cache: false` (fingerprints go in `dvc.lock`, no file copies).
 
-Impure fetchers are not steps: their raw outputs are plain deps of the steps downstream, so a changed raw
-file reruns those steps. `data/stage_99/` symlinks are never outs. Steps are sorted by name and the output
-has no timestamps, so regeneration is byte-identical.
+A fetcher step also carries `always_changed: true` (nothing on disk says whether the live source changed, so
+it always reruns) and `persist: true` on its outs (DVC keeps them instead of deleting them before the run:
+incremental fetchers resume from them, and a failed fetch must not wipe raw data). Downstream steps compare
+the fetched files' hashes, so they rerun only when the fetch actually returned something new.
+
+A `dvc = true` pipeline made only of fetchers also gets an aggregate step named after the pipeline
+(`dvc repro <pipeline>` fetches everything in it): it depends on all the fetchers' outputs and has no outs.
+
+`data/stage_99/` symlinks are never outs. Steps are sorted by name and the output has no timestamps, so
+regeneration is byte-identical.
 """
 
 from __future__ import annotations
@@ -30,6 +40,9 @@ from eupy.registry.headers import LIBRARY_MODULES
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError
 
 PIPELINES_FILE = "pipelines.toml"
+FETCHERS_DIR = "src/eupy/fetchers/"
+CONFIG_LOADER = "src/eupy/config/loader.py"
+CONFIG_FILE = "config/config.toml"  # user config override; a dep of every step whose closure loads the config
 WRAPPERS_KEY = "wrappers"  # reserved table: wrapper name -> ordered list of pipeline names (not a pipeline)
 BANNER = "# GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml)."
 _SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]+$")  # written unquoted into YAML
@@ -52,6 +65,18 @@ class Step:
     cmd: str
     deps: tuple[str, ...]
     outs: tuple[str, ...]
+    fetcher: bool = False  # always_changed + persist outs
+
+
+def is_fetcher(registry: Registry, script: str) -> bool:
+    """Impure script located under `src/eupy/fetchers/`; impure ingest scripts elsewhere are never fetchers."""
+    s = registry.scripts[script]
+    return s.impure and s.path.startswith(FETCHERS_DIR)
+
+
+def is_step_script(registry: Registry, script: str) -> bool:
+    """Scripts that become DVC steps: pure scripts and fetchers."""
+    return not registry.scripts[script].impure or is_fetcher(registry, script)
 
 
 def load_pipelines(path: Path) -> dict[str, Pipeline]:
@@ -153,7 +178,7 @@ def checked_pipelines(registry: Registry, path: Path, root: Path = REPO_ROOT) ->
 
 
 def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> tuple[Step, ...]:
-    """One `Step` per pure script of a `dvc = true` pipeline, sorted by name.
+    """One `Step` per pure script or fetcher of a `dvc = true` pipeline, plus aggregate steps, sorted by name.
 
     `root` is where the script sources are read to compute each step's import closure. Raises `RegistryError`
     when the membership lint fails or a path cannot be written as a DVC path.
@@ -161,13 +186,15 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = R
     problems = lint_pipelines(registry, pipelines)
     if problems:
         raise RegistryError(problems)
-    names = sorted(s for p in pipelines.values() if p.dvc for s in p.scripts if not registry.scripts[s].impure)
+    names = sorted(s for p in pipelines.values() if p.dvc for s in p.scripts if is_step_script(registry, s))
     steps: list[Step] = []
     for name in names:
         script = registry.scripts[name]
+        closure = import_closure(script.path, root)
         deps = (
             script.path,
-            *import_closure(script.path, root),
+            *closure,
+            *([CONFIG_FILE] if CONFIG_LOADER in closure else []),
             *sorted(_dvc_path(registry.path(ds)) for ds in script.inputs),
         )
         outs = tuple(sorted(_dvc_path(registry.path(ds)) for ds in script.outputs))
@@ -175,10 +202,15 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = R
             f"step {name}: path {p!r} is not safe to write unquoted" for p in (*deps, *outs) if not _SAFE_PATH.match(p)
         ]
         problems += [f"step {name}: {o} is under data/stage_99/ (never a DVC out)" for o in outs if _is_link(o)]
-        steps.append(Step(name, f"uv run python {script.path}", deps, outs))
+        steps.append(Step(name, f"uv run python {script.path}", deps, outs, is_fetcher(registry, name)))
+    by_name = {s.name: s for s in steps}
+    for pipe in pipelines.values():
+        if pipe.dvc and pipe.scripts and all(is_fetcher(registry, s) for s in pipe.scripts):
+            outs = sorted(o for s in pipe.scripts for o in by_name[s].outs)
+            steps.append(Step(pipe.name, f"echo {pipe.name} fetched", tuple(outs), ()))
     if problems:
         raise RegistryError(problems)
-    return tuple(steps)
+    return tuple(sorted(steps, key=lambda step: step.name))
 
 
 def render_dvc(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> str:
@@ -186,9 +218,14 @@ def render_dvc(registry: Registry, pipelines: dict[str, Pipeline], root: Path = 
     lines = [BANNER, "stages:"]
     for step in dvc_steps(registry, pipelines, root):
         lines += [f"  {step.name}:", f"    cmd: {step.cmd}", "    deps:", *(f"    - {dep}" for dep in step.deps)]
-        lines.append("    outs:")
+        if step.outs:
+            lines.append("    outs:")
         for out in step.outs:
             lines += [f"    - {out}:", "        cache: false"]
+            if step.fetcher:
+                lines.append("        persist: true")
+        if step.fetcher:
+            lines.append("    always_changed: true")
     return "\n".join(lines) + "\n"
 
 

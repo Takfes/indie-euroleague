@@ -132,14 +132,16 @@ uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.to
 
 ## DVC pipelines
 
-`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`merge_history_live`) become DVC steps in the generated `dvc.yaml`; impure scripts (fetchers, entity ingest) are not steps — run them yourself, then:
+`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts and fetchers of `dvc = true` pipelines (`fetch_raw`, `merge_history_live`) become DVC steps in the generated `dvc.yaml`; entity ingest scripts (`--verdicts`) are not steps — run them yourself, then:
 
 ```bash
 uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pipelines.toml change (never hand-edit)
-uv run dvc repro                     # rerun only the steps whose script or inputs changed
+uv run dvc repro                     # everything: fetchers always rerun, the rest only if their script or inputs changed
+uv run dvc repro fetch_raw           # fetch all raw data, nothing else (needs network, Kaggle login, EUROLEAGUE_FANTASY_AUTH_TOKEN)
+uv run dvc repro -s merge_boxscore merge_headers   # offline: just the merges, upstream fetchers skipped
 ```
 
-A step's deps are its script, every in-repo module it imports (transitively, so editing a library module reruns the step), then its input datasets. `eupy run` first checks that the external inputs of the steps it will run exist, and exits 1 without running anything otherwise (DVC deletes a step's outputs before running it); `--dry-run` skips the check.
+A step's deps are its script, every in-repo module it imports (transitively, so editing a library module reruns the step), `config/config.toml` when it loads the config, then its input datasets. A fetcher step has `always_changed: true` (only the download shows whether the source changed) and `persist: true` on its outs (DVC keeps the files instead of deleting them first: incremental fetchers resume from them, and a failed fetch must not wipe raw data). Steps downstream rerun only if the fetched files' hashes actually changed. `fetch_raw` is an aggregate step: it fetches every raw dataset and does nothing else. `eupy run` first checks that the external inputs of the steps it will run exist, and exits 1 without running anything otherwise (DVC deletes a step's outputs before running it); `--dry-run` skips the check.
 
 Outputs are `cache: false` (no copies, no remote); their fingerprints live in the committed `dvc.lock`. `data/raw_data/` is git-ignored: on a fresh clone the raw deps are missing until the fetchers (and the Kaggle download) have run, so `dvc repro` only works after that.
 
@@ -148,16 +150,16 @@ Outputs are `cache: false` (no copies, no remote); their fingerprints live in th
 Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["merge_history_live"]`, `full = ["fetch_raw", "merge_history_live"]`; order between pipelines comes from DVC dependencies).
 
 ```bash
-uv run eupy run all                 # offline: dvc repro for the merge steps; a second run is a no-op
-uv run eupy run fetch_raw           # dvc = false pipeline: runs all raw-data fetchers (schedule, stats, Kaggle, live box score + headers); no DVC
-uv run eupy run full                # fetch_raw (live fetchers), then the merge steps
+uv run eupy run all                 # offline: dvc repro --single-item for the merge steps; a second run is a no-op
+uv run eupy run fetch_raw           # all raw-data fetchers (schedule, stats, Kaggle, live box score + headers) as DVC steps
+uv run eupy run full                # fetch_raw, then the merge steps (the merges rerun only if the fetched files changed)
 uv run eupy run merge_history_live  # offline: Kaggle history + live deltas -> merged box score / header
 uv run eupy run all --dry-run       # print the commands, execute nothing
 uv run eupy link-final              # refresh data/stage_99/ links (also runs after a successful `eupy run`)
 ```
 
 - `optimize` is `dvc = false` with no fetchers: `eupy run optimize` exits 1 ("not runnable under DVC yet").
-- `--fetch` runs the pipeline's *fetchers* (impure scripts under `src/eupy/fetchers/`) with `uv run python <script>` in dependency order; the default run never touches the network. Ingest scripts (need `--verdicts`) are never run by `eupy run`.
+- `eupy run` passes `--single-item`: it runs exactly the target's steps, in dependency order, never their upstream. So it only touches the network when the target includes `fetch_raw`. Ingest scripts (need `--verdicts`) are never run by `eupy run`.
 - `link-final` creates relative symlinks in `data/stage_99/` for every produced `Final: true` dataset whose file exists (missing ones are reported and skipped), removes stale symlinks it no longer manages, and never touches regular files or directories.
 
 ## Dev loop

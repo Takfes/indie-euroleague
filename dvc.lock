@@ -3,6 +3,10 @@ stages:
   merge_boxscore:
     cmd: uv run python src/eupy/transform/merge_boxscore.py
     deps:
+    - path: config/config.toml
+      hash: md5
+      md5: ec8e56d404d91b859a3bc5a8c1de2efb
+      size: 368
     - path: data/raw_data/euroleague_net/box_score
       hash: md5
       md5: 263e694d729c2ccc0f7365a390aaedc9.dir
@@ -52,6 +56,10 @@ stages:
   merge_headers:
     cmd: uv run python src/eupy/transform/merge_headers.py
     deps:
+    - path: config/config.toml
+      hash: md5
+      md5: ec8e56d404d91b859a3bc5a8c1de2efb
+      size: 368
     - path: data/raw_data/euroleague_net/headers
       hash: md5
       md5: 288b7db262677c9e2080c855e2701c98.dir

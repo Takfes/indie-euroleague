@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from eupy.cli import CliError, is_fetcher, main, plan_run, resolve_target
-from eupy.registry.dvc_gen import Pipeline
+from eupy.cli import CliError, main, plan_run, resolve_target
+from eupy.registry.dvc_gen import Pipeline, is_fetcher
 from eupy.registry.headers import Header
 from eupy.registry.model import REPO_ROOT, Registry, is_stage0_path
 
@@ -41,7 +41,7 @@ def _registry() -> Registry:
 PIPES = {
     "first": Pipeline("first", True, ("fetch_x", "make_a")),
     "second": Pipeline("second", True, ("make_z", "make_b")),  # listed out of order on purpose
-    "grab": Pipeline("grab", False, ("fetch_y",)),
+    "grab": Pipeline("grab", True, ("fetch_y",)),
     "later": Pipeline("later", False, ("make_z",)),
 }
 WRAPPERS = {"both": ("first", "second")}
@@ -54,25 +54,15 @@ def test_resolve_target_pipeline_wrapper_and_unknown() -> None:
         resolve_target("nope", PIPES, WRAPPERS)
 
 
-def test_plan_offline_is_dvc_repro_only_in_topo_order() -> None:
-    plan = plan_run(_registry(), PIPES, ["first", "second"], fetch=False)
-    assert plan == [["uv", "run", "dvc", "repro", "make_a", "make_b", "make_z"]]
+def test_plan_is_one_single_item_repro_in_topo_order() -> None:
+    plan = plan_run(_registry(), PIPES, ["first", "second"])
+    assert plan == [["uv", "run", "dvc", "repro", "--single-item", "fetch_x", "make_a", "make_b", "make_z"]]
 
 
-def test_plan_fetch_runs_fetcher_before_repro() -> None:
-    plan = plan_run(_registry(), PIPES, ["first"], fetch=True)
-    assert plan == [
-        ["uv", "run", "python", "src/eupy/fetchers/fetch_x.py"],
-        ["uv", "run", "dvc", "repro", "make_a"],
-    ]
-
-
-def test_plan_non_dvc_pipeline_runs_fetchers_only_or_errors() -> None:
-    assert plan_run(_registry(), PIPES, ["grab"], fetch=False) == [
-        ["uv", "run", "python", "src/eupy/fetchers/fetch_y.py"]
-    ]
+def test_plan_runs_only_the_selected_pipelines_steps_and_rejects_non_dvc() -> None:
+    assert plan_run(_registry(), PIPES, ["grab"]) == [["uv", "run", "dvc", "repro", "--single-item", "fetch_y"]]
     with pytest.raises(CliError, match="not runnable under DVC yet"):
-        plan_run(_registry(), PIPES, ["later"], fetch=False)
+        plan_run(_registry(), PIPES, ["later"])
 
 
 def _repo(tmp_path: Path) -> Path:
@@ -100,7 +90,7 @@ def test_run_merge_pipeline_repros_then_links(tmp_path: Path, capsys: pytest.Cap
     (root / "data/stage_01").mkdir(parents=True)
     (root / "data/stage_01/schedule.csv").write_text("x")
     assert main(["run", "merge_history_live"], runner=fake, root=root) == 0
-    assert fake.calls == [["uv", "run", "dvc", "repro", "merge_boxscore", "merge_headers"]]
+    assert fake.calls == [["uv", "run", "dvc", "repro", "--single-item", "merge_boxscore", "merge_headers"]]
     assert (root / "data/stage_99/schedule.csv").is_symlink()
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
 
@@ -131,14 +121,14 @@ def test_dry_run_prints_and_never_executes(tmp_path: Path, capsys: pytest.Captur
     assert main(["run", "fetch_raw", "--dry-run"], runner=fake, root=root) == 0
     out = capsys.readouterr().out
     assert fake.calls == []
-    assert "fetch_game_schedule.py" in out and "fetch_kaggle_euroleague.py" in out
+    assert "fetch_game_schedule" in out and "fetch_kaggle_euroleague" in out
     assert not (root / "data/stage_99").exists()
 
 
 def test_failure_stops_and_skips_link_final(tmp_path: Path) -> None:
     root, fake = _repo(tmp_path), _Fake(code=3)
     assert main(["run", "fetch_raw"], runner=fake, root=root) == 3
-    assert len(fake.calls) == 1  # first fetcher failed; the rest never ran
+    assert len(fake.calls) == 1
     assert not (root / "data/stage_99").exists()
 
 
@@ -151,16 +141,27 @@ def test_unknown_and_non_dvc_targets_exit_nonzero(tmp_path: Path, capsys: pytest
     assert fake.calls == []
 
 
-def test_fetch_raw_runs_every_fetcher_only(tmp_path: Path) -> None:
+def test_fetch_raw_repros_every_fetcher_and_nothing_else(tmp_path: Path) -> None:
     fake = _Fake()
     assert main(["run", "fetch_raw"], runner=fake, root=_repo(tmp_path)) == 0
-    assert sorted(c[3] for c in fake.calls) == [
-        "src/eupy/fetchers/fetch_euroleague_fantasy_stats.py",
-        "src/eupy/fetchers/fetch_euroleague_live_boxscores.py",
-        "src/eupy/fetchers/fetch_euroleague_live_headers.py",
-        "src/eupy/fetchers/fetch_game_schedule.py",
-        "src/eupy/fetchers/fetch_kaggle_euroleague.py",
+    assert len(fake.calls) == 1 and fake.calls[0][:5] == ["uv", "run", "dvc", "repro", "--single-item"]
+    assert sorted(fake.calls[0][5:]) == [
+        "fetch_euroleague_fantasy_stats",
+        "fetch_euroleague_live_boxscores",
+        "fetch_euroleague_live_headers",
+        "fetch_game_schedule",
+        "fetch_kaggle_euroleague",
     ]
+
+
+def test_full_wrapper_fetches_then_merges_without_any_raw_data(tmp_path: Path) -> None:
+    fake = _Fake()
+    assert main(["run", "full"], runner=fake, root=_repo(tmp_path)) == 0  # fetchers produce the merge inputs
+    steps = fake.calls[0][5:]
+    assert len(fake.calls) == 1 and len(steps) == 7
+    fetchers = [i for i, step in enumerate(steps) if step.startswith("fetch_")]
+    merges = [i for i, step in enumerate(steps) if step.startswith("merge_")]
+    assert max(fetchers) < min(merges)
 
 
 def test_link_final_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -184,7 +185,7 @@ def test_ingest_scripts_are_never_fetchers() -> None:
     }
     reg = Registry.from_headers(headers, RAW_SOURCES)
     pipes = {"ent": Pipeline("ent", True, ("ingest", "resolve"))}
-    assert plan_run(reg, pipes, ["ent"], fetch=True) == [["uv", "run", "dvc", "repro", "resolve"]]
+    assert plan_run(reg, pipes, ["ent"]) == [["uv", "run", "dvc", "repro", "--single-item", "resolve"]]
     assert not is_fetcher(reg, "ingest")
 
 
@@ -194,24 +195,10 @@ def test_missing_raw_input_blocks_before_anything_runs(tmp_path: Path, capsys: p
     err = capsys.readouterr().err
     assert fake.calls == [] and not (root / "data/stage_99").exists()
     assert "kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv" in err
-    assert "eupy run fetch_raw" in err and "Kaggle" in err
+    assert "eupy run fetch_raw" in err
     # Only absent paths are listed: stage them all but one.
     assert _stage_raw(root)
     (root / "data/raw_data/kaggle_data/euroleague_box_score.csv").unlink()
     assert main(["run", "all"], runner=fake, root=root) == 1
     err = capsys.readouterr().err
     assert err.count("data/raw_data/") == 1 and "euroleague_box_score.csv" in err and fake.calls == []
-
-
-def test_pipeline_is_blocked_without_its_raw_inputs(tmp_path: Path) -> None:
-    root, fake = _repo(tmp_path), _Fake()
-    # the merge inputs are produced by fetch_raw fetchers, not by the merge pipeline: --fetch does not cover them.
-    assert main(["run", "merge_history_live", "--fetch"], runner=fake, root=root) == 1
-    assert fake.calls == []
-
-
-def test_full_wrapper_fetches_then_merges(tmp_path: Path) -> None:
-    fake = _Fake()
-    assert main(["run", "full"], runner=fake, root=_repo(tmp_path)) == 0
-    assert len(fake.calls) == 6 and all(c[:3] == ["uv", "run", "python"] for c in fake.calls[:-1])  # 5 fetchers
-    assert fake.calls[-1] == ["uv", "run", "dvc", "repro", "merge_boxscore", "merge_headers"]

@@ -53,8 +53,8 @@ def _pipelines(c_dvc: bool = False) -> dict[str, Pipeline]:
 
 
 def test_step_has_script_and_input_deps_and_uncached_outs() -> None:
-    assert render_dvc(_registry(), _pipelines()).splitlines()[1:] == [
-        "stages:",
+    lines = render_dvc(_registry(), _pipelines()).splitlines()
+    assert lines[lines.index("  make_a:") :] == [
         "  make_a:",
         "    cmd: uv run python src/eupy/transform/make_a.py",
         "    deps:",
@@ -69,9 +69,45 @@ def test_step_has_script_and_input_deps_and_uncached_outs() -> None:
     ]
 
 
-def test_impure_script_and_dvc_false_pipeline_are_not_steps() -> None:
-    assert [s.name for s in dvc_steps(_registry(), _pipelines())] == ["make_a"]  # fetch_x impure, make_c dvc=false
-    assert [s.name for s in dvc_steps(_registry(), _pipelines(c_dvc=True))] == ["make_a", "make_c"]
+def test_fetcher_step_always_reruns_and_persists_its_outs() -> None:
+    lines = render_dvc(_registry(), _pipelines()).splitlines()
+    assert lines[lines.index("  fetch_x:") : lines.index("  make_a:")] == [
+        "  fetch_x:",
+        "    cmd: uv run python src/eupy/fetchers/fetch_x.py",
+        "    deps:",
+        "    - src/eupy/fetchers/fetch_x.py",
+        "    outs:",
+        "    - data/raw_data/x:",
+        "        cache: false",
+        "        persist: true",
+        "    always_changed: true",
+    ]
+
+
+def test_pipeline_of_only_fetchers_gets_an_aggregate_step_without_outs() -> None:
+    pipes = {"fetch": Pipeline("fetch", True, ("fetch_x",)), "rest": Pipeline("rest", False, ("make_a", "make_c"))}
+    steps = {s.name: s for s in dvc_steps(_registry(), pipes)}
+    assert sorted(steps) == ["fetch", "fetch_x"]
+    assert steps["fetch"].deps == ("data/raw_data/x",) and steps["fetch"].outs == ()
+    assert render_dvc(_registry(), pipes).splitlines().count("    outs:") == 1  # only fetch_x has outs
+
+
+def test_step_depends_on_config_file_when_its_closure_loads_the_config(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/make_a.py": "from eupy.config import get_config\n",
+            "config/__init__.py": "from eupy.config.loader import x\n",
+            "config/loader.py": "x = 1\n",
+        },
+    )
+    step = next(s for s in dvc_steps(_registry(), _pipelines(), tmp_path) if s.name == "make_a")
+    assert "config/config.toml" in step.deps
+
+
+def test_ingest_scripts_and_dvc_false_pipelines_are_not_steps() -> None:
+    assert [s.name for s in dvc_steps(_registry(), _pipelines())] == ["fetch_x", "make_a"]  # make_c dvc=false
+    assert [s.name for s in dvc_steps(_registry(), _pipelines(c_dvc=True))] == ["fetch_x", "make_a", "make_c"]
 
 
 def test_render_is_idempotent_and_bannered() -> None:
@@ -209,7 +245,7 @@ def test_import_closure_of_missing_or_unparsable_script_is_empty(tmp_path: Path)
 
 def test_step_deps_include_import_closure_between_script_and_inputs(tmp_path: Path) -> None:
     _pkg(tmp_path, {"transform/make_a.py": "from eupy.lib import helper\n", "lib/helper.py": ""})
-    (step,) = dvc_steps(_registry(), _pipelines(), tmp_path)
+    step = next(s for s in dvc_steps(_registry(), _pipelines(), tmp_path) if s.name == "make_a")
     assert step.deps == (
         "src/eupy/transform/make_a.py",
         "src/eupy/lib/helper.py",

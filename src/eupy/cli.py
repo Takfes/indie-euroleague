@@ -1,23 +1,25 @@
 """`eupy` command line: run pipelines under DVC and refresh the `data/stage_99/` links.
 
 Usage (from the repo root, `uv run eupy ...`):
-    eupy run <pipeline|wrapper> [--fetch] [--dry-run]
+    eupy run <pipeline|wrapper> [--dry-run]
     eupy link-final
 
-Targets come from `pipelines.toml`: a pipeline name, or a wrapper (an ordered list of pipelines; the order
-between them is enforced by the DVC dependencies, not by the list).
+Targets come from `pipelines.toml`: a pipeline name, or a wrapper (an ordered list of pipelines).
 
-* `dvc = true` pipeline: `uv run dvc repro <steps>` for its pure scripts (DVC also reruns upstream steps).
-  Fully offline by default; `--fetch` first runs the pipeline's fetchers directly with
-  `uv run python <script>`, in dependency order -- those hit live sources.
+* `dvc = true` pipeline: `uv run dvc repro --single-item <steps>` for its steps (pure scripts and fetchers),
+  in dependency order. `--single-item` keeps a run to exactly those steps: upstream steps (the fetchers
+  included) never run unless their pipeline is part of the target, so a run is offline unless the target
+  includes a fetcher pipeline (`fetch_raw`, or a wrapper such as `full`).
 * A *fetcher* is an impure script located under `src/eupy/fetchers/`. Other impure scripts (the `entity`
-  `apply_*_verdicts` ingest scripts, which need `--verdicts`) are never run by `eupy run`, with or without `--fetch`.
+  `apply_*_verdicts` ingest scripts, which need `--verdicts`) are never run by `eupy run`.
 * Before `dvc repro`, a precheck verifies that every external input (stage 0: raw data / curated) of the
-  steps DVC will run exists on disk -- DVC deletes a step's outputs before running it, so a step failing on a
-  missing raw input would destroy untracked outputs. Skipped under `--dry-run`.
-* `dvc = false` pipeline: no DVC steps. `eupy run` runs only its fetchers (so `eupy run fetch_raw` runs them);
-  a pipeline without any (`optimize`) fails with a "not runnable under DVC yet" message.
+  steps about to run exists on disk or is produced by one of them -- DVC deletes a step's outputs before
+  running it, so a step failing on a missing raw input would destroy untracked outputs. Skipped under `--dry-run`.
+* `dvc = false` pipeline: no DVC steps; `eupy run` fails with a "not runnable under DVC yet" message.
 * After a successful run, `link-final` refreshes `data/stage_99/`.
+
+Plain DVC works too: `uv run dvc repro fetch_raw` fetches all raw data (and nothing else), and
+`uv run dvc repro` runs everything, fetchers included.
 
 Every command goes through one injectable `Runner`; `--dry-run` prints the commands instead of executing them.
 """
@@ -31,11 +33,17 @@ from collections.abc import Callable, Sequence
 from graphlib import CycleError
 from pathlib import Path
 
-from eupy.registry.dvc_gen import PIPELINES_FILE, Pipeline, checked_pipelines, dvc_steps, load_wrappers
+from eupy.registry.dvc_gen import (
+    PIPELINES_FILE,
+    Pipeline,
+    checked_pipelines,
+    dvc_steps,
+    is_step_script,
+    load_wrappers,
+)
 from eupy.registry.link_final import link_final
 from eupy.registry.model import REPO_ROOT, Registry, RegistryError, is_stage0_path
 
-FETCHERS_DIR = "src/eupy/fetchers/"
 Runner = Callable[[Sequence[str]], int]  # command -> exit code
 
 
@@ -54,78 +62,52 @@ def resolve_target(target: str, pipelines: dict[str, Pipeline], wrappers: dict[s
     )
 
 
-def is_fetcher(registry: Registry, script: str) -> bool:
-    """Impure script located under `src/eupy/fetchers/`; impure ingest scripts elsewhere are never fetchers."""
-    s = registry.scripts[script]
-    return s.impure and s.path.startswith(FETCHERS_DIR)
+def _steps(registry: Registry, pipelines: dict[str, Pipeline], names: list[str]) -> list[str]:
+    """Step scripts of the selected `dvc = true` pipelines, in dependency order."""
+    order = {name: i for i, name in enumerate(registry.topo_order())}
+    steps = {s for n in names if pipelines[n].dvc for s in pipelines[n].scripts if is_step_script(registry, s)}
+    return sorted(steps, key=order.__getitem__)
 
 
 def missing_inputs(
-    registry: Registry, pipelines: dict[str, Pipeline], names: list[str], fetch: bool, root: Path
+    registry: Registry, pipelines: dict[str, Pipeline], names: list[str], root: Path
 ) -> list[tuple[str, str]]:
-    """`(dataset, path)` of external inputs absent on disk for the DVC steps `eupy run` would trigger.
+    """`(dataset, path)` of external inputs absent on disk for the steps `eupy run` would trigger.
 
-    Covers the selected steps plus the steps upstream of them (DVC reruns those too). Only stage-0 datasets
-    count (raw / curated), minus those a fetcher run in this invocation produces. Directories need only exist.
+    Only stage-0 datasets count (raw / curated), minus those produced by a selected step. Directories need
+    only exist.
     """
-    step_scripts = {s for p in pipelines.values() if p.dvc for s in p.scripts if not registry.scripts[s].impure}
-    selected = {s for n in names if pipelines[n].dvc for s in pipelines[n].scripts if s in step_scripts}
-    triggered = selected | {u for s in selected for u in registry.upstream(s) if u in step_scripts}
-    fetched = {
-        ds
-        for n in names
-        if fetch or not pipelines[n].dvc
-        for s in pipelines[n].scripts
-        if is_fetcher(registry, s)
-        for ds in registry.scripts[s].outputs
-    }
-    wanted = {ds for s in triggered for ds in registry.scripts[s].inputs if is_stage0_path(registry.path(ds))}
+    steps = _steps(registry, pipelines, names)
+    produced = {ds for s in steps for ds in registry.scripts[s].outputs}
+    wanted = {ds for s in steps for ds in registry.scripts[s].inputs if is_stage0_path(registry.path(ds))}
     return [
         (ds, registry.path(ds))
-        for ds in sorted(wanted - fetched)
+        for ds in sorted(wanted - produced)
         if not (root / registry.path(ds).rstrip("/")).exists()
     ]
 
 
-def plan_run(registry: Registry, pipelines: dict[str, Pipeline], names: list[str], fetch: bool) -> list[list[str]]:
-    """Commands for the given pipelines, in order: impure scripts (when fetching or non-DVC), then one `dvc repro`.
+def plan_run(registry: Registry, pipelines: dict[str, Pipeline], names: list[str]) -> list[list[str]]:
+    """The one `dvc repro --single-item` command for the given pipelines' steps, in dependency order.
 
-    Raises `CliError` for a non-DVC pipeline with nothing to run.
+    Raises `CliError` when a selected pipeline is not a DVC pipeline or has no steps.
     """
-    order = {name: i for i, name in enumerate(registry.topo_order())}
-    fetchers: list[str] = []
-    steps: list[str] = []
     for name in names:
-        pipe = pipelines[name]
-        impure = [s for s in pipe.scripts if is_fetcher(registry, s)]
-        if not pipe.dvc and not impure:
-            raise CliError(
-                f"pipeline {name!r} is not runnable under DVC yet (dvc = false in {PIPELINES_FILE}, no fetchers)"
-            )
-        if fetch or not pipe.dvc:
-            fetchers += impure
-        if pipe.dvc:
-            steps += [s for s in pipe.scripts if not registry.scripts[s].impure]
-    commands = [
-        ["uv", "run", "python", registry.scripts[s].path]
-        for s in sorted(dict.fromkeys(fetchers), key=order.__getitem__)
-    ]
-    if not commands and not steps:
-        raise CliError("nothing to run (all members are impure scripts); use --fetch")
-    if steps:
-        commands.append(["uv", "run", "dvc", "repro", *sorted(dict.fromkeys(steps), key=order.__getitem__)])
-    return commands
+        if not pipelines[name].dvc:
+            raise CliError(f"pipeline {name!r} is not runnable under DVC yet (dvc = false in {PIPELINES_FILE})")
+    steps = _steps(registry, pipelines, names)
+    if not steps:
+        raise CliError("nothing to run (no DVC steps in the selected pipelines)")
+    return [["uv", "run", "dvc", "repro", "--single-item", *steps]]
 
 
-def _require_inputs(
-    registry: Registry, pipelines: dict[str, Pipeline], names: list[str], fetch: bool, root: Path
-) -> None:
+def _require_inputs(registry: Registry, pipelines: dict[str, Pipeline], names: list[str], root: Path) -> None:
     """Precheck: `CliError` listing every missing external input of the steps about to run."""
-    if missing := missing_inputs(registry, pipelines, names, fetch, root):
+    if missing := missing_inputs(registry, pipelines, names, root):
         raise CliError(
             "missing external inputs; nothing was run (DVC would delete outputs before failing):\n"
             + "\n".join(f"  {ds}: {path}" for ds, path in missing)
-            + "\nfetched sources: `eupy run fetch_raw` or `--fetch`; otherwise place/download the file (e.g. Kaggle)"
+            + "\nfetch them with `eupy run fetch_raw` (or `eupy run full`)"
         )
 
 
@@ -162,7 +144,6 @@ def main(argv: list[str] | None = None, runner: Runner | None = None, root: Path
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run", help="run a pipeline or wrapper from pipelines.toml")
     run.add_argument("target", help="pipeline or wrapper name")
-    run.add_argument("--fetch", action="store_true", help="run the impure fetchers first (live sources)")
     run.add_argument("--dry-run", action="store_true", help="print the commands instead of running them")
     sub.add_parser("link-final", help="refresh data/stage_99/ symlinks from the registry")
     args = parser.parse_args(argv)
@@ -175,9 +156,9 @@ def main(argv: list[str] | None = None, runner: Runner | None = None, root: Path
         pipelines = checked_pipelines(registry, root / PIPELINES_FILE)
         dvc_steps(registry, pipelines, root)  # fail early on unrunnable DVC definitions
         names = resolve_target(args.target, pipelines, load_wrappers(root / PIPELINES_FILE))
-        commands = plan_run(registry, pipelines, names, args.fetch)
+        commands = plan_run(registry, pipelines, names)
         if not args.dry_run:
-            _require_inputs(registry, pipelines, names, args.fetch, root)
+            _require_inputs(registry, pipelines, names, root)
     except RegistryError as exc:
         for problem in exc.problems:
             print(f"error: {problem}", file=sys.stderr)
