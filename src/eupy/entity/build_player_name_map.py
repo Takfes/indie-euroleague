@@ -8,8 +8,9 @@ box score is only the source of full names. Stages, in order (see specs/spec-nam
 1. Exact, club-scoped -- pool = box-score players who played for the player's club in the most recent seasons
    (club compared after `TeamNames` normalization on both sides), spelled in the stats' abbreviated form. Exactly
    one normalized-string match is `exact`, the only automatic accept.
-2. Fuzzy, unscoped -- everything else is scored against every box-score spelling in history. A hit, including an
-   exact one outside the club, is `needs_review`: it may be an older namesake. No hit is `no_candidate`.
+2. Exact, unscoped -- everything else is looked up across every box-score spelling in history. A hit is
+   `needs_review`, never accepted: it may be an older namesake or the player at a previous club. No hit is
+   `no_candidate`. There is no approximate matching.
 3. Verdicts -- agent decisions recorded in `data/curated/player_name_verdicts/` (`confirmed` with the full name,
    `rejected`, `no_match`) are applied on top, a later batch winning on the same key. The agent covers what the
    first two stages leave open: players who just moved club (no games for it yet) and rookies without box-score
@@ -42,7 +43,7 @@ Notes: Also writes the JSON copy src/eupy/entity/maps/player_name_map.json (comm
   A missing verdicts directory means no verdicts yet. Rerunning on the same inputs rewrites identical bytes. The
   previous map is never read.
   CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined
-  with " | "), match_status, matched_by, match_score, notes.
+  with " | "), match_status, matched_by, notes.
 """
 
 from __future__ import annotations
@@ -60,7 +61,6 @@ from eupy.entity.matching import (
     UnknownNameError,
     build_normalized_index,
     find_candidates,
-    format_candidates_note,
     normalize_name,
 )
 from eupy.entity.team_names import TeamNames
@@ -81,7 +81,6 @@ CSV_FIELDS = [
     "variants",
     "match_status",
     "matched_by",
-    "match_score",
     "notes",
 ]
 
@@ -161,16 +160,13 @@ def load_boxscore_pools(path: Path, teams: TeamNames, recent_seasons: int = RECE
     )
 
 
-def _match(name: str, pool: Pool) -> tuple[str, list[tuple[str, float]], str]:
-    """Exact -> fuzzy engine over a box-score pool, with candidates expanded from abbreviations to full names."""
+def _match(name: str, pool: Pool) -> tuple[str, list[str], str]:
+    """Exact match over a box-score pool, with candidates expanded from abbreviations to full names."""
     abbreviated = abbreviated_pool(list(pool))
     status, candidates, matched_by = find_candidates(
-        normalize_name(name),
-        abbreviated,
-        build_normalized_index(abbreviated),
-        {s: normalize_name(s) for s in abbreviated},
+        normalize_name(name), abbreviated, build_normalized_index(abbreviated)
     )
-    return status, [(full, score) for abbrev, score in candidates for full in sorted(abbreviated[abbrev])], matched_by
+    return status, [full for abbrev in candidates for full in sorted(abbreviated[abbrev])], matched_by
 
 
 def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str, str]:
@@ -179,8 +175,8 @@ def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str,
     if status == "no_candidate":
         status, candidates, matched_by = _match(player["name"], pools.all)
         if status == "exact":
-            status = "needs_review"  # outside the club: never auto-accept
-    candidates = [(full.title(), score) for full, score in candidates]
+            status, matched_by = "needs_review", "exact_other_club"  # outside the club: never auto-accept
+    candidates = [full.title() for full in candidates]
 
     row = {
         "team": player["team"],
@@ -188,14 +184,13 @@ def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str,
         "club": club,
         "resolved_name": "",
         "match_status": status,
-        "match_score": "",
         "matched_by": matched_by,
         "notes": "" if club else f"team code {player['team']!r} is not in the team map",
     }
     if candidates:
-        row |= {"resolved_name": candidates[0][0], "match_score": f"{candidates[0][1]:.1f}"}
+        row["resolved_name"] = candidates[0]
         if status == "needs_review":
-            note = f"candidates: {format_candidates_note(candidates)}"
+            note = f"candidates: {'; '.join(candidates)}"
             row["notes"] = f"{row['notes']}; {note}" if row["notes"] else note
     return row
 
@@ -239,7 +234,6 @@ def build_entries(rows: list[dict[str, str]], pools: BoxscorePools) -> list[dict
             "stats_team": row["team"],
             "match_status": row["match_status"],
             "matched_by": row["matched_by"],
-            "match_score": row["match_score"],
             "notes": row["notes"],
         })
     return entries

@@ -216,8 +216,8 @@ def test_builder_writes_stable_json_that_loads(tmp_path: Path, monkeypatch: pyte
     build_player_name_map.main(args)
     assert (out.read_bytes(), csv_out.read_bytes()) == first
     assert csv_out.read_text(encoding="utf-8").splitlines() == [
-        "stats_team,stats_name,team,name,variants,match_status,matched_by,match_score,notes",
-        'PAO,C. Jones,Panathinaikos,Carlik Jones,"C. Jones | Carlik Jones | JONES, CARLIK",exact,exact,100.0,',
+        "stats_team,stats_name,team,name,variants,match_status,matched_by,notes",
+        'PAO,C. Jones,Panathinaikos,Carlik Jones,"C. Jones | Carlik Jones | JONES, CARLIK",exact,exact,',
     ]
     assert PlayerNames.load(out, TeamNames.load(team_map)).normalize("JONES, CARLIK") == "Carlik Jones"
 

@@ -14,7 +14,6 @@ Verdict record shape (JSON list, one object per stats player to decide):
         "name": "S. Francisco",           # required: the stats spelling
         "match_status": "confirmed",      # required: confirmed | rejected | no_match
         "resolved_name": "...",           # required for confirmed (the full name), must be empty otherwise
-        "match_score": 95.0,              # optional
         "matched_by": "agent",            # optional, defaults to "agent"
         "notes": "..."                    # required: brief rationale
     }

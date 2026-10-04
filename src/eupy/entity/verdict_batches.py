@@ -17,7 +17,6 @@ Verdict record (the schema `apply_player_name_verdicts.py` and the `build-name-m
         "<key>": "...",                  # row key field(s); the player map uses `team` + `name`
         "match_status": "confirmed",     # confirmed | rejected | no_match
         "<target>": "...",               # matched name: required on confirmed, empty otherwise
-        "match_score": 95.0,             # optional; numbers render as "95.0", strings verbatim
         "matched_by": "agent",           # optional, defaults to "agent"
         "notes": "..."                   # required rationale
     }
@@ -114,11 +113,9 @@ def apply_verdicts(
         row = rows_by_key.get(key)
         if row is None:
             continue
-        score = verdict.get("match_score", "")
         row |= {
             "match_status": verdict["match_status"],
             target_field: verdict.get(target_field, ""),
-            "match_score": f"{score:.1f}" if isinstance(score, int | float) else str(score),
             "matched_by": verdict.get("matched_by", "agent"),
             "notes": verdict["notes"],
         }

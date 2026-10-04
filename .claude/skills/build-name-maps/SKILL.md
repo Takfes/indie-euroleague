@@ -37,7 +37,7 @@ source (the schedule), do not work around it in verdicts.
 Open entries are in `data/stage_02/player_name_map.csv` (and the JSON next to the package) with `match_status` `needs_review` or
 `no_candidate` (`PlayerNames.load().unresolved()` lists them). For each one:
 
-- The row key is `stats_team` + `stats_name`. `notes` lists the fuzzy candidates, which can be older namesakes.
+- The row key is `stats_team` + `stats_name`. `notes` lists the box-score players with the same name elsewhere in history, who can be older namesakes; there is no approximate matching, so a spelling difference leaves no candidate at all.
 - Decide the full name: use the candidates, the box-score history, and the web when the player is new to the club
   or the league (a transfer has no games for the new club yet; a rookie has no box-score history).
 - Record one verdict per player:

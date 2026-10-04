@@ -108,13 +108,12 @@ def test_apply_verdicts_overwrites_resolution_fields_and_skips_unknown_keys() ->
             "name": "A",
             "boxscore_name": "",
             "match_status": "no_candidate",
-            "match_score": "",
-            "matched_by": "fuzzy",
+            "matched_by": "exact",
             "notes": "",
         }
     }
     verdicts = merge_verdicts(
-        [_verdict("A", "confirmed", "why", boxscore_name="A X", match_score=91.25), _verdict("Gone")],
+        [_verdict("A", "confirmed", "why", boxscore_name="A X"), _verdict("Gone")],
         "name",
         "boxscore_name",
     )
@@ -125,7 +124,6 @@ def test_apply_verdicts_overwrites_resolution_fields_and_skips_unknown_keys() ->
         "name": "A",
         "boxscore_name": "A X",
         "match_status": "confirmed",
-        "match_score": "91.2",
         "matched_by": "agent",
         "notes": "why",
     }

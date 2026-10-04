@@ -170,7 +170,7 @@ round currently in progress.
 ### Auth
 
 - Read `EUROLEAGUE_FANTASY_AUTH_TOKEN` from `.env` via a small manual parser
-  (current dependencies are stdlib + `rapidfuzz` only — no `python-dotenv`;
+  (current dependencies are stdlib only — no `python-dotenv`;
   don't add it for a two-line `KEY=value` read).
 - Send as `Authorization: Bearer <token>` on every request via
   `urllib.request`, matching the existing two fetchers (no new HTTP

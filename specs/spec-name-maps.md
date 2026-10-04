@@ -37,7 +37,7 @@ src/eupy/entity/
   build_team_name_map.py           script: schedule -> team_name_map (JSON + CSV)
   build_player_name_map.py         script: stats + box score + verdicts -> player_name_map (JSON + CSV); holds the engine
   apply_player_name_verdicts.py    ingest script: agent verdicts -> data/curated/player_name_verdicts/
-  matching.py                      library: normalize_name, exact -> fuzzy candidate finder, lookup errors
+  matching.py                      library: normalize_name, exact candidate finder, lookup errors
   verdict_batches.py               library: append-only verdict batch store (load, merge, apply, ingest)
   maps/team_name_map.json          committed, written only by build_team_name_map.py, read by TeamNames
   maps/player_name_map.json        committed, written only by build_player_name_map.py, read by PlayerNames
@@ -85,15 +85,16 @@ Stages, in order:
    (default: the latest two season codes in the merged box score). The club is compared after `TeamNames`
    normalization on both sides. Pool spellings are abbreviated like the stats names; normalized-string equality with exactly
    one pool player is `exact` and the only automatic accept.
-2. Fuzzy, unscoped. Everything else is scored against every box-score spelling in history (rapidfuzz, cutoff 80, top 3).
-   A hit is `needs_review`, never auto-accepted, because it may be an older namesake. No hit is `no_candidate`.
-   An exact hit outside the club is also only `needs_review`.
+2. Exact, unscoped. Everything else is looked up across every box-score spelling in history. A hit is `needs_review`
+   (`matched_by` `exact_other_club`), never auto-accepted, because it may be an older namesake or the player at a
+   previous club. No hit is `no_candidate`. There is no approximate (fuzzy) matching: it produced mostly wrong
+   suggestions, and the agent stage covers every remaining case.
 3. Agent verdicts. Each batch in `data/curated/player_name_verdicts/` is applied on top; a later batch wins on the same key.
    The agent handles what the first two stages leave open, typically players who just moved clubs (no games for the new
    club yet) and rookies with no box-score history. Statuses: `confirmed` (with the full name, which need not exist in the
    box score), `rejected`, `no_match`.
 
-Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "match_score", "notes"}`;
+Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "notes"}`;
 the CSV has the same columns, `variants` joined with ` | `.
 
 - `name`: the normalized full name; `variants`: the stats spelling, the box-score spelling(s) as written and the normalized name.
@@ -122,7 +123,7 @@ The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.m
 - Builders are deterministic, validate their input (empty or conflicting data fails loudly) and write unchanged bytes
   on a rerun.
 - Engine tests cover: club-scoped exact accept, same-abbreviation collision, out-of-club hit going to review,
-  fuzzy review, verdict override with later batch winning, transfer and rookie via `confirmed`.
+  near-miss spelling left without candidate, verdict override with later batch winning, transfer and rookie via `confirmed`.
 - `src/eupy/entity/` holds only the files in the layout above; the old resolvers, crosswalk accessors, `player_sources.py`
   and their tests are gone, and no spec, doc or header mentions them.
 - `ruff check`, `ruff format --check` and the entity tests pass.

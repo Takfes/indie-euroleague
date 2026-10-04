@@ -1,7 +1,6 @@
 {
   "players": [
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Both Gach",
@@ -16,7 +15,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bodian Massa",
@@ -31,7 +29,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "David Lighty",
@@ -46,7 +43,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Edwin Jackson",
@@ -61,7 +57,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Hugo Besson",
@@ -76,7 +71,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Joel Bolomboy",
@@ -91,7 +85,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jae Crowder",
@@ -106,7 +99,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Myles Cale",
@@ -121,7 +113,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mathis Dossou-Yovo",
@@ -136,7 +127,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marc-Owen Fodzo Dada",
@@ -151,7 +141,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nathan Sestina",
@@ -166,7 +155,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Patty Mills",
@@ -181,7 +169,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "TyTy Washington",
@@ -195,7 +182,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tremont Waters",
@@ -210,7 +196,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Yves Pons",
@@ -225,7 +210,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Olek Balcerowski",
@@ -240,7 +224,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "no_match",
       "matched_by": "agent",
       "name": "A. Kone",
@@ -253,7 +236,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Agustin Ubal",
@@ -268,7 +250,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dario Brizuela",
@@ -283,7 +264,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Justin Minaya",
@@ -298,7 +278,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Josh Nebo",
@@ -313,7 +292,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Juan Nunez",
@@ -328,7 +306,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Joel Parra",
@@ -343,7 +320,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Justin Robinson",
@@ -358,7 +334,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kevin Punter",
@@ -373,7 +348,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Olivier Nkamhoua",
@@ -388,7 +362,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Stanley Umude",
@@ -403,7 +376,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Tosan Evbuomwan",
@@ -417,7 +389,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyrese Martin",
@@ -432,7 +403,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Umoja Gibson",
@@ -447,7 +417,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Yoan Makoundou",
@@ -462,7 +431,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Andreas Obst",
@@ -477,7 +445,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Andrija Susic",
@@ -491,7 +458,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Austin Wiley",
@@ -506,7 +472,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Caspar Vossenberg",
@@ -520,7 +485,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Duane Washington",
@@ -535,7 +499,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Justus Hollatz",
@@ -550,7 +513,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Justinian Jessup",
@@ -565,7 +527,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Johannes Thiemann",
@@ -580,7 +541,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Johannes Voigtmann",
@@ -595,7 +555,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kamar Baldwin",
@@ -610,7 +569,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kilian Fischer",
@@ -625,7 +583,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marjon Beauchamp",
@@ -640,7 +597,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Miles Norris",
@@ -655,7 +611,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Niels Giffey",
@@ -670,7 +625,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Niko Jerkic",
@@ -684,7 +638,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Oscar Da Silva",
@@ -699,7 +652,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Rokas Jokubaitis",
@@ -714,7 +666,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tobias Jensen",
@@ -729,7 +680,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Vladimir Lucic",
@@ -744,7 +694,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Anthony Brown",
@@ -759,7 +708,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ante Zizic",
@@ -774,7 +722,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Berk Ugurlu",
@@ -789,7 +736,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Conor Morgan",
@@ -804,7 +750,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "David Dejulius",
@@ -819,7 +764,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Devon Dotson",
@@ -834,7 +778,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Daquan Jeffries",
@@ -849,7 +792,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Eugene Omoruyi",
@@ -864,7 +806,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Furkan Korkmaz",
@@ -879,7 +820,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jaylen Nowell",
@@ -894,7 +834,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Metecan Birsen",
@@ -909,7 +848,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mady Sissoko",
@@ -923,7 +861,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Scottie Wilbekin",
@@ -938,7 +875,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "no_match",
       "matched_by": "agent",
       "name": "V. Brown",
@@ -951,7 +887,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Wenyen Gabriel",
@@ -966,7 +901,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Yagiz Aksu",
@@ -980,7 +914,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Andrej Bjelic",
@@ -994,7 +927,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Aleksej Nedeljkovic",
@@ -1009,7 +941,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Chris Jones",
@@ -1024,7 +955,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Chima Moneke",
@@ -1039,7 +969,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dejan Davidovac",
@@ -1054,7 +983,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "David Kramer",
@@ -1069,7 +997,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ebuka Izundu",
@@ -1084,7 +1011,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jared Butler",
@@ -1099,7 +1025,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Johnathan Motley",
@@ -1114,7 +1039,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jordan Nwora",
@@ -1129,7 +1053,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Nikola Djurisic",
@@ -1143,7 +1066,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nick Weiler-Babb",
@@ -1158,7 +1080,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ognjen Dobric",
@@ -1173,7 +1094,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Patrick Baldwin Jr.",
@@ -1187,7 +1107,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Stefan Miljenovic",
@@ -1202,7 +1121,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Semi Ojeleye",
@@ -1217,7 +1135,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyson Carter",
@@ -1232,7 +1149,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Vojin Medarevic",
@@ -1246,7 +1162,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Awudu Abass",
@@ -1261,7 +1176,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dwayne Bacon",
@@ -1276,7 +1190,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Davis Bertans",
@@ -1291,7 +1204,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Davion Mintz",
@@ -1306,7 +1218,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dzanan Musa",
@@ -1321,7 +1232,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Elie Okobo",
@@ -1336,7 +1246,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Filip Petrusev",
@@ -1351,7 +1260,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Justin Anderson",
@@ -1366,7 +1274,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jaron Blossomgame",
@@ -1381,7 +1288,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kenan Kamenjas",
@@ -1396,7 +1302,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kosta Kondic",
@@ -1411,7 +1316,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Klemen Prepelic",
@@ -1426,7 +1330,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mamadi Diakite",
@@ -1441,7 +1344,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mam Jaiteh",
@@ -1456,7 +1358,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mfiondu Kabengele",
@@ -1471,7 +1372,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mckinley Wright Iv",
@@ -1486,7 +1386,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nemanja Dangubic",
@@ -1501,7 +1400,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tornike Shengelia",
@@ -1516,7 +1414,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Thomas Walkup",
@@ -1531,7 +1428,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Brice Dessert",
@@ -1546,7 +1442,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bruno Fernando",
@@ -1561,7 +1456,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Burakcan Yildizli",
@@ -1576,7 +1470,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Collin Malcolm",
@@ -1591,7 +1484,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Darius Karutasu",
@@ -1605,7 +1497,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "David Mutaf",
@@ -1620,7 +1511,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Daron Russell",
@@ -1635,7 +1525,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dario Saric",
@@ -1650,7 +1539,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ercan Osmani",
@@ -1665,7 +1553,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Erkan Yilmaz",
@@ -1680,7 +1567,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Georgios Papagiannis",
@@ -1695,7 +1581,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Isaia Cordinier",
@@ -1710,7 +1595,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jordan Loyd",
@@ -1725,7 +1609,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kai Jones",
@@ -1740,7 +1623,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mike James",
@@ -1755,7 +1637,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Matthew Strazel",
@@ -1770,7 +1651,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Pj Dozier",
@@ -1785,7 +1665,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ruzgar Fenemen",
@@ -1800,7 +1679,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Santi Yusta",
@@ -1815,7 +1693,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Braxton Key",
@@ -1830,7 +1707,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Chris Silva",
@@ -1845,7 +1721,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ignas Sargiunas",
@@ -1860,7 +1735,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Johnny Juzang",
@@ -1875,7 +1749,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marcus Bingham",
@@ -1890,7 +1763,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mert Eksioglu",
@@ -1905,7 +1777,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Melih Mahmutoglu",
@@ -1920,7 +1791,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nicolo Melli",
@@ -1935,7 +1805,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Onuralp Bitim",
@@ -1950,7 +1819,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Shane Larkin",
@@ -1965,7 +1833,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sertac Sanli",
@@ -1980,7 +1847,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Shavon Shields",
@@ -1995,7 +1861,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Trent Forrest",
@@ -2010,7 +1875,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Talen Horton Tucker",
@@ -2025,7 +1889,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Wade Baldwin Iv",
@@ -2040,7 +1903,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Will Clyburn",
@@ -2055,7 +1917,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Antonio Blakeney",
@@ -2070,7 +1931,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Amir Coffey",
@@ -2084,7 +1944,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bruno Caboclo",
@@ -2099,7 +1958,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bar Timor",
@@ -2114,7 +1972,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dan Oturu",
@@ -2129,7 +1986,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Elijah Bryant",
@@ -2144,7 +2000,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Eugene German",
@@ -2159,7 +2014,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Frederic Bourdillon",
@@ -2173,7 +2027,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Guy Palatin",
@@ -2188,7 +2041,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Itay Segev",
@@ -2203,7 +2055,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ish Wainright",
@@ -2218,7 +2069,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jacob Toppin",
@@ -2233,7 +2083,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Khadeen Carrington",
@@ -2248,7 +2097,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Max Heidegger",
@@ -2263,7 +2111,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Oz Blayzer",
@@ -2278,7 +2125,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Tamir Blatt",
@@ -2293,7 +2139,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyler Ennis",
@@ -2308,7 +2153,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tomer Ginat",
@@ -2323,7 +2167,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tai Odiase",
@@ -2338,7 +2181,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tomas Satoransky",
@@ -2353,7 +2195,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Vasilije Micic",
@@ -2368,7 +2209,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Zach Leday",
@@ -2383,7 +2223,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "A.J. Lawson",
@@ -2398,7 +2237,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Alex Len",
@@ -2413,7 +2251,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Chris Duarte",
@@ -2428,7 +2265,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Clement Frisch",
@@ -2443,7 +2279,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Damion Baugh",
@@ -2458,7 +2293,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dj Stewart",
@@ -2473,7 +2307,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Khalifa Diop",
@@ -2488,7 +2321,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kenneth Faried",
@@ -2503,7 +2335,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kobi Simmons",
@@ -2518,7 +2349,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Markus Howard",
@@ -2533,7 +2363,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Matteo Spagnolo",
@@ -2548,7 +2377,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Pedro Souza",
@@ -2562,7 +2390,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Rodions Kurucs",
@@ -2577,7 +2404,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Stefan Joksimovic",
@@ -2592,7 +2418,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "no_match",
       "matched_by": "agent",
       "name": "T. Alves de Souza",
@@ -2605,7 +2430,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tadas Sedekerskis",
@@ -2620,7 +2444,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Alec Peters",
@@ -2635,7 +2458,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Devin Booker",
@@ -2650,7 +2472,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Diego Flaccadori",
@@ -2665,7 +2486,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Devon Hall",
@@ -2680,7 +2500,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Darius Thompson",
@@ -2695,7 +2514,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Garrison Mathews",
@@ -2710,7 +2528,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Giampaolo Ricci",
@@ -2725,7 +2542,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jason Burnell",
@@ -2740,7 +2556,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Leandro Bolmaro",
@@ -2755,7 +2570,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marko Guduric",
@@ -2770,7 +2584,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Moses Wright",
@@ -2785,7 +2598,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Nicola Akele",
@@ -2800,7 +2612,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ousmane Diop",
@@ -2815,7 +2626,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Rj Cole",
@@ -2830,7 +2640,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Stefano Tonut",
@@ -2845,7 +2654,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Armando Bacot Jr.",
@@ -2860,7 +2668,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Amit Ebo",
@@ -2875,7 +2682,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bonzie Colson",
@@ -2890,7 +2696,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Daniel Theis",
@@ -2905,7 +2710,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Gur Lavi",
@@ -2920,7 +2724,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Iffe Lundberg",
@@ -2935,7 +2738,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jimmy Clark Iii",
@@ -2950,7 +2752,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "John Dibartolomeo",
@@ -2965,7 +2766,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jaylen Hoard",
@@ -2980,7 +2780,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Keaton Wallace",
@@ -2995,7 +2794,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "O'Shae J Brissett",
@@ -3010,7 +2808,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Roman Sorkin",
@@ -3025,7 +2822,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Shane Hunter",
@@ -3039,7 +2835,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tj Leaf",
@@ -3054,7 +2849,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "William Rayman",
@@ -3069,7 +2863,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Yam Madar",
@@ -3084,7 +2877,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Antonis Karagiannidis",
@@ -3098,7 +2890,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bryant Dunston",
@@ -3113,7 +2904,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Cory Joseph",
@@ -3128,7 +2918,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Codi Miller-Mcintyre",
@@ -3143,7 +2932,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Donta Hall",
@@ -3158,7 +2946,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Evan Fournier",
@@ -3173,7 +2960,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Giorgos Bourneles",
@@ -3187,7 +2973,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Giannoulis Larentzakis",
@@ -3202,7 +2987,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "George Pappas",
@@ -3216,7 +3000,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jean Montero",
@@ -3231,7 +3014,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kostas Papanikolaou",
@@ -3246,7 +3028,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mbaye Ndiaye",
@@ -3261,7 +3042,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nikola Milutinov",
@@ -3276,7 +3056,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nikolaos Plotas",
@@ -3291,7 +3070,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Omiros Netzipoglou",
@@ -3306,7 +3084,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sasha Vezenkov",
@@ -3321,7 +3098,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyler Dorsey",
@@ -3336,7 +3112,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyrique Jones",
@@ -3351,7 +3126,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyson Ward",
@@ -3366,7 +3140,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Brancou Badio",
@@ -3381,7 +3154,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dimitris Moraitis",
@@ -3396,7 +3168,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Eleftherios Mantzoukas",
@@ -3411,7 +3182,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "no_match",
       "matched_by": "agent",
       "name": "G. Kalaitzakis",
@@ -3424,7 +3194,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Guerschon Yabusele",
@@ -3439,7 +3208,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Isaac Bonga",
@@ -3454,7 +3222,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ioannis Kouzeloglou",
@@ -3469,7 +3236,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "no_match",
       "matched_by": "agent",
       "name": "I. Varvaritis",
@@ -3482,7 +3248,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jerian Grant",
@@ -3497,7 +3262,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Juancho Hernangomez",
@@ -3512,7 +3276,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Konstantinos Mitoglou",
@@ -3527,7 +3290,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kendrick Nunn",
@@ -3542,7 +3304,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kostas Sloukas",
@@ -3557,7 +3318,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Moustapha Fall",
@@ -3572,7 +3332,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mathias Lessort",
@@ -3587,7 +3346,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nigel Hayes-Davis",
@@ -3602,7 +3360,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nikolaos Rogkavopoulos",
@@ -3617,7 +3374,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Panagiotis Kalaitzakis",
@@ -3632,7 +3388,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sylvain Francisco",
@@ -3647,7 +3402,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Arijan Lakic",
@@ -3662,7 +3416,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Alessandro Pajola",
@@ -3677,7 +3430,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bandja Sy",
@@ -3692,7 +3444,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Carlik Jones",
@@ -3707,7 +3458,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Derek Willis",
@@ -3722,7 +3472,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Ethan Thompson",
@@ -3737,7 +3486,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Joffrey Lauvergne",
@@ -3752,7 +3500,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kyle Allman",
@@ -3767,7 +3514,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kevarrius Hayes",
@@ -3782,7 +3528,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Lamar Stevens",
@@ -3797,7 +3542,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Luca Vildoza",
@@ -3812,7 +3556,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mitar Bosnjakovic",
@@ -3827,7 +3570,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mario Nakic",
@@ -3842,7 +3584,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nikola Tanaskovic",
@@ -3857,7 +3598,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tonye Jekiri",
@@ -3872,7 +3612,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Uros Danilovic",
@@ -3886,7 +3625,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Uros Mijailovic",
@@ -3901,7 +3639,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Vanja Marinkovic",
@@ -3916,7 +3653,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Allan Dokossi",
@@ -3931,7 +3667,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Alize Johnson",
@@ -3946,7 +3681,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Amath M'Baye",
@@ -3961,7 +3695,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Daulton Hommes",
@@ -3976,7 +3709,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Enzo Shahrvin",
@@ -3991,7 +3723,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Frank Ntilikina",
@@ -4006,7 +3737,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Joel Ayayi",
@@ -4021,7 +3751,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jeremy Morgan",
@@ -4036,7 +3765,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jared Rhoden",
@@ -4051,7 +3779,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Leopold Cavaliere",
@@ -4066,7 +3793,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mouhamed Faye",
@@ -4081,7 +3807,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Maozinha Pereira",
@@ -4095,7 +3820,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Nobel Boungou-Colo",
@@ -4110,7 +3834,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nadir Hifi",
@@ -4125,7 +3848,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sebastian Herrera",
@@ -4140,7 +3862,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tyson Etienne",
@@ -4155,7 +3876,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Terry Tarpey",
@@ -4170,7 +3890,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tj Warren",
@@ -4185,7 +3904,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Yakuba Ouattara",
@@ -4200,7 +3918,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Alberto Abalde",
@@ -4215,7 +3932,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Andres Feliz",
@@ -4230,7 +3946,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Chuma Okeke",
@@ -4245,7 +3960,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Damian Jones",
@@ -4260,7 +3974,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Eli Ndiaye",
@@ -4275,7 +3988,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Facundo Campazzo",
@@ -4290,7 +4002,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Gabriel Deck",
@@ -4305,7 +4016,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Gabriele Procida",
@@ -4320,7 +4030,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Izan Almansa",
@@ -4335,7 +4044,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jaime Pradilla",
@@ -4350,7 +4058,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mikael Jantunen",
@@ -4365,7 +4072,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Max Shulga",
@@ -4379,7 +4085,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nick Smith Jr",
@@ -4394,7 +4099,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Olivier Sarr",
@@ -4409,7 +4113,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sergio Llull",
@@ -4424,7 +4127,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Timothe Luwawu-Cabarrot",
@@ -4439,7 +4141,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Theo Maledon",
@@ -4454,7 +4155,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Usman Garuba",
@@ -4469,7 +4169,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Walter Tavares",
@@ -4484,7 +4183,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Armoni Brooks",
@@ -4499,7 +4197,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Alvaro Cardenas",
@@ -4514,7 +4211,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dylan Osetkowski",
@@ -4529,7 +4225,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Elias Valtonen",
@@ -4543,7 +4238,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Gonzalo Corbalan",
@@ -4558,7 +4252,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Josep Puerto",
@@ -4573,7 +4266,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jasiel Rivero",
@@ -4588,7 +4280,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kameron Taylor",
@@ -4603,7 +4294,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Lucas Mari",
@@ -4619,7 +4309,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Mouhamadou Gueye",
@@ -4633,7 +4322,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mario Saint-Supery",
@@ -4648,7 +4336,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nikola Mirotic",
@@ -4663,7 +4350,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nathan Reuvers",
@@ -4678,7 +4364,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Neal Sako",
@@ -4693,7 +4378,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Omari Moore",
@@ -4708,7 +4392,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tj Shorts",
@@ -4723,7 +4406,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Yankuba Sima",
@@ -4738,7 +4420,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Aliou Diarra",
@@ -4753,7 +4434,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Bo Klintman",
@@ -4768,7 +4448,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Derrick Alston Jr.",
@@ -4783,7 +4462,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Davide Casarin",
@@ -4797,7 +4475,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Daniel Hackett",
@@ -4812,7 +4489,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Francesco Ferrari",
@@ -4827,7 +4503,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Kessler Edwards",
@@ -4842,7 +4517,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Kevin Kokila",
@@ -4856,7 +4530,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Matteo Baiocchi",
@@ -4871,7 +4544,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marcus Carr",
@@ -4886,7 +4558,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Mouhamet Diouf",
@@ -4901,7 +4572,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Rasheed Bello",
@@ -4916,7 +4586,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Tommaso Baldasso",
@@ -4931,7 +4600,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Trent Frazier",
@@ -4946,7 +4614,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Wendell Moore",
@@ -4961,7 +4628,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Arnas Butkevicius",
@@ -4976,7 +4642,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Azuolas Tubelis",
@@ -4991,7 +4656,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Carsen Edwards",
@@ -5006,7 +4670,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dovydas Giedraitis",
@@ -5021,7 +4684,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Deividas Sirvydis",
@@ -5036,7 +4698,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Dustin Sleva",
@@ -5051,7 +4712,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Edgaras Ulanovas",
@@ -5066,7 +4726,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Jonas Valanciunas",
@@ -5081,7 +4740,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Kaodirichi Akobundu-Ehiogu",
@@ -5095,7 +4753,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marek Blazevic",
@@ -5110,7 +4767,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Marius Grigonis",
@@ -5125,7 +4781,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Maodo Lo",
@@ -5140,7 +4795,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Nigel Williams-Goss",
@@ -5155,7 +4809,6 @@
       ]
     },
     {
-      "match_score": "100.0",
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Sterling Brown",
@@ -5170,7 +4823,6 @@
       ]
     },
     {
-      "match_score": "",
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Saben Lee",
