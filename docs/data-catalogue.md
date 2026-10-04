@@ -8,7 +8,7 @@
 
 | Dataset | Path | Produced by | Consumed by | Refresh |
 | --- | --- | --- | --- | --- |
-| `basketballsphere_prices` | `data/raw_data/fantasy_prices/basketballsphere_prices.csv` | `fetch_basketballsphere_prices.py` | `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py`, `resolve_team_names.py` | full overwrite per run |
+| `basketballsphere_prices` | `data/raw_data/fantasy_prices/basketballsphere_prices.csv` | external: no producer: its fetcher was removed; the entity resolvers still read it until the fantasy stats dataset replaces it | `resolve_fantasy_stats_player_names.py`, `resolve_player_names.py`, `resolve_team_names.py` | none (resolvers broken until replaced) |
 | `euroleague_net/box_score` | `data/raw_data/euroleague_net/box_score/` | `fetch_euroleague_live_boxscores.py` | `merge_boxscore.py` | incremental: one delta file per run with new games |
 | `euroleague_net/headers` | `data/raw_data/euroleague_net/headers/` | `fetch_euroleague_live_headers.py` | `merge_headers.py` | incremental: one delta file per run with new games |
 | `fantasy_stats/head_coaches` | `data/raw_data/fantasy_stats/head_coaches.csv` | `fetch_euroleague_fantasy_stats.py` | — | full overwrite per run |
@@ -63,7 +63,6 @@ Notes:
 | `src/eupy/entity/apply_fantasy_stats_player_name_verdicts.py` | JSON verdicts file (--verdicts PATH) | `fantasy_stats_player_name_verdicts` | false | true |
 | `src/eupy/entity/apply_player_name_verdicts.py` | JSON verdicts file (--verdicts PATH) | `player_name_verdicts` | false | true |
 | `src/eupy/entity/apply_team_name_verdicts.py` | JSON verdicts file (--verdicts PATH) | `team_name_verdicts` | false | true |
-| `src/eupy/fetchers/fetch_basketballsphere_prices.py` | https://basketballsphere.com/en/euroleague-fantasy-player-prices/ (live) | `basketballsphere_prices` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_fantasy_stats.py` | fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env) | `fantasy_stats/players`, `fantasy_stats/head_coaches` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_boxscores.py` | live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live) | `euroleague_net/box_score` | false | true |
 | `src/eupy/fetchers/fetch_euroleague_live_headers.py` | live.euroleague.net/api/Header (live) | `euroleague_net/headers` | false | true |

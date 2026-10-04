@@ -39,14 +39,6 @@ uv run python src/eupy/transform/merge_headers.py   # Kaggle history + all delta
 
 Writes to `data/raw_data/euroleague_net/headers/`, tracks progress in `headers/_state.json`.
 
-**Fantasy prices** (full overwrite — re-run any time to refresh, e.g. after a new round):
-
-```bash
-uv run python src/eupy/fetchers/fetch_basketballsphere_prices.py
-```
-
-Writes to `data/raw_data/fantasy_prices/basketballsphere_prices.csv`.
-
 ## Schedule turns
 
 Adds `turn` (T1/T2 within each round) to the raw schedule and derives a per-team `(team, round, turn)` table. Needs `fetch_game_schedule.py` to have run first:
@@ -59,7 +51,7 @@ Writes `data/stage_01/schedule.csv` and `data/stage_01/team_round_turn.csv` (sym
 
 ## Entity resolution
 
-Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-score data (`src/eupy/entity/`):
+Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-score data (`src/eupy/entity/`): (temporarily broken: the prices fetcher was removed; the stats dataset will replace it)
 
 | Script | Does |
 |---|---|

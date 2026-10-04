@@ -6,7 +6,7 @@
 
 [acquire]
 dvc = false
-scripts = ["fetch_basketballsphere_prices", "fetch_euroleague_fantasy_stats", "fetch_kaggle_euroleague"]
+scripts = ["fetch_euroleague_fantasy_stats", "fetch_kaggle_euroleague"]
 
 [schedule]
 dvc = true
