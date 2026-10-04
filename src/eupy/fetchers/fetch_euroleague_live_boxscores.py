@@ -209,7 +209,7 @@ def build_game_rows(
     team B's players, team B's TOTAL. `Stats` is assumed to be in the same
     order as Header's TeamA/TeamB (a documented invariant of the live API).
     """
-    game_id = f"{season}_{gamecode}"
+    game_id = f"{season}_{gamecode:03d}"
     game = f"{header['CodeTeamA']}-{header['CodeTeamB']}"
     team_codes = (header["CodeTeamA"], header["CodeTeamB"])
 

@@ -166,8 +166,8 @@ def test_build_game_rows_maps_player_fields() -> None:
     rows = build_game_rows(HEADER, BOXSCORE, season="E2026", gamecode=1)
 
     red_row = rows[0]
-    assert red_row["game_player_id"] == "E2026_1_P011157"
-    assert red_row["game_id"] == "E2026_1"
+    assert red_row["game_player_id"] == "E2026_001_P011157"
+    assert red_row["game_id"] == "E2026_001"
     assert red_row["game"] == "RED-ZAL"
     assert red_row["round"] == "1"
     assert red_row["phase"] == "REGULAR SEASON"
@@ -198,7 +198,7 @@ def test_build_game_rows_synthesizes_team_total_row_per_team() -> None:
     assert red_total["player"] == "CRVENA ZVEZDA MERIDIANBET BELGRADE"
     assert red_total["player_id"] == "RED"
     assert red_total["team_id"] == "RED"
-    assert red_total["game_player_id"] == "E2026_1_RED"
+    assert red_total["game_player_id"] == "E2026_001_RED"
     assert red_total["is_starter"] == 0
     assert red_total["is_playing"] == 1
     assert red_total["plus_minus"] == 0

@@ -77,7 +77,7 @@ Per player, per game:
 
 | CSV column | Source |
 | --- | --- |
-| `game_id` | `{season}_{gamecode}` |
+| `game_id` | `{season}_{gamecode:03d}` (zero-padded, as in Kaggle and the live headers) |
 | `game` | `{Header.CodeTeamA}-{Header.CodeTeamB}` |
 | `round` | `Header.Round` |
 | `phase` | `Header.Phase` |
