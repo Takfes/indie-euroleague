@@ -13,14 +13,10 @@ flowchart LR
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_(["kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API)"])
     x_live_euroleague_net_api_Header__live_(["live.euroleague.net/api/Header (live)"])
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_(["live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live)"])
-    x_no_producer__its_fetcher_was_removed__the_entity_resolvers_still_read_it_until_the_fantasy_stats_dataset_replaces_it(["no producer: its fetcher was removed; the entity resolvers still read it until the fantasy stats dataset replaces it"])
     x_prepared_manually__upstream_feature_prediction_script_not_built_yet_(["prepared manually (upstream feature/prediction script not built yet)"])
+    x_no_producer__its_fetcher_was_removed__the_entity_resolvers_still_read_it_until_the_fantasy_stats_dataset_replaces_it(["no producer: its fetcher was removed; the entity resolvers still read it until the fantasy stats dataset replaces it"])
 
     %% scripts
-    subgraph p_acquire["acquire"]
-        s_fetch_euroleague_fantasy_stats["fetch_euroleague_fantasy_stats"]
-        s_fetch_kaggle_euroleague["fetch_kaggle_euroleague"]
-    end
     subgraph p_entity["entity"]
         s_apply_fantasy_stats_player_name_verdicts["apply_fantasy_stats_player_name_verdicts"]
         s_apply_player_name_verdicts["apply_player_name_verdicts"]
@@ -30,9 +26,14 @@ flowchart LR
         s_resolve_player_names["resolve_player_names"]
         s_resolve_team_names["resolve_team_names"]
     end
-    subgraph p_net["net"]
+    subgraph p_fetch_raw["fetch_raw"]
+        s_fetch_euroleague_fantasy_stats["fetch_euroleague_fantasy_stats"]
         s_fetch_euroleague_live_boxscores["fetch_euroleague_live_boxscores"]
         s_fetch_euroleague_live_headers["fetch_euroleague_live_headers"]
+        s_fetch_game_schedule["fetch_game_schedule"]
+        s_fetch_kaggle_euroleague["fetch_kaggle_euroleague"]
+    end
+    subgraph p_merge_history_live["merge_history_live"]
         s_merge_boxscore["merge_boxscore"]
         s_merge_headers["merge_headers"]
     end
@@ -41,7 +42,6 @@ flowchart LR
     end
     subgraph p_schedule["schedule"]
         s_build_schedule_turns["build_schedule_turns"]
-        s_fetch_game_schedule["fetch_game_schedule"]
     end
 
     %% datasets
@@ -113,8 +113,8 @@ flowchart LR
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_ --> s_fetch_kaggle_euroleague
     x_live_euroleague_net_api_Header__live_ --> s_fetch_euroleague_live_headers
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ --> s_fetch_euroleague_live_boxscores
-    x_no_producer__its_fetcher_was_removed__the_entity_resolvers_still_read_it_until_the_fantasy_stats_dataset_replaces_it --> d_basketballsphere_prices
     x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ --> d_optimizer_input
+    x_no_producer__its_fetcher_was_removed__the_entity_resolvers_still_read_it_until_the_fantasy_stats_dataset_replaces_it --> d_basketballsphere_prices
 
     %% colors by stage
     classDef script_stage0 fill:#f7f7f7,stroke:#c97f3a,color:#222222

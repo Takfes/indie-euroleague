@@ -10,9 +10,9 @@
 
 - `eupy` console script (`[project.scripts]`) with:
   - `eupy run <pipeline|wrapper> [--fetch]` — runs `dvc repro` for the pipeline's `dvc = true` steps; with `--fetch`, first runs that pipeline's impure members directly (fetchers), in dependency order.
-  - `eupy run acquire` — runs the impure fetchers only.
+  - `eupy run fetch_raw` — runs the impure raw-data fetchers only.
   - `eupy link-final` — create/refresh relative symlinks in `data/stage_99/` for every `Final: true` dataset; remove only stale symlinks it manages. Also called at the end of `eupy run`.
-- Wrappers defined in `pipelines.toml`: `all = ["schedule", "net"]` (entity added in ticket 8).
+- Wrappers defined in `pipelines.toml`: `all = ["schedule", "merge_history_live"]` (entity added in ticket 8).
 - `render_graph.py`: one Mermaid `subgraph` per pipeline containing its scripts; sources and raw datasets stay outside.
 
 ## Decisions

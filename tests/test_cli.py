@@ -94,17 +94,13 @@ class _Fake:
         return self.code
 
 
-def test_run_schedule_fetch_orders_fetcher_then_repro_then_links(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_run_schedule_repros_then_links(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root, fake = _repo(tmp_path), _Fake()
+    _stage_raw(root)
     (root / "data/stage_01").mkdir(parents=True)
     (root / "data/stage_01/schedule.csv").write_text("x")
-    assert main(["run", "schedule", "--fetch"], runner=fake, root=root) == 0
-    assert fake.calls == [
-        ["uv", "run", "python", "src/eupy/fetchers/fetch_game_schedule.py"],
-        ["uv", "run", "dvc", "repro", "build_schedule_turns"],
-    ]
+    assert main(["run", "schedule"], runner=fake, root=root) == 0
+    assert fake.calls == [["uv", "run", "dvc", "repro", "build_schedule_turns"]]
     assert (root / "data/stage_99/schedule.csv").is_symlink()
     assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
 
@@ -132,17 +128,17 @@ def test_run_all_wrapper_is_offline_by_default(tmp_path: Path) -> None:
 
 def test_dry_run_prints_and_never_executes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root, fake = _repo(tmp_path), _Fake()
-    assert main(["run", "schedule", "--fetch", "--dry-run"], runner=fake, root=root) == 0
+    assert main(["run", "fetch_raw", "--dry-run"], runner=fake, root=root) == 0
     out = capsys.readouterr().out
     assert fake.calls == []
-    assert out.index("fetch_game_schedule.py") < out.index("dvc repro")
+    assert "fetch_game_schedule.py" in out and "fetch_kaggle_euroleague.py" in out
     assert not (root / "data/stage_99").exists()
 
 
 def test_failure_stops_and_skips_link_final(tmp_path: Path) -> None:
     root, fake = _repo(tmp_path), _Fake(code=3)
-    assert main(["run", "schedule", "--fetch"], runner=fake, root=root) == 3
-    assert len(fake.calls) == 1  # fetcher failed; repro never ran
+    assert main(["run", "fetch_raw"], runner=fake, root=root) == 3
+    assert len(fake.calls) == 1  # first fetcher failed; the rest never ran
     assert not (root / "data/stage_99").exists()
 
 
@@ -155,11 +151,14 @@ def test_unknown_and_non_dvc_targets_exit_nonzero(tmp_path: Path, capsys: pytest
     assert fake.calls == []
 
 
-def test_acquire_runs_fetchers_only(tmp_path: Path) -> None:
+def test_fetch_raw_runs_every_fetcher_only(tmp_path: Path) -> None:
     fake = _Fake()
-    assert main(["run", "acquire"], runner=fake, root=_repo(tmp_path)) == 0
-    assert [c[3] for c in fake.calls] == [
+    assert main(["run", "fetch_raw"], runner=fake, root=_repo(tmp_path)) == 0
+    assert sorted(c[3] for c in fake.calls) == [
         "src/eupy/fetchers/fetch_euroleague_fantasy_stats.py",
+        "src/eupy/fetchers/fetch_euroleague_live_boxscores.py",
+        "src/eupy/fetchers/fetch_euroleague_live_headers.py",
+        "src/eupy/fetchers/fetch_game_schedule.py",
         "src/eupy/fetchers/fetch_kaggle_euroleague.py",
     ]
 
@@ -195,7 +194,7 @@ def test_missing_raw_input_blocks_before_anything_runs(tmp_path: Path, capsys: p
     err = capsys.readouterr().err
     assert fake.calls == [] and not (root / "data/stage_99").exists()
     assert "kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv" in err
-    assert "eupy run acquire" in err and "Kaggle" in err
+    assert "eupy run fetch_raw" in err and "Kaggle" in err
     # Only absent paths are listed: stage them all but one.
     assert _stage_raw(root)
     (root / "data/raw_data/kaggle_data/euroleague_box_score.csv").unlink()
@@ -204,12 +203,10 @@ def test_missing_raw_input_blocks_before_anything_runs(tmp_path: Path, capsys: p
     assert err.count("data/raw_data/") == 1 and "euroleague_box_score.csv" in err and fake.calls == []
 
 
-def test_fetch_covers_fetched_raw_inputs_but_not_the_rest(tmp_path: Path) -> None:
-    root = _repo(tmp_path)
-    # schedule's only raw input is produced by its fetcher: fine with --fetch, blocked without.
-    assert main(["run", "schedule", "--fetch"], runner=_Fake(), root=root) == 0
-    fake = _Fake()
-    assert main(["run", "schedule"], runner=fake, root=root) == 1
+def test_pipeline_is_blocked_without_its_raw_inputs(tmp_path: Path) -> None:
+    root, fake = _repo(tmp_path), _Fake()
+    # the schedule's raw input is produced by a fetch_raw fetcher, not by its own pipeline: --fetch does not cover it.
+    assert main(["run", "schedule", "--fetch"], runner=fake, root=root) == 1
     assert fake.calls == []
 
 

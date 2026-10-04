@@ -15,7 +15,7 @@ between them is enforced by the DVC dependencies, not by the list).
 * Before `dvc repro`, a precheck verifies that every external input (stage 0: raw data / curated) of the
   steps DVC will run exists on disk -- DVC deletes a step's outputs before running it, so a step failing on a
   missing raw input would destroy untracked outputs. Skipped under `--dry-run`.
-* `dvc = false` pipeline: no DVC steps. `eupy run` runs only its fetchers (so `eupy run acquire` runs them);
+* `dvc = false` pipeline: no DVC steps. `eupy run` runs only its fetchers (so `eupy run fetch_raw` runs them);
   a pipeline without any (`optimize`) fails with a "not runnable under DVC yet" message.
 * After a successful run, `link-final` refreshes `data/stage_99/`.
 
@@ -125,7 +125,7 @@ def _require_inputs(
         raise CliError(
             "missing external inputs; nothing was run (DVC would delete outputs before failing):\n"
             + "\n".join(f"  {ds}: {path}" for ds, path in missing)
-            + "\nfetched sources: `eupy run acquire` or `--fetch`; otherwise place/download the file (e.g. Kaggle)"
+            + "\nfetched sources: `eupy run fetch_raw` or `--fetch`; otherwise place/download the file (e.g. Kaggle)"
         )
 
 

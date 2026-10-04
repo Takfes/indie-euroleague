@@ -132,7 +132,7 @@ uv run python -m eupy.registry dvc        # (re)write dvc.yaml from pipelines.to
 
 ## DVC pipelines
 
-`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `net`, `entity`) become DVC steps in the generated `dvc.yaml`; impure scripts (fetchers, entity ingest) are not steps — run them yourself, then:
+`pipelines.toml` (repo root) assigns every script to exactly one pipeline (`check` lints this). Pure scripts of `dvc = true` pipelines (`schedule`, `merge_history_live`, `entity`) become DVC steps in the generated `dvc.yaml`; impure scripts (fetchers, entity ingest) are not steps — run them yourself, then:
 
 ```bash
 uv run python -m eupy.registry dvc   # regenerate dvc.yaml after a header or pipelines.toml change (never hand-edit)
@@ -145,12 +145,12 @@ Outputs are `cache: false` (no copies, no remote); their fingerprints live in th
 
 ### `eupy run` / `eupy link-final`
 
-Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "net", "entity"]`; order between pipelines comes from DVC dependencies).
+Wrapper CLI over `dvc repro` (`[project.scripts] eupy`; run as `uv run eupy ...`). Targets come from `pipelines.toml`: a pipeline name, or a wrapper (`[wrappers]`, e.g. `all = ["schedule", "merge_history_live", "entity"]`; order between pipelines comes from DVC dependencies).
 
 ```bash
-uv run eupy run all                 # offline: dvc repro for schedule + net + entity steps; a second run is a no-op
-uv run eupy run schedule --fetch    # first run the pipeline's fetchers (live API calls), then dvc repro
-uv run eupy run acquire             # dvc = false pipeline: runs its fetchers only (no DVC)
+uv run eupy run all                 # offline: dvc repro for schedule + merge_history_live + entity steps; a second run is a no-op
+uv run eupy run fetch_raw           # dvc = false pipeline: runs all raw-data fetchers (schedule, stats, Kaggle, live box score + headers); no DVC
+uv run eupy run merge_history_live  # offline: Kaggle history + live deltas -> merged box score / header
 uv run eupy run all --dry-run       # print the commands, execute nothing
 uv run eupy link-final              # refresh data/stage_99/ links (also runs after a successful `eupy run`)
 ```

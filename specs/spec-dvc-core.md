@@ -9,10 +9,10 @@
 
 - Add `dvc` as a dev dependency; `dvc init`; no remote; hash-only (no data versioning).
 - `pipelines.toml` (repo root) — the one place pipeline membership lives:
-  - `schedule`: `fetch_game_schedule`, `build_schedule_turns`
-  - `net`: `fetch_euroleague_live_boxscores`, `fetch_euroleague_live_headers`, `merge_boxscore`, `merge_headers`
+  - `fetch_raw` (`dvc = false`, impure): every raw-data fetcher
+  - `schedule`: `build_schedule_turns`
+  - `merge_history_live`: `merge_boxscore`, `merge_headers`
   - `entity` and `optimize`: listed with `dvc = false` (complete membership, not yet runnable under DVC)
-  - fetchers of other sources sit in `acquire` (`dvc = false`, impure).
   - Lint: every pipeline script is in exactly one pipeline.
 - `src/eupy/registry/dvc_gen.py` + subcommand `python -m eupy.registry dvc` → `dvc.yaml` with a "GENERATED — do not edit" comment.
 - Commit `dvc.lock`.
