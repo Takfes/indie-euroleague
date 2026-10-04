@@ -252,3 +252,10 @@ def test_cli_overlong_label_exits_1_with_error_line_not_a_traceback(
     err = capsys.readouterr().err
     assert err.startswith("error:") and "nothing written" in err
     assert list(batches.glob("*.json")) == []
+
+
+def test_composite_key_joins_fields_and_names_the_missing_one() -> None:
+    verdict = {"team": "PAO", "name": "C. Jones", "match_status": "no_match", "notes": "n"}
+    assert list(merge_verdicts([verdict], ("team", "name"), "resolved_name")) == ["PAO|C. Jones"]
+    with pytest.raises(ValueError, match="no 'name'"):
+        merge_verdicts([{"team": "PAO", "match_status": "no_match", "notes": "n"}], ("team", "name"), "resolved_name")

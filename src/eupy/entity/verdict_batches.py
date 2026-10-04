@@ -63,7 +63,22 @@ def load_batches(directory: Path) -> list[dict[str, Any]]:
     return records
 
 
-def merge_verdicts(records: list[dict[str, Any]], key_field: str, target_field: str) -> dict[str, dict[str, Any]]:
+def verdict_key(verdict: dict[str, Any], key_field: str | tuple[str, ...]) -> str:
+    """The row key of a verdict: its `key_field` value, or the values of several fields joined with `|`.
+
+    Raises:
+        ValueError: If a key field is missing.
+    """
+    fields = (key_field,) if isinstance(key_field, str) else key_field
+    for field in fields:
+        if field not in verdict:
+            raise ValueError(f"Verdict has no {field!r}: {verdict!r}")
+    return "|".join(str(verdict[field]) for field in fields)
+
+
+def merge_verdicts(
+    records: list[dict[str, Any]], key_field: str | tuple[str, ...], target_field: str
+) -> dict[str, dict[str, Any]]:
     """Validate verdict records and merge them by key; a later record wins on the same key.
 
     Raises:
@@ -72,9 +87,7 @@ def merge_verdicts(records: list[dict[str, Any]], key_field: str, target_field: 
     """
     merged: dict[str, dict[str, Any]] = {}
     for verdict in records:
-        if key_field not in verdict:
-            raise ValueError(f"Verdict has no {key_field!r}: {verdict!r}")
-        key = str(verdict[key_field])
+        key = verdict_key(verdict, key_field)
         status = verdict.get("match_status")
         if status not in TERMINAL_STATUSES:
             raise ValueError(
@@ -143,7 +156,7 @@ def _next_batch_path(batches_dir: Path, slug: str) -> Path:
 def ingest_batch(
     verdicts_path: Path,
     batches_dir: Path,
-    key_field: str,
+    key_field: str | tuple[str, ...],
     target_field: str,
     *,
     label: str | None = None,
@@ -157,7 +170,7 @@ def ingest_batch(
     Args:
         verdicts_path: Plain JSON list of verdict records.
         batches_dir: Batch directory (created if missing).
-        key_field: Row-key field of the crosswalk (`name` or `player_id`).
+        key_field: Row-key field of the map, or several fields that together form the key.
         target_field: Matched-name field required on `confirmed` verdicts.
         label: Slug for the file name; defaults to the sanitized input file stem.
         today: Ingest date `YYYY-MM-DD` (UTC today when omitted; injectable for tests).
@@ -174,7 +187,7 @@ def ingest_batch(
     merged = merge_verdicts(records, key_field, target_field)  # schema validation only
     if len(merged) != len(records):
         seen: set[str] = set()
-        dupes = sorted({k for k in (str(r[key_field]) for r in records) if k in seen or seen.add(k)})
+        dupes = sorted({k for k in (verdict_key(r, key_field) for r in records) if k in seen or seen.add(k)})
         raise ValueError(
             f"{verdicts_path}: duplicate {key_field!r} within one batch: {dupes}. "
             "A batch needs unique keys (a later batch may override an earlier one); remove the repeats and retry."
@@ -198,7 +211,7 @@ def ingest_batch(
     return path
 
 
-def run_ingest_cli(description: str, default_dir: Path, key_field: str, target_field: str) -> int:
+def run_ingest_cli(description: str, default_dir: Path, key_field: str | tuple[str, ...], target_field: str) -> int:
     """Shared CLI for the `apply_*_verdicts` scripts; returns the process exit code (0 ok, 1 rejected or unwritable)."""
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--verdicts", type=Path, required=True, help="JSON file (list) of verdict records")
