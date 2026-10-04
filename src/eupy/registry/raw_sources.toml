@@ -6,7 +6,3 @@
 [datasets.optimizer_input]
 origin = "prepared manually (upstream feature/prediction script not built yet)"
 refresh = "manual"
-
-[datasets.basketballsphere_prices]
-origin = "no producer: its fetcher was removed; the entity resolvers still read it until the fantasy stats dataset replaces it"
-refresh = "none (resolvers broken until replaced)"

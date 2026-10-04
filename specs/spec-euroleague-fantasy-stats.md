@@ -25,8 +25,7 @@ round currently in progress.
   `.env` (git-ignored). No refresh flow — if/when the token stops working,
   redo the manual capture.
 - Not incremental: every run re-derives which round to fetch through from the
-  live API and rebuilds both CSVs from scratch (full overwrite), matching
-  `fetch_basketballsphere_prices.py`'s convention. No state file.
+  live API and rebuilds both CSVs from scratch (full overwrite). No state file.
 - Fetches through the round currently in progress (`current_matchday`), not
   just completed ones (`previous_matchday`) — see "Price data leads box-score
   completion" below for why. Out of scope: any round beyond that (not yet

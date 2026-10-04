@@ -25,7 +25,7 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
   beside it.
 - Not incremental: the schedule is mutable (`played`, dates, times get
   confirmed/changed), so every run refetches and fully overwrites that season's
-  file. No state file. Matches `fetch_basketballsphere_prices.py`.
+  file. No state file.
 - Raw layer: values written verbatim as returned, columns in the API's order, no
   renaming or typing. Out of scope: normalising team codes/names to the
   crosswalks, date parsing, any stage-01+ dataset built from this, Eurocup,

@@ -51,7 +51,7 @@ Writes `data/stage_01/schedule.csv` and `data/stage_01/team_round_turn.csv` (sym
 
 ## Entity resolution
 
-Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-score data (`src/eupy/entity/`): (temporarily broken: the prices fetcher was removed; the stats dataset will replace it)
+Name-matching pipelines linking `basketballsphere_prices.csv` to the Kaggle box-score data (`src/eupy/entity/`):
 
 | Script | Does |
 |---|---|
