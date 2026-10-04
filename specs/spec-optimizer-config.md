@@ -21,8 +21,8 @@ reverted. `w_budget`/`credit_value` (ticket 2) and option value (ticket 3) are o
 
 ## Input contract changes vs `spec-squad-optimizer.md`
 
-- **Drop `player_id`.** `name` is the row key: must be unique, non-empty. (The user's own
-  `player_name_crosswalk` output is expected to already carry one canonical name per player.)
+- **Drop `player_id`.** `name` is the row key: must be unique, non-empty. (Names are expected to be
+  normalized already, via `PlayerNames`.)
 - **Drop all `HC` rows and the `position` value `HC`.** `position` is `G` / `F` / `C` only. Squad
   composition becomes 4 G / 4 F / 2 C = 10 (no `+1 HC`). Coach selection, pricing and trading are
   entirely the user's own, outside this script.

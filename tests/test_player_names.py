@@ -10,8 +10,7 @@ from typing import Any
 import pytest
 
 from eupy.entity import build_player_name_map
-from eupy.entity.matching import AmbiguousNameError, UnknownNameError
-from eupy.entity.player_matching import (
+from eupy.entity.build_player_name_map import (
     BoxscorePools,
     abbreviate_name,
     build_entries,
@@ -20,6 +19,7 @@ from eupy.entity.player_matching import (
     load_stats_players,
     reorder_boxscore_name,
 )
+from eupy.entity.matching import AmbiguousNameError, UnknownNameError
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
 from eupy.entity.verdict_batches import load_batches, merge_verdicts, write_batch
@@ -198,13 +198,17 @@ def test_builder_writes_stable_json_that_loads(tmp_path: Path, monkeypatch: pyte
     team_map.write_text(json.dumps({"teams": TEAMS_JSON}), encoding="utf-8")
     monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)
     stats = _stats_csv(tmp_path / "stats.csv", [("PAO", "C. Jones")])
-    out = tmp_path / "players.json"
+    out, csv_out = tmp_path / "players.json", tmp_path / "players.csv"
     args = ["--stats", str(stats), "--boxscore", str(_box_csv(tmp_path / "box.csv")), "--out", str(out)]
-    args += ["--verdicts-dir", str(tmp_path / "no-verdicts-yet")]
+    args += ["--csv-out", str(csv_out), "--verdicts-dir", str(tmp_path / "no-verdicts-yet")]
     build_player_name_map.main(args)
-    first = out.read_bytes()
+    first = (out.read_bytes(), csv_out.read_bytes())
     build_player_name_map.main(args)
-    assert out.read_bytes() == first
+    assert (out.read_bytes(), csv_out.read_bytes()) == first
+    assert csv_out.read_text(encoding="utf-8").splitlines() == [
+        "stats_team,stats_name,team,name,variants,match_status,matched_by,match_score,notes",
+        'PAO,C. Jones,Panathinaikos,Carlik Jones,"C. Jones | Carlik Jones | JONES, CARLIK",exact,exact,100.0,',
+    ]
     assert PlayerNames.load(out, TeamNames.load(team_map)).normalize("JONES, CARLIK") == "Carlik Jones"
 
 

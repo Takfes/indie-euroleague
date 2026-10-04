@@ -27,8 +27,8 @@ API and store it as a raw CSV. Gives the pipeline a season calendar keyed by a
   confirmed/changed), so every run refetches and fully overwrites that season's
   file. No state file.
 - Raw layer: values written verbatim as returned, columns in the API's order, no
-  renaming or typing. Out of scope: normalising team codes/names to the
-  crosswalks, date parsing, any stage-01+ dataset built from this, Eurocup,
+  renaming or typing. Out of scope: normalising team codes/names (see
+  `spec-name-maps.md`), date parsing, any stage-01+ dataset built from this, Eurocup,
   historical backfill (possible later by running with `--season E2025` etc.).
 - No auth, no new dependency (stdlib `urllib`, like the other fetchers).
 

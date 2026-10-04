@@ -54,13 +54,13 @@ Needs the schedule fetched first. Writes `data/stage_01/schedule.csv` and `team_
 
 ## Name maps (players and teams)
 
-`TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. Each class reads a JSON map committed in `src/eupy/entity/maps/` (`team_name_map.json`, `player_name_map.json`), so no data folder is needed at lookup time. Design: `specs/spec-name-maps.md`.
+`TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. Each class reads a JSON map committed in `src/eupy/entity/maps/` (`team_name_map.json`, `player_name_map.json`), so no data folder is needed at lookup time. Each builder also writes the same entries as a CSV, `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`, the datasets the registry knows. Design: `specs/spec-name-maps.md`.
 
 Refresh both maps with the `build-name-maps` skill (`.claude/skills/build-name-maps/`). By hand:
 
 ```bash
-uv run python -m eupy.entity.build_team_name_map     # schedule -> team map
-uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + verdicts -> player map
+uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSON + CSV)
+uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + verdicts -> player map (JSON + CSV)
 uv run python -m eupy.entity.apply_player_name_verdicts --verdicts <file>.json --label <slug>   # record agent verdicts
 ```
 

@@ -9,18 +9,23 @@ written. Every team plays at home, so the home columns cover all of them.
 Fails if the schedule is empty, if one spelling points at two teams, or if one team appears with two
 different code pairs; fix the source or extend this script rather than guessing.
 
+Two files are written from the same entries: `maps/team_name_map.json`, which `TeamNames` (`team_names.py`)
+loads, and the CSV `data/stage_01/team_name_map.csv` for inspection and joins.
+
 Usage:
-    python -m eupy.entity.build_team_name_map [--schedule-dir DIR] [--out PATH]
+    python -m eupy.entity.build_team_name_map [--schedule-dir DIR] [--out PATH] [--csv-out PATH]
 
 Inputs:
   - game_schedule/schedule: data/raw_data/game_schedule/
 Sources: none
 Outputs:
-  - team_name_map: src/eupy/entity/maps/team_name_map.json
+  - team_name_map: data/stage_01/team_name_map.csv
 Final: false
 Impure: false
-Notes: Reads every schedule_*.csv in the directory. The map is committed with the package; rerunning on the
-  same schedule rewrites identical bytes.
+Notes: Also writes the JSON copy src/eupy/entity/maps/team_name_map.json (committed with the package, read by
+  TeamNames); the CSV is the registered dataset. Reads every schedule_*.csv in the directory; rerunning on the
+  same schedule rewrites identical bytes. CSV columns: name (normalized team name), variants (joined with
+  " | ").
 """
 
 from __future__ import annotations
@@ -37,6 +42,7 @@ from eupy.quality import validate
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCHEDULE_DIR = REPO_ROOT / "data" / "raw_data" / "game_schedule"
 OUT_PATH = Path(__file__).resolve().parent / "maps" / "team_name_map.json"
+CSV_PATH = REPO_ROOT / "data" / "stage_01" / "team_name_map.csv"
 
 
 def load_schedule_rows(directory: Path) -> list[dict[str, str]]:
@@ -86,14 +92,25 @@ def write_map(entries: list[dict[str, object]], path: Path) -> None:
     )
 
 
+def write_csv(entries: list[dict[str, object]], path: Path) -> None:
+    """Write the entries as a flat CSV (`variants` joined with ` | `), same order as the JSON."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerow(["name", "variants"])
+        writer.writerows([entry["name"], " | ".join(entry["variants"])] for entry in entries)  # type: ignore[arg-type]
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--schedule-dir", type=Path, default=SCHEDULE_DIR, help="Directory of schedule_*.csv")
     parser.add_argument("--out", type=Path, default=OUT_PATH, help="Team map JSON output path")
+    parser.add_argument("--csv-out", type=Path, default=CSV_PATH, help="Team map CSV output path")
     args = parser.parse_args(argv)
     entries = build_team_entries(load_schedule_rows(args.schedule_dir))
     write_map(entries, args.out)
-    print(f"Wrote {len(entries)} teams to {args.out}")
+    write_csv(entries, args.csv_out)
+    print(f"Wrote {len(entries)} teams to {args.out} and {args.csv_out}")
 
 
 if __name__ == "__main__":

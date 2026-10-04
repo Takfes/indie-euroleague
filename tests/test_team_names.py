@@ -66,12 +66,18 @@ def test_main_writes_stable_json_that_loads(tmp_path: Path) -> None:
     (tmp_path / "schedule_E2026.csv").write_text(
         "hometeam,homecode,hometv\nPanathinaikos,PAN,PAO\nReal Madrid,MAD,RMB\n", encoding="utf-8"
     )
-    out = tmp_path / "map.json"
-    main(["--schedule-dir", str(tmp_path), "--out", str(out)])
-    first = out.read_bytes()
-    main(["--schedule-dir", str(tmp_path), "--out", str(out)])
-    assert out.read_bytes() == first
-    assert json.loads(first)["teams"][0]["name"] == "Panathinaikos"
+    out, csv_out = tmp_path / "map.json", tmp_path / "map.csv"
+    args = ["--schedule-dir", str(tmp_path), "--out", str(out), "--csv-out", str(csv_out)]
+    main(args)
+    first = (out.read_bytes(), csv_out.read_bytes())
+    main(args)
+    assert (out.read_bytes(), csv_out.read_bytes()) == first
+    assert csv_out.read_text(encoding="utf-8").splitlines() == [
+        "name,variants",
+        "Panathinaikos,PAN | PAO | Panathinaikos",
+        "Real Madrid,MAD | RMB | Real Madrid",
+    ]
+    assert json.loads(first[0])["teams"][0]["name"] == "Panathinaikos"
     assert TeamNames.load(out).normalize("MAD") == "Real Madrid"
 
 

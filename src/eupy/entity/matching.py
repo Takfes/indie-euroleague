@@ -4,7 +4,7 @@ Library module (no I/O header, never run directly):
 
 - `normalize_name` reduces a spelling to a comparison key (accents stripped, upper-case, letters and spaces only);
   the `TeamNames` / `PlayerNames` lookups and the engine all compare through it.
-- `find_candidates` is the exact -> fuzzy candidate finder of the player engine (`player_matching.py`). It is
+- `find_candidates` is the exact -> fuzzy candidate finder of the player map builder (`build_player_name_map.py`). It is
   generic over a spelling pool shaped `{spelling: {owner, ...}}`, an "owner" being whatever identifies the
   real-world entity behind a spelling.
 - `UnknownNameError` / `AmbiguousNameError` are what the lookup classes raise; `OPEN_STATUSES` are the match

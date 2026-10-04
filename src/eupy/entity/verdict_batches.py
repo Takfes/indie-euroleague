@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Any
 
 TERMINAL_STATUSES = {"confirmed", "rejected", "no_match"}
+PLAYER_VERDICT_KEY_FIELDS = ("team", "name")  # a player verdict is keyed by the stats club code and name
 
 
 def load_batches(directory: Path) -> list[dict[str, Any]]:

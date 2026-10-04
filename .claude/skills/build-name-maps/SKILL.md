@@ -1,8 +1,8 @@
 ---
 name: build-name-maps
 description: |
-  Rebuild indie-euroleague's two name maps (`src/eupy/entity/maps/team_name_map.json` and
-  `player_name_map.json`) behind the `TeamNames` and `PlayerNames` lookups. Checks the prerequisite data,
+  Rebuild indie-euroleague's two name maps (JSON in `src/eupy/entity/maps/` plus the CSVs
+  `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`) behind the `TeamNames` and `PlayerNames` lookups. Checks the prerequisite data,
   runs the two builders, then works through every open player (new transfers, rookies, odd spellings) with
   verdicts until none is left. Use after a new fetch brings new stats players, a new season's schedule, or
   whenever the maps look stale or `PlayerNames.unresolved()` is not empty.
@@ -34,7 +34,7 @@ source (the schedule), do not work around it in verdicts.
 
 ## 3. Resolve what is open
 
-Open entries are in `src/eupy/entity/maps/player_name_map.json` with `match_status` `needs_review` or
+Open entries are in `data/stage_02/player_name_map.csv` (and the JSON next to the package) with `match_status` `needs_review` or
 `no_candidate` (`PlayerNames.load().unresolved()` lists them). For each one:
 
 - The row key is `stats_team` + `stats_name`. `notes` lists the fuzzy candidates, which can be older namesakes.
@@ -60,5 +60,5 @@ Repeat until the summary reports no open entries.
 ## 4. Report
 
 Give the number of entries per `match_status` for the player map, the number of teams in the team map, and the
-verdicts recorded this run. The maps are committed with the package, so list them as changed files; commit them
-together with the new verdict batches.
+verdicts recorded this run. The JSON maps are committed with the package (the CSVs are git-ignored data), so list the
+JSON files as changed and commit them together with the new verdict batches.

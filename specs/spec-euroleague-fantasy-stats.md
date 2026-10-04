@@ -29,8 +29,7 @@ round currently in progress.
 - Fetches through the round currently in progress (`current_matchday`), not
   just completed ones (`previous_matchday`) — see "Price data leads box-score
   completion" below for why. Out of scope: any round beyond that (not yet
-  started); reconciling player IDs with other datasets (basketballsphere /
-  Kaggle) — that's separate crosswalk work per `spec-player-name-linking.md`.
+  started); reconciling player IDs with other datasets (the box scores) — that's the name-map work in `spec-name-maps.md`.
 
 ## Empirical findings (verified live, 2026-09-28)
 

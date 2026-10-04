@@ -19,8 +19,7 @@ The fantasy stats data is the trusted set. Players that do not appear in it are 
 
 In scope: the `src/eupy/entity/` module rebuild, as below.
 
-Also in scope: `transform/normalize_fantasy_stats.py` now takes names from `PlayerNames` (it used the removed crosswalk),
-and the registry treats `src/eupy/entity/maps/` as stage 0, like `data/curated/`: tracked, committed inputs.
+Also in scope: `transform/normalize_fantasy_stats.py` now takes names from `PlayerNames` (it used the removed crosswalk).
 
 Out of scope, handled in follow-up reviews:
 
@@ -33,20 +32,24 @@ Two classes, two committed JSON maps inside the package, two builder scripts, on
 
 ```
 src/eupy/entity/
-  maps/team_name_map.json          committed, written only by build_team_name_map.py
-  maps/player_name_map.json        committed, written only by build_player_name_map.py
   team_names.py                    class TeamNames
   player_names.py                  class PlayerNames
-  build_team_name_map.py           script: schedule -> team_name_map.json
-  player_matching.py               the matching engine (library)
-  build_player_name_map.py         script: stats + box score + verdicts -> player_name_map.json
+  build_team_name_map.py           script: schedule -> team_name_map (JSON + CSV)
+  build_player_name_map.py         script: stats + box score + verdicts -> player_name_map (JSON + CSV); holds the engine
   apply_player_name_verdicts.py    ingest script: agent verdicts -> data/curated/player_name_verdicts/
-  matching.py                      kept: normalize_name, exact -> fuzzy candidate finder, lookup errors
-  verdict_batches.py               kept: append-only verdict batch store
+  matching.py                      library: normalize_name, exact -> fuzzy candidate finder, lookup errors
+  verdict_batches.py               library: append-only verdict batch store (load, merge, apply, ingest)
+  maps/team_name_map.json          committed, written only by build_team_name_map.py, read by TeamNames
+  maps/player_name_map.json        committed, written only by build_player_name_map.py, read by PlayerNames
+data/stage_01/team_name_map.csv    same entries as the team JSON, registered dataset
+data/stage_02/player_name_map.csv  same entries as the player JSON, registered dataset
 ```
 
 The JSON maps live in the package so the classes need no data folder. They are committed because they contain agent
-judgements that cannot be re-derived from raw data. The verdict batches stay in `data/curated/`, the tracked record the
+judgements that cannot be re-derived from raw data. Each builder also writes the same entries as a CSV under
+`data/stage_NN/` (`team_name_map` at stage 1, `player_name_map` at stage 2): that CSV is the dataset the registry,
+the catalogue and the graph know, and the JSON is its in-package copy, written by the same run. Stage numbers are
+computed from the headers (the player map depends on the merged box score, a stage-1 dataset), not chosen. The verdict batches stay in `data/curated/`, the tracked record the
 builder re-applies on every run. A rebuild from the same raw data and verdicts reproduces the map byte for byte.
 
 ### Lookup behaviour (both classes)
@@ -61,7 +64,8 @@ builder re-applies on every run. A rebuild from the same raw data and verdicts r
 ### Team map
 
 - Builder input: `data/raw_data/game_schedule/schedule_*.csv`. Distinct `(hometeam, homecode, hometv)`.
-- Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name.
+- Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name. CSV columns: `name`,
+  `variants` (joined with ` | `).
 - The normalized name is the schedule's `hometeam` verbatim. On the real 2026 schedule these are long upper-case
   names (`PANATHINAIKOS AKTOR ATHENS`, `FC BARCELONA`); a shorter display name would be a later, separate change.
 - Fails loudly if one code points to two teams or one team has two code pairs, and on an empty schedule.
@@ -89,7 +93,8 @@ Stages, in order:
    club yet) and rookies with no box-score history. Statuses: `confirmed` (with the full name, which need not exist in the
    box score), `rejected`, `no_match`.
 
-Map entry: `{"name", "variants", "team", "match_status", "matched_by", "match_score", "notes"}`.
+Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "match_score", "notes"}`;
+the CSV has the same columns, `variants` joined with ` | `.
 
 - `name`: the normalized full name; `variants`: the stats spelling, the box-score spelling(s) as written and the normalized name.
 - `team`: the normalized club of the stats player. It is metadata used to disambiguate, not part of the lookup key.
@@ -118,5 +123,6 @@ The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.m
   on a rerun.
 - Engine tests cover: club-scoped exact accept, same-abbreviation collision, out-of-club hit going to review,
   fuzzy review, verdict override with later batch winning, transfer and rookie via `confirmed`.
-- Removed from `src/eupy/entity/`: `player_sources.py` and `resolve_fantasy_stats_player_names.py`, with their tests.
+- `src/eupy/entity/` holds only the files in the layout above; the old resolvers, crosswalk accessors, `player_sources.py`
+  and their tests are gone, and no spec, doc or header mentions them.
 - `ruff check`, `ruff format --check` and the entity tests pass.

@@ -38,14 +38,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from eupy.entity.player_matching import VERDICT_KEY_FIELDS
-from eupy.entity.verdict_batches import run_ingest_cli
+from eupy.entity.verdict_batches import PLAYER_VERDICT_KEY_FIELDS, run_ingest_cli
 
 VERDICTS_DIR = Path(__file__).resolve().parents[3] / "data" / "curated" / "player_name_verdicts"
 
 
 def main() -> int:
-    return run_ingest_cli(__doc__, VERDICTS_DIR, VERDICT_KEY_FIELDS, "resolved_name")
+    return run_ingest_cli(__doc__, VERDICTS_DIR, PLAYER_VERDICT_KEY_FIELDS, "resolved_name")
 
 
 if __name__ == "__main__":

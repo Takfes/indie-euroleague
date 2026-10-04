@@ -8,7 +8,7 @@
 ## Scope
 
 - Define one strict key-value block, placed at the **end** of each pipeline script's module docstring. The prose body stays for humans.
-- Convert every pipeline script under `src/eupy/` (fetchers, transform, entity resolvers/appliers, optimize). Shared library modules with no I/O block (`matching.py`, `player_crosswalk.py`, `team_crosswalk.py`) stay untouched.
+- Convert every pipeline script under `src/eupy/` (fetchers, transform, entity builders/appliers, optimize). Shared library modules with no I/O block (`matching.py`, `verdict_batches.py`, `team_names.py`, `player_names.py`) stay untouched.
 - Document the grammar in `AGENTS.md` (Data section) and `docs/quickstart.md`.
 
 ## Grammar
@@ -39,7 +39,7 @@ Notes: <free text>                   # optional
 - The free-text notes currently living under the catalogue tables move into `Notes:` keys (rendered by ticket 3).
 - `Refresh:` / `Notes:` values may continue on 2-space-indented lines; a parser treats any indented line after a key as its continuation.
 - Where a raw dataset is a set of templated files, its path is the directory (ending `/`) and the file-name pattern goes in `Notes:` (affects `game_schedule/schedule`, whose catalogue path was `schedule_{season}.csv`; ticket 3 renders directory + pattern).
-- Resolvers that merge into their own previous output (`resolve_*`) list only their real inputs, matching the catalogue; verdict appliers (`apply_*`) list the rewritten crosswalk in both `Inputs` and `Outputs`. Ticket 2 must tolerate that self-loop.
+- Builders (`build_*`) list only their real inputs, matching the catalogue; verdict ingest scripts (`apply_*`) list only the verdict directory they append to, under `Outputs`, with the verdicts file under `Sources`.
 
 ## Out of scope
 

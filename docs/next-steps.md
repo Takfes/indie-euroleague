@@ -2,17 +2,12 @@
 
 Deferred work, off the critical path.
 
-- **No `data/stage_XX` dataset-path registry yet.** `resolve_player_names.py` and
-  `apply_player_name_verdicts.py` hardcode their `data/stage_01/player_name_crosswalk.csv` path,
-  same as the existing fetchers hardcode their `raw_data` paths. Expected until a registry is
-  built (tracked as a standing gap alongside the catalogue/graph generator, not a one-off here).
 - **`euroleague_box_score.csv` has at least 2 known cases of one real player under two different
   `player_id`s across seasons** (e.g. Lucas Mari: `P011974`/E2022 vs `P010754`/E2023, same club —
-  likely an accent-spelling-driven re-mint upstream; also Marko Simonovic, not in the current price
-  snapshot). Not fixable by the name-resolution pipeline; worth knowing about for any future
+  likely an accent-spelling-driven re-mint upstream; also Marko Simonovic). Not fixable by the name maps; worth knowing about for any future
   box-score analysis that assumes one `player_id` per player.
 
-## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`, `spec-html-viewer.md`, `spec-entity-verdicts.md`)
+## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`, `spec-html-viewer.md`)
 
 - **Control panel.** Local server (`uv run eupy panel`, 127.0.0.1 only) serving the HTML data map
   with run buttons per pipeline (`dvc repro <pipeline>`, log streaming, fresh/stale colouring from

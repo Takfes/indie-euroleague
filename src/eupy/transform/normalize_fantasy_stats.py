@@ -19,16 +19,17 @@ Usage:
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
-  - player_name_map: src/eupy/entity/maps/player_name_map.json
-  - team_name_map: src/eupy/entity/maps/team_name_map.json
+  - player_name_map: data/stage_02/player_name_map.csv
+  - team_name_map: data/stage_01/team_name_map.csv
 Sources: none
 Outputs:
-  - fantasy_stats_players_normalized: data/stage_01/fantasy_stats_players_normalized.csv
+  - fantasy_stats_players_normalized: data/stage_03/fantasy_stats_players_normalized.csv
 Final: true
 Impure: false
 Notes: Overwritten each run. Output is fantasy_stats/players with the same columns and row order, name
   replaced by the map's full name and position mapped Guard/Forward/Center -> G/F/C. Refuses to run
-  while any player is unresolved in the map.
+  while any player is unresolved in the map. Names are looked up through PlayerNames, which reads the JSON
+  copies of the two maps in src/eupy/entity/maps/ (written together with the CSVs listed as inputs).
 """
 
 from __future__ import annotations
@@ -41,7 +42,7 @@ from eupy.entity.player_names import PlayerNames
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PLAYERS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
-OUT_PATH = REPO_ROOT / "data" / "stage_01" / "fantasy_stats_players_normalized.csv"
+OUT_PATH = REPO_ROOT / "data" / "stage_03" / "fantasy_stats_players_normalized.csv"
 
 POSITION_ROLES = {"Guard": "G", "Forward": "F", "Center": "C"}
 
