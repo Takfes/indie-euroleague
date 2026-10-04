@@ -56,7 +56,7 @@ def test_step_has_script_and_input_deps_and_uncached_outs() -> None:
     lines = render_dvc(_registry(), _pipelines()).splitlines()
     assert lines[lines.index("  make_a:") :] == [
         "  make_a:",
-        "    cmd: uv run python src/eupy/transform/make_a.py",
+        "    cmd: uv run python -m eupy.transform.make_a",
         "    deps:",
         "    - src/eupy/transform/make_a.py",
         "    - data/raw_data/manual/raw.csv",
@@ -73,7 +73,7 @@ def test_fetcher_step_always_reruns_and_persists_its_outs() -> None:
     lines = render_dvc(_registry(), _pipelines()).splitlines()
     assert lines[lines.index("  fetch_x:") : lines.index("  make_a:")] == [
         "  fetch_x:",
-        "    cmd: uv run python src/eupy/fetchers/fetch_x.py",
+        "    cmd: uv run python -m eupy.fetchers.fetch_x",
         "    deps:",
         "    - src/eupy/fetchers/fetch_x.py",
         "    outs:",

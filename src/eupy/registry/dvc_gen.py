@@ -9,7 +9,7 @@ script in a pipeline with `dvc = true`, named after the script. Pure scripts (`I
 (impure scripts under `src/eupy/fetchers/`) are steps; other impure scripts (entity ingest, which needs
 `--verdicts`) never are:
 
-* `cmd`: `uv run python <script path>` (the script must run with no arguments);
+* `cmd`: `uv run python -m <module>`, the script run as a module (it must run with no arguments);
 * `deps`: the script file, then every in-repo module it imports, transitively (`import_closure`; so editing
   a library module reruns the step), then `config/config.toml` when the closure reads the config, then its
   input dataset paths (directories are hashed as directories);
@@ -202,7 +202,9 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = R
             f"step {name}: path {p!r} is not safe to write unquoted" for p in (*deps, *outs) if not _SAFE_PATH.match(p)
         ]
         problems += [f"step {name}: {o} is under data/stage_99/ (never a DVC out)" for o in outs if _is_link(o)]
-        steps.append(Step(name, f"uv run python {script.path}", deps, outs, is_fetcher(registry, name)))
+        steps.append(
+            Step(name, f"uv run python -m {_module_name(script.path)}", deps, outs, is_fetcher(registry, name))
+        )
     by_name = {s.name: s for s in steps}
     for pipe in pipelines.values():
         if pipe.dvc and pipe.scripts and all(is_fetcher(registry, s) for s in pipe.scripts):
@@ -292,6 +294,11 @@ def _module_files(src: Path, parts: list[str]) -> list[Path]:
         if candidate.is_file():
             return [candidate]
     return []
+
+
+def _module_name(script_path: str) -> str:
+    """`src/eupy/fetchers/fetch_x.py` -> `eupy.fetchers.fetch_x`."""
+    return script_path.removeprefix("src/").removesuffix(".py").replace("/", ".")
 
 
 def _dvc_path(path: str) -> str:
