@@ -121,16 +121,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Dossou-yovo",
-      "notes": "candidates: Melvin Ajinca (85.5); Mbaye Ndiaye (85.5); Marvyn Wade (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mathis Dossou-Yovo",
+      "notes": "Web search 2026-10-05: ASVEL signing for 2026-27 (Eurohoops)",
       "stats_name": "M. Dossou-yovo",
       "stats_team": "ASV",
       "team": "LDLC ASVEL VILLEURBANNE",
       "variants": [
-        "M. Dossou-yovo"
+        "DOSSOU-YOVO, MATHIS",
+        "M. Dossou-yovo",
+        "Mathis Dossou-Yovo"
       ]
     },
     {
@@ -179,16 +181,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "T. Washington",
-      "notes": "candidates: Tremont Waters (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "TyTy Washington",
+      "notes": "Web search 2026-10-05: Ex-Clippers guard signed by ASVEL (Eurohoops)",
       "stats_name": "T. Washington",
       "stats_team": "ASV",
       "team": "LDLC ASVEL VILLEURBANNE",
       "variants": [
-        "T. Washington"
+        "T. Washington",
+        "TyTy Washington"
       ]
     },
     {
@@ -222,24 +225,26 @@
       ]
     },
     {
-      "match_score": "92.3",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Balcerowski",
-      "notes": "candidates: Olek Balcerowski (92.3); Agustin Ubal (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Olek Balcerowski",
+      "notes": "Olek is Aleksander; plays for Barcelona in E2026 box score; signing reported by Eurohoops",
       "stats_name": "A. Balcerowski",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
-        "A. Balcerowski"
+        "A. Balcerowski",
+        "BALCEROWSKI, OLEK",
+        "Olek Balcerowski"
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
+      "match_score": "",
+      "match_status": "no_match",
+      "matched_by": "agent",
       "name": "A. Kone",
-      "notes": "candidates: Arturas Milaknis (85.5); Alessandro Tonolli (85.5); Alessio Valeriani (85.5)",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
       "stats_name": "A. Kone",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
@@ -293,16 +298,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "J. Nebo",
-      "notes": "candidates: Justin Robinson (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Josh Nebo",
+      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
       "stats_name": "J. Nebo",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
-        "J. Nebo"
+        "J. Nebo",
+        "Josh Nebo",
+        "NEBO, JOSH"
       ]
     },
     {
@@ -396,16 +403,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "T. Evbuomwan",
-      "notes": "candidates: Tomas Ress (85.5); Tomas Van Den Spiegel (85.5); Travis Best (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Tosan Evbuomwan",
+      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
       "stats_name": "T. Evbuomwan",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
-        "T. Evbuomwan"
+        "T. Evbuomwan",
+        "Tosan Evbuomwan"
       ]
     },
     {
@@ -439,16 +447,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "Y. Makoundou",
-      "notes": "candidates: Youssoupha Fall (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Yoan Makoundou",
+      "notes": "Web search 2026-10-05: Barcelona signing (fcbarcelona.com)",
       "stats_name": "Y. Makoundou",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
-        "Y. Makoundou"
+        "MAKOUNDOU, YOAN",
+        "Y. Makoundou",
+        "Yoan Makoundou"
       ]
     },
     {
@@ -467,16 +477,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Susic",
-      "notes": "candidates: Alessio Valeriani (85.5); Aleksey Savrasenko (85.5); Aris Tatarounis (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Andrija Susic",
+      "notes": "Web search 2026-10-05: Bayern young-player quintet, 2026-27 (fcbayern.com)",
       "stats_name": "A. Susic",
       "stats_team": "BAY",
       "team": "FC BAYERN MUNICH",
       "variants": [
-        "A. Susic"
+        "A. Susic",
+        "Andrija Susic"
       ]
     },
     {
@@ -495,16 +506,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "C. Vossenberg",
-      "notes": "candidates: Chris Warren (85.5); Charles Smith (85.5); Chuck Eidson (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Caspar Vossenberg",
+      "notes": "Web search 2026-10-05: Bayern young-player quintet, 2026-27 (fcbayern.com)",
       "stats_name": "C. Vossenberg",
       "stats_team": "BAY",
       "team": "FC BAYERN MUNICH",
       "variants": [
-        "C. Vossenberg"
+        "C. Vossenberg",
+        "Caspar Vossenberg"
       ]
     },
     {
@@ -658,16 +670,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "N. Jerkic",
-      "notes": "candidates: Neno Dimitrijevic (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Niko Jerkic",
+      "notes": "Web search 2026-10-05: Niko Roko Jerkic, Bayern youth programme (fcbayern.com)",
       "stats_name": "N. Jerkic",
       "stats_team": "BAY",
       "team": "FC BAYERN MUNICH",
       "variants": [
-        "N. Jerkic"
+        "N. Jerkic",
+        "Niko Jerkic"
       ]
     },
     {
@@ -896,16 +909,17 @@
       ]
     },
     {
-      "match_score": "88.9",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Sissoko",
-      "notes": "candidates: Yohann Sissoko (88.9); Mustafa Abi (85.5); Mohamed Kone (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mady Sissoko",
+      "notes": "Web search 2026-10-05: Besiktas signing for 2026-27 (Eurohoops)",
       "stats_name": "M. Sissoko",
       "stats_team": "BJK",
       "team": "BESIKTAS ISTANBUL",
       "variants": [
-        "M. Sissoko"
+        "M. Sissoko",
+        "Mady Sissoko"
       ]
     },
     {
@@ -924,11 +938,11 @@
       ]
     },
     {
-      "match_score": "85.7",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
+      "match_score": "",
+      "match_status": "no_match",
+      "matched_by": "agent",
       "name": "V. Brown",
-      "notes": "candidates: Anthony Brown (85.7)",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
       "stats_name": "V. Brown",
       "stats_team": "BJK",
       "team": "BESIKTAS ISTANBUL",
@@ -952,29 +966,31 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "Y. Aksu",
-      "notes": "candidates: Yotam Halperin (85.5); Yohann Sangare (85.5); Yannis Giannoulis (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Yagiz Aksu",
+      "notes": "Web search 2026-10-05: Besiktas guard, EuroLeague profile Yagiz Aksu",
       "stats_name": "Y. Aksu",
       "stats_team": "BJK",
       "team": "BESIKTAS ISTANBUL",
       "variants": [
-        "Y. Aksu"
+        "Y. Aksu",
+        "Yagiz Aksu"
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Bjelic",
-      "notes": "candidates: Aleksej Nedeljkovic (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Andrej Bjelic",
+      "notes": "Web search 2026-10-05: Crvena Zvezda 2026-27, number 30 (Eurohoops)",
       "stats_name": "A. Bjelic",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
-        "A. Bjelic"
+        "A. Bjelic",
+        "Andrej Bjelic"
       ]
     },
     {
@@ -1113,16 +1129,17 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "N. Djurisic",
-      "notes": "candidates: Nemanja Djurisic (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Nikola Djurisic",
+      "notes": "Nikola Djurisic signed with Crvena Zvezda (Eurohoops); the fuzzy candidate Nemanja Djurisic is a different player",
       "stats_name": "N. Djurisic",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
-        "N. Djurisic"
+        "N. Djurisic",
+        "Nikola Djurisic"
       ]
     },
     {
@@ -1156,16 +1173,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "P. Baldwin Jr",
-      "notes": "candidates: Panagiotis Kafkis (85.5); Petar Bozic (85.5); Pierric Poupet (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Patrick Baldwin Jr.",
+      "notes": "Web search 2026-10-05: Crvena Zvezda signing (Eurohoops)",
       "stats_name": "P. Baldwin Jr",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
-        "P. Baldwin Jr"
+        "P. Baldwin Jr",
+        "Patrick Baldwin Jr."
       ]
     },
     {
@@ -1214,16 +1232,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "V. Medarevic",
-      "notes": "candidates: Vedran Princ (85.5); Vladimer Boisa (85.5); Vilmantas Dilys (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Vojin Medarevic",
+      "notes": "Web search 2026-10-05: Crvena Zvezda three-year deal (Eurohoops)",
       "stats_name": "V. Medarevic",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
-        "V. Medarevic"
+        "V. Medarevic",
+        "Vojin Medarevic"
       ]
     },
     {
@@ -1422,16 +1441,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "M. Jaiteh",
-      "notes": "candidates: Mam Jaiteh (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mam Jaiteh",
+      "notes": "Mam Jaiteh is at Dubai through 2028 (Eurohoops); box-score name Mam Jaiteh",
       "stats_name": "M. Jaiteh",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "M. Jaiteh"
+        "JAITEH, MAM",
+        "M. Jaiteh",
+        "Mam Jaiteh"
       ]
     },
     {
@@ -1450,16 +1471,18 @@
       ]
     },
     {
-      "match_score": "95.0",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Wright",
-      "notes": "candidates: Mckinley Wright Iv (95.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mckinley Wright Iv",
+      "notes": "Dubai in E2025/E2026 box score; stats drops the IV suffix",
       "stats_name": "M. Wright",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "M. Wright"
+        "M. Wright",
+        "Mckinley Wright Iv",
+        "WRIGHT IV, MCKINLEY"
       ]
     },
     {
@@ -1568,16 +1591,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "D. Karutasu",
-      "notes": "candidates: Davor Kus (85.5); Darren Fenn (85.5); Daniel Hain (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Darius Karutasu",
+      "notes": "Web search 2026-10-05: Anadolu Efes academy graduate promoted to the senior team (Efes site)",
       "stats_name": "D. Karutasu",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "D. Karutasu"
+        "D. Karutasu",
+        "Darius Karutasu"
       ]
     },
     {
@@ -1866,16 +1890,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "M. Eksioglu",
-      "notes": "candidates: Mert Eksioglu (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mert Eksioglu",
+      "notes": "Box-score Mert Eksioglu played for Fenerbahce (ULK) in E2024",
       "stats_name": "M. Eksioglu",
       "stats_team": "FBT",
       "team": "FENERBAHCE TARFIN ISTANBUL",
       "variants": [
-        "M. Eksioglu"
+        "EKSIOGLU, MERT",
+        "M. Eksioglu",
+        "Mert Eksioglu"
       ]
     },
     {
@@ -1924,16 +1950,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "S. Larkin",
-      "notes": "candidates: Shane Larkin (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Shane Larkin",
+      "notes": "Moved from Anadolu Efes to Fenerbahce for 2026-27 (Eurohoops)",
       "stats_name": "S. Larkin",
       "stats_team": "FBT",
       "team": "FENERBAHCE TARFIN ISTANBUL",
       "variants": [
-        "S. Larkin"
+        "LARKIN, SHANE",
+        "S. Larkin",
+        "Shane Larkin"
       ]
     },
     {
@@ -1997,16 +2025,18 @@
       ]
     },
     {
-      "match_score": "95.0",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "W. Baldwin",
-      "notes": "candidates: Wade Baldwin Iv (95.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Wade Baldwin Iv",
+      "notes": "Fenerbahce in E2024-E2026 box score; stats drops the IV suffix",
       "stats_name": "W. Baldwin",
       "stats_team": "FBT",
       "team": "FENERBAHCE TARFIN ISTANBUL",
       "variants": [
-        "W. Baldwin"
+        "BALDWIN IV, WADE",
+        "W. Baldwin",
+        "Wade Baldwin Iv"
       ]
     },
     {
@@ -2040,16 +2070,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Coffey",
-      "notes": "candidates: Allan Ray (85.5); Aleksey Savrasenko (85.5); Aris Tatarounis (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Amir Coffey",
+      "notes": "Web search 2026-10-05: Signed with Hapoel Tel Aviv for 2026-27 (Eurohoops)",
       "stats_name": "A. Coffey",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "A. Coffey"
+        "A. Coffey",
+        "Amir Coffey"
       ]
     },
     {
@@ -2128,16 +2159,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "F. Bourdillon",
-      "notes": "candidates: Felipe Reyes (85.5); Ferran Laviña (85.5); Flip Murray (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Frederic Bourdillon",
+      "notes": "Web search 2026-10-05: Signed with Hapoel Tel Aviv through 2026-27 (Eurohoops)",
       "stats_name": "F. Bourdillon",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "F. Bourdillon"
+        "F. Bourdillon",
+        "Frederic Bourdillon"
       ]
     },
     {
@@ -2216,16 +2248,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "M. Heidegger",
-      "notes": "candidates: Max Heidegger (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Max Heidegger",
+      "notes": "Signed with Hapoel Tel Aviv for 2026-27 (Eurohoops); box-score name Max Heidegger",
       "stats_name": "M. Heidegger",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "M. Heidegger"
+        "HEIDEGGER, MAX",
+        "M. Heidegger",
+        "Max Heidegger"
       ]
     },
     {
@@ -2244,16 +2278,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "T. Blatt",
-      "notes": "candidates: Tomas Satoransky (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Tamir Blatt",
+      "notes": "Web search 2026-10-05: Moved to Hapoel Tel Aviv in the Madar swap (Eurohoops)",
       "stats_name": "T. Blatt",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "T. Blatt"
+        "BLATT, TAMIR",
+        "T. Blatt",
+        "Tamir Blatt"
       ]
     },
     {
@@ -2362,16 +2398,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Len",
-      "notes": "candidates: A.J. Lawson (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Alex Len",
+      "notes": "Web search 2026-10-05: Signed with Baskonia through 2028 (Eurohoops)",
       "stats_name": "A. Len",
       "stats_team": "KBA",
       "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
       "variants": [
-        "A. Len"
+        "A. Len",
+        "Alex Len",
+        "LEN, ALEX"
       ]
     },
     {
@@ -2510,16 +2548,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "P. Souza",
-      "notes": "candidates: Panagiotis Vasilopoulos (85.5); Prodomos Dreliozis (85.5); Patrick Femerling (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Pedro Souza",
+      "notes": "Web search 2026-10-05: Brazilian guard in Baskonia's youth setup (FIBA U18 AmeriCup 2026 profile)",
       "stats_name": "P. Souza",
       "stats_team": "KBA",
       "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
       "variants": [
-        "P. Souza"
+        "P. Souza",
+        "Pedro Souza"
       ]
     },
     {
@@ -2553,11 +2592,11 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
+      "match_score": "",
+      "match_status": "no_match",
+      "matched_by": "agent",
       "name": "T. Alves de Souza",
-      "notes": "candidates: Trent Forrest (85.5)",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
       "stats_name": "T. Alves de Souza",
       "stats_team": "KBA",
       "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
@@ -2746,16 +2785,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "N. Akele",
-      "notes": "candidates: Nicola Akele (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Nicola Akele",
+      "notes": "Moved from Virtus Bologna to Olimpia Milano for 2026-27 (Eurohoops)",
       "stats_name": "N. Akele",
       "stats_team": "MIL",
       "team": "ARMANI OLIMPIA MILAN",
       "variants": [
-        "N. Akele"
+        "AKELE, NICOLA",
+        "N. Akele",
+        "Nicola Akele"
       ]
     },
     {
@@ -2804,16 +2845,18 @@
       ]
     },
     {
-      "match_score": "95.0",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Bacot",
-      "notes": "candidates: Armando Bacot Jr. (95.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Armando Bacot Jr.",
+      "notes": "Maccabi Tel Aviv in E2026 box score; stats drops the Jr. suffix",
       "stats_name": "A. Bacot",
       "stats_team": "MTA",
       "team": "MACCABI RAPYD TEL AVIV",
       "variants": [
-        "A. Bacot"
+        "A. Bacot",
+        "Armando Bacot Jr.",
+        "BACOT JR., ARMANDO"
       ]
     },
     {
@@ -2952,15 +2995,17 @@
       ]
     },
     {
-      "match_score": "95.0",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "O. Brissett",
-      "notes": "candidates: O'Shae J Brissett (95.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "O'Shae J Brissett",
+      "notes": "Maccabi Tel Aviv in E2025/E2026 box score; stats uses O. and no middle initial",
       "stats_name": "O. Brissett",
       "stats_team": "MTA",
       "team": "MACCABI RAPYD TEL AVIV",
       "variants": [
+        "BRISSETT, O'SHAE J",
+        "O'Shae J Brissett",
         "O. Brissett"
       ]
     },
@@ -2980,16 +3025,17 @@
       ]
     },
     {
-      "match_score": "87.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "S. Hunter",
-      "notes": "candidates: Othello Hunter (87.5); Vince Hunter (87.5); Sarunas Jasikevicius (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Shane Hunter",
+      "notes": "Shane Hunter is on Maccabi Tel Aviv for 2026-27 (RotoWire); the fuzzy candidates are other Hunters",
       "stats_name": "S. Hunter",
       "stats_team": "MTA",
       "team": "MACCABI RAPYD TEL AVIV",
       "variants": [
-        "S. Hunter"
+        "S. Hunter",
+        "Shane Hunter"
       ]
     },
     {
@@ -3038,16 +3084,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "A. Karagiannidis",
-      "notes": "candidates: Alec Peters (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Antonis Karagiannidis",
+      "notes": "Web search 2026-10-05: On the Olympiacos 2026-27 roster",
       "stats_name": "A. Karagiannidis",
       "stats_team": "OLY",
       "team": "OLYMPIACOS PIRAEUS",
       "variants": [
-        "A. Karagiannidis"
+        "A. Karagiannidis",
+        "Antonis Karagiannidis"
       ]
     },
     {
@@ -3126,16 +3173,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "G. Bourneles",
-      "notes": "candidates: Goran Jurak (85.5); Gregor Fucka (85.5); Gary Neal (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Giorgos Bourneles",
+      "notes": "Web search 2026-10-05: On the Olympiacos 2026-27 roster",
       "stats_name": "G. Bourneles",
       "stats_team": "OLY",
       "team": "OLYMPIACOS PIRAEUS",
       "variants": [
-        "G. Bourneles"
+        "G. Bourneles",
+        "Giorgos Bourneles"
       ]
     },
     {
@@ -3154,16 +3202,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "G. Papas",
-      "notes": "candidates: Giannoulis Larentzakis (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "George Pappas",
+      "notes": "Web search 2026-10-05: Olympiacos one-year deal (Eurohoops); stats drops a p",
       "stats_name": "G. Papas",
       "stats_team": "OLY",
       "team": "OLYMPIACOS PIRAEUS",
       "variants": [
-        "G. Papas"
+        "G. Papas",
+        "George Pappas"
       ]
     },
     {
@@ -3362,11 +3411,11 @@
       ]
     },
     {
-      "match_score": "92.3",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
+      "match_score": "",
+      "match_status": "no_match",
+      "matched_by": "agent",
       "name": "G. Kalaitzakis",
-      "notes": "candidates: Panagiotis Kalaitzakis (92.3)",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players; Panagiotis Kalaitzakis exists at PAO but the stats initial is G.",
       "stats_name": "G. Kalaitzakis",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
@@ -3420,11 +3469,11 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
+      "match_score": "",
+      "match_status": "no_match",
+      "matched_by": "agent",
       "name": "I. Varvaritis",
-      "notes": "candidates: Isaac Bonga (85.5)",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
       "stats_name": "I. Varvaritis",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
@@ -3508,16 +3557,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Fall",
-      "notes": "candidates: Marius Grigonis (85.5); Mathias Lessort (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Moustapha Fall",
+      "notes": "Web search 2026-10-05: Signed with Panathinaikos 2+1 (Eurohoops)",
       "stats_name": "M. Fall",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
       "variants": [
-        "M. Fall"
+        "FALL, MOUSTAPHA",
+        "M. Fall",
+        "Moustapha Fall"
       ]
     },
     {
@@ -3822,15 +3873,16 @@
     },
     {
       "match_score": "",
-      "match_status": "no_candidate",
-      "matched_by": "fuzzy",
-      "name": "U. Danilovic",
-      "notes": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Uros Danilovic",
+      "notes": "Web search 2026-10-05: Partizan player listed on loan in 2025-26 (Wikipedia)",
       "stats_name": "U. Danilovic",
       "stats_team": "PAR",
       "team": "PARTIZAN MOZZART BET BELGRADE",
       "variants": [
-        "U. Danilovic"
+        "U. Danilovic",
+        "Uros Danilovic"
       ]
     },
     {
@@ -4029,29 +4081,32 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Pereira",
-      "notes": "candidates: Mouhamed Faye (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Maozinha Pereira",
+      "notes": "Web search 2026-10-05: Paris Basketball signing for 2026-27 (Eurohoops)",
       "stats_name": "M. Pereira",
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
-        "M. Pereira"
+        "M. Pereira",
+        "Maozinha Pereira"
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "N. Boungou-colo",
-      "notes": "candidates: Nadir Hifi (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Nobel Boungou-Colo",
+      "notes": "Web search 2026-10-05: Returned to Paris Basketball (Eurohoops)",
       "stats_name": "N. Boungou-colo",
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
-        "N. Boungou-colo"
+        "BOUNGOU-COLO, NOBEL",
+        "N. Boungou-colo",
+        "Nobel Boungou-Colo"
       ]
     },
     {
@@ -4205,16 +4260,18 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact",
-      "name": "E. Ndiaye",
-      "notes": "candidates: Eli Ndiaye (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Eli Ndiaye",
+      "notes": "Returned to Real Madrid for 2026-27 (Eurohoops); box-score name Eli Ndiaye",
       "stats_name": "E. Ndiaye",
       "stats_team": "RMB",
       "team": "REAL MADRID",
       "variants": [
-        "E. Ndiaye"
+        "E. Ndiaye",
+        "Eli Ndiaye",
+        "NDIAYE, ELI"
       ]
     },
     {
@@ -4308,16 +4365,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Shulga",
-      "notes": "candidates: Mustafa Abi (85.5); Marco Carraretto (85.5); Martynas Gecevicius (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Max Shulga",
+      "notes": "Web search 2026-10-05: Real Madrid signing through 2027-28 (Eurohoops)",
       "stats_name": "M. Shulga",
       "stats_team": "RMB",
       "team": "REAL MADRID",
       "variants": [
-        "M. Shulga"
+        "M. Shulga",
+        "Max Shulga"
       ]
     },
     {
@@ -4471,16 +4529,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "E. Valtonen",
-      "notes": "candidates: Ermal Kuqo (85.5); Erik Land (85.5); Edgar Sosa (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Elias Valtonen",
+      "notes": "Web search 2026-10-05: Valencia Basket signing (valenciabasket.com)",
       "stats_name": "E. Valtonen",
       "stats_team": "VBC",
       "team": "VALENCIA BASKET",
       "variants": [
-        "E. Valtonen"
+        "E. Valtonen",
+        "Elias Valtonen"
       ]
     },
     {
@@ -4544,29 +4603,33 @@
       ]
     },
     {
-      "match_score": "100.0",
-      "match_status": "needs_review",
-      "matched_by": "exact_ambiguous_spelling",
-      "name": "L. Mari",
-      "notes": "candidates: Lucas Mari (100.0); Lucas Marí (100.0)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Lucas Mari",
+      "notes": "Lucas Mari returned to Valencia for 2026-27 (Eurohoops); box score spells him Mari and Mari with accent",
       "stats_name": "L. Mari",
       "stats_team": "VBC",
       "team": "VALENCIA BASKET",
       "variants": [
-        "L. Mari"
+        "L. Mari",
+        "Lucas Mari",
+        "MARI, LUCAS",
+        "MARÍ, LUCAS"
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "M. Gueye",
-      "notes": "candidates: Mario Saint-Supery (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Mouhamadou Gueye",
+      "notes": "Web search 2026-10-05: Valencia Basket signing, Mo Gueye (valenciabasket.com)",
       "stats_name": "M. Gueye",
       "stats_team": "VBC",
       "team": "VALENCIA BASKET",
       "variants": [
-        "M. Gueye"
+        "M. Gueye",
+        "Mouhamadou Gueye"
       ]
     },
     {
@@ -4720,16 +4783,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "D. Casarin",
-      "notes": "candidates: Davor Kus (85.5); Damir Mulaomerovic (85.5); Darren Fenn (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Davide Casarin",
+      "notes": "Web search 2026-10-05: Virtus Bologna two-year deal (Eurohoops)",
       "stats_name": "D. Casarin",
       "stats_team": "VIR",
       "team": "VIRTUS BOLOGNA",
       "variants": [
-        "D. Casarin"
+        "D. Casarin",
+        "Davide Casarin"
       ]
     },
     {
@@ -4778,16 +4842,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "K. Kokila",
-      "notes": "candidates: Kostas Tsartsaris (85.5); Ksistof Lavrinovic (85.5); Kenan Bajramovic (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Kevin Kokila",
+      "notes": "Web search 2026-10-05: Loaned from Dubai to Virtus Bologna (Eurohoops)",
       "stats_name": "K. Kokila",
       "stats_team": "VIR",
       "team": "VIRTUS BOLOGNA",
       "variants": [
-        "K. Kokila"
+        "K. Kokila",
+        "Kevin Kokila"
       ]
     },
     {
@@ -5016,16 +5081,17 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "K. Akobundu-Ehiogu",
-      "notes": "candidates: Kenny Gregory (85.5); Kerem Gonlum (85.5); Kennedy Winston (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Kaodirichi Akobundu-Ehiogu",
+      "notes": "Web search 2026-10-05: Zalgiris signing (Eurohoops)",
       "stats_name": "K. Akobundu-Ehiogu",
       "stats_team": "ZAL",
       "team": "ZALGIRIS KAUNAS",
       "variants": [
-        "K. Akobundu-Ehiogu"
+        "K. Akobundu-Ehiogu",
+        "Kaodirichi Akobundu-Ehiogu"
       ]
     },
     {
@@ -5104,16 +5170,18 @@
       ]
     },
     {
-      "match_score": "85.5",
-      "match_status": "needs_review",
-      "matched_by": "fuzzy",
-      "name": "S. Lee",
-      "notes": "candidates: Sylvain Francisco (85.5)",
+      "match_score": "",
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Saben Lee",
+      "notes": "Web search 2026-10-05: Zalgiris two-year deal; the fuzzy candidate Sylvain Francisco is a different player (Eurohoops)",
       "stats_name": "S. Lee",
       "stats_team": "ZAL",
       "team": "ZALGIRIS KAUNAS",
       "variants": [
-        "S. Lee"
+        "LEE, SABEN",
+        "S. Lee",
+        "Saben Lee"
       ]
     }
   ]

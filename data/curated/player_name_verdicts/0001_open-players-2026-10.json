@@ -1,0 +1,422 @@
+{
+  "ingested_at": "2026-10-04",
+  "source": "verdicts_2026-10-05.json",
+  "verdicts": [
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Balcerowski",
+      "notes": "Olek is Aleksander; plays for Barcelona in E2026 box score; signing reported by Eurohoops",
+      "resolved_name": "Olek Balcerowski",
+      "team": "BAR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Jaiteh",
+      "notes": "Mam Jaiteh is at Dubai through 2028 (Eurohoops); box-score name Mam Jaiteh",
+      "resolved_name": "Mam Jaiteh",
+      "team": "DUB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Wright",
+      "notes": "Dubai in E2025/E2026 box score; stats drops the IV suffix",
+      "resolved_name": "Mckinley Wright Iv",
+      "team": "DUB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Eksioglu",
+      "notes": "Box-score Mert Eksioglu played for Fenerbahce (ULK) in E2024",
+      "resolved_name": "Mert Eksioglu",
+      "team": "FBT"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "S. Larkin",
+      "notes": "Moved from Anadolu Efes to Fenerbahce for 2026-27 (Eurohoops)",
+      "resolved_name": "Shane Larkin",
+      "team": "FBT"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "W. Baldwin",
+      "notes": "Fenerbahce in E2024-E2026 box score; stats drops the IV suffix",
+      "resolved_name": "Wade Baldwin Iv",
+      "team": "FBT"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Heidegger",
+      "notes": "Signed with Hapoel Tel Aviv for 2026-27 (Eurohoops); box-score name Max Heidegger",
+      "resolved_name": "Max Heidegger",
+      "team": "HTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "N. Akele",
+      "notes": "Moved from Virtus Bologna to Olimpia Milano for 2026-27 (Eurohoops)",
+      "resolved_name": "Nicola Akele",
+      "team": "MIL"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Bacot",
+      "notes": "Maccabi Tel Aviv in E2026 box score; stats drops the Jr. suffix",
+      "resolved_name": "Armando Bacot Jr.",
+      "team": "MTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "O. Brissett",
+      "notes": "Maccabi Tel Aviv in E2025/E2026 box score; stats uses O. and no middle initial",
+      "resolved_name": "O'Shae J Brissett",
+      "team": "MTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "E. Ndiaye",
+      "notes": "Returned to Real Madrid for 2026-27 (Eurohoops); box-score name Eli Ndiaye",
+      "resolved_name": "Eli Ndiaye",
+      "team": "RMB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "L. Mari",
+      "notes": "Lucas Mari returned to Valencia for 2026-27 (Eurohoops); box score spells him Mari and Mari with accent",
+      "resolved_name": "Lucas Mari",
+      "team": "VBC"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "N. Djurisic",
+      "notes": "Nikola Djurisic signed with Crvena Zvezda (Eurohoops); the fuzzy candidate Nemanja Djurisic is a different player",
+      "resolved_name": "Nikola Djurisic",
+      "team": "CZV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "S. Hunter",
+      "notes": "Shane Hunter is on Maccabi Tel Aviv for 2026-27 (RotoWire); the fuzzy candidates are other Hunters",
+      "resolved_name": "Shane Hunter",
+      "team": "MTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Dossou-yovo",
+      "notes": "Web search 2026-10-05: ASVEL signing for 2026-27 (Eurohoops)",
+      "resolved_name": "Mathis Dossou-Yovo",
+      "team": "ASV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "T. Washington",
+      "notes": "Web search 2026-10-05: Ex-Clippers guard signed by ASVEL (Eurohoops)",
+      "resolved_name": "TyTy Washington",
+      "team": "ASV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "T. Evbuomwan",
+      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
+      "resolved_name": "Tosan Evbuomwan",
+      "team": "BAR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "J. Nebo",
+      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
+      "resolved_name": "Josh Nebo",
+      "team": "BAR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Y. Makoundou",
+      "notes": "Web search 2026-10-05: Barcelona signing (fcbarcelona.com)",
+      "resolved_name": "Yoan Makoundou",
+      "team": "BAR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Susic",
+      "notes": "Web search 2026-10-05: Bayern young-player quintet, 2026-27 (fcbayern.com)",
+      "resolved_name": "Andrija Susic",
+      "team": "BAY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "C. Vossenberg",
+      "notes": "Web search 2026-10-05: Bayern young-player quintet, 2026-27 (fcbayern.com)",
+      "resolved_name": "Caspar Vossenberg",
+      "team": "BAY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "N. Jerkic",
+      "notes": "Web search 2026-10-05: Niko Roko Jerkic, Bayern youth programme (fcbayern.com)",
+      "resolved_name": "Niko Jerkic",
+      "team": "BAY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Sissoko",
+      "notes": "Web search 2026-10-05: Besiktas signing for 2026-27 (Eurohoops)",
+      "resolved_name": "Mady Sissoko",
+      "team": "BJK"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "Y. Aksu",
+      "notes": "Web search 2026-10-05: Besiktas guard, EuroLeague profile Yagiz Aksu",
+      "resolved_name": "Yagiz Aksu",
+      "team": "BJK"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Bjelic",
+      "notes": "Web search 2026-10-05: Crvena Zvezda 2026-27, number 30 (Eurohoops)",
+      "resolved_name": "Andrej Bjelic",
+      "team": "CZV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "P. Baldwin Jr",
+      "notes": "Web search 2026-10-05: Crvena Zvezda signing (Eurohoops)",
+      "resolved_name": "Patrick Baldwin Jr.",
+      "team": "CZV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "V. Medarevic",
+      "notes": "Web search 2026-10-05: Crvena Zvezda three-year deal (Eurohoops)",
+      "resolved_name": "Vojin Medarevic",
+      "team": "CZV"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "D. Karutasu",
+      "notes": "Web search 2026-10-05: Anadolu Efes academy graduate promoted to the senior team (Efes site)",
+      "resolved_name": "Darius Karutasu",
+      "team": "EFS"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Coffey",
+      "notes": "Web search 2026-10-05: Signed with Hapoel Tel Aviv for 2026-27 (Eurohoops)",
+      "resolved_name": "Amir Coffey",
+      "team": "HTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "F. Bourdillon",
+      "notes": "Web search 2026-10-05: Signed with Hapoel Tel Aviv through 2026-27 (Eurohoops)",
+      "resolved_name": "Frederic Bourdillon",
+      "team": "HTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "T. Blatt",
+      "notes": "Web search 2026-10-05: Moved to Hapoel Tel Aviv in the Madar swap (Eurohoops)",
+      "resolved_name": "Tamir Blatt",
+      "team": "HTA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Len",
+      "notes": "Web search 2026-10-05: Signed with Baskonia through 2028 (Eurohoops)",
+      "resolved_name": "Alex Len",
+      "team": "KBA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "P. Souza",
+      "notes": "Web search 2026-10-05: Brazilian guard in Baskonia's youth setup (FIBA U18 AmeriCup 2026 profile)",
+      "resolved_name": "Pedro Souza",
+      "team": "KBA"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "A. Karagiannidis",
+      "notes": "Web search 2026-10-05: On the Olympiacos 2026-27 roster",
+      "resolved_name": "Antonis Karagiannidis",
+      "team": "OLY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "G. Bourneles",
+      "notes": "Web search 2026-10-05: On the Olympiacos 2026-27 roster",
+      "resolved_name": "Giorgos Bourneles",
+      "team": "OLY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "G. Papas",
+      "notes": "Web search 2026-10-05: Olympiacos one-year deal (Eurohoops); stats drops a p",
+      "resolved_name": "George Pappas",
+      "team": "OLY"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Fall",
+      "notes": "Web search 2026-10-05: Signed with Panathinaikos 2+1 (Eurohoops)",
+      "resolved_name": "Moustapha Fall",
+      "team": "PAO"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "U. Danilovic",
+      "notes": "Web search 2026-10-05: Partizan player listed on loan in 2025-26 (Wikipedia)",
+      "resolved_name": "Uros Danilovic",
+      "team": "PAR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Pereira",
+      "notes": "Web search 2026-10-05: Paris Basketball signing for 2026-27 (Eurohoops)",
+      "resolved_name": "Maozinha Pereira",
+      "team": "PBB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "N. Boungou-colo",
+      "notes": "Web search 2026-10-05: Returned to Paris Basketball (Eurohoops)",
+      "resolved_name": "Nobel Boungou-Colo",
+      "team": "PBB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Shulga",
+      "notes": "Web search 2026-10-05: Real Madrid signing through 2027-28 (Eurohoops)",
+      "resolved_name": "Max Shulga",
+      "team": "RMB"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "E. Valtonen",
+      "notes": "Web search 2026-10-05: Valencia Basket signing (valenciabasket.com)",
+      "resolved_name": "Elias Valtonen",
+      "team": "VBC"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "M. Gueye",
+      "notes": "Web search 2026-10-05: Valencia Basket signing, Mo Gueye (valenciabasket.com)",
+      "resolved_name": "Mouhamadou Gueye",
+      "team": "VBC"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "D. Casarin",
+      "notes": "Web search 2026-10-05: Virtus Bologna two-year deal (Eurohoops)",
+      "resolved_name": "Davide Casarin",
+      "team": "VIR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "K. Kokila",
+      "notes": "Web search 2026-10-05: Loaned from Dubai to Virtus Bologna (Eurohoops)",
+      "resolved_name": "Kevin Kokila",
+      "team": "VIR"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "K. Akobundu-Ehiogu",
+      "notes": "Web search 2026-10-05: Zalgiris signing (Eurohoops)",
+      "resolved_name": "Kaodirichi Akobundu-Ehiogu",
+      "team": "ZAL"
+    },
+    {
+      "match_status": "confirmed",
+      "matched_by": "agent",
+      "name": "S. Lee",
+      "notes": "Web search 2026-10-05: Zalgiris two-year deal; the fuzzy candidate Sylvain Francisco is a different player (Eurohoops)",
+      "resolved_name": "Saben Lee",
+      "team": "ZAL"
+    },
+    {
+      "match_status": "no_match",
+      "matched_by": "agent",
+      "name": "A. Kone",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
+      "resolved_name": "",
+      "team": "BAR"
+    },
+    {
+      "match_status": "no_match",
+      "matched_by": "agent",
+      "name": "V. Brown",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
+      "resolved_name": "",
+      "team": "BJK"
+    },
+    {
+      "match_status": "no_match",
+      "matched_by": "agent",
+      "name": "T. Alves de Souza",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
+      "resolved_name": "",
+      "team": "KBA"
+    },
+    {
+      "match_status": "no_match",
+      "matched_by": "agent",
+      "name": "I. Varvaritis",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players",
+      "resolved_name": "",
+      "team": "PAO"
+    },
+    {
+      "match_status": "no_match",
+      "matched_by": "agent",
+      "name": "G. Kalaitzakis",
+      "notes": "Not identified: web search found no matching player on the club's 2026-27 roster; fuzzy candidates are other players; Panagiotis Kalaitzakis exists at PAO but the stats initial is G.",
+      "resolved_name": "",
+      "team": "PAO"
+    }
+  ]
+}

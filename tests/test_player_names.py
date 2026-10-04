@@ -81,7 +81,17 @@ def test_pools_skip_totals_and_scope_clubs_to_recent_seasons(tmp_path: Path) -> 
     assert "OLEK BALCEROWSKI" in pools.all  # old season: only in the unscoped pool
     assert "OLEK BALCEROWSKI" not in {s for p in pools.by_club.values() for s in p}
     assert "ALAN OLD" in pools.all  # unknown club: only in the unscoped pool
-    assert pools.raw["Carlik Jones"] == {"JONES, CARLIK"}
+    assert pools.raw["CARLIK JONES"] == {"JONES, CARLIK"}
+
+
+def test_accent_variants_of_a_name_share_their_raw_spellings(tmp_path: Path) -> None:
+    path = tmp_path / "box.csv"
+    path.write_text(
+        'season_code,team_id,player_id,player,dorsal\nE2025,MAD,P7,"MARI, LUCAS",4\nE2025,MAD,P8,"MAR\u00cd, LUCAS",4\n',
+        encoding="utf-8",
+    )
+    pools = load_boxscore_pools(path, TEAMS)
+    assert pools.raw["LUCAS MARI"] == {"MARI, LUCAS", "MAR\u00cd, LUCAS"}
 
 
 def test_load_stats_players_collapses_rounds(tmp_path: Path) -> None:

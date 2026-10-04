@@ -97,8 +97,9 @@ Pool = dict[str, set[str]]
 class BoxscorePools:
     """Box-score spellings, reordered to `First LAST`, with the player ids behind each and the raw spellings.
 
-    `by_club` is restricted to the recent seasons and keyed by normalized club name. `raw` maps a title-cased
-    reordered spelling to the spellings as written in the box score (`JONES, CARLIK`).
+    `by_club` is restricted to the recent seasons and keyed by normalized club name. `raw` maps the normalized
+    form of a reordered spelling (accents and punctuation dropped) to the spellings as written in the box score
+    (`JONES, CARLIK`), so accent variants of one name share their raw spellings.
     """
 
     all: Pool
@@ -148,7 +149,7 @@ def load_boxscore_pools(path: Path, teams: TeamNames, recent_seasons: int = RECE
     for row in rows:
         spelling = reorder_boxscore_name(row["player"])
         pools.all[spelling].add(row["player_id"])
-        pools.raw[spelling.title()].add(row["player"])
+        pools.raw[normalize_name(spelling)].add(row["player"])
         if row["season_code"] in recent:
             try:
                 club = teams.normalize(row["team_id"])
@@ -229,7 +230,7 @@ def build_entries(rows: list[dict[str, str]], pools: BoxscorePools) -> list[dict
         name = row["resolved_name"] if resolved else row["name"]
         variants = {row["name"], name}
         if resolved:
-            variants |= pools.raw.get(name, set())
+            variants |= pools.raw.get(normalize_name(name), set())
         entries.append({
             "name": name,
             "variants": sorted(variants),
