@@ -7,7 +7,7 @@ import pytest
 
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
-from eupy.transform.build_box_score_positions import (
+from eupy.transform.build_boxscore_kpis import (
     add_minutes_num,
     add_opponent_home_away,
     add_year_and_filter,

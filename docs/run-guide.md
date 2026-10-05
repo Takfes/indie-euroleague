@@ -55,7 +55,7 @@ Needs the schedule fetched first. Writes `data/stage_01/schedule.csv` and `team_
 ## Box score with positions
 
 ```bash
-uv run python -m eupy.transform.build_box_score_positions [--from-year 2025]
+uv run python -m eupy.transform.build_boxscore_kpis [--from-year 2025]
 ```
 
 Needs the merged box score, the fantasy stats players and the name maps (see below). Writes `data/stage_03/euroleague_box_score_positions.csv`: box-score rows from `--from-year` on, without the `TOTAL` team rows, inner-joined with the stats players' `position` (`G`/`F`/`C`), plus `year`, `minutes_num`, `player_name`, `opponent` and `home_away`. Not a DVC stage yet.

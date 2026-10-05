@@ -16,7 +16,7 @@ relevant players and carry each player's position. Steps, in order:
    opponent is `ZAL` and `home_away` is `Home`; for `ZAL` it is `RED` and `Away`.
 
 Usage:
-    python -m eupy.transform.build_box_score_positions [--from-year 2025] [--box-score PATH] [--players PATH] [--out PATH]
+    python -m eupy.transform.build_boxscore_kpis [--from-year 2025] [--box-score PATH] [--players PATH] [--out PATH]
 
 Inputs:
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
