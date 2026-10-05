@@ -28,6 +28,7 @@ scripts = [
     "build_team_name_map",
     "build_player_name_map",
     "normalize_fantasy_stats",
+    "build_box_score_positions",
 ]
 
 [optimize]

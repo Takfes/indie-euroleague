@@ -52,6 +52,14 @@ uv run python -m eupy.transform.build_schedule_turns --season=E2026
 
 Needs the schedule fetched first. Writes `data/stage_01/schedule.csv` and `team_round_turn.csv` (the round's latest date is T2, earlier dates T1). Not a DVC stage yet.
 
+## Box score with positions
+
+```bash
+uv run python -m eupy.transform.build_box_score_positions [--from-year 2025]
+```
+
+Needs the merged box score, the fantasy stats players and the name maps (see below). Writes `data/stage_03/euroleague_box_score_positions.csv`: box-score rows from `--from-year` on, without the `TOTAL` team rows, inner-joined with the stats players' `position` (`G`/`F`/`C`), plus `year`, `minutes_num`, `player_name`, `opponent` and `home_away`. Not a DVC stage yet.
+
 ## Name maps (players and teams)
 
 `TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. Each class reads a JSON map committed in `src/eupy/entity/maps/` (`team_name_map.json`, `player_name_map.json`), so no data folder is needed at lookup time. Each builder also writes the same entries as a CSV, `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`, the datasets the registry knows. Design: `specs/spec-name-maps.md`.
