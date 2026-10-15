@@ -32,6 +32,16 @@ uv run python -m eupy.fetchers.fetch_kaggle_euroleague   # the same script, untr
 
 The live fetchers take `--season=E2026` (default from `config/config.toml`).
 
+The fantasy stats fetcher has two modes (`--rounds`), and `--delay SECONDS` sets the pause between requests. The API allows about 5 requests per 2 s window and answers `HTTP Error 429` beyond it; the fetcher does not retry.
+
+```bash
+uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats                      # default: season total, one pass, delay 0.2 s, `round` column = "all"
+uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --rounds 1-4,6       # one fetch per listed round, delay 1.0 s, `round` = the number
+uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --delay 1.0          # slower total fetch if a run hits 429
+```
+
+`dvc repro fetch_euroleague_fantasy_stats` runs the default (total) mode; the DVC stage passes no arguments.
+
 `fetch_raw` is an aggregate stage whose deps are all the fetchers' outputs; `dvc repro` runs the producing stages first.
 
 ## Merge Kaggle history with the live deltas

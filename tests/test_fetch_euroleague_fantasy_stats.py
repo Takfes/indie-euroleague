@@ -9,13 +9,17 @@ from unittest.mock import patch
 import pytest
 
 from eupy.fetchers.fetch_euroleague_fantasy_stats import (
+    ALL_ROUNDS,
     HEAD_COACH_CSV_FIELDNAMES,
     PLAYER_CSV_FIELDNAMES,
+    REQUEST_DELAY_SECONDS,
+    ROUNDS_DELAY_SECONDS,
     drop_duplicate_players,
     fetch_round_rows,
     get_auth_token,
     matchday_ids_by_round,
     max_round_to_fetch,
+    parse_rounds,
     run,
     sanitize_column_name,
     write_csv,
@@ -209,3 +213,67 @@ def test_run_drops_duplicates_validates_and_writes(tmp_path: Path) -> None:
     written = list(csv.DictReader((tmp_path / "players.csv").open(encoding="utf-8")))
     assert [(r["player_id"], r["rank"]) for r in written] == [("12517", "291")]
     assert (tmp_path / "head_coaches.csv").exists()
+
+
+def test_parse_rounds_expands_ranges_dedupes_and_sorts() -> None:
+    assert parse_rounds("3,1-2,2", max_round=4) == [1, 2, 3]
+
+
+@pytest.mark.parametrize("spec", ["0", "5", "3-2", "1-9"])
+def test_parse_rounds_rejects_rounds_outside_the_played_range(spec: str) -> None:
+    with pytest.raises(ValueError, match="outside 1-4"):
+        parse_rounds(spec, max_round=4)
+
+
+def test_parse_rounds_rejects_unreadable_selection() -> None:
+    with pytest.raises(ValueError, match="neither a round number"):
+        parse_rounds("1,abc", max_round=4)
+
+
+def test_fetch_round_rows_without_matchday_sends_no_filter_and_uses_the_delay() -> None:
+    single_page = _page(players=[{"id": 1, "row": ["1", "A", "Guard", "PAR", "10"]}], current_page=1, last_page=1)
+    with (
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_json", return_value=single_page) as mock_fetch,
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.time.sleep") as mock_sleep,
+    ):
+        rows = fetch_round_rows(49, None, "Guard,Forward,Center", ALL_ROUNDS, "tok", delay=0.7)
+
+    assert rows[0]["round"] == ALL_ROUNDS
+    assert "matchdays" not in mock_fetch.call_args.args[0]
+    mock_sleep.assert_called_once_with(0.7)
+
+
+def _run_with_mocked_fetch(tmp_path: Path, **kwargs: object) -> list:
+    config = {**CONFIG_FIXTURE, "current_matchday": {"id": 1530, "number": 3}}
+
+    def fake_rows(competition_id, matchday_id, positions, round_number, token, delay):
+        name = "Some Coach" if positions == "Head Coach" else "A. Kone"
+        return [{**_player(round_number, "900" if positions == "Head Coach" else "1", 1, name), "position": positions}]
+
+    with (
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_config", return_value=config),
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_round_rows", side_effect=fake_rows) as mock_rows,
+    ):
+        run(tmp_path, "token", **kwargs)
+    return mock_rows.call_args_list
+
+
+def test_run_defaults_to_one_total_fetch_per_role_at_the_minimum_delay(tmp_path: Path) -> None:
+    calls = _run_with_mocked_fetch(tmp_path)
+    # (competition_id, matchday_id, positions, round_number, token, delay)
+    assert [(c.args[1], c.args[3], c.args[5]) for c in calls] == [(None, ALL_ROUNDS, REQUEST_DELAY_SECONDS)] * 2
+
+
+def test_run_with_selected_rounds_fetches_each_at_the_longer_delay(tmp_path: Path) -> None:
+    calls = _run_with_mocked_fetch(tmp_path, rounds="1,3")
+    assert [(c.args[1], c.args[3], c.args[5]) for c in calls] == [
+        (1528, 1, ROUNDS_DELAY_SECONDS),
+        (1528, 1, ROUNDS_DELAY_SECONDS),
+        (1530, 3, ROUNDS_DELAY_SECONDS),
+        (1530, 3, ROUNDS_DELAY_SECONDS),
+    ]
+
+
+def test_run_delay_override_wins_in_both_modes(tmp_path: Path) -> None:
+    assert {c.args[5] for c in _run_with_mocked_fetch(tmp_path, delay=2.5)} == {2.5}
+    assert {c.args[5] for c in _run_with_mocked_fetch(tmp_path, rounds="2", delay=0.1)} == {0.1}
