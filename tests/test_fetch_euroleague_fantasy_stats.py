@@ -246,7 +246,7 @@ def test_fetch_round_rows_without_matchday_sends_no_filter_and_uses_the_delay() 
 def _run_with_mocked_fetch(tmp_path: Path, **kwargs: object) -> list:
     config = {**CONFIG_FIXTURE, "current_matchday": {"id": 1530, "number": 3}}
 
-    def fake_rows(competition_id, matchday_id, positions, round_number, token, delay):
+    def fake_rows(competition_id, matchday_id, positions, round_number, token, delay, stats_type):
         name = "Some Coach" if positions == "Head Coach" else "A. Kone"
         return [{**_player(round_number, "900" if positions == "Head Coach" else "1", 1, name), "position": positions}]
 
@@ -277,3 +277,36 @@ def test_run_with_selected_rounds_fetches_each_at_the_longer_delay(tmp_path: Pat
 def test_run_delay_override_wins_in_both_modes(tmp_path: Path) -> None:
     assert {c.args[5] for c in _run_with_mocked_fetch(tmp_path, delay=2.5)} == {2.5}
     assert {c.args[5] for c in _run_with_mocked_fetch(tmp_path, rounds="2", delay=0.1)} == {0.1}
+
+
+def test_fetch_round_rows_sends_the_requested_stats_type() -> None:
+    single_page = _page(players=[{"id": 1, "row": ["1", "A", "Guard", "PAR", "10"]}], current_page=1, last_page=1)
+    with (
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.fetch_json", return_value=single_page) as mock_fetch,
+        patch("eupy.fetchers.fetch_euroleague_fantasy_stats.time.sleep"),
+    ):
+        fetch_round_rows(49, None, "Guard,Forward,Center", ALL_ROUNDS, "tok", stats_type="avg")
+        fetch_round_rows(49, 1528, "Guard,Forward,Center", 1, "tok")
+
+    assert "stats_type=avg" in mock_fetch.call_args_list[0].args[0]
+    assert "stats_type=tot" in mock_fetch.call_args_list[1].args[0]  # default stays the sum
+
+
+def test_run_all_rounds_defaults_to_the_average_and_tot_can_be_chosen(tmp_path: Path) -> None:
+    assert {c.kwargs["stats_type"] for c in _run_with_mocked_fetch(tmp_path)} == {"avg"}
+    assert {c.kwargs["stats_type"] for c in _run_with_mocked_fetch(tmp_path, stats_type="tot")} == {"tot"}
+
+
+def test_run_per_round_fetch_is_always_the_sum(tmp_path: Path) -> None:
+    assert {c.kwargs["stats_type"] for c in _run_with_mocked_fetch(tmp_path, rounds="1-2")} == {"tot"}
+    assert {c.kwargs["stats_type"] for c in _run_with_mocked_fetch(tmp_path, rounds="1", stats_type="tot")} == {"tot"}
+
+
+def test_run_rejects_the_average_with_selected_rounds(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="only applies to the all-rounds fetch"):
+        _run_with_mocked_fetch(tmp_path, rounds="1-2", stats_type="avg")
+
+
+def test_run_rejects_an_unknown_stats_type(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="Unknown stats type 'median'"):
+        _run_with_mocked_fetch(tmp_path, stats_type="median")

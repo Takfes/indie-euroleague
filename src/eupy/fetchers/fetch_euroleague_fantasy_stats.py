@@ -11,12 +11,16 @@ coaches).
 
 Two fetch modes, chosen with `--rounds`:
 
-- `all` (default): one fetch per role with no matchday filter. The API returns
-  the season total over every round played, and every row carries `round` =
-  "all". A handful of requests, so it runs at the minimum delay.
+- `all` (default): one fetch per role with no matchday filter. The API
+  aggregates over every round played, and every row carries `round` = "all".
+  `--stats-type` picks the aggregate: `avg` (default) is the per-game mean over
+  the games each person played, `tot` the season sum (the only way to recover
+  the games played, roughly as tot / avg). A handful of requests, so it runs at
+  the minimum delay.
 - a selection such as `1-4,6`: one fetch per listed round and role, each row
-  tagged with its round number. Many more requests, so the default delay is
-  longer. The selection is bounded by the in-progress round.
+  tagged with its round number, always `tot` (a single round has no average to
+  take). Many more requests, so the default delay is longer. The selection is
+  bounded by the in-progress round.
 
 `--delay` sets the pause between requests in either mode. The API rate-limits
 at about 5 requests per 2 s window and answers 429 beyond it; the fetcher does
@@ -51,7 +55,7 @@ lowest-rank row (`drop_duplicate_players`, logged as a warning), then both
 tables pass the shared duplicate/empty-row validation, which fails the run.
 
 Usage:
-    python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--rounds all|1-4,6] [--delay SECONDS] [--out-dir PATH]
+    python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--rounds all|1-4,6] [--stats-type avg|tot] [--delay SECONDS] [--out-dir PATH]
 
 Inputs: none
 Sources:
@@ -95,8 +99,11 @@ MAX_PER_PAGE = 100
 REQUEST_DELAY_SECONDS = 0.2
 ROUNDS_DELAY_SECONDS = 1.0
 
-# `--rounds` value (and the `round` column value) for the whole-season total.
+# `--rounds` value (and the `round` column value) for the whole-season aggregate.
 ALL_ROUNDS = "all"
+
+# `stats_type` values the API accepts: `avg` is the per-game mean over the games each person played, `tot` the sum.
+STATS_TYPES = ("avg", "tot")
 
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_stats"
 DEFAULT_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
@@ -254,18 +261,24 @@ def fetch_round_rows(
     round_number: int | str,
     token: str,
     delay: float = REQUEST_DELAY_SECONDS,
+    stats_type: str = "tot",
 ) -> list[dict[str, Any]]:
     """Fetch every row for one round and one `positions` filter, paginating as needed.
 
-    A `matchday_id` of None sends no matchday filter: the API then returns the season total over every round
-    played, and the caller tags those rows with `ALL_ROUNDS` as `round_number`. `delay` is the pause after each
-    request.
+    A `matchday_id` of None sends no matchday filter: the API then aggregates over every round played (as
+    `stats_type` says: `avg` or `tot`), and the caller tags those rows with `ALL_ROUNDS` as `round_number`.
+    `delay` is the pause after each request.
     """
     url = STATS_URL_TEMPLATE.format(competition_id=competition_id)
     rows: list[dict[str, Any]] = []
     page = 1
     while True:
-        params: dict[str, Any] = {"stats_type": "tot", "positions": positions, "page": page, "per_page": MAX_PER_PAGE}
+        params: dict[str, Any] = {
+            "stats_type": stats_type,
+            "positions": positions,
+            "page": page,
+            "per_page": MAX_PER_PAGE,
+        }
         if matchday_id is not None:
             params["matchdays"] = matchday_id
         payload = fetch_json(f"{url}?{urllib.parse.urlencode(params)}", token)
@@ -320,17 +333,29 @@ def write_csv(rows: list[dict[str, Any]], out_path: Path, fieldnames: list[str])
         writer.writerows(rows)
 
 
-def run(out_dir: Path, token: str, rounds: str = ALL_ROUNDS, delay: float | None = None) -> None:
+def run(
+    out_dir: Path,
+    token: str,
+    rounds: str = ALL_ROUNDS,
+    delay: float | None = None,
+    stats_type: str | None = None,
+) -> None:
     """Fetch players and head-coach stats, write both CSVs.
 
     Args:
         out_dir: Directory for `players.csv` and `head_coaches.csv`.
         token: The fantasy API bearer token.
-        rounds: `ALL_ROUNDS` for the one season-total fetch (`round` column = "all"), or a selection such as
+        rounds: `ALL_ROUNDS` for the one season-wide fetch (`round` column = "all"), or a selection such as
             `1-4,6` for one fetch per listed round, bounded by the in-progress round.
-        delay: Seconds between requests; None picks the mode default (`REQUEST_DELAY_SECONDS` for the total,
-            `ROUNDS_DELAY_SECONDS` per round).
+        delay: Seconds between requests; None picks the mode default (`REQUEST_DELAY_SECONDS` for the season-wide
+            fetch, `ROUNDS_DELAY_SECONDS` per round).
+        stats_type: `avg` or `tot` for the season-wide fetch (None means `avg`). A per-round fetch is always `tot`.
+
+    Raises:
+        ValueError: If `stats_type` is not `avg`/`tot`, or is `avg` together with a round selection.
     """
+    if stats_type not in (None, *STATS_TYPES):
+        raise ValueError(f"Unknown stats type {stats_type!r}. Use one of {STATS_TYPES}.")
     config = fetch_config(token)
     competition_id: int = config["current_competition_id"]
     max_round = max_round_to_fetch(config)
@@ -338,7 +363,14 @@ def run(out_dir: Path, token: str, rounds: str = ALL_ROUNDS, delay: float | None
         # (round label, matchday id): no matchday filter gives the season total in one pass.
         targets: list[tuple[int | str, int | None]] = [(ALL_ROUNDS, None)]
         delay = REQUEST_DELAY_SECONDS if delay is None else delay
+        stats_type = stats_type or "avg"
     else:
+        if stats_type == "avg":
+            raise ValueError(
+                "stats type 'avg' only applies to the all-rounds fetch; a per-round fetch is always 'tot'. "
+                f"Drop --stats-type, or use --rounds {ALL_ROUNDS}."
+            )
+        stats_type = "tot"
         matchday_by_round = matchday_ids_by_round(config)
         targets = [(n, matchday_by_round[n]) for n in parse_rounds(rounds, max_round)]
         delay = ROUNDS_DELAY_SECONDS if delay is None else delay
@@ -346,9 +378,15 @@ def run(out_dir: Path, token: str, rounds: str = ALL_ROUNDS, delay: float | None
     players_rows: list[dict[str, Any]] = []
     head_coaches_rows: list[dict[str, Any]] = []
     for round_number, matchday_id in targets:
-        players_rows.extend(fetch_round_rows(competition_id, matchday_id, PLAYER_POSITIONS, round_number, token, delay))
+        players_rows.extend(
+            fetch_round_rows(
+                competition_id, matchday_id, PLAYER_POSITIONS, round_number, token, delay, stats_type=stats_type
+            )
+        )
         head_coaches_rows.extend(
-            fetch_round_rows(competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token, delay)
+            fetch_round_rows(
+                competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token, delay, stats_type=stats_type
+            )
         )
 
     players_rows = drop_duplicate_players(players_rows)
@@ -362,7 +400,7 @@ def run(out_dir: Path, token: str, rounds: str = ALL_ROUNDS, delay: float | None
     print(
         f"Wrote {len(players_rows)} player rows to {players_path} and "
         f"{len(head_coaches_rows)} head-coach rows to {head_coaches_path} "
-        f"(rounds: {rounds}, delay {delay}s, in-progress round {max_round})"
+        f"(rounds: {rounds}, stats type: {stats_type}, delay {delay}s, in-progress round {max_round})"
     )
 
 
@@ -372,7 +410,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--rounds",
         default=ALL_ROUNDS,
-        help=f"'{ALL_ROUNDS}' for the season total in one pass (default), or rounds such as '1-4,6', one fetch each",
+        help=f"'{ALL_ROUNDS}' for the whole season in one pass (default), or rounds such as '1-4,6', one fetch each",
+    )
+    parser.add_argument(
+        "--stats-type",
+        choices=STATS_TYPES,
+        default=None,
+        help="'avg' per-game mean (default for --rounds all) or 'tot' season sum; a per-round fetch is always 'tot'",
     )
     parser.add_argument(
         "--delay",
@@ -385,7 +429,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    run(args.out_dir, get_auth_token(), args.rounds, args.delay)
+    run(args.out_dir, get_auth_token(), args.rounds, args.delay, args.stats_type)
 
 
 if __name__ == "__main__":
