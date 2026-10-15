@@ -105,3 +105,27 @@ def test_no_deltas_yields_kaggle_only(raw: tuple[Path, Path], tmp_path: Path, mo
     out = tmp_path / "out.csv"
     run_main(monkeypatch, kaggle, live, out)
     assert len(read_ids(out)) == 3
+
+
+def test_kaggle_rows_of_a_season_covered_by_a_delta_are_replaced(
+    raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kaggle, live = raw
+    # Kaggle already holds E2026_1 (as its dump started covering the live season); the delta holds E2026_1 and E2026_2.
+    write_csv(
+        kaggle,
+        [
+            ["E2025_1_A", "E2025_1", "E2025", "1.0", "10"],
+            ["E2026_1_A", "E2026_1", "E2026", "1.0", "6"],
+        ],
+    )
+    write_csv(
+        live / "E2026_delta_1.csv",
+        [["E2026_1_A", "E2026_1", "E2026", "1", "7"], ["E2026_2_A", "E2026_2", "E2026", "1", "3"]],
+    )
+    out = tmp_path / "out.csv"
+    run_main(monkeypatch, kaggle, live, out)
+    assert read_ids(out) == ["E2025_1_A", "E2026_1_A", "E2026_2_A"]
+    with out.open(newline="", encoding="utf-8") as f:
+        points = {r["game_player_id"]: r["points"] for r in csv.DictReader(f)}
+    assert points["E2026_1_A"] == "7"  # the live row wins over the Kaggle one

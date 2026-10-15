@@ -8,6 +8,10 @@ that run. This script rebuilds one merged box-score table from scratch on every 
 order (the filename embeds a UTC timestamp, so this is chronological). Nothing is incremental -- re-running
 from the same raw files gives byte-identical output.
 
+The live deltas are authoritative for the seasons they hold: Kaggle rows of any `season_code` that appears in a
+delta are dropped before the append, so a Kaggle dump that already covers part of the live season does not
+duplicate its games.
+
 By default the full Kaggle history is merged; `--base-season` (or `[transformation] base_season` in
 `config/config.toml`) keeps only that `season_code`.
 
@@ -29,7 +33,7 @@ Outputs:
 Final: false
 Impure: false
 Notes: Full Kaggle history by default (config transformation.base_season / --base-season restricts it); all delta
-  files under euroleague_net/box_score are appended.
+  files under euroleague_net/box_score are appended, and Kaggle rows of seasons present in a delta are dropped.
 """
 
 from __future__ import annotations
@@ -39,7 +43,7 @@ from pathlib import Path
 
 from eupy.config import get_config
 from eupy.quality import validate
-from eupy.transform.merge_common import REPO_ROOT, load_base, load_deltas, write_rows
+from eupy.transform.merge_common import REPO_ROOT, drop_covered_seasons, load_base, load_deltas, write_rows
 
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_box_score.csv"
 LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "box_score"
@@ -65,6 +69,7 @@ def main() -> None:
     args = parse_args()
     header, base = load_base(args.kaggle, args.base_season)
     deltas = load_deltas(args.live_dir, header)
+    base = drop_covered_seasons(base, deltas)
     rows = [*base, *deltas]
     validate(rows, KEY, "euroleague_box_score_merged")
     write_rows(rows, header, args.out)

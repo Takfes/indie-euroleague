@@ -11,7 +11,9 @@ By default the full Kaggle history is merged; `--base-season` (or `[transformati
 `config/config.toml`) keeps only that `season_code`. A delta whose columns differ from the Kaggle header raises.
 Values are copied as text. The merged rows are validated before writing (no empty rows, unique `game_id`); a
 violation is logged to the shared log file and fails the run -- nothing is dropped silently, so a live row for
-a game already in Kaggle is an error, not a replacement.
+a game already in Kaggle is an error, not a replacement. The one deliberate drop: the live deltas are
+authoritative for the seasons they hold, so Kaggle rows of any `season_code` that appears in a delta are removed
+before the append, and a Kaggle dump that already covers part of the live season does not duplicate its games.
 
 Usage:
     python src/eupy/transform/merge_headers.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
@@ -25,7 +27,7 @@ Outputs:
 Final: false
 Impure: false
 Notes: Full Kaggle history by default (config transformation.base_season / --base-season restricts it); all delta
-  files under euroleague_net/headers are appended.
+  files under euroleague_net/headers are appended, and Kaggle rows of seasons present in a delta are dropped.
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ from pathlib import Path
 
 from eupy.config import get_config
 from eupy.quality import validate
-from eupy.transform.merge_common import REPO_ROOT, load_base, load_deltas, write_rows
+from eupy.transform.merge_common import REPO_ROOT, drop_covered_seasons, load_base, load_deltas, write_rows
 
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_header.csv"
 LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "headers"
@@ -61,6 +63,7 @@ def main() -> None:
     args = parse_args()
     header, base = load_base(args.kaggle, args.base_season)
     deltas = load_deltas(args.live_dir, header)
+    base = drop_covered_seasons(base, deltas)
     rows = [*base, *deltas]
     validate(rows, KEY, "euroleague_header_merged")
     write_rows(rows, header, args.out)

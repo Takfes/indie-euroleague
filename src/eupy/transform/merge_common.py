@@ -47,6 +47,12 @@ def load_deltas(live_dir: Path, header: list[str]) -> list[dict[str, str]]:
     return rows
 
 
+def drop_covered_seasons(base: list[dict[str, str]], deltas: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Kaggle rows of the seasons that no delta covers; the live deltas are authoritative for the seasons they hold."""
+    covered = {row["season_code"] for row in deltas}
+    return [row for row in base if row["season_code"] not in covered]
+
+
 def write_rows(rows: list[dict[str, str]], header: list[str], path: Path) -> None:
     """Write `rows` as UTF-8 CSV with `\\n` line endings, creating parent dirs."""
     path.parent.mkdir(parents=True, exist_ok=True)

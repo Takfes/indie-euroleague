@@ -42,7 +42,7 @@ uv run dvc repro -s merge_boxscore merge_headers     # offline: only the merges
 uv run python -m eupy.transform.merge_boxscore       # the same script, untracked
 ```
 
-Writes `data/stage_01/euroleague_box_score_merged.csv` and `euroleague_header_merged.csv`. `--base-season E2025` (or `[transformation] base_season` in config) limits the Kaggle base to one season; default is the full history.
+Writes `data/stage_01/euroleague_box_score_merged.csv` and `euroleague_header_merged.csv`. `--base-season E2025` (or `[transformation] base_season` in config) limits the Kaggle base to one season; default is the full history. The live deltas are authoritative for the seasons they hold: Kaggle rows of any `season_code` that appears in a delta are dropped before the append, so a Kaggle dump that already covers part of the live season (E2026) does not collide with the deltas.
 
 ## Schedule turns
 
