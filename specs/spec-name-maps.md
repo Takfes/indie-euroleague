@@ -28,30 +28,29 @@ Out of scope, handled in follow-up reviews:
 
 ## Design
 
-Two classes, two committed JSON maps inside the package, two builder scripts, one skill that drives both.
+Two classes, one team JSON inside the package, one derived player CSV, one committed decisions file, two builder
+scripts, one skill that drives both.
 
 ```
 src/eupy/entity/
   team_names.py                    class TeamNames
   player_names.py                  class PlayerNames
   build_team_name_map.py           script: schedule -> team_name_map (JSON + CSV)
-  build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (JSON + CSV); holds the engine
-  matching.py                      library: normalize_name, exact candidate finder, lookup errors
+  build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (CSV); holds the engine
+  matching.py                      library: normalize_name, match_key, exact candidate finder, lookup errors
   maps/team_name_map.json          committed, written only by build_team_name_map.py, read by TeamNames
-  maps/player_name_map.json        committed, written only by build_player_name_map.py, read by PlayerNames
+  maps/player_name_decisions.json  committed, written only by the build-name-maps skill, read by build_player_name_map.py
 data/stage_01/team_name_map.csv    same entries as the team JSON, registered dataset
-data/stage_02/player_name_map.csv  same entries as the player JSON, registered dataset
+data/stage_02/player_name_map.csv  the player map: derived, git-ignored, read by PlayerNames
 ```
 
-The JSON maps live in the package so the classes need no data folder. They are committed because they contain agent
-judgements that cannot be re-derived from raw data. Each builder also writes the same entries as a CSV under
-`data/stage_NN/` (`team_name_map` at stage 1, `player_name_map` at stage 2): that CSV is the dataset the registry,
-the catalogue and the graph know, and the JSON is its in-package copy, written by the same run. Stage numbers are
-computed from the headers (the player map depends on the merged box score, a stage-1 dataset), not chosen. The agent's decisions live in the committed player JSON itself.
-The builder recomputes everything it can from the inputs, reads the existing JSON back only for those decisions and
-carries them into every rebuild, so a rerun on the same inputs and decisions rewrites the same bytes. Deleting the
-JSON loses the decisions (they remain in git history), so there is no separate decision store, ingest script or
-batch folder.
+The only judgements that cannot be re-derived from raw data are the agent decisions, so they are the one committed
+player file (`maps/player_name_decisions.json`, shipped with the package). The player map is a pure function of the
+fantasy stats, the box score, the team map and the decisions, rebuilt by `dvc repro`; `PlayerNames.load()` reads it
+from `data/stage_02/`. The team map is still written twice (JSON in the package, CSV for the registry), a
+simplification not done yet. Stage numbers are computed from the headers (the player map
+depends on the merged box score, a stage-1 dataset), not chosen. A rerun on the same inputs and decisions rewrites
+the same bytes.
 
 ### Lookup behaviour (both classes)
 
@@ -60,7 +59,7 @@ batch folder.
 - A spelling shared by two entries raises `AmbiguousNameError`; `PlayerNames.normalize(name, team=...)` resolves it with
   the player's club. `team` is a raw club code or name; it is normalized through `TeamNames` inside.
 - The normalized form of an entry is itself a variant, so `normalize` is idempotent.
-- Both classes load their JSON once (`load()`), keep it in memory and carry no other state.
+- Both classes load their map once (`load()`), keep it in memory and carry no other state.
 
 ### Team map
 
@@ -84,17 +83,19 @@ Stages, in order:
 
 1. Exact, club-scoped. Pool: box-score players who played for the stats player's club in the most recent seasons
    (default: the latest two season codes in the merged box score). The club is compared after `TeamNames`
-   normalization on both sides. Pool spellings are abbreviated like the stats names; normalized-string equality with exactly
-   one pool player is `exact` and the only automatic accept.
+   normalization on both sides. Pool spellings are abbreviated like the stats names; equality of `matching.match_key`
+   (the normalized name without a trailing `Jr`/`Sr`/`II`/`III`/`IV`, since the stats and the box score disagree on
+   suffixes) with exactly one pool player is `exact` and the only automatic accept. Two players of one club that
+   differ only by suffix are `needs_review`.
 2. Exact, unscoped. Everything else is looked up across every box-score spelling in history. A hit is `needs_review`
    (`matched_by` `exact_other_club`), never auto-accepted, because it may be an older namesake or the player at a
    previous club. No hit is `no_candidate`. There is no approximate (fuzzy) matching: it produced mostly wrong
    suggestions, and the agent stage covers every remaining case.
-3. Agent decisions. For the players the first two stages leave open, the agent sets `match_status` on the entry in
-   `maps/player_name_map.json`: `confirmed` (with the full name in `name`, which need not exist in the box score),
-   `rejected` or `no_match`, plus a short `notes` rationale. The builder carries these entries forward on every
+3. Agent decisions. For the players the first two stages leave open, the agent records a decision in
+   `maps/player_name_decisions.json`: `confirmed` (with the full name in `name`, which need not exist in the box
+   score), `rejected` or `no_match`, plus a short `notes` rationale. The builder applies the decisions on every
    rebuild and validates them (`notes` required, `confirmed` needs a `name`). A decision never replaces an `exact`
-   match, and one for a player who left the stats data is dropped. The agent typically handles players who just
+   match, and one for a player who left the stats data is ignored. The agent typically handles players who just
    moved clubs (no games for the new club yet) and rookies with no box-score history.
 
 Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "notes"}`;
@@ -113,8 +114,8 @@ One skill in `.claude/skills/build-name-maps/` refreshes both maps:
 
 1. Check the prerequisite files exist (schedule CSV, merged box score, stats players) and name the fetch/merge step if not.
 2. Run `build_team_name_map.py`, then `build_player_name_map.py`.
-3. For each open entry the builder reports, research it (box-score history, the web), record the decision on that entry
-   in the player JSON, and rebuild; repeat until nothing is open.
+3. For each open entry the builder reports, research it (box-score history, the web), record the decision in the
+   decisions file, and rebuild; repeat until nothing is open.
 4. Report the counts per status.
 
 The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.md` documents it.

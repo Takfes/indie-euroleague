@@ -43,15 +43,13 @@ Outputs:
 Final: false
 Impure: false
 Notes: Exit 1 only in pause mode with a case-3 player. Report cases: stats_only (case 2), box_only (case 3), map_stale (stats players not
-  in the map yet). Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written
-  together with the CSV listed as input) because that is what PlayerNames and the agent decisions use.
+  in the map yet).
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
-import json
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -59,7 +57,7 @@ from pathlib import Path
 
 from eupy.config import get_config
 from eupy.entity.matching import UnknownNameError, load_stats_players, normalize_name
-from eupy.entity.player_names import MAP_PATH, PlayerNames
+from eupy.entity.player_names import MAP_PATH, PlayerNames, load_entries
 from eupy.entity.team_names import TeamNames
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -183,7 +181,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
-    parser.add_argument("--map", type=Path, default=MAP_PATH, help="player name map JSON path")
+    parser.add_argument("--map", type=Path, default=MAP_PATH, help="player name map CSV path")
     parser.add_argument("--out", type=Path, default=OUT_PATH, help="report CSV output path")
     args = parser.parse_args(argv)
 
@@ -192,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError(f"No players in {args.stats}; refetch with `uv run dvc repro fetch_euroleague_fantasy_stats`")
     if not args.map.exists():
         raise FileNotFoundError(f"{args.map} not found; build it with `python -m eupy.entity.build_player_name_map`")
-    entries = json.loads(args.map.read_text(encoding="utf-8"))["players"]
+    entries = load_entries(args.map)
     stats_only, missing = find_stats_only(stats_players, entries)
     unlinked = [  # stats entries no box-score spelling resolved to automatically: candidates for the hint
         {

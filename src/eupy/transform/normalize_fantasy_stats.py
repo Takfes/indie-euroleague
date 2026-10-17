@@ -27,8 +27,8 @@ Final: true
 Impure: false
 Notes: Overwritten each run. Output is fantasy_stats/players with the same columns and row order, name
   replaced by the map's full name (the abbreviated name stays for unresolved players) and position mapped
-  Guard/Forward/Center -> G/F/C. Names are looked up through PlayerNames, which reads the JSON
-  copies of the two maps in src/eupy/entity/maps/ (written together with the CSVs listed as inputs).
+  Guard/Forward/Center -> G/F/C. Names are looked up through PlayerNames, which reads the player map CSV
+  listed as input and the team map through TeamNames (the JSON copy in src/eupy/entity/maps/).
 """
 
 from __future__ import annotations

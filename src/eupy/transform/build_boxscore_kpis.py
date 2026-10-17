@@ -29,8 +29,8 @@ Outputs:
 Final: false
 Impure: false
 Notes: Overwritten each run. Box-score columns keep their order; year, minutes_num, player_name, position, opponent
-  and home_away are added. Names are looked up through PlayerNames, which reads the JSON copies of the two
-  maps in src/eupy/entity/maps/ (written together with the CSVs listed as inputs).
+  and home_away are added. Names are looked up through PlayerNames, which reads the player map CSV listed as
+  input and the team map through TeamNames (the JSON copy in src/eupy/entity/maps/).
 """
 
 from __future__ import annotations

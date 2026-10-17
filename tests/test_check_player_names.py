@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from eupy.entity.build_player_name_map import CSV_FIELDS
 from eupy.entity.check_player_names import (
     BoxOnly,
     box_name_as_full_name,
@@ -105,8 +106,11 @@ def _run(
         writer.writerow(["round", "player_id", "name", "team"])
         writer.writerow(["all", "1", "C. Jones", "PAO"])
         writer.writerow(["all", "2", "R. Rookie", "PAO"])
-    map_path = tmp_path / "map.json"
-    map_path.write_text(json.dumps({"players": entries}), encoding="utf-8")
+    map_path = tmp_path / "map.csv"
+    with map_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows({**e, "variants": " | ".join(e["variants"])} for e in entries)  # type: ignore[arg-type]
     team_map = tmp_path / "teams.json"
     team_map.write_text(json.dumps({"teams": TEAMS_DATA}), encoding="utf-8")
     monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)

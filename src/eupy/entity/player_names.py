@@ -1,25 +1,29 @@
 """Player names: turn any known spelling of a player into one normalized full name.
 
-`PlayerNames` loads `maps/player_name_map.json`, written by `build_player_name_map.py`, once and keeps it in
-memory. It reads no data folder, so it works wherever the package is installed.
+`PlayerNames` loads the player map `data/stage_02/player_name_map.csv`, written by `build_player_name_map.py`, once
+and keeps it in memory, so the map must have been built (`uv run dvc repro -s build_player_name_map`).
 
-    >>> players = PlayerNames.load()
-    >>> players.normalize("JONES, CARLIK")
-    'Carlik Jones'
-    >>> players.normalize("C. Jones", team="PAO")   # `team` only matters when two players share a spelling
-    'Carlik Jones'
+    players = PlayerNames.load()
+    players.normalize("JONES, CARLIK")             # 'Carlik Jones'
+    players.normalize("C. Jones", team="PAO")      # 'Carlik Jones'; `team` only matters when players share a spelling
 """
 
 from __future__ import annotations
 
-import json
+import csv
 from collections import defaultdict
 from pathlib import Path
 
 from eupy.entity.matching import OPEN_STATUSES, AmbiguousNameError, UnknownNameError, normalize_name
 from eupy.entity.team_names import TeamNames
 
-MAP_PATH = Path(__file__).resolve().parent / "maps" / "player_name_map.json"
+MAP_PATH = Path(__file__).resolve().parents[3] / "data" / "stage_02" / "player_name_map.csv"
+
+
+def load_entries(path: Path) -> list[dict[str, object]]:
+    """Read the player map CSV into entries; `variants` is split back into a list."""
+    with path.open(newline="", encoding="utf-8") as f:
+        return [{**row, "variants": row["variants"].split(" | ")} for row in csv.DictReader(f)]
 
 
 class PlayerNames:
@@ -38,13 +42,13 @@ class PlayerNames:
 
     @classmethod
     def load(cls, path: Path | None = None, teams: TeamNames | None = None) -> PlayerNames:
-        """Load the player map (default: the one shipped in `eupy/entity/maps/`) and the team lookup."""
+        """Load the player map (default: `data/stage_02/player_name_map.csv`) and the team lookup."""
         resolved = path or MAP_PATH
         if not resolved.exists():
             raise FileNotFoundError(
                 f"{resolved} not found; build it with `python -m eupy.entity.build_player_name_map`"
             )
-        return cls(json.loads(resolved.read_text(encoding="utf-8"))["players"], teams or TeamNames.load())
+        return cls(load_entries(resolved), teams or TeamNames.load())
 
     def normalize(self, name: str, team: str | None = None) -> str:
         """Return the normalized full name for any known spelling of a player.

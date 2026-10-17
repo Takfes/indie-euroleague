@@ -119,13 +119,13 @@ Needs the merged box score, the fantasy stats players and the name maps (see bel
 
 ## Name maps (players and teams)
 
-`TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. Each class reads a JSON map committed in `src/eupy/entity/maps/` (`team_name_map.json`, `player_name_map.json`), so no data folder is needed at lookup time. Each builder also writes the same entries as a CSV, `data/stage_01/team_name_map.csv` and `data/stage_02/player_name_map.csv`, the datasets the registry knows. Design: `specs/spec-name-maps.md`.
+`TeamNames` and `PlayerNames` (`src/eupy/entity/`) turn any spelling of a team or player into one normalized name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`; `TeamNames.load().normalize("PAO")` gives the schedule's team name. `TeamNames` reads the JSON committed in `src/eupy/entity/maps/team_name_map.json` (its builder also writes the same entries as `data/stage_01/team_name_map.csv`, the dataset the registry knows). `PlayerNames` reads the derived CSV `data/stage_02/player_name_map.csv`, so the map must have been built. The agent decisions are the one committed player file, `src/eupy/entity/maps/player_name_decisions.json`. Design: `specs/spec-name-maps.md`.
 
 Refresh both maps with the `build-name-maps` skill (`.claude/skills/build-name-maps/`). By hand:
 
 ```bash
 uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSON + CSV)
-uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions in the JSON -> player map (JSON + CSV)
+uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions -> player map CSV
 ```
 
 Check first, in one line, whether any stats player is unmatched (`--mode pause` exits 1 for a played box-score player missing from the stats; default `continue`; writes the report `data/stage_03/player_name_check.csv`):
@@ -134,7 +134,7 @@ Check first, in one line, whether any stats player is unmatched (`--mode pause` 
 uv run python -m eupy.entity.check_player_names
 ```
 
-Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need an agent decision (new transfers, rookies); the builder prints how many. The agent writes the decision on the entry in `src/eupy/entity/maps/player_name_map.json`, and every rebuild carries it forward, so only new players are ever decided. Open entries do not stop a flow; `check_player_names` decides what needs a decision. The map JSON is not a DVC dep: after recording decisions run `uv run dvc repro -s -f build_player_name_map`, then continue the chain. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
+Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need an agent decision (new transfers, rookies); the builder prints how many. The agent adds the decision to `src/eupy/entity/maps/player_name_decisions.json`, and every rebuild applies it, so only new players are ever decided. Names are matched without `Jr`/`Sr`/`II`/`III`/`IV`, so a suffix the stats and the box score disagree on needs no decision. Open entries do not stop a flow; `check_player_names` decides what needs a decision. The decisions file is not a DVC dep: after recording decisions run `uv run dvc repro -s -f build_player_name_map`, then continue the chain. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
 
 ## Config, checks, log
 

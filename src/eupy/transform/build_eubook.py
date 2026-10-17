@@ -37,7 +37,8 @@ Final: true
 Impure: false
 Notes: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content,
   not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season.
-  Names are looked up through PlayerNames (JSON copies of the maps in src/eupy/entity/maps/). The
+  Names are looked up through PlayerNames (the player map CSV listed as input; the team map through TeamNames, its JSON copy in
+  src/eupy/entity/maps/). The
   player_name_check input is there so a flow stops at unmatched names before this step.
 """
 

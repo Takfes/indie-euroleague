@@ -4,6 +4,10 @@ Library module (no I/O header, never run directly):
 
 - `normalize_name` reduces a spelling to a comparison key (accents stripped, upper-case, letters and spaces only);
   the `TeamNames` / `PlayerNames` lookups and the engine all compare through it.
+- `match_key` is `normalize_name` without a trailing generational suffix (`Jr`, `Sr`, `II`, `III`, `IV`): the
+  fantasy stats and the box score disagree on suffixes (`T. Washington` vs `WASHINGTON JR, TYTY`), so the
+  builder matches on this key. Two players of one club that differ only by suffix share a key and therefore
+  surface as `needs_review`, never as a wrong accept.
 - `find_candidates` is the exact-match candidate finder of the player map builder (`build_player_name_map.py`).
   It is generic over a spelling pool shaped `{spelling: {owner, ...}}`, an "owner" being whatever identifies the
   real-world entity behind a spelling.
@@ -26,9 +30,11 @@ import csv
 import re
 import unicodedata
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 
 OPEN_STATUSES = frozenset({"needs_review", "no_candidate"})
+SUFFIXES = frozenset({"JR", "SR", "II", "III", "IV"})
 
 # (stats name, stats team code) per distinct stats player
 StatsPlayer = dict[str, str]
@@ -57,11 +63,21 @@ def normalize_name(name: str) -> str:
     return re.sub(r"\s+", " ", letters_and_spaces).strip()
 
 
-def build_normalized_index(spelling_owner_ids: dict[str, set[str]]) -> dict[str, set[str]]:
-    """Group distinct pool spellings by normalized name, for exact-match lookup."""
+def match_key(name: str) -> str:
+    """`normalize_name` without trailing generational suffixes: `"Tyty Washington Jr."` -> `"TYTY WASHINGTON"`."""
+    tokens = normalize_name(name).split()
+    while len(tokens) > 1 and tokens[-1] in SUFFIXES:
+        tokens.pop()
+    return " ".join(tokens)
+
+
+def build_normalized_index(
+    spelling_owner_ids: dict[str, set[str]], key: Callable[[str], str] = normalize_name
+) -> dict[str, set[str]]:
+    """Group distinct pool spellings by `key` (default `normalize_name`), for exact-match lookup."""
     index: dict[str, set[str]] = defaultdict(set)
     for spelling in spelling_owner_ids:
-        index[normalize_name(spelling)].add(spelling)
+        index[key(spelling)].add(spelling)
     return dict(index)
 
 
