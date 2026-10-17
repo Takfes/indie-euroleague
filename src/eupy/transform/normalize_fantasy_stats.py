@@ -6,13 +6,12 @@ columns, same row order):
 
 * `name` -- the abbreviated `"C. Jones"` becomes the full name from the player name map
   (`PlayerNames.normalize(name, team=team)`, so same-abbreviation players at different clubs stay
-  distinct). Players the map closed as `rejected` / `no_match` keep their abbreviated name.
+  distinct). Players the map closed as `rejected` / `no_match`, or still open (typically not played yet, so no
+  box-score name to match), keep their abbreviated name; `check_player_names` lists them.
 * `position` -- `Guard` / `Forward` / `Center` become `G` / `F` / `C`, the role letters used by
   the optimizer input.
 
-Fails loudly if a player is missing from the map, still open (`needs_review` / `no_candidate`) or
-ambiguous: run the `build-name-maps` skill first, so a stale map can never leak abbreviated names
-into the normalized dataset.
+Fails loudly only for an ambiguous name (a spelling shared by players the row's `team` does not tell apart).
 
 Usage:
     python -m eupy.transform.normalize_fantasy_stats [--players PATH] [--out PATH]
@@ -27,8 +26,8 @@ Outputs:
 Final: true
 Impure: false
 Notes: Overwritten each run. Output is fantasy_stats/players with the same columns and row order, name
-  replaced by the map's full name and position mapped Guard/Forward/Center -> G/F/C. Refuses to run
-  while any player is unresolved in the map. Names are looked up through PlayerNames, which reads the JSON
+  replaced by the map's full name (the abbreviated name stays for unresolved players) and position mapped
+  Guard/Forward/Center -> G/F/C. Names are looked up through PlayerNames, which reads the JSON
   copies of the two maps in src/eupy/entity/maps/ (written together with the CSVs listed as inputs).
 """
 
@@ -38,6 +37,7 @@ import argparse
 import csv
 from pathlib import Path
 
+from eupy.entity.matching import UnknownNameError
 from eupy.entity.player_names import PlayerNames
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -50,8 +50,9 @@ POSITION_ROLES = {"Guard": "G", "Forward": "F", "Center": "C"}
 def normalize_rows(rows: list[dict[str, str]], players: PlayerNames) -> list[dict[str, str]]:
     """Return `rows` with `name` replaced by the map's full name and `position` mapped to C/F/G.
 
+    A player the map does not resolve (open, closed as `no_match`, or not in it) keeps the stats name.
+
     Raises:
-        UnknownNameError: If a player is not in the map (or still open there).
         AmbiguousNameError: If a name is shared by players the row's `team` does not tell apart.
         ValueError: If a `position` is not Guard / Forward / Center.
     """
@@ -59,7 +60,10 @@ def normalize_rows(rows: list[dict[str, str]], players: PlayerNames) -> list[dic
     for row in rows:
         if row["position"] not in POSITION_ROLES:
             raise ValueError(f"Unexpected position {row['position']!r} for player_id {row['player_id']}")
-        name = players.normalize(row["name"], team=row["team"])
+        try:
+            name = players.normalize(row["name"], team=row["team"])
+        except UnknownNameError:
+            name = row["name"]
         normalized.append({**row, "name": name, "position": POSITION_ROLES[row["position"]]})
     return normalized
 

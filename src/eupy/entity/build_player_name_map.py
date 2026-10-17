@@ -24,8 +24,8 @@ Two files are written from the same entries: `maps/player_name_map.json`, which 
 for inspection and joins. Entries still open (`needs_review`, `no_candidate`) are written with their candidates in
 `notes` and listed in the summary; resolving them is the `build-name-maps` skill's job.
 
-The process exits 1 when open entries remain (after writing both files), so a `dvc repro` chain stops before the
-steps that need a fully resolved map; the `build-name-maps` skill's decisions clear it.
+Open entries do not fail the run: a stats player who has not played yet is expected to stay open. The check
+`check_player_names.py` decides what needs attention.
 
 Usage:
     python -m eupy.entity.build_player_name_map [--stats PATH] [--boxscore PATH] [--recent-seasons N]
@@ -54,7 +54,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -314,5 +313,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    # Exit 1 while players are open (maps are written first), so a DVC chain stops before the normalize steps.
-    sys.exit(1 if main() else 0)
+    main()

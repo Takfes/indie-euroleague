@@ -60,7 +60,7 @@ variants and rewrites the JSON and the CSV:
 uv run python -m eupy.entity.build_player_name_map
 ```
 
-Repeat until the summary reports no open entries. The builder exits 1 while entries are open (the files are written first), which is what stops a `dvc repro` chain; this is expected, not a failure of the run. Check the state any time, read-only, with `uv run python -m eupy.entity.check_player_names`. Edit only open entries: a decision never overrides an `exact`
+Repeat until `check_player_names` no longer escalates; other open entries may stay (players who have not played yet). Open entries alone do not stop a flow (a stats player who has not played yet stays open). What stops it is `uv run python -m eupy.entity.check_player_names` exiting 1: a box-score player who played but is not in the stats. It names the likely stats entry and the full name to decide it as (the box-score spelling reordered, e.g. `Tyty Washington Jr`); record that as a `confirmed` decision on that entry, replacing an earlier `confirmed` name that differs from the box-score spelling. A player no stats entry resembles is missing from the fantasy data: nothing to decide here. Edit only open entries: a decision never overrides an `exact`
 match, and changing any other field has no effect because the builder recomputes it.
 
 ## 4. Report

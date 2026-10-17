@@ -69,16 +69,21 @@ uv run dvc repro refresh_and_build_eubook      # 1-4: the same, then the eubook 
 
 1. `fetch_update`: euroleague.net box score and headers, fantasy stats (mode from the config), schedule.
 2. `merge_boxscore`, `merge_headers`: the consolidated tables.
-3. `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`: names. The player map step is the gate: it exits 1 while a stats player is unresolved, which stops the flow with the open players listed in `src/eupy/entity/maps/player_name_map.json`. When nothing is open the step is a cheap rewrite of identical bytes.
+3. `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`: names. The check is a normal stage of the flow, run after the map is rebuilt. It compares the two datasets (the fantasy stats are the core):
+   - in both: fine;
+   - in the stats, not in the box score (not played yet, injured, closed as `no_match`): listed for information, the flow goes on, and `normalize_fantasy_stats` keeps the abbreviated name for them;
+   - in the box score with minutes played, not in the stats: **the flow stops** (exit 1), listing each player with where he was found (club, games, rounds), where not, and the likely stats entry.
 4. `build_eubook`: the workbook. It lists the check's report as an input, so it never runs ahead of the names.
 
-When a flow stops at the names:
+DVC cannot call an agent, so a stop is manual. When a flow stops at the names:
 
-1. `uv run python -m eupy.entity.check_player_names`: what is unmatched.
-2. `/build-name-maps` (the skill) records the decisions and rebuilds the map.
+1. Read the check's output (or rerun it: `uv run python -m eupy.entity.check_player_names`; the report is `data/stage_03/player_name_check.csv`).
+2. `/build-name-maps` (the skill) records the decision for the likely stats entry, using the box-score spelling reordered as its full name.
 3. `uv run dvc repro -s -f build_player_name_map`, then the flow command again.
 
-Single steps: `uv run dvc repro -s <stage>` (stage names in `dvc.yaml`). Without `-s` a stage also runs everything upstream. The team map needs the schedule, so both flows fetch it.
+A box-score player no stats entry resembles is missing from the fantasy data; the flow stays stopped until the stats list him (a record of accepted exceptions does not exist yet).
+
+Single steps: `uv run dvc repro -s <stage>` (stage names in `dvc.yaml`). Without `-s` a stage also runs everything upstream. The team map needs the schedule, so both flows fetch the schedule.
 
 ## Eubook workbook
 
@@ -116,13 +121,13 @@ uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSO
 uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions in the JSON -> player map (JSON + CSV)
 ```
 
-Check first, in one line, whether any stats player is unmatched (exit 0 = nothing to do, 1 = list; writes only the report `data/stage_03/player_name_check.csv`):
+Check first, in one line, whether any stats player is unmatched (exit 1 only for a played box-score player missing from the stats; writes the report `data/stage_03/player_name_check.csv`):
 
 ```bash
 uv run python -m eupy.entity.check_player_names
 ```
 
-Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need an agent decision (new transfers, rookies); the builder prints how many. The agent writes the decision on the entry in `src/eupy/entity/maps/player_name_map.json`, and every rebuild carries it forward, so only new players are ever decided. The builder exits 1 while entries are open (it writes both files first), so a `dvc repro` chain stops before `normalize_fantasy_stats` until the decisions are recorded. The map JSON is not a DVC dep: after recording decisions run `uv run dvc repro -s -f build_player_name_map`, then continue the chain. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
+Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after the engine need an agent decision (new transfers, rookies); the builder prints how many. The agent writes the decision on the entry in `src/eupy/entity/maps/player_name_map.json`, and every rebuild carries it forward, so only new players are ever decided. Open entries do not stop a flow; `check_player_names` decides what needs a decision. The map JSON is not a DVC dep: after recording decisions run `uv run dvc repro -s -f build_player_name_map`, then continue the chain. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
 
 ## Config, checks, log
 

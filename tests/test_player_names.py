@@ -303,4 +303,4 @@ def test_builder_returns_the_number_of_open_entries(tmp_path: Path, monkeypatch:
     resolved = _stats_csv(tmp_path / "ok.csv", [("PAO", "C. Jones")])
     assert build_player_name_map.main(["--stats", str(resolved), *out]) == 0
     unknown = _stats_csv(tmp_path / "new.csv", [("PAO", "C. Jones"), ("PAO", "Z. Nobody")])
-    assert build_player_name_map.main(["--stats", str(unknown), *out]) == 1  # the process exit code gates DVC
+    assert build_player_name_map.main(["--stats", str(unknown), *out]) == 1

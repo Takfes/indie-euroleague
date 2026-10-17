@@ -1,4 +1,4 @@
-# Spec: euroleague.net update flow with a name-match gate
+# Spec: euroleague.net update flow with a names check
 
 ## Goal
 
@@ -9,7 +9,8 @@ One DVC-driven flow that refreshes the working datasets (euroleague.net box scor
 - Merge scripts (`merge_boxscore`, `merge_headers`) read the live deltas only by default; the deltas carry their own header. Kaggle is optional (`[transformation] include_kaggle`, `--include-kaggle`) and is not a declared DVC dependency of the merge.
 - Fantasy stats mode comes from `[acquisition] fantasy_rounds` / `fantasy_stats_type` (CLI flags override), because the DVC stage passes no arguments.
 - `check_player_names`: read-only report of stats players missing from the player map or still open; exit 0 / 1.
-- `build_player_name_map` exits 1 while entries are open, after writing its files, so the DVC chain stops before `normalize_fantasy_stats`.
+- `build_player_name_map` and `normalize_fantasy_stats` no longer fail on open players (stats players with no box-score match are expected); `normalize_fantasy_stats` keeps their abbreviated name.
+- `check_player_names` compares the datasets: in both (ok), stats only (info), box score only with minutes played (exit 1, listed with where found and the likely stats entry).
 - Pipelines: `fetch_update` (box score, headers, fantasy stats, schedule), `fetch_kaggle` (separate flow; `fetch_raw` is gone), `entity` and `workbook` are DVC pipelines, `build_boxscore_kpis` sits in `kpis` (`dvc = false`).
 - `check_player_names` writes a report (`player_name_check`) so a flow can depend on it.
 - `build_eubook` (`transform/`): the pipeline version of `apps/dataprep.py`, which stays untouched; output `eubook.xlsx` (final) plus an untracked round-stamped copy.
@@ -21,8 +22,8 @@ Out of scope: backfilling past seasons, deleting Kaggle data, a DVC dependency o
 
 - Merged outputs hold only delta rows; with `include_kaggle` the previous behaviour returns (live deltas replace Kaggle rows of the seasons they cover).
 - No deltas and no Kaggle fails with an actionable message; deltas with different headers fail.
-- `check_player_names` exits 1 with the unmatched list, 0 when none; box-score-only players never fail it.
-- The builder returns the open count and the process exits 1 while any is open.
+- `check_player_names` exits 1 only for box-score players with minutes that no stats player resolves to (listed with club, games, rounds and the likely stats entry); stats players with no box-score match are listed and never fail it.
+- Open players do not stop the map builder or `normalize_fantasy_stats`.
 - `uv run dvc repro --dry refresh_and_build_eubook` lists fetchers, merges, team map, player map, check, then the workbook; the Kaggle fetcher is not in it.
 - `build_eubook` gives the same sheets as `apps/dataprep.py` on the same data.
 - `uv run pytest`, `ruff check`, `ruff format --check`, `eupy.registry check` are clean.

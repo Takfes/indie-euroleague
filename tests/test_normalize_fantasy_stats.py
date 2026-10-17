@@ -51,16 +51,12 @@ def test_no_match_player_keeps_the_abbreviated_name() -> None:
     assert normalize_rows([_row("Q. Rookie", "PAR")], PLAYERS)[0]["name"] == "Q. Rookie"
 
 
-def test_player_missing_from_the_map_or_still_open_fails() -> None:
-    with pytest.raises(UnknownNameError):
-        normalize_rows([_row("N. Ew", "PAR")], PLAYERS)
-    with pytest.raises(UnknownNameError):
-        normalize_rows([_row("O. Player", "PAR")], PLAYERS)
+def test_player_missing_from_the_map_or_still_open_keeps_the_stats_name() -> None:
+    out = normalize_rows([_row("N. Ew", "PAR"), _row("O. Player", "PAR")], PLAYERS)
+    assert [r["name"] for r in out] == ["N. Ew", "O. Player"]
 
 
-def test_shared_name_with_unknown_club_is_ambiguous_or_unknown() -> None:
-    with pytest.raises(UnknownNameError, match="QQQ"):
-        normalize_rows([_row("C. Jones", "QQQ")], PLAYERS)
+def test_shared_name_without_a_usable_club_is_ambiguous() -> None:
     with pytest.raises(AmbiguousNameError):
         PLAYERS.normalize("C. Jones")
 

@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
-"""Check that every fantasy-stats player is resolved in the player name map; writes only a small report.
+"""Compare the players of the fantasy stats and the box score; fail only for box-score players the stats lack.
 
-Run it after a fetch to learn whether the name matching needs to run (and, after the builder, whether it needs an
-agent decision). One unit is a distinct `(team, name)` pair of `fantasy_stats/players` (the trusted set, see
-`build_player_name_map.py`). A pair is *unmatched* when the map has no entry for it (a new player since the last
-build) or its entry is still open (`needs_review` / `no_candidate`). Box-score players that the map cannot resolve
-are only counted: the map is built from the stats players, so box-score-only players are expected and are never a
-failure.
+The fantasy stats are the core dataset (see `build_player_name_map.py`). Each player falls into one of three cases:
 
-The unmatched pairs are also written to a report CSV (header only when none), so that a DVC flow can depend on
-the check and stop at it: downstream steps (the workbook) list the report as an input.
+1. In both datasets: the map resolves the box-score spelling to the stats player. Fine.
+2. In the stats, not in the box score: a player who has not played yet (injury, new signing) or whom the agent
+   closed as `no_match` / `rejected`. Fine: highlighted for information, the run goes on.
+3. In the box score, not in the stats: a player who played (minutes on the clock) but that no stats player
+   resolves to. Escalated: the run fails (exit 1) and each player is listed with where he was found (club, games,
+   rounds) and where not, plus the same-club stats players that have no box-score match, the likely counterparts
+   (a spelling the matching could not pair shows up as one case-2 player and one case-3 player of the same club,
+   sharing a surname).
 
-Exit code 0: nothing unmatched, the matching step can be skipped. Exit code 1: the unmatched pairs are listed with
-the next step (rebuild the map; players still open after a rebuild need the `build-name-maps` skill's decisions).
+A case-3 player is fixed by deciding the counterpart stats entry with the `build-name-maps` skill, giving it the
+box-score spelling reordered as its full name (a `confirmed` decision under another spelling leaves the box-score
+spelling unlinked); when no stats entry shares his surname, the fantasy data lacks the player. Box-score rows without
+minutes (`DNP`) are ignored. The check reads the map as the builder left it: run `build_player_name_map` first
+(the DVC flows do); stats players still missing from the map are reported, and case-3 results are unreliable until
+the map is rebuilt.
+
+The cases are also written to a report CSV (`case`, `team`, `name`, `detail`; header only when empty), so a DVC
+flow can depend on the check: downstream steps (the workbook) list the report as an input.
 
 Usage:
     python -m eupy.entity.check_player_names [--stats PATH] [--boxscore PATH] [--map PATH] [--out PATH]
@@ -26,8 +34,9 @@ Outputs:
   - player_name_check: data/stage_03/player_name_check.csv
 Final: false
 Impure: false
-Notes: Report columns: team, name, reason (header only when everything is matched). Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written together with the
-  CSV listed as input) because that is what PlayerNames and the agent decisions use.
+Notes: Exit 1 only for case 3. Report cases: stats_only (case 2), box_only (case 3), map_stale (stats players not
+  in the map yet). Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written
+  together with the CSV listed as input) because that is what PlayerNames and the agent decisions use.
 """
 
 from __future__ import annotations
@@ -36,60 +45,124 @@ import argparse
 import csv
 import json
 import sys
+from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
-from eupy.entity.matching import OPEN_STATUSES, UnknownNameError, load_stats_players
+from eupy.entity.matching import UnknownNameError, load_stats_players, normalize_name
 from eupy.entity.player_names import MAP_PATH, PlayerNames
+from eupy.entity.team_names import TeamNames
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 STATS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 BOXSCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.csv"
 OUT_PATH = REPO_ROOT / "data" / "stage_03" / "player_name_check.csv"
 
+RESOLVED_STATUSES = frozenset({"exact", "confirmed"})
+NOT_PLAYED = frozenset({"", "DNP", "0:00"})
 
-def find_unmatched(stats_players: list[dict[str, str]], entries: list[dict[str, object]]) -> list[tuple[str, str, str]]:
-    """`(team, name, reason)` for every stats player the map does not resolve.
 
-    The reason is `not in the map` (a new player) or the entry's open `match_status`. Entries are matched on
-    `(stats_team, stats_name)`, the builder's row key.
+@dataclass(frozen=True)
+class BoxOnly:
+    """A box-score player who played but resolves to no stats player."""
+
+    team: str  # box-score team_id
+    club: str  # normalized club ("" when the team code is not in the team map)
+    player: str
+    games: int
+    rounds: tuple[int, ...]
+
+
+def find_stats_only(
+    stats_players: list[dict[str, str]], entries: list[dict[str, object]]
+) -> tuple[list[dict[str, str]], list[tuple[str, str]]]:
+    """Case 2 and stale-map players of the stats.
+
+    Returns `(stats_only, missing)`: `stats_only` are the stats players whose map entry is not `exact` / `confirmed`
+    (`team`, `name`, `club`, `status`, `notes`); `missing` the `(team, name)` pairs with no entry at all.
     """
-    status = {(str(e["stats_team"]), str(e["stats_name"])): str(e["match_status"]) for e in entries}
-    unmatched = []
+    by_key = {(str(e["stats_team"]), str(e["stats_name"])): e for e in entries}
+    stats_only, missing = [], []
     for player in stats_players:
-        found = status.get((player["team"], player["name"]))
-        if found is None:
-            unmatched.append((player["team"], player["name"], "not in the map"))
-        elif found in OPEN_STATUSES:
-            unmatched.append((player["team"], player["name"], found))
-    return unmatched
+        entry = by_key.get((player["team"], player["name"]))
+        if entry is None:
+            missing.append((player["team"], player["name"]))
+        elif entry["match_status"] not in RESOLVED_STATUSES:
+            stats_only.append({
+                "team": player["team"],
+                "name": player["name"],
+                "club": str(entry.get("team", "")),
+                "status": str(entry["match_status"]),
+                "notes": str(entry.get("notes", "")),
+            })
+    return stats_only, missing
 
 
-def count_unresolved_boxscore_players(path: Path, players: PlayerNames) -> int:
-    """Distinct box-score player spellings (`TOTAL` rows excluded) that the map cannot resolve; informational."""
+def find_box_only(path: Path, players: PlayerNames, teams: TeamNames) -> list[BoxOnly]:
+    """Case 3: box-score players with minutes that the map does not resolve, with their games and rounds."""
+    games: dict[tuple[str, str], set[tuple[str, int]]] = defaultdict(set)
     with path.open(newline="", encoding="utf-8") as f:
-        spellings = {r["player"] for r in csv.DictReader(f) if r["dorsal"] != "TOTAL"}
-    unresolved = 0
-    for spelling in spellings:
+        for row in csv.DictReader(f):
+            if row["dorsal"] != "TOTAL" and row["minutes"] not in NOT_PLAYED:
+                games[(row["team_id"], row["player"])].add((row["game_id"], int(row["round"])))
+    found = []
+    for (team, player), played in sorted(games.items()):
         try:
-            players.normalize(spelling)
+            players.normalize(player, team=team)
         except UnknownNameError:
-            unresolved += 1
-        except LookupError:  # ambiguous without a club: the name is in the map, so it is resolved
+            try:
+                club = teams.normalize(team)
+            except UnknownNameError:
+                club = ""
+            found.append(BoxOnly(team, club, player, len(played), tuple(sorted({r for _, r in played}))))
+        except LookupError:  # ambiguous even with the club: the name is in the map, so it is resolved
             continue
-    return unresolved
+    return found
 
 
-def write_report(unmatched: list[tuple[str, str, str]], path: Path) -> None:
-    """Write the unmatched `(team, name, reason)` rows as CSV (header only when empty)."""
+def _rounds(rounds: tuple[int, ...]) -> str:
+    return f"{rounds[0]}-{rounds[-1]}" if len(rounds) > 1 else str(rounds[0])
+
+
+def _looks_alike(stats_name: str, box_name: str) -> bool:
+    """True when a stats name (`J. Begarin`) shares a surname token with a box-score name (`BEGARIN, JOAN`)."""
+    surname = set(normalize_name(stats_name.partition(" ")[2]).split())
+    return bool(surname & set(normalize_name(box_name).split()))
+
+
+def box_name_as_full_name(box_name: str) -> str:
+    """`"WASHINGTON JR, TYTY"` -> `"Tyty Washington Jr"`, the full name that makes the box-score spelling a variant."""
+    last, _, first = box_name.partition(",")
+    return f"{first.strip()} {last.strip()}".strip().title()
+
+
+def describe_box_only(item: BoxOnly, unlinked: list[dict[str, str]]) -> str:
+    """Where the player was found and where not, naming the same-club stats entries (not matched to any box-score
+    spelling) that share his surname."""
+    where = f"box score: {item.team}, {item.games} game(s), round(s) {_rounds(item.rounds)}; stats: not found"
+    if not item.club:
+        return f"{where}; team code {item.team!r} is not in the team map"
+    likely = [s for s in unlinked if s["club"] == item.club and _looks_alike(s["name"], item.player)]
+    if not likely:
+        return f"{where}; no stats player of that club shares his surname, so the fantasy data lacks him"
+    names = "; ".join(f"{s['team']} {s['name']} ({s['status']})" for s in likely)
+    return (
+        f"{where}; likely the stats entry {names}. Decide it as {box_name_as_full_name(item.player)!r} "
+        "(the box-score spelling reordered) so this spelling resolves"
+    )
+
+
+def write_report(rows: list[tuple[str, str, str, str]], path: Path) -> None:
+    """Write `(case, team, name, detail)` rows as CSV (header only when empty)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, lineterminator="\n")
-        writer.writerow(["team", "name", "reason"])
-        writer.writerows(unmatched)
+        writer.writerow(["case", "team", "name", "detail"])
+        writer.writerows(rows)
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Print the check result; return the process exit code (0 all matched, 1 unmatched)."""
+    """Print the three cases; return the process exit code (1 only when a played box-score player is unmatched)."""
     parser = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
@@ -100,23 +173,45 @@ def main(argv: list[str] | None = None) -> int:
     stats_players = load_stats_players(args.stats)
     if not stats_players:
         raise ValueError(f"No players in {args.stats}; refetch with `uv run dvc repro fetch_euroleague_fantasy_stats`")
-    entries = json.loads(args.map.read_text(encoding="utf-8"))["players"] if args.map.exists() else []
-    unmatched = find_unmatched(stats_players, entries)
-    write_report(unmatched, args.out)
+    if not args.map.exists():
+        raise FileNotFoundError(f"{args.map} not found; build it with `python -m eupy.entity.build_player_name_map`")
+    entries = json.loads(args.map.read_text(encoding="utf-8"))["players"]
+    stats_only, missing = find_stats_only(stats_players, entries)
+    unlinked = [  # stats entries no box-score spelling resolved to automatically: candidates for the hint
+        {
+            "team": str(e["stats_team"]),
+            "name": str(e["stats_name"]),
+            "club": str(e["team"]),
+            "status": str(e["match_status"]),
+        }
+        for e in entries
+        if e["match_status"] != "exact"
+    ]
+    teams = TeamNames.load()
+    box_only = find_box_only(args.boxscore, PlayerNames.load(args.map, teams), teams)
 
-    if args.boxscore.exists() and args.map.exists():
-        count = count_unresolved_boxscore_players(args.boxscore, PlayerNames.load(args.map))
-        print(f"info: {count} box-score player spellings are not in the map (expected: the map follows the stats).")
-    if not unmatched:
-        print(f"OK: all {len(stats_players)} stats players are resolved; the name matching can be skipped.")
+    report = [("map_stale", t, n, "stats player not in the map yet") for t, n in missing]
+    report += [("stats_only", s["team"], s["name"], f"{s['status']}; {s['notes']}".rstrip("; ")) for s in stats_only]
+    report += [("box_only", b.team, b.player, describe_box_only(b, unlinked)) for b in box_only]
+    write_report(report, args.out)
+
+    matched = len(stats_players) - len(stats_only) - len(missing)
+    print(f"1. in both datasets: {matched} of {len(stats_players)} stats players")
+    print(f"2. in the stats, no box-score match (info, e.g. not played yet): {len(stats_only)}")
+    by_team: dict[str, list[str]] = defaultdict(list)
+    for s in stats_only:
+        by_team[s["team"]].append(s["name"])
+    for team, names in sorted(by_team.items()):
+        print(f"     {team}: {', '.join(names)}")
+    if missing:
+        print(f"   map is stale: {len(missing)} stats players are not in it; run build_player_name_map first")
+    if not box_only:
+        print("3. in the box score (played), not in the stats: 0")
         return 0
-    print(f"{len(unmatched)} of {len(stats_players)} stats players are unmatched:")
-    for team, name, reason in unmatched:
-        print(f"  {team} {name}: {reason}")
-    print(
-        "Next: `uv run python -m eupy.entity.build_player_name_map` (adds new players); players still open "
-        "after that need the `build-name-maps` skill."
-    )
+    print(f"3. ESCALATE: {len(box_only)} box-score player(s) who played but are not in the stats:")
+    for b in box_only:
+        print(f"     {b.player}: {describe_box_only(b, unlinked)}")
+    print("   Fix: decide the likely counterpart above with /build-name-maps, then rerun the flow.")
     return 1
 
 
