@@ -306,3 +306,10 @@ def test_run_keeps_state_beside_box_score_deltas(tmp_path: Path) -> None:
 
     assert '"last_ingested_gamecode": 1' in (tmp_path / "box_score" / "_state.json").read_text()
     assert not (tmp_path / "_state.json").exists()  # no state at the source root anymore
+
+    from eupy.config import get_config
+    from eupy.logging_setup import REPO_ROOT  # conftest points this at tmp_path
+
+    log_text = (REPO_ROOT / get_config().logging.path).read_text()
+    assert "gamecode 1: complete, 2 rows" in log_text
+    assert "gamecode 2: no game yet, stopping" in log_text

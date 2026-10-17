@@ -287,6 +287,9 @@ def fetch_round_rows(
             params["matchdays"] = matchday_id
         payload = fetch_json(f"{url}?{urllib.parse.urlencode(params)}", token)
         time.sleep(delay)
+        get_logger("fetch_euroleague_fantasy_stats").info(
+            "round %s, positions %s: page %d/%d fetched", round_number, positions, page, payload["meta"]["last_page"]
+        )
 
         columns = [sanitize_column_name(c) for c in payload["data"]["columns"]]
         for player in payload["data"]["players"]:
@@ -381,7 +384,10 @@ def run(
 
     players_rows: list[dict[str, Any]] = []
     head_coaches_rows: list[dict[str, Any]] = []
-    for round_number, matchday_id in targets:
+    log = get_logger("fetch_euroleague_fantasy_stats")
+    log.info("fetching %d target(s): rounds %s, stats type %s, delay %ss", len(targets), rounds, stats_type, delay)
+    for i, (round_number, matchday_id) in enumerate(targets, start=1):
+        log.info("round %s (%d/%d): fetching players and head coaches", round_number, i, len(targets))
         players_rows.extend(
             fetch_round_rows(
                 competition_id, matchday_id, PLAYER_POSITIONS, round_number, token, delay, stats_type=stats_type
@@ -401,10 +407,17 @@ def run(
     write_csv(players_rows, players_path, PLAYER_CSV_FIELDNAMES)
     write_csv(head_coaches_rows, head_coaches_path, HEAD_COACH_CSV_FIELDNAMES)
 
-    print(
-        f"Wrote {len(players_rows)} player rows to {players_path} and "
-        f"{len(head_coaches_rows)} head-coach rows to {head_coaches_path} "
-        f"(rounds: {rounds}, stats type: {stats_type}, delay {delay}s, in-progress round {max_round})"
+    log.info(
+        "Wrote %d player rows to %s and %d head-coach rows to %s (rounds: %s, stats type: %s, delay %ss, "
+        "in-progress round %s)",
+        len(players_rows),
+        players_path,
+        len(head_coaches_rows),
+        head_coaches_path,
+        rounds,
+        stats_type,
+        delay,
+        max_round,
     )
 
 

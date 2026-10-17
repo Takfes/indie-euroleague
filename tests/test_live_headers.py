@@ -147,3 +147,13 @@ def test_merge_headers_game_in_two_deltas_fails_validation(tmp_path: Path, monke
     with pytest.raises(DataQualityError, match="duplicate"):
         merge_headers.main()
     assert not out.exists()
+
+
+def test_run_logs_one_progress_line_per_gamecode(tmp_path: Path) -> None:
+    from eupy.config import get_config
+    from eupy.logging_setup import REPO_ROOT  # conftest points this at tmp_path
+
+    _run_with({1: HEADER, 2: {**HEADER, "Live": True}}, tmp_path)
+    text = (REPO_ROOT / get_config().logging.path).read_text()
+    assert "gamecode 1: complete" in text
+    assert "gamecode 2: live, stopping" in text

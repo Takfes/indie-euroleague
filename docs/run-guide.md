@@ -139,6 +139,7 @@ Prerequisites: the schedule, the fantasy stats players and the merged box score 
 ## Config, checks, log
 
 - `config/config.toml` (optional) overrides the defaults in `src/eupy/config/defaults.py`: `[acquisition]` season, request_delay, max_gap, kaggle_dataset, fantasy_rounds, fantasy_stats_type; `[transformation]` names_mode, include_kaggle, base_season; `[logging]` path, level. Unknown keys raise an error. Steps that load the config depend on the file in `dvc.yaml`.
+- The live box-score, live header and fantasy-stats fetchers log one progress line per request or step (`gamecode 41: complete, 22 rows`, `round 3 (3/6): fetching ...`, `page 2/4 fetched`) to the console and `logs/log.log`, so a slow run can be told from a stuck one (`tail -f logs/log.log`). Each request times out after 30 s.
 - Every fetcher and merge script calls `eupy.quality.validate(rows, key, name)` before writing: empty rows or duplicate keys are logged to `logs/log.log` (git-ignored) and fail the run, leaving the previous output and state untouched.
 
 ## DVC

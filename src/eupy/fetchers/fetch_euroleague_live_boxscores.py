@@ -57,6 +57,7 @@ from eupy.fetchers.live_euroleague import (
     save_state,
     state_path,
 )
+from eupy.logging_setup import get_logger
 from eupy.quality import validate
 
 CSV_FIELDNAMES = [
@@ -238,20 +239,28 @@ def run(season: str, out_dir: Path) -> None:
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
 
+    log = get_logger("fetch_euroleague_live_boxscores")
+    log.info("%s: polling from gamecode %d", season, start_gamecode)
     rows: list[dict[str, Any]] = []
     gamecode = start_gamecode
     while True:
+        log.info("gamecode %d: fetching header", gamecode)
         header = fetch_header(season, gamecode)
         time.sleep(REQUEST_DELAY_SECONDS)
         if header is None:
+            log.info("gamecode %d: no game yet, stopping", gamecode)
             break
+        log.info("gamecode %d: fetching box score", gamecode)
         boxscore = fetch_boxscore(season, gamecode)
         time.sleep(REQUEST_DELAY_SECONDS)
         if not is_game_complete(header, boxscore):
+            log.info("gamecode %d: not complete (live or unplayed), stopping", gamecode)
             break
         _assert_season_matches(header, season, gamecode)
         assert boxscore is not None  # noqa: S101 -- is_game_complete already checked this
-        rows.extend(build_game_rows(header, boxscore, season, gamecode))
+        game_rows = build_game_rows(header, boxscore, season, gamecode)
+        rows.extend(game_rows)
+        log.info("gamecode %d: complete, %d rows", gamecode, len(game_rows))
         last_ingested = gamecode
         gamecode += 1
 
@@ -263,9 +272,9 @@ def run(season: str, out_dir: Path) -> None:
         validate(rows, "game_player_id", "euroleague_net/box_score")
         write_delta_csv(rows, delta_path)
         num_games = gamecode - start_gamecode
-        print(f"Wrote {len(rows)} rows from {num_games} new game(s) to {delta_path}")
+        log.info("Wrote %d rows from %d new game(s) to %s", len(rows), num_games, delta_path)
     else:
-        print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
+        log.info("No new completed games for %s (checked from gamecode %d)", season, start_gamecode)
 
     state[season] = season_state
     save_state(state, path)

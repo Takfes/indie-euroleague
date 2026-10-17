@@ -56,6 +56,7 @@ from eupy.fetchers.live_euroleague import (
     save_state,
     state_path,
 )
+from eupy.logging_setup import get_logger
 from eupy.quality import validate
 
 DEFAULT_MAX_GAP = get_config().acquisition.max_gap
@@ -181,6 +182,8 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
 
+    log = get_logger("fetch_euroleague_live_headers")
+    log.info("%s: polling from gamecode %d (stops after %d misses)", season, start_gamecode, max_gap)
     rows: list[dict[str, Any]] = []
     gamecode = start_gamecode
     misses = 0
@@ -189,14 +192,18 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         time.sleep(REQUEST_DELAY_SECONDS)
         if header is None:
             misses += 1
+            log.info("gamecode %d: no game (miss %d/%d)", gamecode, misses, max_gap)
         elif header.get("Live"):
+            log.info("gamecode %d: live, stopping", gamecode)
             break  # in progress: pick it up, complete, next run
         elif is_header_complete(header):
             rows.append(build_header_row(header, season, gamecode))
             last_ingested = gamecode
             misses = 0
+            log.info("gamecode %d: complete", gamecode)
         else:
             misses += 1  # scheduled but unplayed
+            log.info("gamecode %d: scheduled, not played (miss %d/%d)", gamecode, misses, max_gap)
         gamecode += 1
 
     season_state["last_checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -206,9 +213,9 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         delta_path = headers_dir / f"{season}_delta_{timestamp}.csv"
         validate(rows, "game_id", "euroleague_net/headers")
         write_delta_csv(rows, delta_path)
-        print(f"Wrote {len(rows)} header row(s) to {delta_path}")
+        log.info("Wrote %d header row(s) to %s", len(rows), delta_path)
     else:
-        print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
+        log.info("No new completed games for %s (checked from gamecode %d)", season, start_gamecode)
 
     state[season] = season_state
     save_state(state, path)

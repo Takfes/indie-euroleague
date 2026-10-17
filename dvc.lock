@@ -5,21 +5,21 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: 2f08e3366938b47a8ee65bf340215492
-      size: 663
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: data/raw_data/euroleague_net/box_score
       hash: md5
-      md5: d3ce73335cba065e15dce9f5a791198a.dir
-      size: 223493
-      nfiles: 3
+      md5: 4ff7af9d94495a3d4012d15fdfa21dcd.dir
+      size: 222697
+      nfiles: 1
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aae9940a575d5627a1d9c283aa33df71
-      size: 1719
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -54,25 +54,21 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: ec8e56d404d91b859a3bc5a8c1de2efb
-      size: 368
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: data/raw_data/euroleague_net/headers
       hash: md5
-      md5: 5f42d7bcdfbed6848c20c8c489636e47.dir
-      size: 15474
-      nfiles: 2
-    - path: data/raw_data/kaggle_data/euroleague_header.csv
-      hash: md5
-      md5: 43b9bcc11108b104ed6a714bbea0bc5f
-      size: 1395974
+      md5: 09225d19182bc6fe010e32f32c1731b4.dir
+      size: 17830
+      nfiles: 1
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aa27ea700fe1839702daf5fd511ae69b
-      size: 1398
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -91,17 +87,17 @@ stages:
       size: 2425
     - path: src/eupy/transform/merge_common.py
       hash: md5
-      md5: ce1ad459ed46d4ff859e238b3c32ead8
-      size: 2778
+      md5: 46c0deefc6798a3ac93a2d91927c35af
+      size: 3366
     - path: src/eupy/transform/merge_headers.py
       hash: md5
-      md5: dd676a0578f3045ece4691e9e40e9d6d
-      size: 3544
+      md5: 33c29d21f6163dfe50431155871f85f7
+      size: 3966
     outs:
     - path: data/stage_01/euroleague_header_merged.csv
       hash: md5
-      md5: b712600a7df502194138dfd3e27cc665
-      size: 1398843
+      md5: b8993764235ca04e1a7761682387901c
+      size: 17769
   fetch_euroleague_fantasy_stats:
     cmd: uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats
     deps:
@@ -151,16 +147,16 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: 2f08e3366938b47a8ee65bf340215492
-      size: 663
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aae9940a575d5627a1d9c283aa33df71
-      size: 1719
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -188,9 +184,9 @@ stages:
     outs:
     - path: data/raw_data/euroleague_net/box_score
       hash: md5
-      md5: d3ce73335cba065e15dce9f5a791198a.dir
-      size: 223493
-      nfiles: 3
+      md5: 4ff7af9d94495a3d4012d15fdfa21dcd.dir
+      size: 222697
+      nfiles: 1
   fetch_euroleague_live_headers:
     cmd: uv run python -m eupy.fetchers.fetch_euroleague_live_headers
     deps:
@@ -241,16 +237,16 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: 2f08e3366938b47a8ee65bf340215492
-      size: 663
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aae9940a575d5627a1d9c283aa33df71
-      size: 1719
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -404,3 +400,29 @@ stages:
       hash: md5
       md5: 4aff725c25fca46199268baba532ed85
       size: 1042
+  fetch_update:
+    cmd: echo fetch_update fetched
+    deps:
+    - path: data/raw_data/euroleague_net/box_score
+      hash: md5
+      md5: 4ff7af9d94495a3d4012d15fdfa21dcd.dir
+      size: 222697
+      nfiles: 1
+    - path: data/raw_data/euroleague_net/headers
+      hash: md5
+      md5: 09225d19182bc6fe010e32f32c1731b4.dir
+      size: 17830
+      nfiles: 1
+    - path: data/raw_data/fantasy_stats/head_coaches.csv
+      hash: md5
+      md5: 3a51ee25e9da7f98ba5ad35f03220a1f
+      size: 1632
+    - path: data/raw_data/fantasy_stats/players.csv
+      hash: md5
+      md5: f44ff63fcf10b793802f3ef832c2ffe4
+      size: 28701
+    - path: data/raw_data/game_schedule
+      hash: md5
+      md5: b64f70e4dec417208633546983ea16d8.dir
+      size: 62695
+      nfiles: 1
