@@ -22,7 +22,7 @@ Inputs:
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - player_name_map: data/stage_02/player_name_map.csv
-  - team_name_map: data/stage_01/team_name_map.csv
+  - game_schedule/schedule: data/raw_data/game_schedule/
 Sources: none
 Outputs:
   - euroleague_box_score_positions: data/stage_03/euroleague_box_score_positions.csv
@@ -30,7 +30,7 @@ Final: false
 Impure: false
 Notes: Overwritten each run. Box-score columns keep their order; year, minutes_num, player_name, position, opponent
   and home_away are added. Names are looked up through PlayerNames, which reads the player map CSV listed as
-  input and the team map through TeamNames (the JSON copy in src/eupy/entity/maps/).
+  input and the team lookup through TeamNames (from the schedule input).
 """
 
 from __future__ import annotations

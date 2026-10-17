@@ -111,9 +111,12 @@ def _run(
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, lineterminator="\n")
         writer.writeheader()
         writer.writerows({**e, "variants": " | ".join(e["variants"])} for e in entries)  # type: ignore[arg-type]
-    team_map = tmp_path / "teams.json"
-    team_map.write_text(json.dumps({"teams": TEAMS_DATA}), encoding="utf-8")
-    monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)
+    schedule = tmp_path / "schedule"
+    schedule.mkdir(exist_ok=True)
+    (schedule / "schedule_E2026.csv").write_text(
+        "hometeam,homecode,hometv\nPanathinaikos,PAN,PAO\nReal Madrid,MAD,MAD\n", encoding="utf-8"
+    )
+    monkeypatch.setattr("eupy.entity.team_names.SCHEDULE_DIR", schedule)
     return [
         "--stats", str(stats), "--boxscore", str(_box(tmp_path, box_rows)), "--map", str(map_path),
         "--out", str(tmp_path / "report.csv"),

@@ -37,6 +37,7 @@ Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
   - player_name_map: data/stage_02/player_name_map.csv
+  - game_schedule/schedule: data/raw_data/game_schedule/
 Sources: none
 Outputs:
   - player_name_check: data/stage_03/player_name_check.csv
@@ -232,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"     {b.player}: {describe_box_only(b, unlinked)}")
     print(
         "   Fix: run the /build-name-maps skill to decide the likely stats entry above, then "
-        "`uv run dvc repro -s -f build_player_name_map`; `uv run python -m eupy.entity.check_player_names` shows this list again."
+        "`uv run dvc repro -s build_player_name_map`; `uv run python -m eupy.entity.check_player_names` shows this list again."
     )
     if pausing:
         print('   Pause mode: the flow stops here; set [transformation] names_mode = "continue" to go on without them.')

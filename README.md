@@ -14,11 +14,11 @@ uv run dvc repro refresh_data                 # 1-3: the same without the workbo
 uv run dvc repro fetch_update                 # fetch only: box score, headers, fantasy stats, schedule
 uv run dvc repro -s merge_boxscore merge_headers      # merge only, offline
 uv run dvc repro -s check_player_names        # names check (see below)
-uv run dvc repro -s -f build_player_name_map  # rebuild the map after recording decisions (/build-name-maps)
+uv run dvc repro -s build_player_name_map  # rebuild the map after recording decisions (/build-name-maps)
 uv run dvc repro fetch_kaggle                 # Kaggle history, separate from the update
 ```
 
-Names check (`names_mode` in `config/config.toml`): players only in the stats (not played yet) and players who played in the box score but are missing from the stats are both listed with the fix, and the flow goes on (`continue`, default). Set `names_mode = "pause"` to stop on the second kind. Fix: `/build-name-maps`, then `uv run dvc repro -s -f build_player_name_map`, then rerun the flow.
+Names check (`names_mode` in `config/config.toml`): players only in the stats (not played yet) and players who played in the box score but are missing from the stats are both listed with the fix, and the flow goes on (`continue`, default). Set `names_mode = "pause"` to stop on the second kind. Fix: `/build-name-maps`, then `uv run dvc repro -s build_player_name_map`, then rerun the flow.
 
 Fantasy stats per round: set `fantasy_rounds = "1-6"` in `config/config.toml` (`"all"` = season average), then `uv run dvc repro fetch_euroleague_fantasy_stats`.
 
@@ -40,11 +40,11 @@ After `clean-data` run `uv run dvc repro refresh_and_build_eubook` to rebuild ev
 
 ## Name matching: who does what
 
-Fantasy stats (`E. Lastname`-style names) and box score (`LASTNAME, FIRST`) spell players differently. Four steps, in flow order:
+Fantasy stats (`E. Lastname`-style names) and box score (`LASTNAME, FIRST`) spell players differently. Steps, in flow order:
 
 1. `build_player_name_map` (script): matches each stats player to a box-score player by normalized name within the same club. Exact matches (ignoring `Jr`/`IV` suffixes) are final; the rest are left open (`needs_review` / `no_candidate`) in `data/stage_02/player_name_map.csv`, which is derived and never edited.
-2. `/build-name-maps` (skill, manual, Claude session): researches the open entries and records a decision (`confirmed` with the full name, `no_match`, `rejected`) in `src/eupy/entity/maps/player_name_decisions.json` (committed), then `uv run dvc repro -s -f build_player_name_map`. DVC cannot call it.
+2. `/build-name-maps` (skill, manual, Claude session): researches the open entries and records a decision (`confirmed` with the full name, `no_match`, `rejected`) in `src/eupy/entity/maps/player_name_decisions.json` (committed), then `uv run dvc repro -s build_player_name_map`. DVC cannot call it.
 3. `check_player_names` (script, read-only): matches nothing and fixes nothing. It audits the result and writes `data/stage_03/player_name_check.csv` with one row per finding: `stats_only` (info: not played yet), `box_only` (a player with minutes the map does not resolve: needs step 2) and `map_stale` (map not rebuilt). `names_mode = "pause"` stops the flow on `box_only`.
-4. `normalize_fantasy_stats` (script): rewrites the stats names to the full names from the map.
+4. `build_eubook` (script): joins the stats and the box score on the normalized names from the map.
 
 The check CSV is a human-readable report and also the input that makes the workbook step run after the check.

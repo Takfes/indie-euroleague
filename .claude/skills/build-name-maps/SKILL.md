@@ -24,13 +24,12 @@ All three files must exist; if one is missing, say which fetch or merge produces
 ## 2. Build the maps
 
 ```bash
-uv run python -m eupy.entity.build_team_name_map
 uv run python -m eupy.entity.build_player_name_map
 ```
 
-The team map must come first: the player engine uses it to scope matches to the player's club. Read the summary
-line. If a stats team code is missing from the team map, the entry's `notes` say so; fix the team map source (the
-schedule), do not work around it with a decision.
+Read the summary line. The player engine scopes matches to the player's club through `TeamNames`, which is derived
+from the schedule. If a stats team code is missing from the schedule, the entry's `notes` say so; refetch the
+schedule, do not work around it with a decision.
 
 The player builder recomputes every match from scratch: an exact match within the club (ignoring `Jr`/`Sr`/`II`/
 `III`/`IV`) is accepted on its own, everything else is open. The decisions recorded in earlier runs are applied on
@@ -62,10 +61,10 @@ Open entries are the rows of `data/stage_02/player_name_map.csv` with `match_sta
 Then rebuild, which validates the decisions (`notes` is required, `confirmed` needs a `name`):
 
 ```bash
-uv run dvc repro -s -f build_player_name_map
+uv run dvc repro -s build_player_name_map
 ```
 
-(the decisions file is not a declared DVC input, hence `-f`; `uv run python -m eupy.entity.build_player_name_map`
+(the decisions file is a declared DVC input of that stage; `uv run python -m eupy.entity.build_player_name_map`
 does the same without DVC.) Repeat until `check_player_names` no longer lists a box-score player who played but is
 not in the stats; other open entries may stay (players who have not played yet). Open entries do not stop a flow.
 
@@ -78,6 +77,5 @@ the fantasy data: nothing to decide here. A decision never overrides an `exact` 
 
 ## 4. Report
 
-Give the number of entries per `match_status` for the player map, the number of teams in the team map, and the
-decisions recorded this run. The decisions file is committed with the package (the CSV maps are git-ignored data), so
+Give the number of entries per `match_status` for the player map and the decisions recorded this run. The decisions file is committed with the package (the CSV maps are git-ignored data), so
 list it as changed and commit it: it holds the agent's decisions.

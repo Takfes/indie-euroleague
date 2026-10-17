@@ -152,6 +152,17 @@ def test_unproduced_curated_needs_a_raw_sources_entry_but_produced_one_does_not(
     assert Registry.from_headers(headers, ok).stage("v") == 0
 
 
+def test_committed_reference_file_in_the_package_maps_folder_is_a_stage_zero_input() -> None:
+    path = "src/eupy/entity/maps/decisions.json"
+    headers = {"src/eupy/transform/a.py": _h({"d": path}, {"out": "data/stage_01/out.csv"})}
+    ok = {"d": {"origin": "agent decisions", "refresh": "manual"}}
+    reg = Registry.from_headers(headers, ok)
+    assert reg.stage("d") == 0 and reg.datasets["d"].raw
+    assert reg.stage("out") == 1
+    with pytest.raises(RegistryError, match="not under"):
+        Registry.from_headers({"src/eupy/transform/a.py": _h({"d": "src/other/d.json"}, {})}, ok)
+
+
 def test_real_repo_has_no_self_loops() -> None:
     reg = Registry.from_repo()
     assert all(a != b for a, b in reg.edges())

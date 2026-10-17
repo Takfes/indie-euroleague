@@ -19,37 +19,33 @@ The fantasy stats data is the trusted set. Players that do not appear in it are 
 
 In scope: the `src/eupy/entity/` module rebuild, as below.
 
-Also in scope: `transform/normalize_fantasy_stats.py` now takes names from `PlayerNames` (it used the removed crosswalk).
-
 Out of scope, handled in follow-up reviews:
 
-- DVC stages for the two builders (the entity pipeline stays `dvc = false`).
 - Season history for teams: the team map covers whatever the schedule dataset covers (today the current season).
 
 ## Design
 
-Two classes, one team JSON inside the package, one derived player CSV, one committed decisions file, two builder
-scripts, one skill that drives both.
+Two classes, one derived player CSV, one committed decisions file, one builder script, one skill that drives the
+decisions.
 
 ```
 src/eupy/entity/
-  team_names.py                    class TeamNames
-  player_names.py                  class PlayerNames
-  build_team_name_map.py           script: schedule -> team_name_map (JSON + CSV)
+  team_names.py                    class TeamNames: derived from the schedule on load, no map file
+  player_names.py                  class PlayerNames (reads the player map CSV)
+  check_player_names.py            script: audit of the two datasets (see spec-update-flow.md)
   build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (CSV); holds the engine
   matching.py                      library: normalize_name, match_key, exact candidate finder, lookup errors
-  maps/team_name_map.json          committed, written only by build_team_name_map.py, read by TeamNames
   maps/player_name_decisions.json  committed, written only by the build-name-maps skill, read by build_player_name_map.py
-data/stage_01/team_name_map.csv    same entries as the team JSON, registered dataset
 data/stage_02/player_name_map.csv  the player map: derived, git-ignored, read by PlayerNames
 ```
 
 The only judgements that cannot be re-derived from raw data are the agent decisions, so they are the one committed
 player file (`maps/player_name_decisions.json`, shipped with the package). The player map is a pure function of the
-fantasy stats, the box score, the team map and the decisions, rebuilt by `dvc repro`; `PlayerNames.load()` reads it
-from `data/stage_02/`. The team map is still written twice (JSON in the package, CSV for the registry), a
-simplification not done yet. Stage numbers are computed from the headers (the player map
-depends on the merged box score, a stage-1 dataset), not chosen. A rerun on the same inputs and decisions rewrites
+fantasy stats, the box score, the schedule (which gives the team lookup) and the decisions, rebuilt by `dvc repro`;
+`PlayerNames.load()` reads it from `data/stage_02/`. The decisions file is a declared stage-0 input of the builder
+(`raw_sources.toml`; the registry accepts `src/eupy/entity/maps/` as a committed reference location), so DVC reruns
+the builder when a decision is recorded. Stage numbers are computed from the headers (the player map depends on the
+merged box score, a stage-1 dataset), not chosen. A rerun on the same inputs and decisions rewrites
 the same bytes.
 
 ### Lookup behaviour (both classes)
@@ -61,11 +57,11 @@ the same bytes.
 - The normalized form of an entry is itself a variant, so `normalize` is idempotent.
 - Both classes load their map once (`load()`), keep it in memory and carry no other state.
 
-### Team map
+### Team lookup
 
-- Builder input: `data/raw_data/game_schedule/schedule_*.csv`. Distinct `(hometeam, homecode, hometv)`.
-- Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name. CSV columns: `name`,
-  `variants` (joined with ` | `).
+- Derived in memory by `TeamNames.load()` from `data/raw_data/game_schedule/schedule_*.csv`: distinct
+  `(hometeam, homecode, hometv)`. There is no team map file or builder; scripts using it declare the schedule as input.
+- Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name.
 - The normalized name is the schedule's `hometeam` verbatim. On the real 2026 schedule these are long upper-case
   names (`PANATHINAIKOS AKTOR ATHENS`, `FC BARCELONA`); a shorter display name would be a later, separate change.
 - Fails loudly if one code points to two teams or one team has two code pairs, and on an empty schedule.
@@ -113,7 +109,7 @@ the CSV has the same columns, `variants` joined with ` | `.
 One skill in `.claude/skills/build-name-maps/` refreshes both maps:
 
 1. Check the prerequisite files exist (schedule CSV, merged box score, stats players) and name the fetch/merge step if not.
-2. Run `build_team_name_map.py`, then `build_player_name_map.py`.
+2. Run `build_player_name_map.py`.
 3. For each open entry the builder reports, research it (box-score history, the web), record the decision in the
    decisions file, and rebuild; repeat until nothing is open.
 4. Report the counts per status.

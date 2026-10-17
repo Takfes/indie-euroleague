@@ -230,9 +230,12 @@ def test_rejected_entry_keeps_the_stats_spelling(tmp_path: Path) -> None:
 
 def _setup_builder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, pairs: list[tuple[str, str]]) -> list[str]:
     """Point the team map at a temp file and return the builder args (stats, box score, decisions and output)."""
-    team_map = tmp_path / "team_map.json"
-    team_map.write_text(json.dumps({"teams": TEAMS_JSON}), encoding="utf-8")
-    monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)
+    schedule = tmp_path / "schedule"
+    schedule.mkdir(exist_ok=True)
+    (schedule / "schedule_E2026.csv").write_text(
+        "hometeam,homecode,hometv\nPanathinaikos,PAN,PAO\nReal Madrid,MAD,RMB\n", encoding="utf-8"
+    )
+    monkeypatch.setattr("eupy.entity.team_names.SCHEDULE_DIR", schedule)
     return [
         "--stats", str(_stats_csv(tmp_path / "stats.csv", pairs)),
         "--boxscore", str(_box_csv(tmp_path / "box.csv")),
@@ -274,12 +277,6 @@ def test_recorded_decisions_apply_on_rebuild_and_vanished_players_are_dropped(
     assert set(rebuilt) == {"C. Jones", "F. Campazzo"}
     assert (rebuilt["F. Campazzo"]["match_status"], rebuilt["F. Campazzo"]["matched_by"]) == ("confirmed", "agent")
     assert PlayerNames.load(out, TEAMS).normalize("F. Campazzo") == "Facundo Campazzo"
-
-
-TEAMS_JSON = [
-    {"name": "Panathinaikos", "variants": ["PAN", "PAO"]},
-    {"name": "Real Madrid", "variants": ["MAD", "RMB"]},
-]
 
 
 def test_builder_rejects_an_empty_stats_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

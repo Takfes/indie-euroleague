@@ -28,7 +28,6 @@ Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - game_schedule/schedule: data/raw_data/game_schedule/
   - player_name_map: data/stage_02/player_name_map.csv
-  - team_name_map: data/stage_01/team_name_map.csv
   - player_name_check: data/stage_03/player_name_check.csv
 Sources: none
 Outputs:
@@ -37,8 +36,8 @@ Final: true
 Impure: false
 Notes: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content,
   not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season.
-  Names are looked up through PlayerNames (the player map CSV listed as input; the team map through TeamNames, its JSON copy in
-  src/eupy/entity/maps/). The
+  Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames, from the schedule
+  input). The
   player_name_check input is there so a flow stops at unmatched names before this step.
 """
 

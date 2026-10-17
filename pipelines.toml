@@ -29,12 +29,7 @@ scripts = ["merge_boxscore", "merge_headers"]
 
 [entity]
 dvc = true
-scripts = [
-    "build_team_name_map",
-    "build_player_name_map",
-    "check_player_names",
-    "normalize_fantasy_stats",
-]
+scripts = ["build_player_name_map", "check_player_names"]
 
 [kpis]
 dvc = false

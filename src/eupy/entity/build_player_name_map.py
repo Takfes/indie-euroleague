@@ -34,15 +34,15 @@ Usage:
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
-  - team_name_map: data/stage_01/team_name_map.csv
+  - game_schedule/schedule: data/raw_data/game_schedule/
+  - player_name_decisions: src/eupy/entity/maps/player_name_decisions.json
 Sources: none
 Outputs:
   - player_name_map: data/stage_02/player_name_map.csv
 Final: false
 Impure: false
-Notes: Reads the team map through TeamNames (the JSON copy of team_name_map) and the agent decisions from
-  src/eupy/entity/maps/player_name_decisions.json (committed with the package; not a declared input, so after
-  recording decisions force the stage: `dvc repro -s -f build_player_name_map`). Everything else is recomputed
+Notes: The schedule feeds TeamNames (club scoping); the decisions file is committed with the package and written
+  by the build-name-maps skill, so DVC reruns this stage when a decision is recorded. Everything else is recomputed
   from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes.
   CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined
   with " | "), match_status, matched_by, notes.

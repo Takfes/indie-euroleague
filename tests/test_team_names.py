@@ -1,15 +1,13 @@
-"""Tests for the team name map builder (`build_team_name_map`) and the `TeamNames` lookup."""
+"""Tests for the `TeamNames` lookup, derived from the game schedule."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
-from eupy.entity.build_team_name_map import build_team_entries, load_schedule_rows, main, write_map
 from eupy.entity.matching import UnknownNameError
-from eupy.entity.team_names import TeamNames
+from eupy.entity.team_names import TeamNames, build_team_entries, load_schedule_rows
 
 ROWS = [
     {"hometeam": "Panathinaikos", "homecode": "PAN", "hometv": "PAO"},
@@ -49,7 +47,7 @@ def test_team_with_two_code_pairs_fails() -> None:
 def test_code_shared_by_two_teams_fails() -> None:
     rows = [*ROWS, {"hometeam": "Baskonia", "homecode": "PAN", "hometv": "KBA"}]
     with pytest.raises(ValueError, match="belongs to both"):
-        build_team_entries(rows)
+        TeamNames(build_team_entries(rows))
 
 
 def test_empty_schedule_fails() -> None:
@@ -62,37 +60,15 @@ def test_missing_schedule_dir_fails(tmp_path: Path) -> None:
         load_schedule_rows(tmp_path)
 
 
-def test_main_writes_stable_json_that_loads(tmp_path: Path) -> None:
-    (tmp_path / "schedule_E2026.csv").write_text(
-        "hometeam,homecode,hometv\nPanathinaikos,PAN,PAO\nReal Madrid,MAD,RMB\n", encoding="utf-8"
-    )
-    out, csv_out = tmp_path / "map.json", tmp_path / "map.csv"
-    args = ["--schedule-dir", str(tmp_path), "--out", str(out), "--csv-out", str(csv_out)]
-    main(args)
-    first = (out.read_bytes(), csv_out.read_bytes())
-    main(args)
-    assert (out.read_bytes(), csv_out.read_bytes()) == first
-    assert csv_out.read_text(encoding="utf-8").splitlines() == [
-        "name,variants",
-        "Panathinaikos,PAN | PAO | Panathinaikos",
-        "Real Madrid,MAD | RMB | Real Madrid",
-    ]
-    assert json.loads(first[0])["teams"][0]["name"] == "Panathinaikos"
-    assert TeamNames.load(out).normalize("MAD") == "Real Madrid"
-
-
-def test_load_missing_map_points_at_the_builder(tmp_path: Path) -> None:
-    with pytest.raises(FileNotFoundError, match="build_team_name_map"):
-        TeamNames.load(tmp_path / "nope.json")
+def test_load_reads_every_schedule_file_in_the_directory(tmp_path: Path) -> None:
+    header = "hometeam,homecode,hometv\n"
+    (tmp_path / "schedule_E2025.csv").write_text(header + "Panathinaikos,PAN,PAO\n", encoding="utf-8")
+    (tmp_path / "schedule_E2026.csv").write_text(header + "Real Madrid,MAD,RMB\n", encoding="utf-8")
+    teams = TeamNames.load(tmp_path)
+    assert (teams.normalize("PAO"), teams.normalize("MAD")) == ("Panathinaikos", "Real Madrid")
 
 
 def test_variant_used_by_two_teams_is_rejected_on_load() -> None:
     entries = [{"name": "A", "variants": ["X"]}, {"name": "B", "variants": ["X"]}]
     with pytest.raises(ValueError, match="belongs to both"):
         TeamNames(entries)
-
-
-def test_write_map_is_deterministic(tmp_path: Path) -> None:
-    write_map(build_team_entries(ROWS), tmp_path / "a.json")
-    write_map(build_team_entries(list(reversed(ROWS))), tmp_path / "b.json")
-    assert (tmp_path / "a.json").read_bytes() == (tmp_path / "b.json").read_bytes()

@@ -148,7 +148,12 @@ def test_graph_and_catalogue_agree_on_datasets_and_stages() -> None:
     from_graph = {
         name: int(stage) for name, stage in re.findall(r'\[\("(.+?)(?: ★)?<br/>\(stage (\d+)\)"\)\]', _mermaid(graph))
     }
-    from_catalogue = {name: 0 for name in re.findall(r"^\| `([^`]+)` \| `data/(?:raw_data|curated)/", catalogue, re.M)}
+    from_catalogue = {
+        name: 0
+        for name in re.findall(
+            r"^\| `([^`]+)` \| `(?:data/(?:raw_data|curated)/|src/eupy/entity/maps/)", catalogue, re.M
+        )
+    }
     from_catalogue |= {
         name: int(stage) for name, stage in re.findall(r"^\| `([^`]+)` \| (\d\d) \| `data/stage_", catalogue, re.M)
     }
