@@ -107,16 +107,16 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: 2f08e3366938b47a8ee65bf340215492
-      size: 663
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aae9940a575d5627a1d9c283aa33df71
-      size: 1719
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -196,16 +196,16 @@ stages:
     deps:
     - path: config/config.toml
       hash: md5
-      md5: ec8e56d404d91b859a3bc5a8c1de2efb
-      size: 368
+      md5: 3d9bfd3d4b177babf2664ead38863477
+      size: 801
     - path: src/eupy/config/__init__.py
       hash: md5
       md5: 3cc62ba0d808a00550f3a0bf9e32a167
       size: 239
     - path: src/eupy/config/defaults.py
       hash: md5
-      md5: aa27ea700fe1839702daf5fd511ae69b
-      size: 1398
+      md5: aec6190070de9f15729c4d23c80ee063
+      size: 1832
     - path: src/eupy/config/loader.py
       hash: md5
       md5: f4571e8c472136aed6b3b80ea548f517
@@ -233,9 +233,9 @@ stages:
     outs:
     - path: data/raw_data/euroleague_net/headers
       hash: md5
-      md5: 5f42d7bcdfbed6848c20c8c489636e47.dir
-      size: 15474
-      nfiles: 2
+      md5: 09225d19182bc6fe010e32f32c1731b4.dir
+      size: 17830
+      nfiles: 1
   fetch_game_schedule:
     cmd: uv run python -m eupy.fetchers.fetch_game_schedule
     deps:
