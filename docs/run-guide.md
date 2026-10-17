@@ -218,4 +218,5 @@ ruff format --check src tests
 - `make merge-worktree` (or the `merge-worktree` skill) merges a finished branch under `.claude/worktrees/` into main after you approve the diff, then removes the branch and worktree.
 - `make clean-git` lists merged task worktrees, branches and stale locks, then deletes the safe ones (needs an authenticated `gh`); `ARGS=--yes` skips the prompt, `ARGS=--dry-run` never deletes.
 - `make clean-cache` removes rebuildable caches; `make clean-all` runs both.
+- `make clean-data` deletes every git-ignored file under `data/` (raw and all stages), keeping tracked files such as `.gitkeep` and the committed squad CSV (`ARGS=--dry-run` only lists them); rebuild with `uv run dvc repro refresh_and_build_eubook`. `make clean-all` does not include it.
 - `make clean-data-raw` deletes every data file under `data/raw_data/`, keeping the folders and `.gitkeep` files (`ARGS=--dry-run` only lists them). `make clean-all` does not include it.

@@ -45,6 +45,15 @@ clean-data-raw: ## Delete every data file under data/raw_data, keeping the folde
 		find data/raw_data -type f ! -name .gitkeep -print -delete; \
 	fi
 
+.PHONY: clean-data
+clean-data: ## Delete every git-ignored file under data/ (raw + all stages); keeps tracked files (.gitkeep, curated) (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		git clean -ndX data; \
+	else \
+		echo "🚀 Removing git-ignored data (raw + stage_XX); tracked files stay"; \
+		git clean -fdX data; \
+	fi
+
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
 	@uv run mkdocs build -s
