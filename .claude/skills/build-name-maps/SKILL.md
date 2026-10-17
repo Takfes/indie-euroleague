@@ -60,7 +60,7 @@ variants and rewrites the JSON and the CSV:
 uv run python -m eupy.entity.build_player_name_map
 ```
 
-Repeat until the summary reports no open entries. Edit only open entries: a decision never overrides an `exact`
+Repeat until the summary reports no open entries. The builder exits 1 while entries are open (the files are written first), which is what stops a `dvc repro` chain; this is expected, not a failure of the run. Check the state any time, read-only, with `uv run python -m eupy.entity.check_player_names`. Edit only open entries: a decision never overrides an `exact`
 match, and changing any other field has no effect because the builder recomputes it.
 
 ## 4. Report

@@ -6,42 +6,16 @@
 
 ## Cheatsheet
 
-Commands from the repo root. Details: [run guide](docs/run-guide.md).
-
-**DVC flows** (each rewrites `dvc.lock`; `-s` runs only the named stage, no upstream)
+Repo root. Every flag, stage and config key: [run guide](docs/run-guide.md).
 
 ```bash
-uv run dvc repro fetch_raw                              # every fetcher
-uv run dvc repro fetch_game_schedule                    # schedule
-uv run dvc repro fetch_euroleague_fantasy_stats         # fantasy stats (season average, one pass)
-uv run dvc repro fetch_kaggle_euroleague                # Kaggle history
-uv run dvc repro fetch_euroleague_live_boxscores        # euroleague.net box score deltas
-uv run dvc repro fetch_euroleague_live_headers          # euroleague.net header deltas
-uv run dvc repro -s merge_boxscore merge_headers        # merge Kaggle + live, offline (no fetch)
-uv run dvc repro merge_boxscore merge_headers           # same, but re-runs the fetchers first
+uv run dvc repro normalize_fantasy_stats                  # whole update: fetch, merge, name map, normalize (stops on unmatched names)
+uv run dvc repro fetch_netboxscore_and_fantasystats       # fetch only: box score + headers (euroleague.net) + fantasy stats
+uv run dvc repro -s merge_boxscore merge_headers          # merge only, offline
+uv run python -m eupy.entity.check_player_names           # any unmatched names? (0 = skip matching)
+uv run dvc repro -s -f build_player_name_map              # rebuild the map after recording decisions (/build-name-maps)
 ```
 
-**Fantasy stats variants** (direct run, leaves `dvc.lock` alone; add `--delay 1.0` on a 429)
+Fantasy stats per round: set `fantasy_rounds = "1-6"` in `config/config.toml` (`"all"` = season average), then `uv run dvc repro fetch_euroleague_fantasy_stats`.
 
-```bash
-uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats                    # average per game, whole season
-uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --stats-type tot   # season total
-uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --rounds 1-6       # one fetch per round (up to the in-progress round)
-```
-
-**Not DVC stages yet** (direct run)
-
-```bash
-uv run python -m eupy.entity.build_team_name_map         # 1. team map
-uv run python -m eupy.entity.build_player_name_map       # 2. player map (open players need a decision: /build-name-maps)
-uv run python -m eupy.transform.build_boxscore_kpis      # box score + positions, opponent, home/away
-uv run python -m eupy.transform.build_schedule_turns --season=E2026
-```
-
-**Dev loop**
-
-```bash
-uv run pytest
-uv run ruff check src tests && uv run ruff format --check src tests
-uv run python -m eupy.registry check                     # pipeline/header lint (then: dvc | docs | html)
-```
+Dev: `uv run pytest` · `uv run ruff check src tests && uv run ruff format --check src tests` · `uv run python -m eupy.registry check`

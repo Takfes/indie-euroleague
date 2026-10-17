@@ -24,6 +24,9 @@ Two files are written from the same entries: `maps/player_name_map.json`, which 
 for inspection and joins. Entries still open (`needs_review`, `no_candidate`) are written with their candidates in
 `notes` and listed in the summary; resolving them is the `build-name-maps` skill's job.
 
+The process exits 1 when open entries remain (after writing both files), so a `dvc repro` chain stops before the
+steps that need a fully resolved map; the `build-name-maps` skill's decisions clear it.
+
 Usage:
     python -m eupy.entity.build_player_name_map [--stats PATH] [--boxscore PATH] [--recent-seasons N]
         [--out PATH] [--csv-out PATH]
@@ -51,15 +54,18 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
 from eupy.entity.matching import (
     OPEN_STATUSES,
+    StatsPlayer,
     UnknownNameError,
     build_normalized_index,
     find_candidates,
+    load_stats_players,
     normalize_name,
 )
 from eupy.entity.team_names import TeamNames
@@ -84,8 +90,6 @@ CSV_FIELDS = [
 RECENT_SEASONS = 2
 AGENT_STATUSES = frozenset({"confirmed", "rejected", "no_match"})
 
-# (stats name, stats team code) per distinct stats player
-StatsPlayer = dict[str, str]
 # {spelling: {owner, ...}} -- the shape `matching.find_candidates` works on
 Pool = dict[str, set[str]]
 
@@ -124,13 +128,6 @@ def abbreviated_pool(full_names: list[str]) -> Pool:
     for full in full_names:
         pool[abbreviate_name(full)].add(full)
     return dict(pool)
-
-
-def load_stats_players(path: Path) -> list[StatsPlayer]:
-    """One `{name, team}` record per distinct pair in the stats players file, ordered by team then name."""
-    with path.open(newline="", encoding="utf-8") as f:
-        pairs = {(r["team"], r["name"]) for r in csv.DictReader(f)}
-    return [{"team": team, "name": name} for team, name in sorted(pairs)]
 
 
 def load_boxscore_pools(path: Path, teams: TeamNames, recent_seasons: int = RECENT_SEASONS) -> BoxscorePools:
@@ -287,7 +284,8 @@ def write_csv(entries: list[dict[str, object]], path: Path) -> None:
             writer.writerow({k: " | ".join(entry[k]) if k == "variants" else entry[k] for k in CSV_FIELDS})  # type: ignore[arg-type]
 
 
-def main(argv: list[str] | None = None) -> None:
+def main(argv: list[str] | None = None) -> int:
+    """Build and write the map; return the number of entries still open (needing an agent decision)."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
@@ -312,7 +310,9 @@ def main(argv: list[str] | None = None) -> None:
     open_count = sum(1 for e in entries if e["match_status"] in OPEN_STATUSES)
     if open_count:
         print(f"{open_count} open entries need an agent decision (see `notes` in the map).")
+    return open_count
 
 
 if __name__ == "__main__":
-    main()
+    # Exit 1 while players are open (maps are written first), so a DVC chain stops before the normalize steps.
+    sys.exit(1 if main() else 0)

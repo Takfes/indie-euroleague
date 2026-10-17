@@ -292,3 +292,15 @@ def test_builder_rejects_an_empty_stats_file(tmp_path: Path, monkeypatch: pytest
 def test_load_missing_map_points_at_the_builder(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError, match="build_player_name_map"):
         PlayerNames.load(tmp_path / "nope.json", TEAMS)
+
+
+def test_builder_returns_the_number_of_open_entries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    team_map = tmp_path / "team_map.json"
+    team_map.write_text(json.dumps({"teams": TEAMS_JSON}), encoding="utf-8")
+    monkeypatch.setattr("eupy.entity.team_names.MAP_PATH", team_map)
+    box = str(_box_csv(tmp_path / "box.csv"))
+    out = ["--out", str(tmp_path / "p.json"), "--csv-out", str(tmp_path / "p.csv"), "--boxscore", box]
+    resolved = _stats_csv(tmp_path / "ok.csv", [("PAO", "C. Jones")])
+    assert build_player_name_map.main(["--stats", str(resolved), *out]) == 0
+    unknown = _stats_csv(tmp_path / "new.csv", [("PAO", "C. Jones"), ("PAO", "Z. Nobody")])
+    assert build_player_name_map.main(["--stats", str(unknown), *out]) == 1  # the process exit code gates DVC

@@ -8,8 +8,14 @@
 dvc = true
 scripts = [
     "fetch_game_schedule",
-    "fetch_euroleague_fantasy_stats",
     "fetch_kaggle_euroleague",
+]
+
+# The update flow's fetchers: euroleague.net box score + headers and the fantasy stats.
+[fetch_netboxscore_and_fantasystats]
+dvc = true
+scripts = [
+    "fetch_euroleague_fantasy_stats",
     "fetch_euroleague_live_boxscores",
     "fetch_euroleague_live_headers",
 ]
@@ -23,12 +29,17 @@ dvc = true
 scripts = ["merge_boxscore", "merge_headers"]
 
 [entity]
-dvc = false
+dvc = true
 scripts = [
     "build_team_name_map",
     "build_player_name_map",
+    "check_player_names",
     "normalize_fantasy_stats",
 ]
+
+[kpis]
+dvc = false
+scripts = ["build_boxscore_kpis"]
 
 [optimize]
 dvc = false
@@ -37,4 +48,4 @@ scripts = ["optimize_squad"]
 # Wrappers: named lists of pipelines, used by the data-map HTML's pipeline/wrapper filter.
 [wrappers]
 all = ["merge_history_live"]
-full = ["fetch_raw", "merge_history_live"]
+full = ["fetch_raw", "fetch_netboxscore_and_fantasystats", "merge_history_live"]

@@ -7,6 +7,8 @@ Library module (no I/O header, never run directly):
 - `find_candidates` is the exact-match candidate finder of the player map builder (`build_player_name_map.py`).
   It is generic over a spelling pool shaped `{spelling: {owner, ...}}`, an "owner" being whatever identifies the
   real-world entity behind a spelling.
+- `load_stats_players` reads the distinct `(team, name)` pairs of the fantasy stats players file; the builder and
+  the check share it.
 - `UnknownNameError` / `AmbiguousNameError` are what the lookup classes raise; `OPEN_STATUSES` are the match
   statuses of entries still awaiting a decision.
 
@@ -20,11 +22,23 @@ No match is `no_candidate`; there is no approximate matching.
 
 from __future__ import annotations
 
+import csv
 import re
 import unicodedata
 from collections import defaultdict
+from pathlib import Path
 
 OPEN_STATUSES = frozenset({"needs_review", "no_candidate"})
+
+# (stats name, stats team code) per distinct stats player
+StatsPlayer = dict[str, str]
+
+
+def load_stats_players(path: Path) -> list[StatsPlayer]:
+    """One `{name, team}` record per distinct pair in the stats players file, ordered by team then name."""
+    with path.open(newline="", encoding="utf-8") as f:
+        pairs = {(r["team"], r["name"]) for r in csv.DictReader(f)}
+    return [{"team": team, "name": name} for team, name in sorted(pairs)]
 
 
 class UnknownNameError(LookupError):
