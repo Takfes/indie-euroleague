@@ -9,7 +9,6 @@
 dvc = true
 scripts = [
     "fetch_euroleague_live_boxscores",
-    "fetch_euroleague_live_headers",
     "fetch_euroleague_fantasy_stats",
     "fetch_game_schedule",
 ]
@@ -25,7 +24,13 @@ scripts = ["build_schedule_turns"]
 
 [merge_history_live]
 dvc = true
-scripts = ["merge_boxscore", "merge_headers"]
+scripts = ["merge_boxscore"]
+
+# The game headers: kept and runnable on their own (`dvc repro live_headers`), but not part of the update flows
+# because nothing downstream reads them yet.
+[live_headers]
+dvc = true
+scripts = ["fetch_euroleague_live_headers", "merge_headers"]
 
 [entity]
 dvc = true

@@ -26,15 +26,17 @@ flowchart LR
     subgraph p_fetch_update["fetch_update"]
         s_fetch_euroleague_fantasy_stats["fetch_euroleague_fantasy_stats"]
         s_fetch_euroleague_live_boxscores["fetch_euroleague_live_boxscores"]
-        s_fetch_euroleague_live_headers["fetch_euroleague_live_headers"]
         s_fetch_game_schedule["fetch_game_schedule"]
     end
     subgraph p_kpis["kpis"]
         s_build_boxscore_kpis["build_boxscore_kpis"]
     end
+    subgraph p_live_headers["live_headers"]
+        s_fetch_euroleague_live_headers["fetch_euroleague_live_headers"]
+        s_merge_headers["merge_headers"]
+    end
     subgraph p_merge_history_live["merge_history_live"]
         s_merge_boxscore["merge_boxscore"]
-        s_merge_headers["merge_headers"]
     end
     subgraph p_optimize["optimize"]
         s_optimize_squad["optimize_squad"]

@@ -17,7 +17,7 @@ Python 3.12+ (managed by `uv`). Credentials: the Kaggle download needs `~/.kaggl
 Each fetcher is a DVC stage (`always_changed`, outputs `persist`) in `dvc.yaml`, and a module you can run directly.
 
 ```bash
-uv run dvc repro fetch_update                            # the update's fetchers: euroleague.net box score + headers, fantasy stats, schedule
+uv run dvc repro fetch_update                            # the update's fetchers: euroleague.net box score, fantasy stats, schedule
 uv run dvc repro fetch_kaggle                            # the Kaggle history, a separate flow (not part of the update)
 uv run dvc repro fetch_kaggle_euroleague                 # one fetcher, tracked by DVC
 uv run python -m eupy.fetchers.fetch_kaggle_euroleague   # the same script, untracked
@@ -51,12 +51,14 @@ uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --delay 1.0       
 ## Merge the live deltas
 
 ```bash
-uv run dvc repro -s merge_boxscore merge_headers     # offline: only the merges
-uv run dvc repro merge_boxscore merge_headers        # also runs the euroleague.net fetchers first (always_changed)
-uv run python -m eupy.transform.merge_boxscore       # the same script, untracked
+uv run dvc repro -s merge_boxscore     # offline: only the merge
+uv run dvc repro merge_boxscore        # also runs the euroleague.net box-score fetcher first (always_changed)
+uv run python -m eupy.transform.merge_boxscore   # the same script, untracked
 ```
 
-Writes `data/stage_01/euroleague_box_score_merged.csv` and `euroleague_header_merged.csv` from the euroleague.net deltas only; the deltas carry their own header (taken from the first one, all must match). Kaggle is left out. To merge the Kaggle history under them again, set `[transformation] include_kaggle = true` (or pass `--include-kaggle`; `--base-season E2025` or `base_season` keeps one Kaggle season): the live deltas then win for the seasons they cover, and Kaggle rows of those seasons are dropped before the append. The Kaggle files are deliberately not DVC deps of the merge, so after refreshing Kaggle with the option on, run `uv run dvc repro -s -f merge_boxscore merge_headers`.
+Writes `data/stage_01/euroleague_box_score_merged.csv` from the euroleague.net deltas only; the deltas carry their own header (taken from the first one, all must match). Kaggle is left out. To merge the Kaggle history under them again, set `[transformation] include_kaggle = true` (or pass `--include-kaggle`; `--base-season E2025` or `base_season` keeps one Kaggle season): the live deltas then win for the seasons they cover, and Kaggle rows of those seasons are dropped before the append. The Kaggle files are deliberately not DVC deps of the merge, so after refreshing Kaggle with the option on, run `uv run dvc repro -s -f merge_boxscore merge_headers`.
+
+The game headers are outside the flows (nothing reads the merged headers): `uv run dvc repro merge_headers` fetches and merges them (`pipelines.toml`: `live_headers`).
 
 ## Flows
 
@@ -67,8 +69,8 @@ uv run dvc repro refresh_data                  # 1-3: fetch, merge the deltas, r
 uv run dvc repro refresh_and_build_eubook      # 1-4: the same, then the eubook workbook
 ```
 
-1. `fetch_update`: euroleague.net box score and headers, fantasy stats (mode from the config), schedule.
-2. `merge_boxscore`, `merge_headers`: the consolidated tables.
+1. `fetch_update`: euroleague.net box score, fantasy stats (mode from the config), schedule.
+2. `merge_boxscore`: the consolidated box score.
 3. `build_player_name_map`, `check_player_names`: names. The check is a normal stage of the flow, run after the map is rebuilt. It compares the two datasets (the fantasy stats are the core, the left side of every join):
    - in both: fine;
    - in the stats, not in the box score (not played yet, injured, closed as `no_match`): listed for information;

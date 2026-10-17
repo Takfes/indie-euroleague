@@ -2,7 +2,7 @@
 
 ## Goal
 
-One DVC-driven flow that refreshes the working datasets (euroleague.net box score and headers, fantasy stats), merges the euroleague.net data only, resolves player names between the fantasy stats and the box score, and stops for a decision only when a stats player is unmatched.
+One DVC-driven flow that refreshes the working datasets (euroleague.net box score, fantasy stats), merges the euroleague.net data only, resolves player names between the fantasy stats and the box score, and stops for a decision only when a stats player is unmatched.
 
 ## Scope
 
@@ -11,7 +11,7 @@ One DVC-driven flow that refreshes the working datasets (euroleague.net box scor
 - `check_player_names`: read-only report of stats players missing from the player map or still open; exit 0 / 1.
 - `build_player_name_map` does not fail on open players (stats players with no box-score match are expected). Names match without `Jr`/`Sr`/`II`/`III`/`IV`. The agent decisions are a declared input (`player_name_decisions`). `normalize_fantasy_stats` and `build_team_name_map` are gone: nothing read the former's output, and the team lookup is derived from the schedule.
 - `check_player_names` compares the datasets: in both (ok), stats only (info), box score only with minutes played (listed with where found and the likely stats entry). Mode `[transformation] names_mode`: `continue` (default, exit 0) or `pause` (exit 1 on box-score-only players; stats-only never pauses).
-- Pipelines: `fetch_update` (box score, headers, fantasy stats, schedule), `fetch_kaggle` (separate flow; `fetch_raw` is gone), `entity` and `workbook` are DVC pipelines, `build_boxscore_kpis` sits in `kpis` (`dvc = false`).
+- Pipelines: `fetch_update` (box score, fantasy stats, schedule), `live_headers` (headers fetch + merge, kept and runnable alone, not in the flows: nothing reads the merged headers), `fetch_kaggle` (separate flow; `fetch_raw` is gone), `entity` and `workbook` are DVC pipelines, `build_boxscore_kpis` sits in `kpis` (`dvc = false`).
 - `check_player_names` writes a report (`player_name_check`) so a flow can depend on it.
 - `build_eubook` (`transform/`): the pipeline version of `scripts/dataprep.py`, which stays untouched; output `eubook.xlsx` (final) plus an untracked round-stamped copy.
 - Flows are `[wrappers]` entries, emitted as aggregate DVC stages: `refresh_data` (fetch, merge, names) and `refresh_and_build_eubook` (the same plus the workbook).

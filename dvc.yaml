@@ -154,7 +154,6 @@ stages:
     cmd: echo fetch_update fetched
     deps:
     - data/raw_data/euroleague_net/box_score
-    - data/raw_data/euroleague_net/headers
     - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
     - data/raw_data/game_schedule
@@ -194,12 +193,10 @@ stages:
     cmd: echo refresh_and_build_eubook done
     deps:
     - data/raw_data/euroleague_net/box_score
-    - data/raw_data/euroleague_net/headers
     - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
     - data/raw_data/game_schedule
     - data/stage_01/euroleague_box_score_merged.csv
-    - data/stage_01/euroleague_header_merged.csv
     - data/stage_02/player_name_map.csv
     - data/stage_03/player_name_check.csv
     - data/stage_04/eubook.xlsx
@@ -207,11 +204,9 @@ stages:
     cmd: echo refresh_data done
     deps:
     - data/raw_data/euroleague_net/box_score
-    - data/raw_data/euroleague_net/headers
     - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
     - data/raw_data/game_schedule
     - data/stage_01/euroleague_box_score_merged.csv
-    - data/stage_01/euroleague_header_merged.csv
     - data/stage_02/player_name_map.csv
     - data/stage_03/player_name_check.csv
