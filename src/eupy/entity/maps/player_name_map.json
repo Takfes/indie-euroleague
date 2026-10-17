@@ -71,6 +71,18 @@
       ]
     },
     {
+      "match_status": "no_candidate",
+      "matched_by": "exact",
+      "name": "J. Begarin",
+      "notes": "",
+      "stats_name": "J. Begarin",
+      "stats_team": "ASV",
+      "team": "LDLC ASVEL VILLEURBANNE",
+      "variants": [
+        "J. Begarin"
+      ]
+    },
+    {
       "match_status": "exact",
       "matched_by": "exact",
       "name": "Joel Bolomboy",
@@ -121,7 +133,6 @@
       "stats_team": "ASV",
       "team": "LDLC ASVEL VILLEURBANNE",
       "variants": [
-        "DOSSOU-YOVO, MATHIS",
         "M. Dossou-yovo",
         "Mathis Dossou-Yovo"
       ]
@@ -278,10 +289,10 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Josh Nebo",
-      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
+      "notes": "",
       "stats_name": "J. Nebo",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
@@ -376,14 +387,15 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Tosan Evbuomwan",
-      "notes": "Web search 2026-10-05: On the Barcelona 2026-27 roster (Eurohoops)",
+      "notes": "",
       "stats_name": "T. Evbuomwan",
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
+        "EVBUOMWAN, TOSAN",
         "T. Evbuomwan",
         "Tosan Evbuomwan"
       ]
@@ -425,7 +437,6 @@
       "stats_team": "BAR",
       "team": "FC BARCELONA",
       "variants": [
-        "MAKOUNDOU, YOAN",
         "Y. Makoundou",
         "Yoan Makoundou"
       ]
@@ -569,17 +580,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Kilian Fischer",
+      "name": "K. Fischer",
       "notes": "",
       "stats_name": "K. Fischer",
       "stats_team": "BAY",
       "team": "FC BAYERN MUNICH",
       "variants": [
-        "FISCHER, KILIAN",
-        "K. Fischer",
-        "Kilian Fischer"
+        "K. Fischer"
       ]
     },
     {
@@ -927,17 +936,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Aleksej Nedeljkovic",
+      "name": "A. Nedeljkovic",
       "notes": "",
       "stats_name": "A. Nedeljkovic",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
-        "A. Nedeljkovic",
-        "Aleksej Nedeljkovic",
-        "NEDELJKOVIC, ALEKSEJ"
+        "A. Nedeljkovic"
       ]
     },
     {
@@ -1053,14 +1060,15 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Nikola Djurisic",
-      "notes": "Nikola Djurisic signed with Crvena Zvezda (Eurohoops); the fuzzy candidate Nemanja Djurisic is a different player",
+      "notes": "",
       "stats_name": "N. Djurisic",
       "stats_team": "CZV",
       "team": "CRVENA ZVEZDA MERIDIANBET BELGRADE",
       "variants": [
+        "DJURISIC, NIKOLA",
         "N. Djurisic",
         "Nikola Djurisic"
       ]
@@ -1162,17 +1170,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Awudu Abass",
+      "name": "A. Abass",
       "notes": "",
       "stats_name": "A. Abass",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "A. Abass",
-        "ABASS, AWUDU",
-        "Awudu Abass"
+        "A. Abass"
       ]
     },
     {
@@ -1218,17 +1224,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Dzanan Musa",
+      "name": "D. Musa",
       "notes": "",
       "stats_name": "D. Musa",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "D. Musa",
-        "Dzanan Musa",
-        "MUSA, DZANAN"
+        "D. Musa"
       ]
     },
     {
@@ -1260,17 +1264,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Justin Anderson",
+      "name": "J. Anderson",
       "notes": "",
       "stats_name": "J. Anderson",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "ANDERSON, JUSTIN",
-        "J. Anderson",
-        "Justin Anderson"
+        "J. Anderson"
       ]
     },
     {
@@ -1288,17 +1290,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Kenan Kamenjas",
+      "name": "K. Kamenjas",
       "notes": "",
       "stats_name": "K. Kamenjas",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "K. Kamenjas",
-        "KAMENJAS, KENAN",
-        "Kenan Kamenjas"
+        "K. Kamenjas"
       ]
     },
     {
@@ -1316,17 +1316,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Klemen Prepelic",
+      "name": "K. Prepelic",
       "notes": "",
       "stats_name": "K. Prepelic",
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "K. Prepelic",
-        "Klemen Prepelic",
-        "PREPELIC, KLEMEN"
+        "K. Prepelic"
       ]
     },
     {
@@ -1352,7 +1350,6 @@
       "stats_team": "DUB",
       "team": "DUBAI BASKETBALL",
       "variants": [
-        "JAITEH, MAM",
         "M. Jaiteh",
         "Mam Jaiteh"
       ]
@@ -1428,17 +1425,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Brice Dessert",
+      "name": "B. Dessert",
       "notes": "",
       "stats_name": "B. Dessert",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "B. Dessert",
-        "Brice Dessert",
-        "DESSERT, BRICE"
+        "B. Dessert"
       ]
     },
     {
@@ -1456,17 +1451,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Burakcan Yildizli",
+      "name": "B. Yildizli",
       "notes": "",
       "stats_name": "B. Yildizli",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "B. Yildizli",
-        "Burakcan Yildizli",
-        "YILDIZLI, BURAKCAN"
+        "B. Yildizli"
       ]
     },
     {
@@ -1484,6 +1477,20 @@
       ]
     },
     {
+      "match_status": "exact",
+      "matched_by": "exact",
+      "name": "Cameron Payne",
+      "notes": "",
+      "stats_name": "C. Payne",
+      "stats_team": "EFS",
+      "team": "ANADOLU EFES ISTANBUL",
+      "variants": [
+        "C. Payne",
+        "Cameron Payne",
+        "PAYNE, CAMERON"
+      ]
+    },
+    {
       "match_status": "confirmed",
       "matched_by": "agent",
       "name": "Darius Karutasu",
@@ -1497,17 +1504,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "David Mutaf",
+      "name": "D. Mutaf",
       "notes": "",
       "stats_name": "D. Mutaf",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "D. Mutaf",
-        "David Mutaf",
-        "MUTAF, DAVID"
+        "D. Mutaf"
       ]
     },
     {
@@ -1567,31 +1572,27 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Georgios Papagiannis",
+      "name": "G. Papagiannis",
       "notes": "",
       "stats_name": "G. Papagiannis",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "G. Papagiannis",
-        "Georgios Papagiannis",
-        "PAPAGIANNIS, GEORGIOS"
+        "G. Papagiannis"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Isaia Cordinier",
+      "name": "I. Cordinier",
       "notes": "",
       "stats_name": "I. Cordinier",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "CORDINIER, ISAIA",
-        "I. Cordinier",
-        "Isaia Cordinier"
+        "I. Cordinier"
       ]
     },
     {
@@ -1665,17 +1666,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Ruzgar Fenemen",
+      "name": "R. Fenemen",
       "notes": "",
       "stats_name": "R. Fenemen",
       "stats_team": "EFS",
       "team": "ANADOLU EFES ISTANBUL",
       "variants": [
-        "FENEMEN, RUZGAR",
-        "R. Fenemen",
-        "Ruzgar Fenemen"
+        "R. Fenemen"
       ]
     },
     {
@@ -1771,23 +1770,8 @@
       "stats_team": "FBT",
       "team": "FENERBAHCE TARFIN ISTANBUL",
       "variants": [
-        "EKSIOGLU, MERT",
         "M. Eksioglu",
         "Mert Eksioglu"
-      ]
-    },
-    {
-      "match_status": "exact",
-      "matched_by": "exact",
-      "name": "Melih Mahmutoglu",
-      "notes": "",
-      "stats_name": "M. Mahmutoglu",
-      "stats_team": "FBT",
-      "team": "FENERBAHCE TARFIN ISTANBUL",
-      "variants": [
-        "M. Mahmutoglu",
-        "MAHMUTOGLU, MELIH",
-        "Melih Mahmutoglu"
       ]
     },
     {
@@ -1819,10 +1803,10 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Shane Larkin",
-      "notes": "Moved from Anadolu Efes to Fenerbahce for 2026-27 (Eurohoops)",
+      "notes": "",
       "stats_name": "S. Larkin",
       "stats_team": "FBT",
       "team": "FENERBAHCE TARFIN ISTANBUL",
@@ -1931,16 +1915,17 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Amir Coffey",
-      "notes": "Web search 2026-10-05: Signed with Hapoel Tel Aviv for 2026-27 (Eurohoops)",
+      "notes": "",
       "stats_name": "A. Coffey",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
         "A. Coffey",
-        "Amir Coffey"
+        "Amir Coffey",
+        "COFFEY, AMIR"
       ]
     },
     {
@@ -2027,31 +2012,27 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Guy Palatin",
+      "name": "G. Palatin",
       "notes": "",
       "stats_name": "G. Palatin",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "G. Palatin",
-        "Guy Palatin",
-        "PALATIN, GUY"
+        "G. Palatin"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Itay Segev",
+      "name": "I. Segev",
       "notes": "",
       "stats_name": "I. Segev",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "I. Segev",
-        "Itay Segev",
-        "SEGEV, ITAY"
+        "I. Segev"
       ]
     },
     {
@@ -2105,23 +2086,20 @@
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "HEIDEGGER, MAX",
         "M. Heidegger",
         "Max Heidegger"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Oz Blayzer",
+      "name": "O. Blayzer",
       "notes": "",
       "stats_name": "O. Blayzer",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "BLAYZER, OZ",
-        "O. Blayzer",
-        "Oz Blayzer"
+        "O. Blayzer"
       ]
     },
     {
@@ -2133,37 +2111,32 @@
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "BLATT, TAMIR",
         "T. Blatt",
         "Tamir Blatt"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Tyler Ennis",
+      "name": "T. Ennis",
       "notes": "",
       "stats_name": "T. Ennis",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "ENNIS, TYLER",
-        "T. Ennis",
-        "Tyler Ennis"
+        "T. Ennis"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Tomer Ginat",
+      "name": "T. Ginat",
       "notes": "",
       "stats_name": "T. Ginat",
       "stats_team": "HTA",
       "team": "HAPOEL IBI TEL AVIV",
       "variants": [
-        "GINAT, TOMER",
-        "T. Ginat",
-        "Tomer Ginat"
+        "T. Ginat"
       ]
     },
     {
@@ -2246,8 +2219,7 @@
       "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
       "variants": [
         "A. Len",
-        "Alex Len",
-        "LEN, ALEX"
+        "Alex Len"
       ]
     },
     {
@@ -2307,17 +2279,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Khalifa Diop",
+      "name": "K. Diop",
       "notes": "",
       "stats_name": "K. Diop",
       "stats_team": "KBA",
       "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
       "variants": [
-        "DIOP, KHALIFA",
-        "K. Diop",
-        "Khalifa Diop"
+        "K. Diop"
       ]
     },
     {
@@ -2360,6 +2330,20 @@
         "HOWARD, MARKUS",
         "M. Howard",
         "Markus Howard"
+      ]
+    },
+    {
+      "match_status": "exact",
+      "matched_by": "exact",
+      "name": "Marcio Santos",
+      "notes": "",
+      "stats_name": "M. Santos",
+      "stats_team": "KBA",
+      "team": "KOSNER BASKONIA VITORIA-GASTEIZ",
+      "variants": [
+        "M. Santos",
+        "Marcio Santos",
+        "SANTOS, MARCIO"
       ]
     },
     {
@@ -2606,7 +2590,6 @@
       "stats_team": "MIL",
       "team": "ARMANI OLIMPIA MILAN",
       "variants": [
-        "AKELE, NICOLA",
         "N. Akele",
         "Nicola Akele"
       ]
@@ -2637,20 +2620,6 @@
         "COLE, RJ",
         "R. Cole",
         "Rj Cole"
-      ]
-    },
-    {
-      "match_status": "exact",
-      "matched_by": "exact",
-      "name": "Stefano Tonut",
-      "notes": "",
-      "stats_name": "S. Tonut",
-      "stats_team": "MIL",
-      "team": "ARMANI OLIMPIA MILAN",
-      "variants": [
-        "S. Tonut",
-        "Stefano Tonut",
-        "TONUT, STEFANO"
       ]
     },
     {
@@ -2710,17 +2679,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Gur Lavi",
+      "name": "G. Lavi",
       "notes": "",
       "stats_name": "G. Lavi",
       "stats_team": "MTA",
       "team": "MACCABI RAPYD TEL AVIV",
       "variants": [
-        "G. Lavi",
-        "Gur Lavi",
-        "LAVI, GUR"
+        "G. Lavi"
       ]
     },
     {
@@ -2973,17 +2940,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Giannoulis Larentzakis",
+      "name": "G. Larentzakis",
       "notes": "",
       "stats_name": "G. Larentzakis",
       "stats_team": "OLY",
       "team": "OLYMPIACOS PIRAEUS",
       "variants": [
-        "G. Larentzakis",
-        "Giannoulis Larentzakis",
-        "LARENTZAKIS, GIANNOULIS"
+        "G. Larentzakis"
       ]
     },
     {
@@ -3222,17 +3187,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Ioannis Kouzeloglou",
+      "name": "I. Kouzeloglou",
       "notes": "",
       "stats_name": "I. Kouzeloglou",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
       "variants": [
-        "I. Kouzeloglou",
-        "Ioannis Kouzeloglou",
-        "KOUZELOGLOU, IOANNIS"
+        "I. Kouzeloglou"
       ]
     },
     {
@@ -3290,38 +3253,34 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Kendrick Nunn",
+      "name": "K. Nunn",
       "notes": "",
       "stats_name": "K. Nunn",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
       "variants": [
-        "K. Nunn",
-        "Kendrick Nunn",
-        "NUNN, KENDRICK"
+        "K. Nunn"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Kostas Sloukas",
+      "name": "K. Sloukas",
       "notes": "",
       "stats_name": "K. Sloukas",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
       "variants": [
-        "K. Sloukas",
-        "Kostas Sloukas",
-        "SLOUKAS, KOSTAS"
+        "K. Sloukas"
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Moustapha Fall",
-      "notes": "Web search 2026-10-05: Signed with Panathinaikos 2+1 (Eurohoops)",
+      "notes": "",
       "stats_name": "M. Fall",
       "stats_team": "PAO",
       "team": "PANATHINAIKOS AKTOR ATHENS",
@@ -3556,17 +3515,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Mitar Bosnjakovic",
+      "name": "M. Bosnjakovic",
       "notes": "",
       "stats_name": "M. Bosnjakovic",
       "stats_team": "PAR",
       "team": "PARTIZAN MOZZART BET BELGRADE",
       "variants": [
-        "BOSNJAKOVIC, MITAR",
-        "M. Bosnjakovic",
-        "Mitar Bosnjakovic"
+        "M. Bosnjakovic"
       ]
     },
     {
@@ -3625,31 +3582,27 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Uros Mijailovic",
+      "name": "U. Mijailovic",
       "notes": "",
       "stats_name": "U. Mijailovic",
       "stats_team": "PAR",
       "team": "PARTIZAN MOZZART BET BELGRADE",
       "variants": [
-        "MIJAILOVIC, UROS",
-        "U. Mijailovic",
-        "Uros Mijailovic"
+        "U. Mijailovic"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Vanja Marinkovic",
+      "name": "V. Marinkovic",
       "notes": "",
       "stats_name": "V. Marinkovic",
       "stats_team": "PAR",
       "team": "PARTIZAN MOZZART BET BELGRADE",
       "variants": [
-        "MARINKOVIC, VANJA",
-        "V. Marinkovic",
-        "Vanja Marinkovic"
+        "V. Marinkovic"
       ]
     },
     {
@@ -3681,17 +3634,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Amath M'Baye",
+      "name": "A. M'baye",
       "notes": "",
       "stats_name": "A. M'baye",
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
-        "A. M'baye",
-        "Amath M'Baye",
-        "M'BAYE, AMATH"
+        "A. M'baye"
       ]
     },
     {
@@ -3706,20 +3657,6 @@
         "D. Hommes",
         "Daulton Hommes",
         "HOMMES, DAULTON"
-      ]
-    },
-    {
-      "match_status": "exact",
-      "matched_by": "exact",
-      "name": "Enzo Shahrvin",
-      "notes": "",
-      "stats_name": "E. Shahrvin",
-      "stats_team": "PBB",
-      "team": "PARIS BASKETBALL",
-      "variants": [
-        "E. Shahrvin",
-        "Enzo Shahrvin",
-        "SHAHRVIN, ENZO"
       ]
     },
     {
@@ -3807,16 +3744,17 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Maozinha Pereira",
-      "notes": "Web search 2026-10-05: Paris Basketball signing for 2026-27 (Eurohoops)",
+      "notes": "",
       "stats_name": "M. Pereira",
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
         "M. Pereira",
-        "Maozinha Pereira"
+        "Maozinha Pereira",
+        "PEREIRA, MAOZINHA"
       ]
     },
     {
@@ -3828,7 +3766,6 @@
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
-        "BOUNGOU-COLO, NOBEL",
         "N. Boungou-colo",
         "Nobel Boungou-Colo"
       ]
@@ -3904,17 +3841,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Yakuba Ouattara",
+      "name": "Y. Ouattara",
       "notes": "",
       "stats_name": "Y. Ouattara",
       "stats_team": "PBB",
       "team": "PARIS BASKETBALL",
       "variants": [
-        "OUATTARA, YAKUBA",
-        "Y. Ouattara",
-        "Yakuba Ouattara"
+        "Y. Ouattara"
       ]
     },
     {
@@ -3983,8 +3918,7 @@
       "team": "REAL MADRID",
       "variants": [
         "E. Ndiaye",
-        "Eli Ndiaye",
-        "NDIAYE, ELI"
+        "Eli Ndiaye"
       ]
     },
     {
@@ -4030,17 +3964,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Izan Almansa",
+      "name": "I. Almansa",
       "notes": "",
       "stats_name": "I. Almansa",
       "stats_team": "RMB",
       "team": "REAL MADRID",
       "variants": [
-        "ALMANSA, IZAN",
-        "I. Almansa",
-        "Izan Almansa"
+        "I. Almansa"
       ]
     },
     {
@@ -4113,17 +4045,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Sergio Llull",
+      "name": "S. Llull",
       "notes": "",
       "stats_name": "S. Llull",
       "stats_team": "RMB",
       "team": "REAL MADRID",
       "variants": [
-        "LLULL, SERGIO",
-        "S. Llull",
-        "Sergio Llull"
+        "S. Llull"
       ]
     },
     {
@@ -4155,17 +4085,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Usman Garuba",
+      "name": "U. Garuba",
       "notes": "",
       "stats_name": "U. Garuba",
       "stats_team": "RMB",
       "team": "REAL MADRID",
       "variants": [
-        "GARUBA, USMAN",
-        "U. Garuba",
-        "Usman Garuba"
+        "U. Garuba"
       ]
     },
     {
@@ -4303,9 +4231,7 @@
       "team": "VALENCIA BASKET",
       "variants": [
         "L. Mari",
-        "Lucas Mari",
-        "MARI, LUCAS",
-        "MARÍ, LUCAS"
+        "Lucas Mari"
       ]
     },
     {
@@ -4406,17 +4332,15 @@
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Yankuba Sima",
+      "name": "Y. Sima",
       "notes": "",
       "stats_name": "Y. Sima",
       "stats_team": "VBC",
       "team": "VALENCIA BASKET",
       "variants": [
-        "SIMA, YANKUBA",
-        "Y. Sima",
-        "Yankuba Sima"
+        "Y. Sima"
       ]
     },
     {
@@ -4462,14 +4386,15 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Davide Casarin",
-      "notes": "Web search 2026-10-05: Virtus Bologna two-year deal (Eurohoops)",
+      "notes": "",
       "stats_name": "D. Casarin",
       "stats_team": "VIR",
       "team": "VIRTUS BOLOGNA",
       "variants": [
+        "CASARIN, DAVIDE",
         "D. Casarin",
         "Davide Casarin"
       ]
@@ -4517,30 +4442,29 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Kevin Kokila",
-      "notes": "Web search 2026-10-05: Loaned from Dubai to Virtus Bologna (Eurohoops)",
+      "notes": "",
       "stats_name": "K. Kokila",
       "stats_team": "VIR",
       "team": "VIRTUS BOLOGNA",
       "variants": [
         "K. Kokila",
+        "KOKILA, KEVIN",
         "Kevin Kokila"
       ]
     },
     {
-      "match_status": "exact",
+      "match_status": "no_candidate",
       "matched_by": "exact",
-      "name": "Matteo Baiocchi",
+      "name": "M. Baiocchi",
       "notes": "",
       "stats_name": "M. Baiocchi",
       "stats_team": "VIR",
       "team": "VIRTUS BOLOGNA",
       "variants": [
-        "BAIOCCHI, MATTEO",
-        "M. Baiocchi",
-        "Matteo Baiocchi"
+        "M. Baiocchi"
       ]
     },
     {
@@ -4823,10 +4747,10 @@
       ]
     },
     {
-      "match_status": "confirmed",
-      "matched_by": "agent",
+      "match_status": "exact",
+      "matched_by": "exact",
       "name": "Saben Lee",
-      "notes": "Web search 2026-10-05: Zalgiris two-year deal; the fuzzy candidate Sylvain Francisco is a different player (Eurohoops)",
+      "notes": "",
       "stats_name": "S. Lee",
       "stats_team": "ZAL",
       "team": "ZALGIRIS KAUNAS",
