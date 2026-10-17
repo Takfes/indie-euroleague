@@ -17,8 +17,8 @@ Python 3.12+ (managed by `uv`). Credentials: the Kaggle download needs `~/.kaggl
 Each fetcher is a DVC stage (`always_changed`, outputs `persist`) in `dvc.yaml`, and a module you can run directly.
 
 ```bash
-uv run dvc repro fetch_netboxscore_and_fantasystats      # the update flow's fetchers: euroleague.net box score + headers, fantasy stats
-uv run dvc repro fetch_raw                               # schedule + Kaggle
+uv run dvc repro fetch_update                            # the update's fetchers: euroleague.net box score + headers, fantasy stats, schedule
+uv run dvc repro fetch_kaggle                            # the Kaggle history, a separate flow (not part of the update)
 uv run dvc repro fetch_kaggle_euroleague                 # one fetcher, tracked by DVC
 uv run python -m eupy.fetchers.fetch_kaggle_euroleague   # the same script, untracked
 ```
@@ -46,7 +46,7 @@ uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats --delay 1.0       
 
 `dvc repro fetch_euroleague_fantasy_stats` runs the mode set in `config/config.toml` (`[acquisition] fantasy_rounds`, default `all`, and `fantasy_stats_type`, default `avg`); the DVC stage passes no arguments. The CLI flags override the config. To fetch per round through DVC, set `fantasy_rounds = "1-6"` in the config, then `dvc repro fetch_euroleague_fantasy_stats`.
 
-`fetch_netboxscore_and_fantasystats` and `fetch_raw` are aggregate stages whose deps are their fetchers' outputs (`fetch_raw`: schedule and Kaggle); `dvc repro` runs the producing stages first.
+`fetch_update` and `fetch_kaggle` are aggregate stages whose deps are their fetchers' outputs; `dvc repro` runs the producing stages first.
 
 ## Merge the live deltas
 
@@ -58,21 +58,36 @@ uv run python -m eupy.transform.merge_boxscore       # the same script, untracke
 
 Writes `data/stage_01/euroleague_box_score_merged.csv` and `euroleague_header_merged.csv` from the euroleague.net deltas only; the deltas carry their own header (taken from the first one, all must match). Kaggle is left out. To merge the Kaggle history under them again, set `[transformation] include_kaggle = true` (or pass `--include-kaggle`; `--base-season E2025` or `base_season` keeps one Kaggle season): the live deltas then win for the seasons they cover, and Kaggle rows of those seasons are dropped before the append. The Kaggle files are deliberately not DVC deps of the merge, so after refreshing Kaggle with the option on, run `uv run dvc repro -s -f merge_boxscore merge_headers`.
 
-## Update flow
+## Flows
 
-Fetch, merge, match names, normalize: one DVC chain. The last stage's upstream is the whole chain, so one command runs it.
+Two named DVC commands run the update. Each is a wrapper in `pipelines.toml` (an aggregate stage over its pipelines), so `dvc repro <flow>` runs every stage upstream of it, fetchers included.
 
 ```bash
-uv run dvc repro normalize_fantasy_stats      # fetchers (box score, headers, fantasy stats, schedule) -> merges -> team + player map -> normalized stats
+uv run dvc repro refresh_data                  # 1-3: fetch, merge the deltas, resolve player names
+uv run dvc repro refresh_and_build_eubook      # 1-4: the same, then the eubook workbook
 ```
 
-The player map step is the gate: it exits 1 while a stats player is unresolved, which stops the chain with the open players listed in `src/eupy/entity/maps/player_name_map.json`. Then:
+1. `fetch_update`: euroleague.net box score and headers, fantasy stats (mode from the config), schedule.
+2. `merge_boxscore`, `merge_headers`: the consolidated tables.
+3. `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`: names. The player map step is the gate: it exits 1 while a stats player is unresolved, which stops the flow with the open players listed in `src/eupy/entity/maps/player_name_map.json`. When nothing is open the step is a cheap rewrite of identical bytes.
+4. `build_eubook`: the workbook. It lists the check's report as an input, so it never runs ahead of the names.
+
+When a flow stops at the names:
 
 1. `uv run python -m eupy.entity.check_player_names`: what is unmatched.
 2. `/build-name-maps` (the skill) records the decisions and rebuilds the map.
-3. `uv run dvc repro -s -f build_player_name_map`, then `uv run dvc repro normalize_fantasy_stats` again.
+3. `uv run dvc repro -s -f build_player_name_map`, then the flow command again.
 
-Single steps: `uv run dvc repro -s <stage>` (stages in `dvc.yaml`: `fetch_netboxscore_and_fantasystats`, `merge_boxscore`, `merge_headers`, `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`). `dvc repro <stage>` without `-s` also runs everything upstream, fetchers included. `build_team_name_map` needs the schedule, so the chain also fetches `game_schedule` (public, cheap).
+Single steps: `uv run dvc repro -s <stage>` (stage names in `dvc.yaml`). Without `-s` a stage also runs everything upstream. The team map needs the schedule, so both flows fetch it.
+
+## Eubook workbook
+
+```bash
+uv run dvc repro -s build_eubook                  # offline
+uv run python -m eupy.transform.build_eubook      # the same script, untracked
+```
+
+Writes `data/stage_04/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) and a copy `eubook_<next round>.xlsx` beside it, not tracked by DVC. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
 
 ## Schedule turns
 
@@ -101,7 +116,7 @@ uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSO
 uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions in the JSON -> player map (JSON + CSV)
 ```
 
-Check first, in one line, whether any stats player is unmatched (read-only, exit 0 = nothing to do, 1 = list):
+Check first, in one line, whether any stats player is unmatched (exit 0 = nothing to do, 1 = list; writes only the report `data/stage_03/player_name_check.csv`):
 
 ```bash
 uv run python -m eupy.entity.check_player_names
@@ -127,7 +142,7 @@ uv run dvc status                    # what is stale
 - A step's deps: its script, every in-repo module it imports (transitively), `config/config.toml` when it loads the config, then its input datasets.
 - A step's `cmd` is `uv run python -m <module>`; outputs are `cache: false` (fingerprints in the committed `dvc.lock`, no copies).
 - Fetcher steps always rerun; steps downstream rerun only if the fetched files' hashes changed. `persist: true` keeps a fetcher's outputs between runs (incremental resume; a failed fetch never wipes raw data).
-- `pipelines.toml` assigns every script to exactly one pipeline and sets `dvc = true|false`; today `fetch_raw`, `fetch_netboxscore_and_fantasystats`, `merge_history_live` and `entity` are `dvc = true`.
+- `pipelines.toml` assigns every script to exactly one pipeline and sets `dvc = true|false`; today `fetch_update`, `fetch_kaggle`, `merge_history_live`, `entity` and `workbook` are `dvc = true`. Each `[wrappers]` entry is also an aggregate stage (`refresh_data`, `refresh_and_build_eubook`).
 - `.dvcignore` excludes `.gitkeep` and `_state.json` from directory hashes.
 - DVC deletes a non-`persist` step's outputs before running it, so a failing step loses its output: check inputs exist first.
 

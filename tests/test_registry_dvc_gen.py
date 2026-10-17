@@ -164,7 +164,8 @@ def test_cli_dvc_writes_and_check_lints_membership(tmp_path: Path, capsys: pytes
 def test_committed_dvc_yaml_is_current() -> None:
     # Guards against a header or pipelines.toml change landing without regenerating dvc.yaml.
     registry = Registry.from_repo()
-    expected = render_dvc(registry, load_pipelines(REPO_ROOT / "pipelines.toml"), REPO_ROOT)
+    toml = REPO_ROOT / "pipelines.toml"
+    expected = render_dvc(registry, load_pipelines(toml), REPO_ROOT, load_wrappers(toml))
     assert (REPO_ROOT / "dvc.yaml").read_text(encoding="utf-8") == expected
 
 
@@ -299,3 +300,18 @@ def test_library_importing_a_script_is_rejected(tmp_path: Path) -> None:
 
 def test_real_repo_has_no_script_importing_a_script() -> None:
     assert lint_script_imports(Registry.from_repo(REPO_ROOT)) == []
+
+
+def test_wrapper_becomes_an_aggregate_step_over_its_pipelines_outputs() -> None:
+    pipes = _pipelines()
+    steps = {s.name: s for s in dvc_steps(_registry(), pipes, wrappers={"flow": tuple(pipes)})}
+    flow = steps["flow"]
+    assert flow.cmd == "echo flow done" and flow.outs == ()
+    assert set(flow.deps) == {o for n, s in steps.items() if n != "flow" for o in s.outs}
+
+
+def test_wrapper_over_a_non_dvc_pipeline_or_with_a_step_name_is_rejected() -> None:
+    pipes = {**_pipelines(), "off": Pipeline("off", False, ())}
+    assert any("dvc = false" in p for p in lint_wrappers(pipes, {"flow": ("off",)}))
+    with pytest.raises(RegistryError, match="same name as a DVC step"):
+        dvc_steps(_registry(), _pipelines(), wrappers={"make_a": tuple(_pipelines())})

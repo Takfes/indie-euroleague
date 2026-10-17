@@ -22,6 +22,10 @@ the fetched files' hashes, so they rerun only when the fetch actually returned s
 A `dvc = true` pipeline made only of fetchers also gets an aggregate step named after the pipeline
 (`dvc repro <pipeline>` fetches everything in it): it depends on all the fetchers' outputs and has no outs.
 
+A wrapper (`[wrappers]`: name -> pipeline names, all `dvc = true`) also gets an aggregate step named after it
+(`dvc repro <wrapper>` runs every step of those pipelines): it depends on all their steps' outputs and has no
+outs. A wrapper is how one DVC command runs a whole flow; the same table filters the data-map HTML.
+
 `data/stage_99/` symlinks are never outs. Steps are sorted by name and the output has no timestamps, so
 regeneration is byte-identical.
 """
@@ -42,7 +46,7 @@ PIPELINES_FILE = "pipelines.toml"
 FETCHERS_DIR = "src/eupy/fetchers/"
 CONFIG_LOADER = "src/eupy/config/loader.py"
 CONFIG_FILE = "config/config.toml"  # user config override; a dep of every step whose closure loads the config
-WRAPPERS_KEY = "wrappers"  # reserved table: wrapper name -> ordered list of pipeline names (not a pipeline)
+WRAPPERS_KEY = "wrappers"  # reserved table: wrapper name -> ordered list of pipeline names (not a pipeline); a DVC step
 BANNER = "# GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml)."
 _SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]+$")  # written unquoted into YAML
 
@@ -114,12 +118,17 @@ def load_wrappers(path: Path) -> dict[str, tuple[str, ...]]:
 
 
 def lint_wrappers(pipelines: dict[str, Pipeline], wrappers: dict[str, tuple[str, ...]]) -> list[str]:
-    """Problems with wrappers: a name that is also a pipeline, or a member that is not a pipeline."""
+    """Problems with wrappers: a name that is also a pipeline, a member that is not a pipeline or has `dvc = false`."""
     problems = [
         f"{PIPELINES_FILE}: wrapper {w} has the same name as a pipeline" for w in sorted(wrappers) if w in pipelines
     ]
     for w, members in sorted(wrappers.items()):
         problems += [f"{PIPELINES_FILE}: wrapper {w} lists unknown pipeline {p}" for p in members if p not in pipelines]
+        problems += [
+            f"{PIPELINES_FILE}: wrapper {w} lists pipeline {p} with dvc = false; a wrapper is a DVC step"
+            for p in members
+            if p in pipelines and not pipelines[p].dvc
+        ]
     return problems
 
 
@@ -176,7 +185,12 @@ def checked_pipelines(registry: Registry, path: Path, root: Path = REPO_ROOT) ->
     return pipelines
 
 
-def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> tuple[Step, ...]:
+def dvc_steps(
+    registry: Registry,
+    pipelines: dict[str, Pipeline],
+    root: Path = REPO_ROOT,
+    wrappers: dict[str, tuple[str, ...]] | None = None,
+) -> tuple[Step, ...]:
     """One `Step` per pure script or fetcher of a `dvc = true` pipeline, plus aggregate steps, sorted by name.
 
     `root` is where the script sources are read to compute each step's import closure. Raises `RegistryError`
@@ -209,15 +223,28 @@ def dvc_steps(registry: Registry, pipelines: dict[str, Pipeline], root: Path = R
         if pipe.dvc and pipe.scripts and all(is_fetcher(registry, s) for s in pipe.scripts):
             outs = sorted(o for s in pipe.scripts for o in by_name[s].outs)
             steps.append(Step(pipe.name, f"echo {pipe.name} fetched", tuple(outs), ()))
+    for wrapper, members in sorted((wrappers or {}).items()):
+        if wrapper in by_name:
+            problems.append(f"wrapper {wrapper} has the same name as a DVC step")
+            continue
+        outs = {
+            o for m in members if m in pipelines for s in pipelines[m].scripts if s in by_name for o in by_name[s].outs
+        }
+        steps.append(Step(wrapper, f"echo {wrapper} done", tuple(sorted(outs)), ()))
     if problems:
         raise RegistryError(problems)
     return tuple(sorted(steps, key=lambda step: step.name))
 
 
-def render_dvc(registry: Registry, pipelines: dict[str, Pipeline], root: Path = REPO_ROOT) -> str:
+def render_dvc(
+    registry: Registry,
+    pipelines: dict[str, Pipeline],
+    root: Path = REPO_ROOT,
+    wrappers: dict[str, tuple[str, ...]] | None = None,
+) -> str:
     """Full text of `dvc.yaml`; raises `RegistryError` like `dvc_steps`."""
     lines = [BANNER, "stages:"]
-    for step in dvc_steps(registry, pipelines, root):
+    for step in dvc_steps(registry, pipelines, root, wrappers):
         lines += [f"  {step.name}:", f"    cmd: {step.cmd}", "    deps:", *(f"    - {dep}" for dep in step.deps)]
         if step.outs:
             lines.append("    outs:")

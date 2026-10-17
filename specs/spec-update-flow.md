@@ -10,8 +10,10 @@ One DVC-driven flow that refreshes the working datasets (euroleague.net box scor
 - Fantasy stats mode comes from `[acquisition] fantasy_rounds` / `fantasy_stats_type` (CLI flags override), because the DVC stage passes no arguments.
 - `check_player_names`: read-only report of stats players missing from the player map or still open; exit 0 / 1.
 - `build_player_name_map` exits 1 while entries are open, after writing its files, so the DVC chain stops before `normalize_fantasy_stats`.
-- Pipelines: new `fetch_netboxscore_and_fantasystats` (the three euroleague.net/fantasy fetchers; `fetch_raw` keeps schedule and Kaggle), `entity` is a DVC pipeline, `build_boxscore_kpis` sits in `kpis` (`dvc = false`).
-- Wrapper: `dvc repro normalize_fantasy_stats` (its upstream is the whole chain).
+- Pipelines: `fetch_update` (box score, headers, fantasy stats, schedule), `fetch_kaggle` (separate flow; `fetch_raw` is gone), `entity` and `workbook` are DVC pipelines, `build_boxscore_kpis` sits in `kpis` (`dvc = false`).
+- `check_player_names` writes a report (`player_name_check`) so a flow can depend on it.
+- `build_eubook` (`transform/`): the pipeline version of `apps/dataprep.py`, which stays untouched; output `eubook.xlsx` (final) plus an untracked round-stamped copy.
+- Flows are `[wrappers]` entries, emitted as aggregate DVC stages: `refresh_data` (fetch, merge, names) and `refresh_and_build_eubook` (the same plus the workbook).
 
 Out of scope: backfilling past seasons, deleting Kaggle data, a DVC dependency on the map JSON (decisions are applied with `dvc repro -s -f build_player_name_map`), changes to `apps/teamstats.py`.
 
@@ -21,7 +23,8 @@ Out of scope: backfilling past seasons, deleting Kaggle data, a DVC dependency o
 - No deltas and no Kaggle fails with an actionable message; deltas with different headers fail.
 - `check_player_names` exits 1 with the unmatched list, 0 when none; box-score-only players never fail it.
 - The builder returns the open count and the process exits 1 while any is open.
-- `uv run dvc repro --dry normalize_fantasy_stats` lists fetchers, merge, team map, player map, normalize in that order; the Kaggle fetcher is not in it.
+- `uv run dvc repro --dry refresh_and_build_eubook` lists fetchers, merges, team map, player map, check, then the workbook; the Kaggle fetcher is not in it.
+- `build_eubook` gives the same sheets as `apps/dataprep.py` on the same data.
 - `uv run pytest`, `ruff check`, `ruff format --check`, `eupy.registry check` are clean.
 
 ## Known caveats

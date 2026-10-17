@@ -1,5 +1,25 @@
 # GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml).
 stages:
+  build_eubook:
+    cmd: uv run python -m eupy.transform.build_eubook
+    deps:
+    - src/eupy/transform/build_eubook.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/player_names.py
+    - src/eupy/entity/team_names.py
+    - config/config.toml
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_01/team_name_map.csv
+    - data/stage_02/player_name_map.csv
+    - data/stage_03/player_name_check.csv
+    outs:
+    - data/stage_04/eubook.xlsx:
+        cache: false
   build_player_name_map:
     cmd: uv run python -m eupy.entity.build_player_name_map
     deps:
@@ -45,6 +65,9 @@ stages:
     - data/raw_data/fantasy_stats/players.csv
     - data/stage_01/euroleague_box_score_merged.csv
     - data/stage_02/player_name_map.csv
+    outs:
+    - data/stage_03/player_name_check.csv:
+        cache: false
   fetch_euroleague_fantasy_stats:
     cmd: uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats
     deps:
@@ -114,6 +137,11 @@ stages:
         cache: false
         persist: true
     always_changed: true
+  fetch_kaggle:
+    cmd: echo fetch_kaggle fetched
+    deps:
+    - data/raw_data/kaggle_data/euroleague_box_score.csv
+    - data/raw_data/kaggle_data/euroleague_header.csv
   fetch_kaggle_euroleague:
     cmd: uv run python -m eupy.fetchers.fetch_kaggle_euroleague
     deps:
@@ -133,19 +161,14 @@ stages:
         cache: false
         persist: true
     always_changed: true
-  fetch_netboxscore_and_fantasystats:
-    cmd: echo fetch_netboxscore_and_fantasystats fetched
+  fetch_update:
+    cmd: echo fetch_update fetched
     deps:
     - data/raw_data/euroleague_net/box_score
     - data/raw_data/euroleague_net/headers
     - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
-  fetch_raw:
-    cmd: echo fetch_raw fetched
-    deps:
     - data/raw_data/game_schedule
-    - data/raw_data/kaggle_data/euroleague_box_score.csv
-    - data/raw_data/kaggle_data/euroleague_header.csv
   merge_boxscore:
     cmd: uv run python -m eupy.transform.merge_boxscore
     deps:
@@ -191,3 +214,32 @@ stages:
     outs:
     - data/stage_03/fantasy_stats_players_normalized.csv:
         cache: false
+  refresh_and_build_eubook:
+    cmd: echo refresh_and_build_eubook done
+    deps:
+    - data/raw_data/euroleague_net/box_score
+    - data/raw_data/euroleague_net/headers
+    - data/raw_data/fantasy_stats/head_coaches.csv
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_01/euroleague_header_merged.csv
+    - data/stage_01/team_name_map.csv
+    - data/stage_02/player_name_map.csv
+    - data/stage_03/fantasy_stats_players_normalized.csv
+    - data/stage_03/player_name_check.csv
+    - data/stage_04/eubook.xlsx
+  refresh_data:
+    cmd: echo refresh_data done
+    deps:
+    - data/raw_data/euroleague_net/box_score
+    - data/raw_data/euroleague_net/headers
+    - data/raw_data/fantasy_stats/head_coaches.csv
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_01/euroleague_header_merged.csv
+    - data/stage_01/team_name_map.csv
+    - data/stage_02/player_name_map.csv
+    - data/stage_03/fantasy_stats_players_normalized.csv
+    - data/stage_03/player_name_check.csv

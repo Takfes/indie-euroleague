@@ -4,21 +4,20 @@
 # (`uv run python -m eupy.registry dvc`); impure scripts (fetchers) are never steps -- their
 # outputs (raw data) are plain deps.
 
-[fetch_raw]
+# The update flow's fetchers: euroleague.net box score + headers, fantasy stats (mode from config) and the schedule.
+[fetch_update]
 dvc = true
 scripts = [
-    "fetch_game_schedule",
-    "fetch_kaggle_euroleague",
-]
-
-# The update flow's fetchers: euroleague.net box score + headers and the fantasy stats.
-[fetch_netboxscore_and_fantasystats]
-dvc = true
-scripts = [
-    "fetch_euroleague_fantasy_stats",
     "fetch_euroleague_live_boxscores",
     "fetch_euroleague_live_headers",
+    "fetch_euroleague_fantasy_stats",
+    "fetch_game_schedule",
 ]
+
+# The Kaggle history, a separate flow: not part of the update (see [transformation] include_kaggle).
+[fetch_kaggle]
+dvc = true
+scripts = ["fetch_kaggle_euroleague"]
 
 [schedule]
 dvc = false
@@ -41,11 +40,18 @@ scripts = [
 dvc = false
 scripts = ["build_boxscore_kpis"]
 
+[workbook]
+dvc = true
+scripts = ["build_eubook"]
+
 [optimize]
 dvc = false
 scripts = ["optimize_squad"]
 
-# Wrappers: named lists of pipelines, used by the data-map HTML's pipeline/wrapper filter.
+# Wrappers: named lists of pipelines. Each is a DVC step (`dvc repro <wrapper>` runs every step of its pipelines,
+# fetchers included) and a filter of the data-map HTML.
 [wrappers]
-all = ["merge_history_live"]
-full = ["fetch_raw", "fetch_netboxscore_and_fantasystats", "merge_history_live"]
+# steps 1-3: fetch, merge the deltas, resolve player names (stops while stats players are unmatched)
+refresh_data = ["fetch_update", "merge_history_live", "entity"]
+# steps 1-4: the above, then the eubook workbook
+refresh_and_build_eubook = ["fetch_update", "merge_history_live", "entity", "workbook"]

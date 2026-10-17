@@ -44,7 +44,16 @@ def _write(tmp_path: Path, entries: list[dict[str, object]]) -> list[str]:
             writer.writerow(["all", str(i), p["name"], p["team"]])
     map_path = tmp_path / "map.json"
     map_path.write_text(json.dumps({"players": entries}), encoding="utf-8")
-    return ["--stats", str(stats), "--boxscore", str(tmp_path / "absent.csv"), "--map", str(map_path)]
+    return [
+        "--stats",
+        str(stats),
+        "--boxscore",
+        str(tmp_path / "absent.csv"),
+        "--map",
+        str(map_path),
+        "--out",
+        str(tmp_path / "report.csv"),
+    ]
 
 
 def test_main_exits_zero_when_all_resolved_and_one_otherwise(tmp_path: Path, capsys) -> None:
@@ -54,8 +63,10 @@ def test_main_exits_zero_when_all_resolved_and_one_otherwise(tmp_path: Path, cap
     ]
     assert main(_write(tmp_path, resolved)) == 0
     assert "can be skipped" in capsys.readouterr().out
+    assert (tmp_path / "report.csv").read_text().splitlines() == ["team,name,reason"]
 
     assert main(_write(tmp_path, resolved[:1])) == 1
     out = capsys.readouterr().out
     assert "MAD F. Campazzo: not in the map" in out
     assert "build_player_name_map" in out
+    assert (tmp_path / "report.csv").read_text().splitlines() == ["team,name,reason", "MAD,F. Campazzo,not in the map"]

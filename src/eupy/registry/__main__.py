@@ -89,7 +89,7 @@ def _write_html(registry: Registry, pipelines: dict, root: Path, stdout: bool, s
         page = render_html(registry, pipelines, wrappers, root)
         # `--stdout` prints only the plain page, so the (slow) `dvc status` subprocess would be wasted.
         overlay = (
-            _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines, root)])
+            _dvc_status(root, [step.name for step in dvc_steps(registry, pipelines, root, wrappers)])
             if status and not stdout
             else None
         )
@@ -112,7 +112,11 @@ def _load(args: argparse.Namespace) -> tuple[Registry, dict, str]:
         if args.command in ("check", "dvc", "graph", "docs", "html")
         else {}
     )
-    dvc_yaml = render_dvc(registry, pipelines, args.root) if args.command == "dvc" else ""
+    dvc_yaml = (
+        render_dvc(registry, pipelines, args.root, load_wrappers(args.root / PIPELINES_FILE))
+        if args.command == "dvc"
+        else ""
+    )
     return registry, pipelines, dvc_yaml
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that every fantasy-stats player is resolved in the player name map; read-only, writes nothing.
+"""Check that every fantasy-stats player is resolved in the player name map; writes only a small report.
 
 Run it after a fetch to learn whether the name matching needs to run (and, after the builder, whether it needs an
 agent decision). One unit is a distinct `(team, name)` pair of `fantasy_stats/players` (the trusted set, see
@@ -8,21 +8,25 @@ build) or its entry is still open (`needs_review` / `no_candidate`). Box-score p
 are only counted: the map is built from the stats players, so box-score-only players are expected and are never a
 failure.
 
+The unmatched pairs are also written to a report CSV (header only when none), so that a DVC flow can depend on
+the check and stop at it: downstream steps (the workbook) list the report as an input.
+
 Exit code 0: nothing unmatched, the matching step can be skipped. Exit code 1: the unmatched pairs are listed with
 the next step (rebuild the map; players still open after a rebuild need the `build-name-maps` skill's decisions).
 
 Usage:
-    python -m eupy.entity.check_player_names [--stats PATH] [--boxscore PATH] [--map PATH]
+    python -m eupy.entity.check_player_names [--stats PATH] [--boxscore PATH] [--map PATH] [--out PATH]
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
   - player_name_map: data/stage_02/player_name_map.csv
 Sources: none
-Outputs: none
+Outputs:
+  - player_name_check: data/stage_03/player_name_check.csv
 Final: false
 Impure: false
-Notes: Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written together with the
+Notes: Report columns: team, name, reason (header only when everything is matched). Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written together with the
   CSV listed as input) because that is what PlayerNames and the agent decisions use.
 """
 
@@ -40,6 +44,7 @@ from eupy.entity.player_names import MAP_PATH, PlayerNames
 REPO_ROOT = Path(__file__).resolve().parents[3]
 STATS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 BOXSCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.csv"
+OUT_PATH = REPO_ROOT / "data" / "stage_03" / "player_name_check.csv"
 
 
 def find_unmatched(stats_players: list[dict[str, str]], entries: list[dict[str, object]]) -> list[tuple[str, str, str]]:
@@ -74,12 +79,22 @@ def count_unresolved_boxscore_players(path: Path, players: PlayerNames) -> int:
     return unresolved
 
 
+def write_report(unmatched: list[tuple[str, str, str]], path: Path) -> None:
+    """Write the unmatched `(team, name, reason)` rows as CSV (header only when empty)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerow(["team", "name", "reason"])
+        writer.writerows(unmatched)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Print the check result; return the process exit code (0 all matched, 1 unmatched)."""
     parser = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
     parser.add_argument("--map", type=Path, default=MAP_PATH, help="player name map JSON path")
+    parser.add_argument("--out", type=Path, default=OUT_PATH, help="report CSV output path")
     args = parser.parse_args(argv)
 
     stats_players = load_stats_players(args.stats)
@@ -87,6 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError(f"No players in {args.stats}; refetch with `uv run dvc repro fetch_euroleague_fantasy_stats`")
     entries = json.loads(args.map.read_text(encoding="utf-8"))["players"] if args.map.exists() else []
     unmatched = find_unmatched(stats_players, entries)
+    write_report(unmatched, args.out)
 
     if args.boxscore.exists() and args.map.exists():
         count = count_unresolved_boxscore_players(args.boxscore, PlayerNames.load(args.map))
