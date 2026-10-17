@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the players of the fantasy stats and the box score; fail only for box-score players the stats lack.
+"""Compare the players of the fantasy stats and the box score; report both gaps, optionally pause on one.
 
 The fantasy stats are the core dataset (see `build_player_name_map.py`). Each player falls into one of three cases:
 
@@ -7,10 +7,18 @@ The fantasy stats are the core dataset (see `build_player_name_map.py`). Each pl
 2. In the stats, not in the box score: a player who has not played yet (injury, new signing) or whom the agent
    closed as `no_match` / `rejected`. Fine: highlighted for information, the run goes on.
 3. In the box score, not in the stats: a player who played (minutes on the clock) but that no stats player
-   resolves to. Escalated: the run fails (exit 1) and each player is listed with where he was found (club, games,
-   rounds) and where not, plus the same-club stats players that have no box-score match, the likely counterparts
+   resolves to. Highlighted: each player is listed with where he was found (club, games, rounds) and where not,
+   plus the same-club stats players that have no box-score match, the likely counterparts
    (a spelling the matching could not pair shows up as one case-2 player and one case-3 player of the same club,
    sharing a surname).
+
+Two modes (`--mode`, default from `[transformation] names_mode`), both printing every case-2 and case-3 player
+and how to fix them:
+
+- `continue` (default): exit 0 whatever is found, so the flow goes on. The stats are the left side of every later
+  join, so a case-3 player simply drops out of the joined data (the workbook counts the dropped rows).
+- `pause`: exit 1 when there is a case-3 player, so the flow stops until it is fixed or the mode is `continue`.
+  Case-2 players never pause: most of them have simply not played.
 
 A case-3 player is fixed by deciding the counterpart stats entry with the `build-name-maps` skill, giving it the
 box-score spelling reordered as its full name (a `confirmed` decision under another spelling leaves the box-score
@@ -23,7 +31,7 @@ The cases are also written to a report CSV (`case`, `team`, `name`, `detail`; he
 flow can depend on the check: downstream steps (the workbook) list the report as an input.
 
 Usage:
-    python -m eupy.entity.check_player_names [--stats PATH] [--boxscore PATH] [--map PATH] [--out PATH]
+    python -m eupy.entity.check_player_names [--mode continue|pause] [--stats PATH] [--boxscore PATH] [--map PATH] [--out PATH]
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
@@ -34,7 +42,7 @@ Outputs:
   - player_name_check: data/stage_03/player_name_check.csv
 Final: false
 Impure: false
-Notes: Exit 1 only for case 3. Report cases: stats_only (case 2), box_only (case 3), map_stale (stats players not
+Notes: Exit 1 only in pause mode with a case-3 player. Report cases: stats_only (case 2), box_only (case 3), map_stale (stats players not
   in the map yet). Reads the JSON copy of the player map (src/eupy/entity/maps/player_name_map.json, written
   together with the CSV listed as input) because that is what PlayerNames and the agent decisions use.
 """
@@ -49,6 +57,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from eupy.config import get_config
 from eupy.entity.matching import UnknownNameError, load_stats_players, normalize_name
 from eupy.entity.player_names import MAP_PATH, PlayerNames
 from eupy.entity.team_names import TeamNames
@@ -60,6 +69,7 @@ OUT_PATH = REPO_ROOT / "data" / "stage_03" / "player_name_check.csv"
 
 RESOLVED_STATUSES = frozenset({"exact", "confirmed"})
 NOT_PLAYED = frozenset({"", "DNP", "0:00"})
+MODES = ("continue", "pause")
 
 
 @dataclass(frozen=True)
@@ -162,8 +172,15 @@ def write_report(rows: list[tuple[str, str, str, str]], path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Print the three cases; return the process exit code (1 only when a played box-score player is unmatched)."""
+    """Print the three cases; return the exit code (1 only in pause mode with a played box-score player unmatched)."""
     parser = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
+    parser.add_argument(
+        "--mode",
+        choices=MODES,
+        default=get_config().transformation.names_mode,
+        help="continue: report and exit 0; pause: exit 1 on box-score players missing from the stats "
+        "(default: config transformation.names_mode)",
+    )
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
     parser.add_argument("--map", type=Path, default=MAP_PATH, help="player name map JSON path")
@@ -197,7 +214,7 @@ def main(argv: list[str] | None = None) -> int:
 
     matched = len(stats_players) - len(stats_only) - len(missing)
     print(f"1. in both datasets: {matched} of {len(stats_players)} stats players")
-    print(f"2. in the stats, no box-score match (info, e.g. not played yet): {len(stats_only)}")
+    print(f"2. in the stats, no box-score match (info; most have not played yet, no action needed): {len(stats_only)}")
     by_team: dict[str, list[str]] = defaultdict(list)
     for s in stats_only:
         by_team[s["team"]].append(s["name"])
@@ -208,11 +225,20 @@ def main(argv: list[str] | None = None) -> int:
     if not box_only:
         print("3. in the box score (played), not in the stats: 0")
         return 0
-    print(f"3. ESCALATE: {len(box_only)} box-score player(s) who played but are not in the stats:")
+    pausing = args.mode == "pause"
+    print(
+        f"3. {'PAUSED' if pausing else 'WARNING'}: {len(box_only)} box-score player(s) who played are not in the "
+        f"stats{'' if pausing else ' (left out of the joins; the flow continues)'}:"
+    )
     for b in box_only:
         print(f"     {b.player}: {describe_box_only(b, unlinked)}")
-    print("   Fix: decide the likely counterpart above with /build-name-maps, then rerun the flow.")
-    return 1
+    print(
+        "   Fix: run the /build-name-maps skill to decide the likely stats entry above, then "
+        "`uv run dvc repro -s -f build_player_name_map`; `uv run python -m eupy.entity.check_player_names` shows this list again."
+    )
+    if pausing:
+        print('   Pause mode: the flow stops here; set [transformation] names_mode = "continue" to go on without them.')
+    return 1 if pausing else 0
 
 
 if __name__ == "__main__":

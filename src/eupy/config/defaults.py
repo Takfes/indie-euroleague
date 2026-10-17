@@ -25,6 +25,7 @@ class Acquisition:
 class Transformation:
     """Transform settings."""
 
+    names_mode: str = "continue"  # names check: "continue" = report and go on; "pause" = stop on case-3 players
     include_kaggle: bool = False  # True = merge the Kaggle history under the live deltas; False = deltas only
     base_season: str | None = None  # with include_kaggle: None = full history, else keep only this season_code
 

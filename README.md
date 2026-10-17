@@ -18,7 +18,7 @@ uv run dvc repro -s -f build_player_name_map  # rebuild the map after recording 
 uv run dvc repro fetch_kaggle                 # Kaggle history, separate from the update
 ```
 
-Names check: players only in the stats (not played yet) are listed and the flow goes on. A player who played in the box score but is missing from the stats **stops** the flow and is listed with where he was found. Fix: `/build-name-maps`, then `uv run dvc repro -s -f build_player_name_map`, then rerun the flow.
+Names check (`names_mode` in `config/config.toml`): players only in the stats (not played yet) and players who played in the box score but are missing from the stats are both listed with the fix, and the flow goes on (`continue`, default). Set `names_mode = "pause"` to stop on the second kind. Fix: `/build-name-maps`, then `uv run dvc repro -s -f build_player_name_map`, then rerun the flow.
 
 Fantasy stats per round: set `fantasy_rounds = "1-6"` in `config/config.toml` (`"all"` = season average), then `uv run dvc repro fetch_euroleague_fantasy_stats`.
 

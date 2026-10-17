@@ -20,6 +20,7 @@ def test_override_is_key_by_key(tmp_path):
     assert cfg.transformation.include_kaggle is True
     assert cfg.transformation.base_season == "E2025"
     assert Config().transformation.include_kaggle is False
+    assert Config().transformation.names_mode == "continue"
 
 
 @pytest.mark.parametrize("body", ["[acquisition]\nseasno = 1\n", "[nope]\nx = 1\n", "acquisition = 3\n"])

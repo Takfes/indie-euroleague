@@ -9,6 +9,7 @@
 # fantasy_stats_type = "avg"    # "avg" | "tot", all-rounds fetch only
 
 [transformation]
+# names_mode = "continue"   # "continue" | "pause": names check reports and goes on, or stops on box-score players missing from the stats
 # include_kaggle = false  # true = merge the Kaggle history under the live deltas
 # base_season = "E2025"    # with include_kaggle: keep only this Kaggle season (default: unset = full history)
 

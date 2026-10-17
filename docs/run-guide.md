@@ -69,19 +69,26 @@ uv run dvc repro refresh_and_build_eubook      # 1-4: the same, then the eubook 
 
 1. `fetch_update`: euroleague.net box score and headers, fantasy stats (mode from the config), schedule.
 2. `merge_boxscore`, `merge_headers`: the consolidated tables.
-3. `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`: names. The check is a normal stage of the flow, run after the map is rebuilt. It compares the two datasets (the fantasy stats are the core):
+3. `build_team_name_map`, `build_player_name_map`, `check_player_names`, `normalize_fantasy_stats`: names. The check is a normal stage of the flow, run after the map is rebuilt. It compares the two datasets (the fantasy stats are the core, the left side of every join):
    - in both: fine;
-   - in the stats, not in the box score (not played yet, injured, closed as `no_match`): listed for information, the flow goes on, and `normalize_fantasy_stats` keeps the abbreviated name for them;
-   - in the box score with minutes played, not in the stats: **the flow stops** (exit 1), listing each player with where he was found (club, games, rounds), where not, and the likely stats entry.
-4. `build_eubook`: the workbook. It lists the check's report as an input, so it never runs ahead of the names.
+   - in the stats, not in the box score (not played yet, injured, closed as `no_match`): listed for information; `normalize_fantasy_stats` keeps their abbreviated name;
+   - in the box score with minutes played, not in the stats (case 3): listed with where he was found (club, games, rounds), where not, and the likely stats entry. He drops out of the joins (the workbook counts the dropped rows).
+4. `build_eubook`: the workbook. It lists the check's report as an input, so it never runs ahead of the check.
 
-DVC cannot call an agent, so a stop is manual. When a flow stops at the names:
+The check has two modes, `[transformation] names_mode` in `config/config.toml` (or `--mode` on a direct run):
 
-1. Read the check's output (or rerun it: `uv run python -m eupy.entity.check_player_names`; the report is `data/stage_03/player_name_check.csv`).
-2. `/build-name-maps` (the skill) records the decision for the likely stats entry, using the box-score spelling reordered as its full name.
-3. `uv run dvc repro -s -f build_player_name_map`, then the flow command again.
+| Mode | Case 3 | Exit code |
+|---|---|---|
+| `continue` (default) | warning, the flow goes on | 0 |
+| `pause` | the flow stops until it is fixed or the mode is `continue` | 1 |
 
-A box-score player no stats entry resembles is missing from the fantasy data; the flow stays stopped until the stats list him (a record of accepted exceptions does not exist yet).
+Case 2 never pauses. Both modes print the fix. DVC cannot call an agent, so fixing is manual:
+
+1. `/build-name-maps` (the skill) records the decision for the likely stats entry, using the box-score spelling reordered as its full name.
+2. `uv run dvc repro -s -f build_player_name_map`, then the flow command again.
+3. `uv run python -m eupy.entity.check_player_names` shows the list again at any time (report: `data/stage_03/player_name_check.csv`).
+
+A box-score player no stats entry resembles is missing from the fantasy data; nothing can be decided for him, he stays out of the joins.
 
 Single steps: `uv run dvc repro -s <stage>` (stage names in `dvc.yaml`). Without `-s` a stage also runs everything upstream. The team map needs the schedule, so both flows fetch the schedule.
 
@@ -121,7 +128,7 @@ uv run python -m eupy.entity.build_team_name_map     # schedule -> team map (JSO
 uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + agent decisions in the JSON -> player map (JSON + CSV)
 ```
 
-Check first, in one line, whether any stats player is unmatched (exit 1 only for a played box-score player missing from the stats; writes the report `data/stage_03/player_name_check.csv`):
+Check first, in one line, whether any stats player is unmatched (`--mode pause` exits 1 for a played box-score player missing from the stats; default `continue`; writes the report `data/stage_03/player_name_check.csv`):
 
 ```bash
 uv run python -m eupy.entity.check_player_names
@@ -131,7 +138,7 @@ Prerequisites: the schedule, the fantasy stats players and the merged box score 
 
 ## Config, checks, log
 
-- `config/config.toml` (optional) overrides the defaults in `src/eupy/config/defaults.py`: `[acquisition]` season, request_delay, max_gap, kaggle_dataset, fantasy_rounds, fantasy_stats_type; `[transformation]` include_kaggle, base_season; `[logging]` path, level. Unknown keys raise an error. Steps that load the config depend on the file in `dvc.yaml`.
+- `config/config.toml` (optional) overrides the defaults in `src/eupy/config/defaults.py`: `[acquisition]` season, request_delay, max_gap, kaggle_dataset, fantasy_rounds, fantasy_stats_type; `[transformation]` names_mode, include_kaggle, base_season; `[logging]` path, level. Unknown keys raise an error. Steps that load the config depend on the file in `dvc.yaml`.
 - Every fetcher and merge script calls `eupy.quality.validate(rows, key, name)` before writing: empty rows or duplicate keys are logged to `logs/log.log` (git-ignored) and fail the run, leaving the previous output and state untouched.
 
 ## DVC

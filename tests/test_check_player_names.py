@@ -127,13 +127,28 @@ def test_stats_only_players_do_not_fail_the_run(tmp_path: Path, monkeypatch: pyt
     assert report[0] == "case,team,name,detail" and report[1].startswith("stats_only,PAO,R. Rookie,no_candidate")
 
 
-def test_a_played_box_score_player_without_stats_fails_the_run(
+def _case_three_args(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    rows = [("G1", "PAO", "1", "JONES, CARLIK", "20:00", 1), ("G1", "PAO", "5", "SANZ, LORENZ", "5:00", 1)]
+    return _run(tmp_path, ENTRIES, rows, monkeypatch)
+
+
+def test_continue_mode_reports_a_played_box_score_player_without_stats_and_goes_on(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    rows = [("G1", "PAO", "1", "JONES, CARLIK", "20:00", 1), ("G1", "PAO", "5", "SANZ, LORENZ", "5:00", 1)]
-    assert main(_run(tmp_path, ENTRIES, rows, monkeypatch)) == 1
+    args = _case_three_args(tmp_path, monkeypatch)
+    assert main(args) == 0  # the default mode is continue
+    assert main([*args, "--mode", "continue"]) == 0
     out = capsys.readouterr().out
-    assert "ESCALATE" in out and "SANZ, LORENZ" in out and "stats: not found" in out
-    assert any(
-        line.startswith('box_only,PAO,"SANZ, LORENZ"') for line in (tmp_path / "report.csv").read_text().splitlines()
-    )
+    assert "WARNING" in out and "SANZ, LORENZ" in out and "stats: not found" in out and "/build-name-maps" in out
+    report = (tmp_path / "report.csv").read_text().splitlines()
+    assert any(line.startswith('box_only,PAO,"SANZ, LORENZ"') for line in report)
+
+
+def test_pause_mode_stops_on_that_player_but_not_on_stats_only_players(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    assert main([*_case_three_args(tmp_path, monkeypatch), "--mode", "pause"]) == 1
+    out = capsys.readouterr().out
+    assert "PAUSED" in out and "SANZ, LORENZ" in out
+    clean = _run(tmp_path, ENTRIES, [("G1", "PAO", "1", "JONES, CARLIK", "20:00", 1)], monkeypatch)
+    assert main([*clean, "--mode", "pause"]) == 0  # R. Rookie is stats-only: reported, never a pause
