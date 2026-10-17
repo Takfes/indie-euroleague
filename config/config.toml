@@ -5,9 +5,12 @@
 # season = "E2026"
 # request_delay = 0.3
 # max_gap = 5
+# fantasy_rounds = "all"        # or "1-4,6": one fantasy-stats fetch per round (always summed)
+# fantasy_stats_type = "avg"    # "avg" | "tot", all-rounds fetch only
 
 [transformation]
-# base_season = "E2025"   # default: unset = full Kaggle history
+# include_kaggle = false  # true = merge the Kaggle history under the live deltas
+# base_season = "E2025"    # with include_kaggle: keep only this Kaggle season (default: unset = full history)
 
 [logging]
 # path = "logs/log.log"

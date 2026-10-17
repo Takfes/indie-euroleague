@@ -1,4 +1,4 @@
-"""Tests for the Kaggle + live-delta box-score merge."""
+"""Tests for the live-delta box-score merge (Kaggle history optional)."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ def run_main(monkeypatch: pytest.MonkeyPatch, kaggle: Path, live: Path, out: Pat
     main()
 
 
-def test_full_history_by_default_and_deltas_in_timestamp_order(
+def test_include_kaggle_gives_full_history_and_deltas_in_timestamp_order(
     raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     kaggle, live = raw
@@ -54,7 +54,7 @@ def test_full_history_by_default_and_deltas_in_timestamp_order(
     write_csv(live / "E2026_delta_20260929T100000Z.csv", [["E2026_2_A", "E2026_2", "E2026", "1", "7"]])
     write_csv(live / "E2026_delta_20260927T100000Z.csv", [["E2026_1_A", "E2026_1", "E2026", "0", "3"]])
     out = tmp_path / "out.csv"
-    run_main(monkeypatch, kaggle, live, out)
+    run_main(monkeypatch, kaggle, live, out, "--include-kaggle")
     assert read_ids(out) == ["E2024_1_A", "E2025_1_A", "E2025_1_B", "E2026_1_A", "E2026_2_A"]
 
 
@@ -62,7 +62,7 @@ def test_base_season_restricts_kaggle_rows(raw: tuple[Path, Path], tmp_path: Pat
     kaggle, live = raw
     out = tmp_path / "out.csv"
     live.mkdir()
-    run_main(monkeypatch, kaggle, live, out, "--base-season", "E2025")
+    run_main(monkeypatch, kaggle, live, out, "--include-kaggle", "--base-season", "E2025")
     assert read_ids(out) == ["E2025_1_A", "E2025_1_B"]
 
 
@@ -103,7 +103,7 @@ def test_no_deltas_yields_kaggle_only(raw: tuple[Path, Path], tmp_path: Path, mo
     kaggle, live = raw
     live.mkdir()
     out = tmp_path / "out.csv"
-    run_main(monkeypatch, kaggle, live, out)
+    run_main(monkeypatch, kaggle, live, out, "--include-kaggle")
     assert len(read_ids(out)) == 3
 
 
@@ -124,8 +124,39 @@ def test_kaggle_rows_of_a_season_covered_by_a_delta_are_replaced(
         [["E2026_1_A", "E2026_1", "E2026", "1", "7"], ["E2026_2_A", "E2026_2", "E2026", "1", "3"]],
     )
     out = tmp_path / "out.csv"
-    run_main(monkeypatch, kaggle, live, out)
+    run_main(monkeypatch, kaggle, live, out, "--include-kaggle")
     assert read_ids(out) == ["E2025_1_A", "E2026_1_A", "E2026_2_A"]
     with out.open(newline="", encoding="utf-8") as f:
         points = {r["game_player_id"]: r["points"] for r in csv.DictReader(f)}
     assert points["E2026_1_A"] == "7"  # the live row wins over the Kaggle one
+
+
+def test_kaggle_is_ignored_by_default_and_the_header_comes_from_the_deltas(
+    raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kaggle, live = raw
+    write_csv(live / "E2026_delta_1.csv", [["E2026_1_A", "E2026_1", "E2026", "1", "3"]])
+    out = tmp_path / "out.csv"
+    run_main(monkeypatch, kaggle, live, out)
+    assert read_ids(out) == ["E2026_1_A"]
+
+
+def test_no_deltas_and_no_kaggle_raises(
+    raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kaggle, live = raw
+    live.mkdir()
+    out = tmp_path / "out.csv"
+    with pytest.raises(ValueError, match="include-kaggle"):
+        run_main(monkeypatch, kaggle, live, out)
+    assert not out.exists()
+
+
+def test_deltas_with_different_headers_raise_even_without_kaggle(
+    raw: tuple[Path, Path], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kaggle, live = raw
+    write_csv(live / "E2026_delta_1.csv", [["E2026_1_A", "E2026_1", "E2026", "1", "3"]])
+    write_csv(live / "E2026_delta_2.csv", [["E2026_2_A", "E2026_2", "E2026", "1"]], header=HEADER[:-1])
+    with pytest.raises(ValueError, match="merge header"):
+        run_main(monkeypatch, kaggle, live, tmp_path / "out.csv")

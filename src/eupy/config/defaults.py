@@ -17,13 +17,16 @@ class Acquisition:
     request_delay: float = 0.3  # polite-client pause (seconds) between live-API requests
     max_gap: int = 5  # consecutive empty/unplayed gamecodes that end a live-headers run
     kaggle_dataset: str = "babissamothrakis/euroleague-datasets"
+    fantasy_rounds: str = "all"  # fantasy stats fetch: "all" (season in one pass) or rounds such as "1-4,6"
+    fantasy_stats_type: str | None = None  # "avg" or "tot" for the all-rounds fetch; None = avg
 
 
 @dataclass(frozen=True)
 class Transformation:
     """Transform settings."""
 
-    base_season: str | None = None  # None = merge the full Kaggle history; else keep only this season_code
+    include_kaggle: bool = False  # True = merge the Kaggle history under the live deltas; False = deltas only
+    base_season: str | None = None  # with include_kaggle: None = full history, else keep only this season_code
 
 
 @dataclass(frozen=True)

@@ -1,39 +1,36 @@
 #!/usr/bin/env python3
-"""Merge the Kaggle box-score history with the EuroLeague live-API deltas into one table.
+"""Merge the EuroLeague live-API box-score deltas into one table (optionally under the Kaggle history).
 
-The Kaggle dump (`euroleague_box_score.csv`, E2007-E2025) is static; the live fetcher
-(`fetch_euroleague_live_boxscores.py`) writes one delta CSV per run, each holding only the games ingested in
-that run. This script rebuilds one merged box-score table from scratch on every run: the Kaggle rows first
-(file order preserved), then every delta file under `data/raw_data/euroleague_net/box_score/` in filename
-order (the filename embeds a UTC timestamp, so this is chronological). Nothing is incremental -- re-running
-from the same raw files gives byte-identical output.
+The live fetcher (`fetch_euroleague_live_boxscores.py`) writes one delta CSV per run, each holding only the games
+ingested in that run. This script rebuilds one merged box-score table from scratch on every run: every delta file
+under `data/raw_data/euroleague_net/box_score/` in filename order (the filename embeds a UTC timestamp, so this is
+chronological). The deltas carry their own header (taken from the first one) and must all share it. Nothing is
+incremental -- re-running from the same raw files gives byte-identical output.
 
-The live deltas are authoritative for the seasons they hold: Kaggle rows of any `season_code` that appears in a
-delta are dropped before the append, so a Kaggle dump that already covers part of the live season does not
-duplicate its games.
-
-By default the full Kaggle history is merged; `--base-season` (or `[transformation] base_season` in
-`config/config.toml`) keeps only that `season_code`.
-
-Both sources share the same 32-column schema (the fetcher was built to mirror the Kaggle file); a delta whose
-header differs raises rather than being silently realigned. Values are copied as text, so the Kaggle file's
-float-style flags (`0.0`) and the live files' integer flags (`0`) are left exactly as each source wrote them.
-The merged rows are validated before writing (no empty rows, unique `game_player_id`); a violation is logged to
-the shared log file and fails the run -- nothing is dropped silently.
+The Kaggle dump (`euroleague_box_score.csv`, E2007-E2025) is left out by default. With `--include-kaggle` (or
+`[transformation] include_kaggle = true` in `config/config.toml`) its rows come first (file order preserved) and
+the live deltas are authoritative for the seasons they hold: Kaggle rows of any `season_code` that appears in a
+delta are dropped before the append. `--base-season` (or `[transformation] base_season`) then keeps only that
+Kaggle `season_code`. The Kaggle header must equal the deltas' header; a mismatch raises rather than being
+realigned. Values are copied as text, so the Kaggle file's float-style flags (`0.0`) and the live files' integer
+flags (`0`) are left exactly as each source wrote them. The merged rows are validated before writing (no empty
+rows, unique `game_player_id`); a violation is logged to the shared log file and fails the run -- nothing is
+dropped silently.
 
 Usage:
-    python src/eupy/transform/merge_boxscore.py [--base-season E2025] [--kaggle PATH] [--live-dir PATH] [--out PATH]
+    python src/eupy/transform/merge_boxscore.py [--include-kaggle [--base-season E2025]] [--kaggle PATH]
+        [--live-dir PATH] [--out PATH]
 
 Inputs:
-  - kaggle_data/euroleague_box_score: data/raw_data/kaggle_data/euroleague_box_score.csv
   - euroleague_net/box_score: data/raw_data/euroleague_net/box_score/
 Sources: none
 Outputs:
   - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
 Final: false
 Impure: false
-Notes: Full Kaggle history by default (config transformation.base_season / --base-season restricts it); all delta
-  files under euroleague_net/box_score are appended, and Kaggle rows of seasons present in a delta are dropped.
+Notes: Live deltas only by default. With include_kaggle the Kaggle file data/raw_data/kaggle_data/euroleague_box_score.csv
+  is merged under them; it is deliberately not a declared input, so a merge never pulls the Kaggle fetch into the
+  graph (after refreshing Kaggle with include_kaggle on, rerun with `dvc repro -f merge_boxscore`).
 """
 
 from __future__ import annotations
@@ -43,7 +40,14 @@ from pathlib import Path
 
 from eupy.config import get_config
 from eupy.quality import validate
-from eupy.transform.merge_common import REPO_ROOT, drop_covered_seasons, load_base, load_deltas, write_rows
+from eupy.transform.merge_common import (
+    REPO_ROOT,
+    drop_covered_seasons,
+    first_delta_header,
+    load_base,
+    load_deltas,
+    write_rows,
+)
 
 KAGGLE_PATH = REPO_ROOT / "data" / "raw_data" / "kaggle_data" / "euroleague_box_score.csv"
 LIVE_DIR = REPO_ROOT / "data" / "raw_data" / "euroleague_net" / "box_score"
@@ -57,7 +61,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--base-season",
         default=get_config().transformation.base_season,
-        help="Kaggle season_code to keep (default: config transformation.base_season; unset = full history)",
+        help="With --include-kaggle: the Kaggle season_code to keep (default: config transformation.base_season; unset = full history)",
+    )
+    parser.add_argument(
+        "--include-kaggle",
+        action=argparse.BooleanOptionalAction,
+        default=get_config().transformation.include_kaggle,
+        help="Merge the Kaggle history under the live deltas (default: config transformation.include_kaggle, off)",
     )
     parser.add_argument("--kaggle", type=Path, default=KAGGLE_PATH)
     parser.add_argument("--live-dir", type=Path, default=LIVE_DIR)
@@ -67,7 +77,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    header, base = load_base(args.kaggle, args.base_season)
+    if args.include_kaggle:
+        header, base = load_base(args.kaggle, args.base_season)
+    else:
+        header, base = first_delta_header(args.live_dir), []
     deltas = load_deltas(args.live_dir, header)
     base = drop_covered_seasons(base, deltas)
     rows = [*base, *deltas]

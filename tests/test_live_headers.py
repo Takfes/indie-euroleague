@@ -123,11 +123,15 @@ def _write_headers(path: Path, game_ids: list[str]) -> None:
     path.write_text("game_id,season_code\n" + "".join(f"{g},{g[:5]}\n" for g in game_ids), encoding="utf-8")
 
 
-def test_merge_headers_concatenates_full_history_and_deltas(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_merge_headers_include_kaggle_concatenates_full_history_and_deltas(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     kaggle, live, out = tmp_path / "k.csv", tmp_path / "live", tmp_path / "out.csv"
     _write_headers(kaggle, ["E2024_001", "E2025_001"])
     _write_headers(live / "E2026_delta_1.csv", ["E2026_001"])
-    monkeypatch.setattr(sys, "argv", ["p", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)])
+    monkeypatch.setattr(
+        sys, "argv", ["p", "--include-kaggle", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)]
+    )
     merge_headers.main()
     assert out.read_text().splitlines()[1:] == ["E2024_001,E2024", "E2025_001,E2025", "E2026_001,E2026"]
 
@@ -137,7 +141,9 @@ def test_merge_headers_game_in_two_deltas_fails_validation(tmp_path: Path, monke
     _write_headers(kaggle, ["E2025_001"])
     _write_headers(live / "E2026_delta_1.csv", ["E2026_001"])
     _write_headers(live / "E2026_delta_2.csv", ["E2026_001"])  # re-fetched game: no silent replace
-    monkeypatch.setattr(sys, "argv", ["p", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)])
+    monkeypatch.setattr(
+        sys, "argv", ["p", "--include-kaggle", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)]
+    )
     with pytest.raises(DataQualityError, match="duplicate"):
         merge_headers.main()
     assert not out.exists()

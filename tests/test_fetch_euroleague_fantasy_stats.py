@@ -310,3 +310,22 @@ def test_run_rejects_the_average_with_selected_rounds(tmp_path: Path) -> None:
 def test_run_rejects_an_unknown_stats_type(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="Unknown stats type 'median'"):
         _run_with_mocked_fetch(tmp_path, stats_type="median")
+
+
+def test_cli_defaults_come_from_the_config_and_flags_override_them(monkeypatch: pytest.MonkeyPatch) -> None:
+    from dataclasses import replace
+
+    from eupy.config import Config
+    from eupy.fetchers import fetch_euroleague_fantasy_stats as mod
+
+    cfg = Config()
+    cfg = replace(cfg, acquisition=replace(cfg.acquisition, fantasy_rounds="1-3", fantasy_stats_type="tot"))
+    monkeypatch.setattr(mod, "get_config", lambda: cfg)
+
+    monkeypatch.setattr("sys.argv", ["prog"])
+    args = mod.parse_args()
+    assert (args.rounds, args.stats_type) == ("1-3", "tot")
+
+    monkeypatch.setattr("sys.argv", ["prog", "--rounds", "all", "--stats-type", "avg"])
+    args = mod.parse_args()
+    assert (args.rounds, args.stats_type) == ("all", "avg")

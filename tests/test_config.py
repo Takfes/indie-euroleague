@@ -13,11 +13,13 @@ def test_missing_file_gives_defaults(tmp_path):
 
 def test_override_is_key_by_key(tmp_path):
     p = tmp_path / "c.toml"
-    p.write_text('[acquisition]\nseason = "E2027"\n[transformation]\nbase_season = "E2025"\n')
+    p.write_text('[acquisition]\nseason = "E2027"\n[transformation]\ninclude_kaggle = true\nbase_season = "E2025"\n')
     cfg = load_config(p)
     assert cfg.acquisition.season == "E2027"
     assert cfg.acquisition.max_gap == Config().acquisition.max_gap  # untouched keys keep defaults
+    assert cfg.transformation.include_kaggle is True
     assert cfg.transformation.base_season == "E2025"
+    assert Config().transformation.include_kaggle is False
 
 
 @pytest.mark.parametrize("body", ["[acquisition]\nseasno = 1\n", "[nope]\nx = 1\n", "acquisition = 3\n"])

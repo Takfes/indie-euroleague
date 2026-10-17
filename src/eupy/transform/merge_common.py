@@ -1,7 +1,7 @@
 """Shared helpers of the merge scripts (`merge_boxscore.py`, `merge_headers.py`).
 
-Library module (no I/O header, never run directly): CSV read/write and the Kaggle-base + live-delta loaders
-both scripts use. Scripts import it instead of each other, so DVC sees it in their dependency closure.
+Library module (no I/O header, never run directly): CSV read/write and the live-delta (and optional Kaggle-base)
+loaders both scripts use. Scripts import it instead of each other, so DVC sees it in their dependency closure.
 """
 
 from __future__ import annotations
@@ -32,6 +32,21 @@ def load_base(path: Path, season: str | None) -> tuple[list[str], list[dict[str,
     return header, base
 
 
+def first_delta_header(live_dir: Path) -> list[str]:
+    """Columns of the first delta file (filename order); the deltas carry their own header when there is no Kaggle base.
+
+    Raises:
+        ValueError: If `live_dir` holds no delta file.
+    """
+    paths = sorted(live_dir.glob("*_delta_*.csv"))
+    if not paths:
+        raise ValueError(
+            f"No *_delta_*.csv files in {live_dir}; run the live fetcher first, "
+            "or merge the Kaggle history with --include-kaggle."
+        )
+    return read_rows(paths[0])[0]
+
+
 def load_deltas(live_dir: Path, header: list[str]) -> list[dict[str, str]]:
     """All delta files in filename (= chronological) order; each must match `header` exactly."""
     rows: list[dict[str, str]] = []
@@ -39,7 +54,7 @@ def load_deltas(live_dir: Path, header: list[str]) -> list[dict[str, str]]:
         delta_header, delta_rows = read_rows(path)
         if delta_header != header:
             raise ValueError(
-                f"{path.name} columns differ from the Kaggle base. "
+                f"{path.name} columns differ from the merge header (Kaggle base, else the first delta). "
                 f"Missing: {sorted(set(header) - set(delta_header))}, extra: {sorted(set(delta_header) - set(header))} "
                 "(order-only differences also fail). Fix the fetcher output or the base before appending."
             )

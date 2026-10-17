@@ -22,6 +22,9 @@ Two fetch modes, chosen with `--rounds`:
   take). Many more requests, so the default delay is longer. The selection is
   bounded by the in-progress round.
 
+The mode and stats type default to `[acquisition] fantasy_rounds` / `fantasy_stats_type` in `config/config.toml`
+(the DVC stage passes no arguments, so this is how `dvc repro` is parametrized); the flags override them.
+
 `--delay` sets the pause between requests in either mode. The API rate-limits
 at about 5 requests per 2 s window and answers 429 beyond it; the fetcher does
 not retry, so keep the delay at or above its mode default if a run fails with
@@ -80,6 +83,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
 from eupy.logging_setup import get_logger
 from eupy.quality import validate
 
@@ -409,14 +413,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
     parser.add_argument(
         "--rounds",
-        default=ALL_ROUNDS,
-        help=f"'{ALL_ROUNDS}' for the whole season in one pass (default), or rounds such as '1-4,6', one fetch each",
+        default=get_config().acquisition.fantasy_rounds,
+        help=(
+            f"'{ALL_ROUNDS}' for the whole season in one pass, or rounds such as '1-4,6', one fetch each "
+            "(default: config acquisition.fantasy_rounds)"
+        ),
     )
     parser.add_argument(
         "--stats-type",
         choices=STATS_TYPES,
-        default=None,
-        help="'avg' per-game mean (default for --rounds all) or 'tot' season sum; a per-round fetch is always 'tot'",
+        default=get_config().acquisition.fantasy_stats_type,
+        help=(
+            "'avg' per-game mean (default for --rounds all) or 'tot' season sum; a per-round fetch is always 'tot' "
+            "(default: config acquisition.fantasy_stats_type)"
+        ),
     )
     parser.add_argument(
         "--delay",
