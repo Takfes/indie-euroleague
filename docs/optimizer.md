@@ -8,17 +8,24 @@ For one round it picks the 10-player squad (4 G / 4 F / 2 C), the starting five,
 
 ## The objective
 
-Every candidate gets one shared value, the same formulas for everybody:
+Every candidate gets one shared value, with the same formulas for everybody. The risk terms are explained below.
 
 ```
-score_i  = target_i + risk_adjustment_i
-growth_i = (target_i - 1.1 * price_i) / 25          expected credit growth
-maximise   starters + 6th man + captain bonus (score)  +  0.5 * bench (score)  +  credit_value * sum of growth over the squad
+risk_i   = - robustness_lambda * std_i
+           + upside_beta       * max(0, p90_i - target_i)
+           - downside_gamma    * max(0, target_i - p10_i)
+score_i  = target_i + risk_i
+growth_i = (target_i - 1.1 * price_i) / 25                       expected credit growth
+
+maximise   sum over starters, 6th man and captain of score_i      (the captain is counted a second time)
+         + 0.5 * sum over the bench of score_i
+         + credit_value * sum over the whole squad of growth_i
 ```
 
 - `target_i` is the expected PIR (config `target`, default column `exp_pir`).
-- The role weights (captain counts twice, bench counts 50%) are game rules and stay as they are.
+- Role weights are game rules and stay fixed: starters and the 6th man count fully, the captain counts twice, the bench counts 50%. Growth counts for all 10 squad members whatever their role.
 - `growth_i` is the verified community price formula. It needs a target on the PIR scale; with another target keep `credit_value` at 0.
+- With all three risk weights and `credit_value` at 0 the objective is the plain role-weighted expected PIR. The `summary` sheet calls that squad the "vanilla" squad and compares your run against it.
 
 ### Risk terms
 
@@ -56,7 +63,7 @@ The exchange rate from expected credit growth to objective points. With `credit_
 
 ## Input and empty values
 
-`data/stage_04/optimizer_input.xlsx`, first sheet, one row per candidate. The model needs `player`, `team`, `position`, `turn`, `price` (workbook `crd_last`), `in_prev_roster`, the target, and the risk column of the selected mode. Any empty cell in one of them stops the run with an error naming the columns; other columns are ignored. Further checks: unique players, known positions, `price > 0`, integer turns, a previous roster that is empty or a full 4/4/2 squad, enough candidates per position and per turn.
+`data/stage_03/optimizer_input.xlsx`, first sheet, one row per candidate. `build_eubook` writes it: the `player_analytical_record` columns plus `in_prev_roster` (all 0) at the right end. Set `in_prev_roster` to 1 for the players you own before running; every rerun of the build resets it to 0. The model needs `player`, `team`, `position`, `turn`, `price` (workbook `crd_last`), `in_prev_roster`, the target, and the risk columns of the terms whose weight is above 0. Any empty cell in one of them stops the run with an error naming the columns; other columns are ignored. Further checks: unique players, known positions, `price > 0`, integer turns, a previous roster that is empty or a full 4/4/2 squad, enough candidates per position and per turn.
 
 ## Output
 

@@ -49,6 +49,15 @@ clean-data-raw: ## Delete every data file under data/raw_data, keeping the folde
 		find data/raw_data -type f ! -name .gitkeep -print -delete; \
 	fi
 
+.PHONY: clean-data-stages
+clean-data-stages: ## Delete every git-ignored file under data/stage_* (all stages + stage_99), keeping raw_data and tracked files (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		git clean -ndX data/stage_*; \
+	else \
+		echo "🚀 Removing git-ignored stage data (raw_data and tracked files stay)"; \
+		git clean -fdX data/stage_*; \
+	fi
+
 .PHONY: clean-data
 clean-data: ## Delete every git-ignored file under data/ (raw + all stages); keeps tracked files (.gitkeep, curated) (ARGS=--dry-run: only list)
 	@if [ "$(ARGS)" = "--dry-run" ]; then \

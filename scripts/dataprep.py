@@ -4,7 +4,7 @@ import pandas as pd
 
 from eupy.entity.matching import AmbiguousNameError, UnknownNameError
 from eupy.entity.player_names import PlayerNames
-from eupy.transform.build_eubook import fill_empty
+from eupy.transform.build_eubook import fill_empty, optimizer_input
 
 pd.set_option("display.max_columns", None)
 
@@ -45,6 +45,7 @@ NEXT_ROUND = df["round"].max() + 1
 FILEPATH = "/Users/takis/Documents/sckool/indie-euroleague/data/stage_99/"
 FILENAME = f"eubook_{str(NEXT_ROUND).zfill(3)}.xlsx"
 WRITEPATH = Path(FILEPATH, FILENAME)
+OPTIMIZER_INPUT_PATH = "/Users/takis/Documents/sckool/indie-euroleague/data/stage_03/optimizer_input.xlsx"
 
 # ==============================================================================
 # boxscore dataset
@@ -433,3 +434,5 @@ dataframes_to_write["player_analytical_record"] = par
 # ==============================================================================
 
 write_excel_workbook(dataframes_to_write, WRITEPATH)
+# the optimizer's input: the record plus in_prev_roster = 0 (set by hand)
+write_excel_workbook({"optimizer_input": optimizer_input(par)}, OPTIMIZER_INPUT_PATH)

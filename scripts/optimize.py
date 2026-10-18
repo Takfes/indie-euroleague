@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pick the optimal single-round EuroLeague Fantasy (Classic mode) squad with a Pyomo MILP.
 
-Reads `data/stage_04/optimizer_input.xlsx` (one row per player candidate for the upcoming round),
+Reads `data/stage_03/optimizer_input.xlsx` (one row per player candidate for the upcoming round),
 chooses the 10 players (4 G / 4 F / 2 C), the starting five, the 6th man, the bench and the captain
 that maximise the objective below, subject to the Classic-mode rules in `docs/rules.md`: budget,
 trade limit, squad composition, max 6 players per club, the five legal starting formations and an
@@ -77,7 +77,7 @@ from eupy.config import get_config
 from eupy.config.defaults import Optimization
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-INPUT_PATH = REPO_ROOT / "data" / "stage_04" / "optimizer_input.xlsx"
+INPUT_PATH = REPO_ROOT / "data" / "stage_03" / "optimizer_input.xlsx"
 OUTPUT_PATH = REPO_ROOT / "data" / "stage_99" / "optimizer_output.xlsx"
 # Model name -> workbook column. The only place that knows the workbook's spelling (besides the
 # config's `target`). `std`, `p90`, `p10` are needed only by the objective mode that uses them.
@@ -172,7 +172,7 @@ def load_input(path: Path) -> pd.DataFrame:
     """
     if not path.is_file():
         raise FileNotFoundError(
-            f"Optimizer input {path} not found. Build the workbook (stage_04/optimizer_input.xlsx) first; "
+            f"Optimizer input {path} not found. Build the workbook (stage_03/optimizer_input.xlsx) first; "
             f"see the input contract in scripts/optimize.py."
         )
     return pd.read_excel(path, sheet_name=0)

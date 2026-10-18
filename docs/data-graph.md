@@ -8,7 +8,6 @@
 flowchart LR
     %% external sources
     x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package(["agent decisions recorded by the build-name-maps skill, committed with the package"])
-    x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued(["data/stage_04/optimizer_input.xlsx: prepared by hand from the eubook (scripts/dataprep.py), not catalogued"])
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_(["fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env)"])
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_(["https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live)"])
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_(["kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API)"])
@@ -54,6 +53,7 @@ flowchart LR
     d_euroleague_header_merged[("euroleague_header_merged<br/>(stage 1)")]
     d_player_name_map[("player_name_map<br/>(stage 2)")]
     d_eubook[("eubook<br/>(stage 3)")]
+    d_optimizer_input[("optimizer_input<br/>(stage 3)")]
 
     %% edges
     d_euroleague_box_score_merged --> s_build_eubook
@@ -64,9 +64,11 @@ flowchart LR
     d_fantasy_stats_players --> s_build_player_name_map
     d_game_schedule_schedule --> s_build_eubook
     d_game_schedule_schedule --> s_build_player_name_map
+    d_optimizer_input --> s_optimize_squad
     d_player_name_decisions --> s_build_player_name_map
     d_player_name_map --> s_build_eubook
     s_build_eubook --> d_eubook
+    s_build_eubook --> d_optimizer_input
     s_build_player_name_map --> d_player_name_map
     s_fetch_euroleague_fantasy_stats --> d_fantasy_stats_head_coaches
     s_fetch_euroleague_fantasy_stats --> d_fantasy_stats_players
@@ -78,7 +80,6 @@ flowchart LR
     s_merge_boxscore --> d_euroleague_box_score_merged
     s_merge_headers --> d_euroleague_header_merged
     x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package --> d_player_name_decisions
-    x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued --> s_optimize_squad
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_ --> s_fetch_euroleague_fantasy_stats
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_ --> s_fetch_game_schedule
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_ --> s_fetch_kaggle_euroleague
@@ -99,9 +100,9 @@ flowchart LR
     class s_merge_boxscore,s_merge_headers script_stage1
     class s_build_player_name_map script_stage2
     class s_build_eubook script_stage3
-    class x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package,x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ source
+    class x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ source
     class d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_player_name_decisions stage0
     class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
     class d_player_name_map stage2
-    class d_eubook stage3
+    class d_eubook,d_optimizer_input stage3
 ```

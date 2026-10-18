@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pick the optimal single-round EuroLeague Fantasy (Classic mode) squad with a Pyomo MILP.
 
-Reads `data/stage_04/optimizer_input.xlsx` (one row per player candidate for the upcoming round),
+Reads `data/stage_03/optimizer_input.xlsx` (one row per player candidate for the upcoming round),
 chooses the 10 players (4 G / 4 F / 2 C), the starting five, the 6th man, the bench and the captain
 that maximise the objective below, subject to the Classic-mode rules in `docs/rules.md`: budget,
 trade limit, squad composition, max 6 players per club, the five legal starting formations and an
@@ -64,16 +64,16 @@ Output -- `data/stage_99/optimizer_output.xlsx`, two sheets:
 `scripts/optimize.py` is the working copy of this module (same code, `REPO_ROOT` one level up); the two are
 maintained together, like `scripts/dataprep.py` and `eupy.transform.build_eubook`.
 
-Inputs: none
-Sources:
-  - data/stage_04/optimizer_input.xlsx: prepared by hand from the eubook (scripts/dataprep.py), not catalogued
+Inputs:
+  - optimizer_input: data/stage_03/optimizer_input.xlsx
+Sources: none
 Outputs: none
 Final: false
 Impure: false
-Notes: Reads and writes outside the registry on purpose. The input is a manual preparation step with no producing
-  script, and the output is a real file in data/stage_99/ (DVC must never own stage_99 paths), written
-  to data/stage_99/optimizer_output.xlsx and overwritten each run. Run parameters are the [optimization]
-  section of config/config.toml, which is not a catalogued dataset.
+Notes: Declares no output on purpose: the result is a real file in data/stage_99/ (DVC must never own stage_99 paths),
+  data/stage_99/optimizer_output.xlsx, overwritten each run. Run outside DVC (`make optimize`). The input comes from
+  build_eubook; mark the players you own with 1 in its `in_prev_roster` column by hand first. Run parameters are the
+  [optimization] section of config/config.toml, which is not a catalogued dataset.
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ from eupy.config import get_config
 from eupy.config.defaults import Optimization
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-INPUT_PATH = REPO_ROOT / "data" / "stage_04" / "optimizer_input.xlsx"
+INPUT_PATH = REPO_ROOT / "data" / "stage_03" / "optimizer_input.xlsx"
 OUTPUT_PATH = REPO_ROOT / "data" / "stage_99" / "optimizer_output.xlsx"
 # Model name -> workbook column. The only place that knows the workbook's spelling (besides the
 # config's `target`). `std`, `p90`, `p10` are needed only by the objective mode that uses them.
@@ -186,7 +186,7 @@ def load_input(path: Path) -> pd.DataFrame:
     """
     if not path.is_file():
         raise FileNotFoundError(
-            f"Optimizer input {path} not found. Build the workbook (stage_04/optimizer_input.xlsx) first; "
+            f"Optimizer input {path} not found. Build the workbook (stage_03/optimizer_input.xlsx) first; "
             f"see the input contract in scripts/optimize.py."
         )
     return pd.read_excel(path, sheet_name=0)

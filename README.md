@@ -1,6 +1,9 @@
 # indie-euroleague
 
-- [Run guide](docs/run-guide.md) · [Optimizer](docs/optimizer.md) · [Rules of the game](docs/rules.md) · [Resources and links](docs/resources.md)
+- [Run guide](docs/run-guide.md)
+- [Optimizer](docs/optimizer.md)
+- [Rules of the game](docs/rules.md)
+- [Resources and links](docs/resources.md)
 
 ## Cheatsheet
 
@@ -29,11 +32,12 @@ Dev: `uv run pytest` · `uv run ruff check src tests && uv run ruff format --che
 ## Make targets
 
 ```bash
-make optimize                    # squad optimizer: stage_04/optimizer_input.xlsx -> stage_99/optimizer_output.xlsx ([optimization] in config/config.toml)
+make optimize                    # squad optimizer: stage_03/optimizer_input.xlsx -> stage_99/optimizer_output.xlsx ([optimization] in config/config.toml)
 make test                        # pytest
 make check                       # lint via pre-commit
 make clean-data                  # delete all git-ignored data (raw + stages); tracked files stay. ARGS=--dry-run lists only
 make clean-data-raw              # raw data only
+make clean-data-stages           # everything except raw_data (stage_01.. and stage_99); tracked files stay
 make clean-cache                 # caches (pycache, ruff, pytest, ...)
 make clean-git                   # merged task branches/worktrees (ARGS=--yes / --dry-run)
 make clean-all                   # clean-cache + clean-git (data is never included)
@@ -54,7 +58,8 @@ flowchart LR
     D[("player_name_decisions.json")] --> N
     S["/build-name-maps<br/>(skill, not DVC)"] -.writes.-> D
     N -.open points.-> S
-    W -.prepared by hand.-> O["make optimize<br/>optimizer_output.xlsx"]
+    W --> I["optimizer_input.xlsx<br/>(set in_prev_roster by hand)"]
+    I --> O["make optimize<br/>optimizer_output.xlsx"]
 ```
 
 `refresh_and_build_eubook` = `refresh_data` + `build_eubook`. `fetch_kaggle` and `merge_headers` run on their own.

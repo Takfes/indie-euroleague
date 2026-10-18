@@ -18,7 +18,7 @@ request_delay = 0.1
 # level = "INFO"
 
 [optimization]
-# Squad optimizer: `make optimize` (scripts/optimize.py). Reads data/stage_04/optimizer_input.xlsx, writes
+# Squad optimizer: `make optimize` (scripts/optimize.py). Reads data/stage_03/optimizer_input.xlsx, writes
 # data/stage_99/optimizer_output.xlsx. Method and formulas: docs/optimizer.md. Commented lines show the defaults.
 
 # -- what to maximise ---------------------------------------------------------------------------------------------

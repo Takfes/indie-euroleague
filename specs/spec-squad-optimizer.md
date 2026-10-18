@@ -13,7 +13,7 @@ objective, under the Classic-mode rules in `docs/rules.md` (rules win over the s
 
 - Pure functions plus a `main()` without CLI flags; the model builder does no I/O. Parameters come from
   `[optimization]` in `config/config.toml` (defaults in `eupy.config.defaults.Optimization`).
-- Input: `data/stage_04/optimizer_input.xlsx`, first sheet. Workbook columns are mapped to the model once (`COLUMNS`,
+- Input: `data/stage_03/optimizer_input.xlsx`, first sheet. Workbook columns are mapped to the model once (`COLUMNS`,
   `RISK_COLUMNS`, config `target`); the input is never renamed.
 - Output: `data/stage_99/optimizer_output.xlsx` with sheets `selection` (input rows + `selected`, `role`, `action`,
   `is_captain`, objective components) and `summary`.

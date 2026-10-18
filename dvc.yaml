@@ -18,6 +18,8 @@ stages:
     outs:
     - data/stage_03/eubook.xlsx:
         cache: false
+    - data/stage_03/optimizer_input.xlsx:
+        cache: false
   build_player_name_map:
     cmd: uv run python -m eupy.entity.build_player_name_map
     deps:
@@ -182,6 +184,7 @@ stages:
     - data/stage_01/euroleague_box_score_merged.csv
     - data/stage_02/player_name_map.csv
     - data/stage_03/eubook.xlsx
+    - data/stage_03/optimizer_input.xlsx
   refresh_data:
     cmd: echo refresh_data done
     deps:

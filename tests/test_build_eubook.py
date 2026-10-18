@@ -9,12 +9,14 @@ import pytest
 
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
+from eupy.optimize.optimize_squad import COLUMNS, RISK_COLUMNS
 from eupy.transform.build_eubook import (
     ANALYTICAL_COLUMNS,
     delivery_path,
     fill_empty,
     join_stats,
     next_round_games,
+    optimizer_input,
     player_kpis,
     prepare_boxscore,
 )
@@ -226,3 +228,18 @@ def test_delivery_copy_is_round_numbered_in_the_delivery_dir() -> None:
     assert delivery_path(Path("data/stage_03/eubook.xlsx"), Path("data/stage_99"), 7) == Path(
         "data/stage_99/eubook_007.xlsx"
     )
+
+
+def test_optimizer_input_is_the_record_plus_a_zeroed_in_prev_roster_at_the_right_end() -> None:
+    record = pd.DataFrame({"player": ["A", "B"], "pir_mean": [10.0, 12.0]})
+    out = optimizer_input(record)
+    assert out.columns.tolist() == ["player", "pir_mean", "in_prev_roster"]
+    assert out["in_prev_roster"].tolist() == [0, 0]
+    assert "in_prev_roster" not in record.columns  # input untouched
+
+
+def test_optimizer_input_carries_every_column_the_optimizer_reads() -> None:
+    # producer/consumer contract: the optimizer maps these workbook columns, so the build must emit them
+    produced = {*ANALYTICAL_COLUMNS, "in_prev_roster"}
+    needed = {*COLUMNS.values(), *RISK_COLUMNS.values(), "exp_pir"}
+    assert needed <= produced, needed - produced

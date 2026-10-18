@@ -11,7 +11,7 @@
   - `headers.py` — read a script's docstring with `ast` (never import the script) and parse the key-value block from ticket 1.
   - `model.py` — `Script`, `Dataset`, `Source` dataclasses and `Registry` (scripts, datasets, edges).
   - `__main__.py` — `uv run python -m eupy.registry check` (lint) and `show` (print the model).
-- `src/eupy/registry/raw_sources.toml` — hand-written declarations for raw datasets no script produces (Kaggle files, `optimizer_input`): origin label + refresh note. TOML → stdlib `tomllib`, no new dependency.
+- `src/eupy/registry/raw_sources.toml` — hand-written declarations for raw datasets no script produces (Kaggle files): origin label + refresh note. TOML → stdlib `tomllib`, no new dependency.
 - Registry API: `registry.path(name)`, `.stage(name)`, `.producer(name)`, `.consumers(name)`, `.upstream(script)`, `.topo_order()`.
 
 ## Decisions
