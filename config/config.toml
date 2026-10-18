@@ -22,10 +22,10 @@ request_delay = 0.1
 # data/stage_99/optimizer_output.xlsx. Method and formulas: docs/optimizer.md. Commented lines show the defaults.
 
 # -- what to maximise ---------------------------------------------------------------------------------------------
-target = "pir_mean"            # workbook column to maximise, on the PIR scale (e.g. "exp_pir", "pir_mean")
+target = "exp_pir"            # workbook column to maximise, on the PIR scale (e.g. "exp_pir", "pir_mean")
 # Risk weights: each term is added to the target; 0 = term off, all three 0 = plain target. Terms combine.
 robustness_lambda = 0.0       # robustness: penalty per unit of pir_std              (>= 0; 0 = off)
-upside_beta = 1.0             # upside: reward per unit of max(0, pir_p90 - target)  (>= 0; 0 = off)
+upside_beta = 0.0             # upside: reward per unit of max(0, pir_p90 - target)  (>= 0; 0 = off)
 downside_gamma = 2.0          # downside: penalty per unit of max(0, target - pir_p10) (>= 0; 0 = off)
 credit_value = 0.0            # points per expected credit of price growth: 0 = ignore, 1 = a credit is worth a point,
 
@@ -33,7 +33,7 @@ credit_value = 0.0            # points per expected credit of price growth: 0 = 
 cash = 0.0 # credits in the bank before trading (round 1: the whole budget, 100.0)
 # max_trades = 4                # max buys this round
 unlimited_trades = true # true = ignore max_trades (round 1 / free windows)
-min_players_per_turn = [0, 0] # [3, 3] = at least 3 turn-1 and 3 turn-2 players in the 10-man squad; [] or [0, 0] = off
+min_players_per_turn = [3, 3] # [3, 3] = at least 3 turn-1 and 3 turn-2 players in the 10-man squad; [] or [0, 0] = off
 
 # -- solver -------------------------------------------------------------------------------------------------------
 # solver = "appsi_highs"        # Pyomo solver name
