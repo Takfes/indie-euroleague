@@ -22,6 +22,10 @@ test: ## Test the code with pytest
 optimize: ## Run the squad optimizer (config/config.toml [optimization]) -> data/stage_99/optimizer_output.xlsx
 	@uv run python -m eupy.optimize.optimize_squad
 
+.PHONY: optimize-scenario
+optimize-scenario: ## Run the scenarios of config/scenarios.toml -> data/stage_99/optimizer_output_<key>.xlsx (SCENARIO=a,b: only those)
+	@uv run python -m eupy.optimize.optimize_squad --scenarios $(SCENARIO)
+
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"

@@ -1,0 +1,14 @@
+# Optimizer scenarios: `make optimize-scenario` (all) or `make optimize-scenario SCENARIO=team_1,team_2`.
+# One table per scenario. The key names the output: data/stage_99/optimizer_output_<key>.xlsx
+# (letters, digits and underscores only). Method and keys: docs/optimizer.md.
+#
+# roster = the players you own (names exactly as in optimizer_input.xlsx); [] = a fresh squad.
+#          Left out = the workbook's own in_prev_roster column is used.
+# Every other key is an [optimization] key of config/config.toml and overrides it for this scenario only
+# (target, robustness_lambda, upside_beta, downside_gamma, credit_value, cash, max_trades, unlimited_trades,
+#  min_players_per_turn, solver, solver_options).
+
+# [team_1]
+# roster = ["Player One", "Player Two"]   # 10 names: 4 G, 4 F, 2 C
+# cash = 3.5
+# upside_beta = 1.0

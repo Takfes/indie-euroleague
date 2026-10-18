@@ -24,7 +24,7 @@ uv run dvc repro fetch_euroleague_fantasy_stats
 # Without DVC (same code)
 uv run python -m eupy.transform.build_eubook  # 4 workbook
 uv run python scripts/dataprep.py             # 4 working copy of build_eubook
-uv run python -m eupy.optimize.optimize_squad # squad optimizer (same as make optimize)
+uv run python -m eupy.optimize.optimize_squad # squad optimizer (same as make optimize); add --scenarios [a,b] for the scenario runs
 ```
 
 Dev: `uv run pytest` · `uv run ruff check src tests && uv run ruff format --check src tests` · `uv run python -m eupy.registry check`
@@ -32,6 +32,7 @@ Dev: `uv run pytest` · `uv run ruff check src tests && uv run ruff format --che
 ## Make targets
 
 ```bash
+make optimize-scenario           # one optimizer run per table of config/scenarios.toml -> stage_99/optimizer_output_<key>.xlsx (SCENARIO=a,b: only those)
 make optimize                    # squad optimizer: stage_03/optimizer_input.xlsx -> stage_99/optimizer_output.xlsx ([optimization] in config/config.toml)
 make test                        # pytest
 make check                       # lint via pre-commit

@@ -105,12 +105,33 @@ The exchange rate from expected credit growth to objective points. With `credit_
 
 `data/stage_03/optimizer_input.xlsx`, first sheet, one row per candidate. `build_eubook` writes it: the `player_analytical_record` columns plus `in_prev_roster` (all 0) at the right end. Set `in_prev_roster` to 1 for the players you own before running; every rerun of the build resets it to 0. The model needs `player`, `team`, `position`, `turn`, `price` (workbook `crd_last`), `in_prev_roster`, the target, and the risk columns of the terms whose weight is above 0. Any empty cell in one of them stops the run with an error naming the columns; other columns are ignored. Further checks: unique players, known positions, `price > 0`, integer turns, a previous roster that is empty or a full 4/4/2 squad, enough candidates per position and per turn.
 
+## Scenarios
+
+Several starting teams, each with its own overrides, in one command. `config/scenarios.toml` holds one table per scenario:
+
+```toml
+[team_1]
+roster = ["Yam Madar", "Mathias Lessort"]   # the players you own; all 10 names in practice
+cash = 3.5                                  # any [optimization] key overrides config.toml for this scenario
+upside_beta = 1.0
+
+[team_2]
+roster = []                                 # a fresh squad (use unlimited_trades or max_trades >= 10)
+```
+
+- `make optimize` ignores the file (plain run, `optimizer_output.xlsx`). `make optimize-scenario` runs every table; `make optimize-scenario SCENARIO=team_1,team_2` only those.
+- Each scenario writes `data/stage_99/optimizer_output_<key>.xlsx`, overwritten on rerun. Keys use letters, digits and underscores.
+- `roster` replaces the workbook's `in_prev_roster` (names must match the `player` column; a typo lists close matches). Without `roster` the workbook's column is used. Precedence of parameters: code defaults, then `config.toml`, then the scenario.
+- All selected scenarios are validated before any is solved, and all problems are listed together. If a solve fails, the other scenarios still run and the command exits non-zero.
+- The input workbook is never changed. The output's `selection` sheet shows the roster that was used, and the `summary` sheet records `scenario`, `roster source`, `parameters overridden` and every parameter of the run.
+- The `optimize-scenarios` skill edits the file from natural language and runs the target; it never touches `config.toml`.
+
 ## Output
 
 `data/stage_99/optimizer_output.xlsx`:
 
 - `selection`: every input row, plus `selected`, `role`, `action`, `is_captain`, and the components of its objective value: `opt_target`, `opt_risk_adjustment`, `opt_score`, `opt_credit_growth` (credits), `opt_growth_value` (points).
-- `summary`: objective value and its split, benefit (+) over keeping the current squad, the weighted target and risk adjustment of the line-up, the comparison with the vanilla squad (when the run is not already vanilla), trades, cash, solver status and time, and the parameters used.
+- `summary`: the scenario (if any), objective value and its split, benefit (+) over keeping the current squad, the weighted target and risk adjustment of the line-up, the comparison with the vanilla squad (when the run is not already vanilla), trades, cash, solver status and time, and the parameters used.
 
 ## Not implemented yet
 

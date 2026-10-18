@@ -37,6 +37,7 @@ LIBRARY_MODULES = frozenset({
     "entity/player_names.py",
     "entity/team_names.py",
     "fetchers/live_euroleague.py",
+    "optimize/scenarios.py",
     "transform/merge_common.py",
 })
 

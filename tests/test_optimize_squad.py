@@ -15,7 +15,7 @@ import itertools
 import math
 import random
 import time
-from dataclasses import replace
+from dataclasses import fields, replace
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -42,6 +42,7 @@ from eupy.optimize.optimize_squad import (
     solve,
     validate_input,
 )
+from eupy.optimize.scenarios import Scenario, apply_scenario, load_scenarios, select_scenarios
 
 SAMPLE = Path(__file__).parent / "data" / "optimizer_input_sample.csv"
 CONFIG_SAMPLE = Path(__file__).parent / "data" / "optimizer_config_sample.toml"
@@ -889,3 +890,139 @@ def test_config_sample_lists_every_optimization_key_and_loads() -> None:
     assert keys == set(Optimization.__dataclass_fields__)
     cfg = load_config(CONFIG_SAMPLE).optimization
     assert cfg.min_players_per_turn == [3, 3] and cfg.solver_options["random_seed"] == 7
+
+
+# --------------------------------------------------------------------------- 8. scenarios
+
+SCENARIOS_TOML = """
+[alpha]
+roster = ["{roster}"]
+cash = 2.5
+upside_beta = 0.5
+
+[beta_2]
+roster = []
+unlimited_trades = true
+"""
+
+
+def _scenario_file(tmp_path: Path, text: str) -> Path:
+    path = tmp_path / "scenarios.toml"
+    path.write_text(text)
+    return path
+
+
+def _prev_names(df: pd.DataFrame) -> list[str]:
+    return df.loc[df["in_prev_roster"] == 1, "player"].tolist()
+
+
+def test_load_scenarios_splits_the_roster_from_the_config_overrides(tmp_path: Path) -> None:
+    path = _scenario_file(tmp_path, SCENARIOS_TOML.format(roster='", "'.join(_prev_names(league(prev=True)))))
+    scenarios = load_scenarios(path)
+    assert list(scenarios) == ["alpha", "beta_2"]
+    assert scenarios["alpha"].overrides == {"cash": 2.5, "upside_beta": 0.5}
+    assert len(scenarios["alpha"].roster) == 10
+    assert scenarios["beta_2"].roster == ()  # [] = a fresh squad, not "no roster"
+    assert load_scenarios(_scenario_file(tmp_path, "[x]\ncash = 1.0\n"))["x"].roster is None
+
+
+@pytest.mark.parametrize(
+    ("text", "match"),
+    [
+        ("", "no scenarios"),
+        ("[team-1]\nroster = []\n", "letters, digits and underscores"),
+        ("a = 3\n", "must be a table"),
+        ('[a]\nroster = "Yam Madar"\n', "list of player names"),
+        ('[a]\nroster = ["X", "X"]\n', "more than once"),
+    ],
+)
+def test_load_scenarios_rejects_malformed_files(tmp_path: Path, text: str, match: str) -> None:
+    with pytest.raises(ValueError, match=match):
+        load_scenarios(_scenario_file(tmp_path, text))
+    with pytest.raises(FileNotFoundError, match="Scenarios file"):
+        load_scenarios(tmp_path / "missing.toml")
+
+
+def test_select_scenarios_by_list_or_all() -> None:
+    scenarios = {k: Scenario(k, None) for k in ("a", "b", "c")}
+    assert list(select_scenarios(scenarios, "all")) == ["a", "b", "c"]
+    assert list(select_scenarios(scenarios, "c, a")) == ["c", "a"]
+    with pytest.raises(ValueError, match=r"Unknown scenario.*'z'"):
+        select_scenarios(scenarios, "a,z")
+
+
+def test_apply_scenario_replaces_the_roster_and_overrides_without_touching_the_inputs() -> None:
+    df = league(prev=True)
+    before = df.copy()
+    cfg = cfg_of(100.0, 4)
+    new_roster = tuple(df.loc[df["in_prev_roster"] == 0, "player"].head(10))
+    sdf, scfg = apply_scenario(df, cfg, Scenario("s", new_roster, {"cash": 7.0, "downside_gamma": 2.0}))
+    assert sorted(_prev_names(sdf)) == sorted(new_roster)
+    assert (scfg.cash, scfg.downside_gamma, scfg.max_trades) == (7.0, 2.0, 4)  # others stay as in the base config
+    pd.testing.assert_frame_equal(df, before)
+    assert cfg.cash == 100.0
+    fresh, _ = apply_scenario(df, cfg, Scenario("s", ()))
+    assert fresh["in_prev_roster"].sum() == 0
+    kept, _ = apply_scenario(df, cfg, Scenario("s", None, {"cash": 1.0}))
+    assert kept["in_prev_roster"].tolist() == df["in_prev_roster"].tolist()  # no roster key: the workbook decides
+
+
+def test_apply_scenario_names_unknown_players_with_suggestions_and_unknown_keys() -> None:
+    df = league(prev=True)
+    with pytest.raises(ValueError, match=r"\[s\].*'P001'.*'P00'"):
+        apply_scenario(df, cfg_of(), Scenario("s", ("P001",)))
+    with pytest.raises(ValueError, match=r"\[s\].*cashh"):
+        apply_scenario(df, cfg_of(), Scenario("s", None, {"cashh": 1.0}))
+
+
+def _run_scenarios_main(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, scenario_text: str, argv: list[str]) -> Path:
+    inp, out_dir = tmp_path / "in.xlsx", tmp_path / "out"
+    league().to_excel(inp, index=False)
+    monkeypatch.setattr(opt_mod, "INPUT_PATH", inp)
+    monkeypatch.setattr(opt_mod, "OUTPUT_PATH", out_dir / "optimizer_output.xlsx")
+    monkeypatch.setattr(opt_mod, "SCENARIOS_PATH", _scenario_file(tmp_path, scenario_text))
+    monkeypatch.setattr(opt_mod, "get_config", lambda: SimpleNamespace(optimization=cfg_of(100.0, None)))
+    main(argv)
+    return out_dir
+
+
+def test_scenarios_write_one_output_per_key_and_record_the_scenario(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    prev = '", "'.join(_prev_names(league(prev=True)))
+    text = f'[team_1]\nroster = ["{prev}"]\ncash = 0.0\nmax_trades = 2\nunlimited_trades = false\n\n[team_2]\nroster = []\n'
+    out = _run_scenarios_main(monkeypatch, tmp_path, text, ["--scenarios"])
+    assert sorted(p.name for p in out.iterdir()) == ["optimizer_output_team_1.xlsx", "optimizer_output_team_2.xlsx"]
+    one = pd.read_excel(out / "optimizer_output_team_1.xlsx", sheet_name=None)
+    two = pd.read_excel(out / "optimizer_output_team_2.xlsx", sheet_name=None)
+    summary = one["summary"].set_index("metric")["value"]
+    assert summary["scenario"] == "team_1" and summary["roster source"] == "scenario"
+    assert summary["parameters overridden"] == "['cash', 'max_trades', 'unlimited_trades']"
+    assert (summary["cash"], summary["max_trades"]) == (0.0, 2)
+    assert one["selection"]["in_prev_roster"].sum() == 10  # the roster used is visible in the output
+    assert two["selection"]["in_prev_roster"].sum() == 0
+    assert (two["selection"]["action"] == "buy").sum() == 10  # a fresh squad buys everybody
+
+
+def test_scenarios_selector_runs_only_the_named_ones(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    out = _run_scenarios_main(monkeypatch, tmp_path, "[a]\nroster = []\n[b]\nroster = []\n", ["--scenarios", "b"])
+    assert [p.name for p in out.iterdir()] == ["optimizer_output_b.xlsx"]
+
+
+def test_a_bad_scenario_stops_everything_before_any_solve(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    text = '[good]\nroster = []\n[bad]\nroster = ["Nobody"]\n[worse]\ncashh = 1\n'
+    with pytest.raises(ValueError, match="nothing was solved") as err:
+        _run_scenarios_main(monkeypatch, tmp_path, text, ["--scenarios"])
+    assert "[bad]" in str(err.value) and "[worse]" in str(err.value)  # every problem is listed at once
+    assert not (tmp_path / "out").exists()  # not even the good one ran
+
+
+def test_plain_run_is_unchanged_and_summary_lists_every_parameter(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    out = _run_main(monkeypatch, tmp_path, league(), cfg_of(100.0, None))
+    assert out.name == "optimizer_output.xlsx"
+    summary = pd.read_excel(out, sheet_name="summary")
+    assert summary.loc[summary["metric"] == "scenario", "value"].tolist() == ["none"]
+    listed = summary.loc[summary["section"] == "parameters", "metric"].tolist()
+    assert listed == [f.name for f in fields(Optimization)]  # defaults included, nothing silently left out

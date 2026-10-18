@@ -26,9 +26,13 @@ assumes `target` is on the PIR scale; with another target keep `credit_value` at
 All run parameters live in the `[optimization]` section of `config/config.toml` (`target`,
 `robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`,
 `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`); defaults are in
-`eupy.config.defaults.Optimization`. There are no CLI flags: edit the config, then run
+`eupy.config.defaults.Optimization`. The only flag is `--scenarios` (below); otherwise edit the config, then run
 
     uv run python -m eupy.optimize.optimize_squad        (or: make optimize)
+    uv run python -m eupy.optimize.optimize_squad --scenarios [a,b]   (or: make optimize-scenario)
+
+Scenarios (`config/scenarios.toml`, code in `eupy.optimize.scenarios`): one run per table, each with its own roster
+and parameter overrides, written to `optimizer_output_<key>.xlsx`. See `docs/optimizer.md`.
 
 Input contract -- first sheet of the workbook, header row, extra columns ignored. The workbook's
 columns are mapped to what the model needs in ONE place, `COLUMNS` below (plus `target` in the
@@ -64,10 +68,12 @@ Output -- `data/stage_99/optimizer_output.xlsx`, two sheets:
 
 from __future__ import annotations
 
+import argparse
 import math
 import numbers
+import sys
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, fields, replace
 from pathlib import Path
 
 import pandas as pd
@@ -75,13 +81,13 @@ import pyomo.environ as pyo
 
 from eupy.config import get_config
 from eupy.config.defaults import Optimization
+from eupy.optimize.scenarios import SCENARIOS_PATH, Scenario, apply_scenario, load_scenarios, select_scenarios
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INPUT_PATH = REPO_ROOT / "data" / "stage_03" / "optimizer_input.xlsx"
 OUTPUT_PATH = REPO_ROOT / "data" / "stage_99" / "optimizer_output.xlsx"
 # Model name -> workbook column. The only place that knows the workbook's spelling (besides the
 # config's `target`). `std`, `p90`, `p10` are needed only by the objective mode that uses them.
-# NOTE: the input has no 10th-percentile column yet; `downside` mode needs one named here.
 COLUMNS = {
     "player": "player",
     "team": "team",
@@ -533,6 +539,22 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
     )
 
 
+def check_run(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
+    """Everything that can be checked before solving: the model frame, the input rules and the parameters.
+
+    Returns:
+        The model frame (`model_frame` output).
+
+    Raises:
+        ValueError: If the table or a parameter violates the contract.
+    """
+    frame = model_frame(df, cfg)
+    validate_input(frame)
+    _validate_params(cfg)
+    _validate_turn_minimums(frame, cfg)
+    return frame
+
+
 def optimize_squad(df: pd.DataFrame, cfg: Optimization) -> Solution:
     """Validate, build, solve and extract in one call.
 
@@ -547,11 +569,7 @@ def optimize_squad(df: pd.DataFrame, cfg: Optimization) -> Solution:
         ValueError: If the table or a parameter violates the contract.
         RuntimeError: If the solver does not prove optimality.
     """
-    frame = model_frame(df, cfg)
-    validate_input(frame)
-    _validate_params(cfg)
-    _validate_turn_minimums(frame, cfg)
-    prepared = _prepare(frame, cfg)
+    prepared = _prepare(check_run(df, cfg), cfg)
     m = build_model(prepared, cfg)
     solve(m, cfg)
     return extract_solution(prepared, m, cfg.cash)
@@ -724,6 +742,15 @@ def vanilla_config(cfg: Optimization) -> Optimization | None:
     return replace(cfg, robustness_lambda=0.0, upside_beta=0.0, downside_gamma=0.0, credit_value=0.0)
 
 
+def _cell(value: object) -> object:
+    """A parameter value as one spreadsheet cell (lists and dicts as text)."""
+    if isinstance(value, list | tuple):
+        return str(list(value))
+    if isinstance(value, dict):
+        return str(dict(value))
+    return value
+
+
 def summary_sheet(
     sol: Solution,
     sheet: pd.DataFrame,
@@ -733,6 +760,7 @@ def summary_sheet(
     baseline: float | None,
     cv_report: CreditValueReport,
     vanilla: pd.DataFrame | None,
+    scenario: Scenario | None = None,
 ) -> pd.DataFrame:
     """High-level optimizer output as `section | metric | value` rows.
 
@@ -746,12 +774,16 @@ def summary_sheet(
         cv_report: Output of `explain_credit_value`.
         vanilla: `selection_sheet` of the vanilla-objective squad (`vanilla_config`), or None when the
             run is already vanilla.
+        scenario: The scenario this run belongs to, or None for the plain run.
 
     Returns:
         The summary table.
     """
     limit = max_trades_of(cfg)
     rows = [
+        ("scenario", "scenario", "none" if scenario is None else scenario.key),
+        ("scenario", "roster source", "scenario" if scenario and scenario.roster is not None else "workbook"),
+        ("scenario", "parameters overridden", str(sorted(scenario.overrides)) if scenario else "[]"),
         ("objective", "objective value", sol.objective),
         ("objective", "active points (starters, 6th man, captain bonus, bench)", sol.active_points),
         ("objective", "growth term (credit_value x expected credit growth)", sol.growth_term),
@@ -792,15 +824,9 @@ def summary_sheet(
         ("solver", "solver", cfg.solver),
         ("solver", "status", "optimal"),  # anything else raises before we get here
         ("solver", "solve time (s)", round(solve_seconds, 3)),
-        ("parameters", "target", cfg.target),
-        ("parameters", "robustness_lambda", cfg.robustness_lambda),
-        ("parameters", "upside_beta", cfg.upside_beta),
-        ("parameters", "downside_gamma", cfg.downside_gamma),
-        ("parameters", "cash", cfg.cash),
-        ("parameters", "credit_value", cfg.credit_value),
-        ("parameters", "min_players_per_turn", str(list(cfg.min_players_per_turn))),
-        ("parameters", "solver_options", str(dict(cfg.solver_options))),
     ]
+    # every parameter of the run, whether it is a default, from config.toml or from the scenario
+    rows += [("parameters", f.name, _cell(getattr(cfg, f.name))) for f in fields(cfg)]
     return pd.DataFrame(rows, columns=["section", "metric", "value"])
 
 
@@ -812,16 +838,18 @@ def write_output(selection: pd.DataFrame, summary: pd.DataFrame, path: Path) -> 
         summary.to_excel(writer, sheet_name="summary", index=False)
 
 
-def main() -> None:
-    """Read the config and the input workbook, solve, write the output workbook and print the report.
+def output_path(key: str | None = None) -> Path:
+    """`OUTPUT_PATH`, or with a scenario key appended to the file name (`optimizer_output_<key>.xlsx`)."""
+    return OUTPUT_PATH if key is None else OUTPUT_PATH.with_name(f"{OUTPUT_PATH.stem}_{key}{OUTPUT_PATH.suffix}")
+
+
+def run(df: pd.DataFrame, cfg: Optimization, path: Path, scenario: Scenario | None = None) -> None:
+    """Solve, print the report and write the output workbook for one table and one set of parameters.
 
     Raises:
-        FileNotFoundError: If the input workbook is missing.
-        ValueError: If the config or the input violates its contract.
+        ValueError: If the table or a parameter violates the contract.
         RuntimeError: If the solver does not prove optimality.
     """
-    cfg = get_config().optimization
-    df = load_input(INPUT_PATH)
     started = time.perf_counter()
     sol = optimize_squad(df, cfg)
     elapsed = time.perf_counter() - started
@@ -833,10 +861,72 @@ def main() -> None:
     sheet = selection_sheet(df, sol, cfg)
     plain = vanilla_config(cfg)
     vanilla = None if plain is None else selection_sheet(df, optimize_squad(df, plain), plain)
-    summary = summary_sheet(sol, sheet, cfg, len(df), elapsed, baseline, cv_report, vanilla)
-    write_output(sheet, summary, OUTPUT_PATH)
-    print(f"Solved {len(df)} candidates in {elapsed:.2f}s; wrote {OUTPUT_PATH}")
+    summary = summary_sheet(sol, sheet, cfg, len(df), elapsed, baseline, cv_report, vanilla, scenario)
+    write_output(sheet, summary, path)
+    print(f"Solved {len(df)} candidates in {elapsed:.2f}s; wrote {path}")
+
+
+def run_scenarios(df: pd.DataFrame, cfg: Optimization, scenarios: dict[str, Scenario]) -> None:
+    """Run each scenario into its own output file: validate all first, then solve one by one.
+
+    Raises:
+        ValueError: If any scenario is invalid (all problems are listed; nothing is solved).
+        RuntimeError: If a solve fails; the other scenarios still run and the failures are listed at the end.
+    """
+    prepared, problems = {}, []
+    for key, scenario in scenarios.items():
+        try:
+            scenario_df, scenario_cfg = apply_scenario(df, cfg, scenario, COLUMNS["player"], COLUMNS["in_prev_roster"])
+            check_run(scenario_df, scenario_cfg)
+            prepared[key] = (scenario_df, scenario_cfg)
+        except ValueError as err:
+            problems.append(f"[{key}] {err}" if not str(err).startswith(f"[{key}]") else str(err))
+    if problems:
+        raise ValueError("Invalid scenario(s), nothing was solved:\n" + "\n".join(problems))
+    failures = []
+    for key, (scenario_df, scenario_cfg) in prepared.items():
+        print(f"\n=== scenario {key} ===")
+        try:
+            run(scenario_df, scenario_cfg, output_path(key), scenarios[key])
+        except (RuntimeError, ValueError) as err:
+            failures.append(f"[{key}] {err}")
+    if failures:
+        raise RuntimeError("Scenario(s) failed:\n" + "\n".join(failures))
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Pick the optimal squad (see the module docstring).")
+    parser.add_argument(
+        "--scenarios",
+        nargs="?",
+        const="all",
+        default=None,
+        metavar="KEYS",
+        help=f"run the scenarios of {SCENARIOS_PATH.name} instead of the plain run: all (default when the flag is "
+        f"given) or a comma-separated list of keys",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Read the config and the input workbook, solve, write the output workbook(s) and print the report.
+
+    Without `--scenarios`: one run with the config as is, written to `OUTPUT_PATH`. With it: one run per scenario of
+    `config/scenarios.toml`, each written to `optimizer_output_<key>.xlsx`.
+
+    Raises:
+        FileNotFoundError: If the input workbook or the scenarios file is missing.
+        ValueError: If the config, a scenario or the input violates its contract.
+        RuntimeError: If the solver does not prove optimality.
+    """
+    args = parse_args([] if argv is None else argv)
+    cfg = get_config().optimization
+    df = load_input(INPUT_PATH)
+    if args.scenarios is None:
+        run(df, cfg, OUTPUT_PATH)
+        return
+    run_scenarios(df, cfg, select_scenarios(load_scenarios(SCENARIOS_PATH), args.scenarios))
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
