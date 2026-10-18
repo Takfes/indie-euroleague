@@ -9,7 +9,15 @@ import pytest
 
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
-from eupy.transform.build_eubook import delivery_path, join_stats, next_round_games, player_kpis, prepare_boxscore
+from eupy.transform.build_eubook import (
+    ANALYTICAL_COLUMNS,
+    delivery_path,
+    fill_empty,
+    join_stats,
+    next_round_games,
+    player_kpis,
+    prepare_boxscore,
+)
 
 TEAMS = TeamNames([{"name": "Panathinaikos", "variants": ["PAO"]}, {"name": "Real Madrid", "variants": ["MAD"]}])
 PLAYERS = PlayerNames(
@@ -99,6 +107,72 @@ def test_player_kpis_last_lag_and_breakeven() -> None:
     assert (row.pir_last, row.pir_lag1, row.pir_lag2, row.crd_last) == (30.0, 20.0, 10.0, 12.0)
     assert row.pir_mean == 20.0
     assert row.pir_breakeven == pytest.approx((20.0 - 12.0 * 1.1) / 25)
+
+
+def test_player_kpis_percentiles_are_ordered_and_a_single_game_has_no_std() -> None:
+    df = pd.DataFrame({
+        "player_normalized": ["A"] * 5 + ["B"],
+        "team_id": ["PAO"] * 6,
+        "position": ["G"] * 6,
+        "round": [1, 2, 3, 4, 5, 1],
+        "valuation": [0.0, 10.0, 20.0, 30.0, 40.0, 7.0],
+        "minutes_num": [20.0] * 6,
+        "quotation": [10.0] * 6,
+    })
+    rows = player_kpis(df).set_index("player_normalized")
+    a = rows.loc["A"]
+    assert (a.pir_p10, a.pir_p50, a.pir_p75, a.pir_p90) == pytest.approx((4.0, 20.0, 30.0, 36.0))
+    assert rows.loc["B", "pir_p10"] == rows.loc["B", "pir_p90"] == 7.0  # one game: every percentile is that game
+    assert pd.isna(rows.loc["B", "pir_std"])  # the gap fill_empty closes
+    cols = ANALYTICAL_COLUMNS
+    assert (
+        cols.index("pir_std")
+        < cols.index("pir_p10")
+        < cols.index("pir_p50")
+        < cols.index("pir_p75")
+        < cols.index("pir_p90")
+    )
+
+
+def test_windows_and_percentiles_use_the_latest_games_whatever_the_row_order() -> None:
+    rounds = [4, 1, 7, 2, 6, 3, 5]  # shuffled on purpose: recency must come from `round`, not row order
+    df = pd.DataFrame({
+        "player_normalized": ["A"] * 7,
+        "team_id": ["PAO"] * 7,
+        "position": ["G"] * 7,
+        "round": rounds,
+        "valuation": [float(r * 10) for r in rounds],  # round r scored r * 10
+        "minutes_num": [float(r) for r in rounds],
+        "quotation": [10.0] * 7,
+    })
+    row = player_kpis(df).iloc[0]
+    assert row.pir_fast == pytest.approx(60.0)  # rounds 5, 6, 7
+    assert row.pir_slow == pytest.approx(50.0)  # rounds 3..7
+    assert row.mins_fast == pytest.approx(6.0) and row.mins_slow == pytest.approx(5.0)
+    assert (row.pir_p10, row.pir_p50, row.pir_p90) == pytest.approx((34.0, 50.0, 66.0))  # percentiles of 30..70
+
+
+def test_fill_empty_uses_defaults_for_missing_history_and_leaves_other_columns_alone() -> None:
+    nan, inf = float("nan"), float("inf")
+    record = pd.DataFrame({
+        "pir_mean": [12.0, 5.0],
+        "pir_lag1": [nan, 3.0],
+        "pir_lag2": [nan, nan],
+        "pir_std": [nan, 2.0],
+        "mins_std": [nan, 1.0],
+        "pir_per_min": [nan, 0.5],
+        "pir_trend": [inf, 1.4],
+        "mins_trend": [nan, 0.9],
+        "exp_pir": [nan, 4.0],  # no fixture next round: not ours to invent
+    })
+    out = fill_empty(record)
+    first, second = out.iloc[0], out.iloc[1]
+    assert (first.pir_std, first.mins_std, first.pir_per_min) == (0.0, 0.0, 0.0)
+    assert (first.pir_trend, first.mins_trend) == (1.0, 1.0)  # inf and NaN both become "no change"
+    assert (first.pir_lag1, first.pir_lag2, second.pir_lag2) == (12.0, 12.0, 5.0)  # own mean
+    assert (second.pir_std, second.pir_lag1, second.pir_trend) == (2.0, 3.0, 1.4)  # real values stay
+    assert pd.isna(first.exp_pir)
+    assert pd.isna(record.loc[0, "pir_std"])  # input untouched
 
 
 def test_next_round_games_gives_the_latest_date_turn_2_and_lists_both_venues() -> None:

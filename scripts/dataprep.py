@@ -4,6 +4,7 @@ import pandas as pd
 
 from eupy.entity.matching import AmbiguousNameError, UnknownNameError
 from eupy.entity.player_names import PlayerNames
+from eupy.transform.build_eubook import fill_empty
 
 pd.set_option("display.max_columns", None)
 
@@ -146,14 +147,16 @@ df_kpis = (
         pir_lag1=("valuation", lambda x: x.shift(1).iloc[-1]),
         pir_lag2=("valuation", lambda x: x.shift(2).iloc[-1]),
         pir_std=("valuation", "std"),
-        pir_p75=("valuation", lambda x: x.head(SLOW_WINDOW).quantile(0.75)),
-        pir_p90=("valuation", lambda x: x.head(SLOW_WINDOW).quantile(0.90)),
-        pir_slow=("valuation", lambda x: x.head(SLOW_WINDOW).mean()),
-        pir_fast=("valuation", lambda x: x.head(FAST_WINDOW).mean()),
+        pir_p10=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.10)),
+        pir_p50=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.50)),
+        pir_p75=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.75)),
+        pir_p90=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.90)),
+        pir_slow=("valuation", lambda x: x.tail(SLOW_WINDOW).mean()),
+        pir_fast=("valuation", lambda x: x.tail(FAST_WINDOW).mean()),
         mins_mean=("minutes_num", "mean"),
         mins_std=("minutes_num", "std"),
-        mins_slow=("minutes_num", lambda x: x.head(SLOW_WINDOW).mean()),
-        mins_fast=("minutes_num", lambda x: x.head(FAST_WINDOW).mean()),
+        mins_slow=("minutes_num", lambda x: x.tail(SLOW_WINDOW).mean()),
+        mins_fast=("minutes_num", lambda x: x.tail(FAST_WINDOW).mean()),
     )
     .assign(
         pir_per_crd=lambda x: x.pir_mean / x.crd_last,
@@ -398,6 +401,8 @@ par_cols_in_order = [
     "pir_lag1",
     "pir_lag2",
     "pir_std",
+    "pir_p10",
+    "pir_p50",
     "pir_p75",
     "pir_p90",
     "pir_slow",
@@ -418,7 +423,7 @@ par = (
         exp_pir=lambda x: x.pir_mean * x.normd_pstn_pir,
     )
     .rename(columns={"player_normalized": "player", "team_id": "team"})
-)[par_cols_in_order]
+)[par_cols_in_order].pipe(fill_empty)
 
 dataframes_to_write["player_analytical_record"] = par
 

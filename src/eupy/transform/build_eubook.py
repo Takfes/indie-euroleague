@@ -11,7 +11,8 @@ The pipeline version of the analysis in `apps/dataprep.py` (same sheets, same KP
    stats the join key is `(round, player)`; with the season-wide stats (`round` = "all") it is the player alone,
    so `quotation` is the current price in every row. Rows without a match are dropped and counted.
 3. Player KPIs per `(player, team, position)`: PIR (`valuation`) mean, last, lags, std, slow/fast windows,
-   percentiles, minutes statistics, PIR per credit, break-even and trends.
+   percentiles (p10, p50, p75, p90), minutes statistics, PIR per credit, break-even and trends. Cells that are empty
+   for lack of history (std of a one-game player, lags, trends, PIR per minute) get defaults in `fill_empty`.
 4. Team grades: mean PIR per game by position, conceded (by opponent) and collected (by team), normalized by the
    league mean per position and ranked.
 5. Next round (the box score's last `round` + 1): the schedule's games with a `turn` (latest date of the round = 2, earlier dates = 1), the teams' grades
@@ -120,6 +121,8 @@ ANALYTICAL_COLUMNS = [
     "pir_lag1",
     "pir_lag2",
     "pir_std",
+    "pir_p10",
+    "pir_p50",
     "pir_p75",
     "pir_p90",
     "pir_slow",
@@ -201,14 +204,16 @@ def player_kpis(df: pd.DataFrame) -> pd.DataFrame:
             pir_lag1=("valuation", lambda x: x.shift(1).iloc[-1]),
             pir_lag2=("valuation", lambda x: x.shift(2).iloc[-1]),
             pir_std=("valuation", "std"),
-            pir_p75=("valuation", lambda x: x.head(SLOW_WINDOW).quantile(0.75)),
-            pir_p90=("valuation", lambda x: x.head(SLOW_WINDOW).quantile(0.90)),
-            pir_slow=("valuation", lambda x: x.head(SLOW_WINDOW).mean()),
-            pir_fast=("valuation", lambda x: x.head(FAST_WINDOW).mean()),
+            pir_p10=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.10)),
+            pir_p50=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.50)),
+            pir_p75=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.75)),
+            pir_p90=("valuation", lambda x: x.tail(SLOW_WINDOW).quantile(0.90)),
+            pir_slow=("valuation", lambda x: x.tail(SLOW_WINDOW).mean()),
+            pir_fast=("valuation", lambda x: x.tail(FAST_WINDOW).mean()),
             mins_mean=("minutes_num", "mean"),
             mins_std=("minutes_num", "std"),
-            mins_slow=("minutes_num", lambda x: x.head(SLOW_WINDOW).mean()),
-            mins_fast=("minutes_num", lambda x: x.head(FAST_WINDOW).mean()),
+            mins_slow=("minutes_num", lambda x: x.tail(SLOW_WINDOW).mean()),
+            mins_fast=("minutes_num", lambda x: x.tail(FAST_WINDOW).mean()),
         )
         .assign(
             pir_per_crd=lambda x: x.pir_mean / x.crd_last,
@@ -219,6 +224,43 @@ def player_kpis(df: pd.DataFrame) -> pd.DataFrame:
         )
         .reset_index(drop=True)
     )
+
+
+# Defaults for KPI cells that are empty because a player has too little history (a single game has no spread,
+# no second-last game, and a player without minutes has no per-minute rate). `FILL_VALUES` are constants;
+# `FILL_FROM` copies another column of the same row (no earlier game: assume the player's own mean).
+FILL_VALUES = {"pir_std": 0.0, "mins_std": 0.0, "pir_per_min": 0.0, "pir_trend": 1.0, "mins_trend": 1.0}
+FILL_FROM = {"pir_lag1": "pir_mean", "pir_lag2": "pir_mean"}
+
+
+def fill_empty(record: pd.DataFrame) -> pd.DataFrame:
+    """Fill the empty KPI cells of the analytical record with sensible defaults; prints what it filled.
+
+    Empty (NaN) and infinite values (a ratio over a zero window, e.g. `pir_trend` with `pir_slow` = 0) in the
+    columns of `FILL_VALUES` / `FILL_FROM` are replaced: spreads with 0.0, trends with 1.0 (no change),
+    `pir_per_min` with 0.0 and the lags with the player's `pir_mean`. Other columns are left untouched, so an
+    empty cell there (e.g. `exp_pir` of a team without a fixture) stays visible.
+
+    Args:
+        record: Player analytical record.
+
+    Returns:
+        A filled copy.
+    """
+    out = record.copy()
+    for column, default in FILL_VALUES.items():
+        out[column] = out[column].replace([float("inf"), float("-inf")], float("nan"))
+        _report_fill(column, out[column].isna())
+        out[column] = out[column].fillna(default)
+    for column, source in FILL_FROM.items():
+        _report_fill(column, out[column].isna())
+        out[column] = out[column].fillna(out[source])
+    return out
+
+
+def _report_fill(column: str, empty: pd.Series) -> None:
+    if empty.any():
+        print(f"filled {int(empty.sum())} empty {column} cells with a default")
 
 
 def _grade_pivot(grades: pd.DataFrame, index: str, suffix: str) -> pd.DataFrame:
@@ -349,7 +391,7 @@ def build_sheets(box: pd.DataFrame, stats: pd.DataFrame, schedule: pd.DataFrame,
         .merge(g2[["opponent", "position", "normd_pstn_pir"]], how="left", on=["opponent", "position"])
         .assign(exp_pir=lambda x: x.pir_mean * x.normd_pstn_pir)
         .rename(columns={"player_normalized": "player", "team_id": "team"})
-    )[ANALYTICAL_COLUMNS]
+    )[ANALYTICAL_COLUMNS].pipe(fill_empty)
     sheets = {
         "schedule": schedule,
         "teams": teams,
