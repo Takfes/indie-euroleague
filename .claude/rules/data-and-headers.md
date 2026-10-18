@@ -40,7 +40,7 @@ alwaysApply: true
 cd data/stage_99
 ln -s ../stage_03/<dataset>.parquet <dataset>.parquet   # relative target, run from data/stage_99
 ls -l <dataset>.parquet                                 # verify it points at the stage file
-ln -sfn ../stage_04/<dataset>.parquet <dataset>.parquet # repoint after a renumber
+ln -sfn ../stage_<NN>/<dataset>.parquet <dataset>.parquet # repoint after a renumber (NN = the new stage)
 rm <dataset>.parquet                                    # remove link only; target untouched
 ```
 

@@ -49,20 +49,22 @@ After `clean-data` run `uv run dvc repro refresh_and_build_eubook` to rebuild ev
 
 ```mermaid
 flowchart LR
-    subgraph refresh_data["dvc repro refresh_data"]
-        F["1 fetch_update"] --> M["2 merge_boxscore"]
-        M --> N["3 build_player_name_map"]
-        F --> N
-    end
-    N --> W["4 build_eubook<br/>eubook.xlsx"]
-    D[("player_name_decisions.json")] --> N
-    S["/build-name-maps<br/>(skill, not DVC)"] -.writes.-> D
+    F["1 fetch_update"] --> M["2 merge_boxscore"]
+    M --> N["3 build_player_name_map"]
+    F --> N
+    N --> W["4 build_eubook"]
+    W --> E["eubook.xlsx"]
+    W --> I["optimizer_input.xlsx"]
+    I --> O["make optimize"]
+    O --> R["optimizer_output.xlsx"]
+    D["player_name_decisions.json"] --> N
+    S["/build-name-maps skill"] -.writes.-> D
     N -.open points.-> S
-    W --> I["optimizer_input.xlsx<br/>(set in_prev_roster by hand)"]
-    I --> O["make optimize<br/>optimizer_output.xlsx"]
 ```
 
-`refresh_and_build_eubook` = `refresh_data` + `build_eubook`. `fetch_kaggle` and `merge_headers` run on their own.
+`refresh_data` = steps 1-3, `refresh_and_build_eubook` = 1-4. Before `make optimize`, set `in_prev_roster` to 1 for your players in `optimizer_input.xlsx` by hand.
+
+`fetch_kaggle` and `merge_headers` run on their own.
 
 ## Name matching
 
