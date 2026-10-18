@@ -18,10 +18,6 @@ scripts = [
 dvc = true
 scripts = ["fetch_kaggle_euroleague"]
 
-[schedule]
-dvc = false
-scripts = ["build_schedule_turns"]
-
 [merge_history_live]
 dvc = true
 scripts = ["merge_boxscore"]

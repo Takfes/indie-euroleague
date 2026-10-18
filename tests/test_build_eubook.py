@@ -99,7 +99,7 @@ def test_player_kpis_last_lag_and_breakeven() -> None:
     assert row.pir_breakeven == pytest.approx((20.0 - 12.0 * 1.1) / 25)
 
 
-def test_next_round_games_ranks_dates_into_turns_and_lists_both_venues() -> None:
+def test_next_round_games_gives_the_latest_date_turn_2_and_lists_both_venues() -> None:
     schedule = pd.DataFrame({
         "gameday": [7, 7, 8],
         "date": ["Oct 20, 2026", "Oct 21, 2026", "Oct 27, 2026"],
@@ -116,3 +116,31 @@ def test_next_round_games_ranks_dates_into_turns_and_lists_both_venues() -> None
         ("PAN", "home", 1),
         ("PRS", "away", 1),
     ]
+
+
+def test_turns_follow_the_dates_not_the_text_order() -> None:
+    # a round over a month end: "Oct 1" sorts before "Sep 30" as text, but it is the later date -> turn 2;
+    # the lone earlier date (Sep 29) and the middle date (Sep 30) are both turn 1
+    schedule = pd.DataFrame({
+        "gameday": [7, 7, 7],
+        "date": ["Sep 29, 2026", "Sep 30, 2026", "Oct 1, 2026"],
+        "hometeam": ["A", "B", "C"],
+        "homecode": ["AAA", "BBB", "CCC"],
+        "awayteam": ["D", "E", "F"],
+        "awaycode": ["DDD", "EEE", "FFF"],
+    })
+    games, _ = next_round_games(schedule, 7)
+    assert dict(zip(games["homecode"], games["turn"], strict=True)) == {"AAA": 1, "BBB": 1, "CCC": 2}
+
+
+def test_a_round_on_a_single_date_is_all_turn_1() -> None:
+    schedule = pd.DataFrame({
+        "gameday": [7, 7],
+        "date": ["Oct 20, 2026", "Oct 20, 2026"],
+        "hometeam": ["A", "B"],
+        "homecode": ["AAA", "BBB"],
+        "awayteam": ["C", "D"],
+        "awaycode": ["CCC", "DDD"],
+    })
+    games, _ = next_round_games(schedule, 7)
+    assert games["turn"].tolist() == [1, 1]

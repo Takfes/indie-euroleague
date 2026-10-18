@@ -102,14 +102,6 @@ uv run python -m eupy.transform.build_eubook      # the same script, untracked
 
 Writes `data/stage_03/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) and a copy `eubook_<next round>.xlsx` beside it, not tracked by DVC. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
 
-## Schedule turns
-
-```bash
-uv run python -m eupy.transform.build_schedule_turns --season=E2026
-```
-
-Needs the schedule fetched first. Writes `data/stage_01/schedule.csv` and `team_round_turn.csv` (the round's latest date is T2, earlier dates T1). Not a DVC stage yet.
-
 ## Player names
 
 Five datasets spell a player differently; `PlayerNames` (`src/eupy/entity/player_names.py`) turns any spelling into one normalized full name: `PlayerNames.load().normalize("JONES, CARLIK")` and `normalize("C. Jones", team="PAR")` both give `Carlik Jones`. The same goes for teams: `TeamNames.load().normalize("PAO")` gives the schedule's team name; it is derived from the schedule on load (no file), which is why the scripts using it declare `game_schedule/schedule` as input. Design: `specs/spec-name-maps.md`.

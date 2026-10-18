@@ -21,8 +21,8 @@ def _repo(tmp_path: Path) -> Path:
 def test_link_final_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root = _repo(tmp_path)
     (root / "data/stage_01").mkdir(parents=True)
-    (root / "data/stage_01/schedule.csv").write_text("x")
+    (root / "data/stage_01/squad_solution.csv").write_text("x")
     assert main(["link-final"], root=root) == 0
-    assert "linked   data/stage_99/schedule.csv" in capsys.readouterr().out
+    assert "linked   data/stage_99/squad_solution.csv" in capsys.readouterr().out
     assert main(["link-final"], root=root) == 0
     assert "linked" not in capsys.readouterr().out  # second run: only skip notes, no changes

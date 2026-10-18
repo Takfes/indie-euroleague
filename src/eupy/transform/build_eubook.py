@@ -14,7 +14,7 @@ The pipeline version of the analysis in `apps/dataprep.py` (same sheets, same KP
    percentiles, minutes statistics, PIR per credit, break-even and trends.
 4. Team grades: mean PIR per game by position, conceded (by opponent) and collected (by team), normalized by the
    league mean per position and ranked.
-5. Next round (the box score's last `round` + 1): the schedule's games with a `turn` per date, the teams' grades
+5. Next round (the box score's last `round` + 1): the schedule's games with a `turn` (latest date of the round = 2, earlier dates = 1), the teams' grades
    side by side, and the expected PIR of each player (`pir_mean` x the opponent's normalized PIR conceded).
 
 Sheets: `schedule`, `teams`, `boxscore`, `hist_long_pir_per_pos`, `hist_wide_pir_per_pos`,
@@ -259,12 +259,17 @@ def team_grades(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
 
 
 def next_round_games(schedule: pd.DataFrame, next_round: int) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """The next round's games with a `turn` per date, and the same games as one row per team (`venue` home/away)."""
-    games = (
-        schedule.query("gameday==@next_round")[["gameday", "date", "hometeam", "homecode", "awayteam", "awaycode"]]
-        .assign(turn=lambda x: x["date"].rank(method="dense").astype(int))
-        .sort_values(["turn", "gameday"])
-    )
+    """The next round's games with a `turn`, and the same games as one row per team (`venue` home/away).
+
+    The round's latest date is turn 2 and every earlier date turn 1 (a round on a single date is all turn 1). Dates
+    are parsed (`Sep 24, 2026`) before comparing, so a round spanning two months still orders correctly.
+    """
+    games = schedule.query("gameday==@next_round")[["gameday", "date", "hometeam", "homecode", "awayteam", "awaycode"]]
+    dates = pd.to_datetime(games["date"], format="%b %d, %Y")
+    games = games.assign(turn=((dates == dates.max()) & (dates != dates.min())).astype(int) + 1).sort_values([
+        "turn",
+        "gameday",
+    ])
     home = (
         games[["homecode", "awaycode", "turn"]]
         .rename(columns={"homecode": "team", "awaycode": "opponent"})

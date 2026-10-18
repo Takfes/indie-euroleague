@@ -48,11 +48,11 @@ def test_panel_details_and_static_content(repo) -> None:
     reg, pipelines, wrappers = repo
     text = render_html(reg, pipelines, wrappers, REPO_ROOT)
     data = _payload(text)
-    script = data["nodes"]["s_build_schedule_turns"]["detail"]
-    assert script["path"].endswith("build_schedule_turns.py") and script["pipelines"] == ["schedule"]
+    script = data["nodes"]["s_merge_boxscore"]["detail"]
+    assert script["path"].endswith("merge_boxscore.py") and script["pipelines"] == ["merge_history_live"]
     assert script["doc"] and "\n" not in script["doc"]
-    ds = data["nodes"]["d_schedule"]["detail"]
-    assert ds["producer"] == "s_build_schedule_turns" and ds["final"] is True
+    ds = data["nodes"]["d_eubook"]["detail"]
+    assert ds["producer"] == "s_build_eubook" and ds["final"] is True
     assert str(REPO_ROOT) not in text  # no absolute paths -> identical across machines
     assert "status" not in script and data["status"] is False
 
@@ -90,9 +90,9 @@ def test_parse_dvc_status() -> None:
 
 def test_status_overlay_marks_scripts(repo) -> None:
     reg, pipelines, wrappers = repo
-    text = render_html(reg, pipelines, wrappers, REPO_ROOT, {"build_schedule_turns": "stale"})
+    text = render_html(reg, pipelines, wrappers, REPO_ROOT, {"merge_boxscore": "stale"})
     data = _payload(text)
-    assert data["status"] is True and data["nodes"]["s_build_schedule_turns"]["detail"]["status"] == "stale"
+    assert data["status"] is True and data["nodes"]["s_merge_boxscore"]["detail"]["status"] == "stale"
 
 
 def test_cli_writes_page_and_status_degrades_gracefully(monkeypatch, capsys, tmp_path: Path) -> None:
