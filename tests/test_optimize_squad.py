@@ -1052,6 +1052,14 @@ def test_must_have_forces_a_player_in_and_avoid_forces_an_owned_player_out() -> 
     assert sol.objective < free.objective  # the rules bind: they cost something
 
 
+def test_must_have_a_player_you_do_not_own_leaves_no_baseline_instead_of_crashing() -> None:
+    df = league(prev=True)
+    buy = sorted(set(df["player"]) - set(_prev_names(df)))[0]
+    cfg = cfg_of(must_have=[buy])  # unlimited trades
+    assert opt.current_squad_objective(df, cfg) is None  # keeping the squad cannot satisfy the must_have
+    assert buy in _squad(optimize_squad(df, cfg))
+
+
 def test_must_have_an_owned_player_means_no_trade_for_them_and_empty_lists_change_nothing() -> None:
     df = league(prev=True)
     owned = _prev_names(df)[0]

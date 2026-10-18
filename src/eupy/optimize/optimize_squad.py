@@ -689,7 +689,7 @@ def current_squad_objective(df: pd.DataFrame, cfg: Optimization) -> float | None
         return None
     try:
         return optimize_squad(df, replace(cfg, max_trades=0, unlimited_trades=False)).objective
-    except RuntimeError:  # infeasible with the current squad
+    except (RuntimeError, ValueError):  # infeasible, or a must_have that needs a purchase at 0 trades
         return None
 
 
