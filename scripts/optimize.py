@@ -29,7 +29,7 @@ All run parameters live in the `[optimization]` section of `config/config.toml` 
 `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`); defaults are in
 `eupy.config.defaults.Optimization`. There are no CLI flags: edit the config, then run
 
-    uv run python scripts/optimize.py        (or: make optimize)
+    uv run python -m eupy.optimize.optimize_squad        (or: make optimize)
 
 Input contract -- first sheet of the workbook, header row, extra columns ignored. The workbook's
 columns are mapped to what the model needs in ONE place, `COLUMNS` below (plus `target` in the

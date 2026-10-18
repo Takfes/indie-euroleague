@@ -44,6 +44,7 @@ from eupy.optimize.optimize_squad import (
 )
 
 SAMPLE = Path(__file__).parent / "data" / "optimizer_input_sample.csv"
+CONFIG_SAMPLE = Path(__file__).parent / "data" / "optimizer_config_sample.toml"
 
 # Written from rules.md, deliberately not derived from FORMATION_BOUNDS.
 LEGAL_FORMATIONS = {(2, 2, 1), (1, 2, 2), (2, 1, 2), (1, 3, 1), (3, 1, 1)}
@@ -872,3 +873,13 @@ def test_scripts_optimize_is_a_copy_of_the_package_module() -> None:
     script = _code_after_docstring(root / "scripts" / "optimize.py")
     package = _code_after_docstring(root / "src" / "eupy" / "optimize" / "optimize_squad.py")
     assert script.replace("parents[1]", "parents[3]") == package
+
+
+def test_config_sample_lists_every_optimization_key_and_loads() -> None:
+    """The documented sample stays in step with the typed section: same keys, and it loads."""
+    import tomllib
+
+    keys = set(tomllib.loads(CONFIG_SAMPLE.read_text(encoding="utf-8"))["optimization"])
+    assert keys == set(Optimization.__dataclass_fields__)
+    cfg = load_config(CONFIG_SAMPLE).optimization
+    assert cfg.min_players_per_turn == [3, 3] and cfg.solver_options["random_seed"] == 7

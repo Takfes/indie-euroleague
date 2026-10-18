@@ -20,7 +20,7 @@ test: ## Test the code with pytest
 
 .PHONY: optimize
 optimize: ## Run the squad optimizer (config/config.toml [optimization]) -> data/stage_99/optimizer_output.xlsx
-	@uv run python scripts/optimize.py
+	@uv run python -m eupy.optimize.optimize_squad
 
 .PHONY: build
 build: clean-build ## Build wheel file

@@ -1,8 +1,14 @@
-# Reference optimizer config. See specs/spec-optimizer-config.md "Config file" for the key list.
-input = "data/raw_data/optimizer/optimizer_input.csv"
-sheet = ""
-output = "data/stage_01/squad_solution.csv"
-cash = 100.0
+# Reference [optimization] section: every key, non-default values. Same format as config/config.toml.
+[optimization]
+target = "pir_mean"
+objective_mode = "robustness"
+robustness_lambda = 0.5
+upside_beta = 0.25
+downside_gamma = 0.1
+credit_value = 3.0
+cash = 2.5
 max_trades = 4
 unlimited_trades = false
-credit_value = 0.0
+min_players_per_turn = [3, 3]
+solver = "appsi_highs"
+solver_options = { threads = 1, random_seed = 7, mip_rel_gap = 0.01 }
