@@ -41,7 +41,7 @@ dvc = false
 scripts = ["optimize_squad"]
 
 # Wrappers: named lists of pipelines. Each is a DVC step (`dvc repro <wrapper>` runs every step of its pipelines,
-# fetchers included) and a filter of the data-map HTML.
+# fetchers included).
 [wrappers]
 # steps 1-3: fetch, merge the deltas, resolve player names (stops while stats players are unmatched)
 refresh_data = ["fetch_update", "merge_history_live", "entity"]

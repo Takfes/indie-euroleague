@@ -152,9 +152,6 @@ data/**
 # data/curated: tracked human/agent judgements, not derivable from raw data (none stored today).
 !data/curated/**
 
-# Local DVC-status overlay of the data map (python -m eupy.registry html --status)
-docs/data-map.status.html
-
 # Claude Code worktrees
 .claude/worktrees/
 

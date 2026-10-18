@@ -24,7 +24,7 @@ A `dvc = true` pipeline made only of fetchers also gets an aggregate step named 
 
 A wrapper (`[wrappers]`: name -> pipeline names, all `dvc = true`) also gets an aggregate step named after it
 (`dvc repro <wrapper>` runs every step of those pipelines): it depends on all their steps' outputs and has no
-outs. A wrapper is how one DVC command runs a whole flow; the same table filters the data-map HTML.
+outs. A wrapper is how one DVC command runs a whole flow.
 
 `data/stage_99/` symlinks are never outs. Steps are sorted by name and the output has no timestamps, so
 regeneration is byte-identical.

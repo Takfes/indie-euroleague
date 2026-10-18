@@ -169,7 +169,6 @@ Notes: free text
 uv run python -m eupy.registry check      # lint: exit 1 + one line per problem
 uv run python -m eupy.registry show       # print the model
 uv run python -m eupy.registry docs       # docs/data-catalogue.md + docs/data-graph.md
-uv run python -m eupy.registry html       # docs/data-map.html (interactive lineage map); --status adds DVC freshness
 uv run python -m eupy.registry dvc        # dvc.yaml
 ```
 

@@ -7,7 +7,7 @@ Deferred work, off the critical path.
   likely an accent-spelling-driven re-mint upstream; also Marko Simonovic). Not fixable by the name maps; worth knowing about for any future
   box-score analysis that assumes one `player_id` per player.
 
-## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`, `spec-html-viewer.md`)
+## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`)
 
 - **Control panel.** Local server (`uv run eupy panel`, 127.0.0.1 only) serving the HTML data map
   with run buttons per pipeline (`dvc repro <pipeline>`, log streaming, fresh/stale colouring from
