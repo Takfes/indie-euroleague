@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
 from eupy.entity.player_names import PlayerNames
 from eupy.entity.team_names import TeamNames
-from eupy.transform.build_eubook import join_stats, next_round_games, player_kpis, prepare_boxscore
+from eupy.transform.build_eubook import delivery_path, join_stats, next_round_games, player_kpis, prepare_boxscore
 
 TEAMS = TeamNames([{"name": "Panathinaikos", "variants": ["PAO"]}, {"name": "Real Madrid", "variants": ["MAD"]}])
 PLAYERS = PlayerNames(
@@ -144,3 +146,9 @@ def test_a_round_on_a_single_date_is_all_turn_1() -> None:
     })
     games, _ = next_round_games(schedule, 7)
     assert games["turn"].tolist() == [1, 1]
+
+
+def test_delivery_copy_is_round_numbered_in_the_delivery_dir() -> None:
+    assert delivery_path(Path("data/stage_03/eubook.xlsx"), Path("data/stage_99"), 7) == Path(
+        "data/stage_99/eubook_007.xlsx"
+    )

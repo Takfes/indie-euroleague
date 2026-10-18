@@ -55,7 +55,7 @@ flowchart LR
     d_euroleague_header_merged[("euroleague_header_merged<br/>(stage 1)")]
     d_squad_solution[("squad_solution ★<br/>(stage 1)")]
     d_player_name_map[("player_name_map<br/>(stage 2)")]
-    d_eubook[("eubook ★<br/>(stage 3)")]
+    d_eubook[("eubook<br/>(stage 3)")]
 
     %% edges
     d_euroleague_box_score_merged --> s_build_eubook
@@ -99,7 +99,7 @@ flowchart LR
     classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
     classDef stage1_final fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e,stroke-width:4px
     classDef stage2 fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c
-    classDef stage3_final fill:#ece0f5,stroke:#8a62a8,color:#2f1a40,stroke-width:4px
+    classDef stage3 fill:#ece0f5,stroke:#8a62a8,color:#2f1a40
     class s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule,s_fetch_kaggle_euroleague script_stage0
     class s_merge_boxscore,s_merge_headers,s_optimize_squad script_stage1
     class s_build_player_name_map script_stage2
@@ -109,5 +109,5 @@ flowchart LR
     class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
     class d_squad_solution stage1_final
     class d_player_name_map stage2
-    class d_eubook stage3_final
+    class d_eubook stage3
 ```

@@ -33,13 +33,13 @@ Notes:
 | `euroleague_header_merged` | 01 | `data/stage_01/euroleague_header_merged.csv` | `merge_headers.py` | `euroleague_net/headers` | false | — |
 | `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` |
 | `player_name_map` | 02 | `data/stage_02/player_name_map.csv` | `build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `game_schedule/schedule`, `player_name_decisions` | false | — |
-| `eubook` | 03 | `data/stage_03/eubook.xlsx` | `build_eubook.py` | `euroleague_box_score_merged`, `fantasy_stats/players`, `game_schedule/schedule`, `player_name_map` | true | `data/stage_99/eubook.xlsx` |
+| `eubook` | 03 | `data/stage_03/eubook.xlsx` | `build_eubook.py` | `euroleague_box_score_merged`, `fantasy_stats/players`, `game_schedule/schedule`, `player_name_map` | false | — |
 
 Notes:
 
 - `build_player_name_map.py`: The schedule feeds TeamNames (club scoping); the decisions file is committed with the package and written by the build-name-maps skill, so DVC reruns this stage when a decision is recorded. Everything else is recomputed from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes. The audit prints only; the exit code is 1 solely in pause mode with a played, unlinked box-score player (the map is written first). CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined with " | "), match_status, matched_by, notes.
 - `optimize_squad.py`: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run. Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does not exist yet).
-- `build_eubook.py`: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content, not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season. Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames, from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
+- `build_eubook.py`: Overwritten each run (the latest workbook). Also writes data/stage_99/eubook_<next round, 3 digits>.xlsx (same content, a real file not tracked by DVC, one per round) so stage_99 collects the delivered workbooks. Reads schedule_<season>.csv for the config season. Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames, from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
 - `merge_boxscore.py`: Live deltas only by default. With include_kaggle the Kaggle file data/raw_data/kaggle_data/euroleague_box_score.csv is merged under them; it is deliberately not a declared input, so a merge never pulls the Kaggle fetch into the graph (after refreshing Kaggle with include_kaggle on, rerun with `dvc repro -f merge_boxscore`).
 - `merge_headers.py`: Live deltas only by default. With include_kaggle the Kaggle file data/raw_data/kaggle_data/euroleague_header.csv is merged under them; it is deliberately not a declared input, so a merge never pulls the Kaggle fetch into the graph (after refreshing Kaggle with include_kaggle on, rerun with `dvc repro -f merge_headers`).
 
@@ -56,4 +56,4 @@ Notes:
 | `src/eupy/transform/merge_boxscore.py` | `euroleague_net/box_score` | `euroleague_box_score_merged` | false | false |
 | `src/eupy/transform/merge_headers.py` | `euroleague_net/headers` | `euroleague_header_merged` | false | false |
 | `src/eupy/entity/build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `game_schedule/schedule`, `player_name_decisions` | `player_name_map` | false | false |
-| `src/eupy/transform/build_eubook.py` | `euroleague_box_score_merged`, `fantasy_stats/players`, `game_schedule/schedule`, `player_name_map` | `eubook` | true | false |
+| `src/eupy/transform/build_eubook.py` | `euroleague_box_score_merged`, `fantasy_stats/players`, `game_schedule/schedule`, `player_name_map` | `eubook` | false | false |

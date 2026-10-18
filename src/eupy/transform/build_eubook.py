@@ -31,10 +31,10 @@ Inputs:
 Sources: none
 Outputs:
   - eubook: data/stage_03/eubook.xlsx
-Final: true
+Final: false
 Impure: false
-Notes: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content,
-  not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season.
+Notes: Overwritten each run (the latest workbook). Also writes data/stage_99/eubook_<next round, 3 digits>.xlsx (same
+  content, a real file not tracked by DVC, one per round) so stage_99 collects the delivered workbooks. Reads schedule_<season>.csv for the config season.
   Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames,
   from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
 """
@@ -55,6 +55,7 @@ BOX_SCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.
 PLAYERS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 SCHEDULE_DIR = REPO_ROOT / "data" / "raw_data" / "game_schedule"
 OUT_PATH = REPO_ROOT / "data" / "stage_03" / "eubook.xlsx"
+DELIVERY_DIR = REPO_ROOT / "data" / "stage_99"
 
 SLOW_WINDOW = 5
 FAST_WINDOW = 3
@@ -361,6 +362,11 @@ def build_sheets(box: pd.DataFrame, stats: pd.DataFrame, schedule: pd.DataFrame,
     return sheets, next_round
 
 
+def delivery_path(out: Path, delivery_dir: Path, next_round: int) -> Path:
+    """The round-numbered copy of the workbook, e.g. `<delivery_dir>/eubook_007.xlsx`."""
+    return delivery_dir / f"{out.stem}_{next_round:03d}{out.suffix}"
+
+
 def write_workbook(sheets: dict[str, pd.DataFrame], path: Path) -> None:
     """Write the dataframes to an Excel workbook, one sheet per key."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -375,6 +381,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--players", type=Path, default=PLAYERS_PATH, help="fantasy_stats/players.csv")
     parser.add_argument("--schedule", type=Path, default=None, help="schedule CSV (default: schedule_<season>.csv)")
     parser.add_argument("--out", type=Path, default=OUT_PATH, help="workbook path")
+    parser.add_argument("--delivery-dir", type=Path, default=DELIVERY_DIR, help="where the round-numbered copy goes")
     return parser.parse_args()
 
 
@@ -390,9 +397,9 @@ def main() -> None:
         PlayerNames.load(),
     )
     write_workbook(sheets, args.out)
-    stamped = args.out.with_name(f"{args.out.stem}_{next_round:03d}{args.out.suffix}")
+    stamped = delivery_path(args.out, args.delivery_dir, next_round)
     write_workbook(sheets, stamped)
-    print(f"Wrote {len(sheets)} sheets for round {next_round} to {args.out} and {stamped.name}")
+    print(f"Wrote {len(sheets)} sheets for round {next_round} to {args.out} and {stamped}")
 
 
 if __name__ == "__main__":
