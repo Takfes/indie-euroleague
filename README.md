@@ -39,9 +39,9 @@ After `clean-data` run `uv run dvc repro refresh_and_build_eubook` to rebuild ev
 
 ## Name matching: who does what
 
-The fantasy stats (`C. Jones`) and the box score (`JONES, CARLIK`) spell players differently. In flow order:
+The fantasy stats (`C. Jones`, club `PAO`) are the baseline: later joins keep them on the left. The box score spells players `JONES, CARLIK` (club `PAN`), so the two have to be linked first.
 
-1. `build_player_name_map` (script, one flow stage): matches each stats player to a box-score player of the same club by name, ignoring `Jr`/`IV` suffixes. Exact matches are final, the rest stay open. It applies the recorded decisions, writes the derived map `data/stage_02/player_name_map.csv` (never edited by hand), then audits the map and prints the players who played but are not linked.
-2. `/build-name-maps` (skill, manual, in a Claude session): only when step 1 lists such players. It researches them and records a decision in `src/eupy/entity/maps/player_name_decisions.json` (committed). DVC cannot call it.
-3. Re-run step 1 (`uv run dvc repro -s build_player_name_map`; it reruns by itself when the decisions change) until the list is empty.
-4. `build_eubook` (script) joins the stats and the box score on the normalized names from the map.
+- **`build_player_name_map`** (script, a stage of the DVC flows) reformats the box-score names to the stats form and matches them exactly within the same club, ignoring `Jr`/`IV` suffixes. Clubs are resolved through `TeamNames`, which starts from the schedule. It writes `data/stage_02/player_name_map.csv` (derived, never edited by hand): the exact matches, the open points (`needs_review` / `no_candidate`) and the recorded decisions applied on top.
+- **The inline report** that ends the run lists: stats players found in both datasets; stats players not in the box score (information only: usually not played yet, nothing to join, they stay in the map); and box-score players who played but are not linked (a warning: they drop out of the left join).
+- **Mode** (`names_mode` in `config/config.toml`, or `--mode`): `continue` (default) prints the report and goes on; `pause` prints the same report, then exits 1 after writing the map, which stops the flow until the open points are resolved or the mode is `continue`.
+- **`/build-name-maps`** (skill, run by you in a Claude session) resolves the open points and records the decisions in `src/eupy/entity/maps/player_name_decisions.json` (committed). It is not part of the DVC flow, since DVC cannot invoke an agent. Afterwards `uv run dvc repro -s build_player_name_map` rebuilds the map and reports again (the decisions file is a declared input).
