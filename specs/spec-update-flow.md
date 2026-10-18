@@ -12,7 +12,7 @@ One DVC-driven flow that refreshes the working datasets (euroleague.net box scor
 - `build_player_name_map` ends with an audit (`name_audit.py`) comparing the datasets: in both (ok), stats only (info), box score only with minutes played (listed with where found and the likely stats entry). Mode `[transformation] names_mode`: `continue` (default, exit 0) or `pause` (exit 1 on box-score-only players; stats-only never pauses).
 - Pipelines: `fetch_update` (box score, fantasy stats, schedule), `live_headers` (headers fetch + merge, kept and runnable alone, not in the flows: nothing reads the merged headers), `fetch_kaggle` (separate flow; `fetch_raw` is gone), `entity` and `workbook` are DVC pipelines, `build_boxscore_kpis` is retired (`build_eubook` does its joins).
 - There is no separate check script or report file: the audit prints, and in `pause` mode the map stage itself fails, which stops the flow before the workbook.
-- `build_eubook` (`transform/`): the pipeline version of `scripts/dataprep.py`, which stays untouched; output `eubook.xlsx` (final).
+- `build_eubook` (`transform/`): the pipeline version of `scripts/dataprep.py`, which stays untouched; output `eubook.xlsx` (final) plus an untracked round-stamped copy.
 - Flows are `[wrappers]` entries, emitted as aggregate DVC stages: `refresh_data` (fetch, merge, names) and `refresh_and_build_eubook` (the same plus the workbook).
 
 Out of scope: backfilling past seasons, deleting Kaggle data, changes to `scripts/dataprep.py`.
