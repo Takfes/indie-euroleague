@@ -1,0 +1,62 @@
+# Optimizer scenarios: `make optimize-scenario` (all) or `make optimize-scenario SCENARIO=team_1,team_2`.
+# One table per scenario. The key names the output: data/stage_99/optimizer_output_<key>.xlsx
+# (letters, digits and underscores only). Method and keys: docs/optimizer.md.
+#
+# roster = the players you own (names exactly as in optimizer_input.xlsx); [] = a fresh squad.
+#          Left out = the workbook's own in_prev_roster column is used.
+# Every other key is an [optimization] key of config/config.toml and overrides it for this scenario only
+# (target, robustness_lambda, upside_beta, downside_gamma, credit_value, cash, max_trades, unlimited_trades,
+#  min_players_per_turn, solver, solver_options).
+
+# [team_1]
+# roster = ["Player One", "Player Two"]   # 10 names: 4 G, 4 F, 2 C
+# cash = 3.5
+# upside_beta = 1.0
+
+[team_1]
+roster = [
+  "Mathias Lessort", "Aliou Diarra",
+  "Nigel Hayes-Davis", "Semi Ojeleye", "Konstantinos Mitoglou", "Eleftherios Mantzoukas",
+  "Duane Washington", "Yam Madar", "Tommaso Baldasso", "Marc-Owen Fodzo Dada",
+]
+must_have = ["Carlik Jones"]
+avoid = ["Eleftherios Mantzoukas"]
+target = "exp_pir"
+robustness_lambda = 0.0
+upside_beta = 1.0
+downside_gamma = 1.0
+credit_value = 0.0
+cash = 0.0
+unlimited_trades = true
+min_players_per_turn = [3, 3]
+# max_trades = 4
+
+[team_2]
+roster = [
+  "Aliou Diarra", "Johannes Voigtmann",
+  "Nigel Hayes-Davis", "Eleftherios Mantzoukas", "Stefan Joksimovic", "Kostas Papanikolaou",
+  "Tj Shorts", "Jean Montero", "Marcus Carr", "Panagiotis Kalaitzakis",
+]
+target = "exp_pir"
+robustness_lambda = 0.0
+upside_beta = 1.0
+downside_gamma = 0.0
+credit_value = 0.0
+cash = 0.0
+unlimited_trades = true
+min_players_per_turn = [2, 2]
+
+[team_3]
+roster = [
+  "Aliou Diarra", "Tonye Jekiri",
+  "Dwayne Bacon", "Semi Ojeleye", "Eleftherios Mantzoukas", "Alberto Abalde",
+  "Theo Maledon", "Yam Madar", "Jean Montero", "John Dibartolomeo",
+]
+target = "pir_mean"
+robustness_lambda = 0.0
+upside_beta = 1.0
+downside_gamma = 1.0
+credit_value = 0.0
+cash = 0.0
+unlimited_trades = true
+min_players_per_turn = [2, 2]

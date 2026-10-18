@@ -1,15 +1,36 @@
 #!/usr/bin/env python3
-"""Fetch EuroLeague Fantasy Challenge round-by-round stats and write two CSVs.
+"""Fetch EuroLeague Fantasy Challenge stats (season total or round by round) and write two CSVs.
 
 The Fantasy Challenge web app (`euroleaguefantasy.euroleaguebasketball.net`)
 is a Flutter/CanvasKit SPA that calls a JSON API on `fantaking-api.dunkest.com`
 for its Stats table. This script reproduces those calls directly: one request
-to the league config endpoint to find which round to fetch through (and the
-matchday ids -- these do NOT line up 1:1 with the visible round number), then
-one paginated request per round per role (players vs. head coaches) to the
-stats table endpoint.
+to the league config endpoint to find the competition, the in-progress round
+and the matchday ids (these do NOT line up 1:1 with the visible round number),
+then paginated requests to the stats table endpoint per role (players vs. head
+coaches).
 
-Fetches through the *current* (in-progress) round, not just completed ones:
+Two fetch modes, chosen with `--rounds`:
+
+- `all` (default): one fetch per role with no matchday filter. The API
+  aggregates over every round played, and every row carries `round` = "all".
+  `--stats-type` picks the aggregate: `avg` (default) is the per-game mean over
+  the games each person played, `tot` the season sum (the only way to recover
+  the games played, roughly as tot / avg). A handful of requests, so it runs at
+  the minimum delay.
+- a selection such as `1-4,6`: one fetch per listed round and role, each row
+  tagged with its round number, always `tot` (a single round has no average to
+  take). Many more requests, so the default delay is longer. The selection is
+  bounded by the in-progress round.
+
+The mode and stats type default to `[acquisition] fantasy_rounds` / `fantasy_stats_type` in `config/config.toml`
+(the DVC stage passes no arguments, so this is how `dvc repro` is parametrized); the flags override them.
+
+`--delay` sets the pause between requests in either mode. The API rate-limits
+at about 5 requests per 2 s window and answers 429 beyond it; the fetcher does
+not retry, so keep the delay at or above its mode default if a run fails with
+`HTTP Error 429: Too Many Requests`.
+
+A per-round fetch reaches the *current* (in-progress) round, not just completed ones:
 the API starts publishing a round's `quotation` (price entering that round)
 as soon as it becomes `current_matchday`, well before that round's box-score
 columns are final -- waiting for the round to close would miss capturing that
@@ -27,13 +48,17 @@ and the empirical findings behind every design choice below (why one matchday
 per call, why no `active_players` filter, why `per_page` is capped at 100,
 etc).
 
-Every run re-derives the round range from the live API and rewrites both
-CSVs from scratch (no incremental state) -- cheap enough given the season's
-round count, and avoids state-file complexity for what's ultimately a
-full-history re-derivation each time.
+Every run re-derives the competition and round range from the live API and
+rewrites both CSVs from scratch (no incremental state) -- cheap enough given
+the season's round count, and avoids state-file complexity for what's
+ultimately a full re-derivation each time.
+
+Before writing, players the API listed twice in a round are reduced to their
+lowest-rank row (`drop_duplicate_players`, logged as a warning), then both
+tables pass the shared duplicate/empty-row validation, which fails the run.
 
 Usage:
-    python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--out-dir PATH]
+    python src/eupy/fetchers/fetch_euroleague_fantasy_stats.py [--rounds all|1-4,6] [--stats-type avg|tot] [--delay SECONDS] [--out-dir PATH]
 
 Inputs: none
 Sources:
@@ -58,6 +83,10 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
+from eupy.logging_setup import get_logger
+from eupy.quality import validate
+
 CONFIG_URL = "https://fantaking-api.dunkest.com/api/v1/leagues/10/config"
 STATS_URL_TEMPLATE = "https://fantaking-api.dunkest.com/api/v1/competitions/{competition_id}/stats/players/table"
 
@@ -68,8 +97,17 @@ HEAD_COACH_POSITION = "Head Coach"
 # there's no "give me everything" option, real pagination is required).
 MAX_PER_PAGE = 100
 
-# Polite-client delay between sequential requests.
+# Polite-client delay between sequential requests, per fetch mode. The API allows about 5 requests per 2 s window
+# (`X-RateLimit-Limit: 5`; a 429 carries `Retry-After: 1-2`). The all-rounds total needs only a handful of requests,
+# so it runs at the minimum delay; a per-round fetch sends a few per round and waits longer. `--delay` overrides both.
 REQUEST_DELAY_SECONDS = 0.2
+ROUNDS_DELAY_SECONDS = 1.0
+
+# `--rounds` value (and the `round` column value) for the whole-season aggregate.
+ALL_ROUNDS = "all"
+
+# `stats_type` values the API accepts: `avg` is the per-game mean over the games each person played, `tot` the sum.
+STATS_TYPES = ("avg", "tot")
 
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "fantasy_stats"
 DEFAULT_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
@@ -195,23 +233,63 @@ def max_round_to_fetch(config: dict[str, Any]) -> int:
     return config["current_matchday"]["number"]
 
 
+def parse_rounds(spec: str, max_round: int) -> list[int]:
+    """Parse a `--rounds` selection such as `1-4,6` into sorted round numbers within `1..max_round`.
+
+    Raises:
+        ValueError: If a part is not a number or an `a-b` range, or a round lies outside `1..max_round`.
+    """
+    rounds: set[int] = set()
+    for part in spec.split(","):
+        low, _, high = part.strip().partition("-")
+        try:
+            first, last = int(low), int(high or low)
+        except ValueError:
+            raise ValueError(
+                f"Cannot read rounds {spec!r}: {part!r} is neither a round number nor an a-b range. "
+                f"Use '{ALL_ROUNDS}' or a list such as '1-4,6'."
+            ) from None
+        if first < 1 or last > max_round or first > last:
+            raise ValueError(
+                f"Rounds {part.strip()!r} are outside 1-{max_round} (the in-progress round is {max_round}). "
+                f"Pick rounds within that range or use '{ALL_ROUNDS}'."
+            )
+        rounds.update(range(first, last + 1))
+    return sorted(rounds)
+
+
 def fetch_round_rows(
-    competition_id: int, matchday_id: int, positions: str, round_number: int, token: str
+    competition_id: int,
+    matchday_id: int | None,
+    positions: str,
+    round_number: int | str,
+    token: str,
+    delay: float = REQUEST_DELAY_SECONDS,
+    stats_type: str = "tot",
 ) -> list[dict[str, Any]]:
-    """Fetch every row for one round and one `positions` filter, paginating as needed."""
+    """Fetch every row for one round and one `positions` filter, paginating as needed.
+
+    A `matchday_id` of None sends no matchday filter: the API then aggregates over every round played (as
+    `stats_type` says: `avg` or `tot`), and the caller tags those rows with `ALL_ROUNDS` as `round_number`.
+    `delay` is the pause after each request.
+    """
     url = STATS_URL_TEMPLATE.format(competition_id=competition_id)
     rows: list[dict[str, Any]] = []
     page = 1
     while True:
-        params = {
-            "stats_type": "tot",
-            "matchdays": matchday_id,
+        params: dict[str, Any] = {
+            "stats_type": stats_type,
             "positions": positions,
             "page": page,
             "per_page": MAX_PER_PAGE,
         }
+        if matchday_id is not None:
+            params["matchdays"] = matchday_id
         payload = fetch_json(f"{url}?{urllib.parse.urlencode(params)}", token)
-        time.sleep(REQUEST_DELAY_SECONDS)
+        time.sleep(delay)
+        get_logger("fetch_euroleague_fantasy_stats").info(
+            "round %s, positions %s: page %d/%d fetched", round_number, positions, page, payload["meta"]["last_page"]
+        )
 
         columns = [sanitize_column_name(c) for c in payload["data"]["columns"]]
         for player in payload["data"]["players"]:
@@ -224,6 +302,28 @@ def fetch_round_rows(
             break
         page += 1
     return rows
+
+
+def drop_duplicate_players(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one row per `(round, player_id)`: the one with the lowest `rank`.
+
+    The API sometimes lists a zero-point player twice in a round, with the same values and two different ranks.
+    Every dropped row is logged as a warning; row order is otherwise preserved.
+    """
+    best: dict[tuple[str, str], int] = {}
+    for i, row in enumerate(rows):
+        key = (str(row["round"]), str(row["player_id"]))
+        if key not in best or int(rows[best[key]]["rank"]) > int(row["rank"]):
+            best[key] = i
+    kept = set(best.values())
+    dropped = [row for i, row in enumerate(rows) if i not in kept]
+    if dropped:
+        get_logger("fetch_euroleague_fantasy_stats").warning(
+            "fantasy_stats/players: dropped %d duplicate (round, player_id) row(s), kept the lowest rank: %s",
+            len(dropped),
+            [(r["round"], r["player_id"], r["name"], r["rank"]) for r in dropped],
+        )
+    return [row for i, row in enumerate(rows) if i in kept]
 
 
 def write_csv(rows: list[dict[str, Any]], out_path: Path, fieldnames: list[str]) -> None:
@@ -240,43 +340,119 @@ def write_csv(rows: list[dict[str, Any]], out_path: Path, fieldnames: list[str])
         writer.writerows(rows)
 
 
-def run(out_dir: Path, token: str) -> None:
-    """Fetch every round's players and head-coach stats through the in-progress round, write both CSVs."""
+def run(
+    out_dir: Path,
+    token: str,
+    rounds: str = ALL_ROUNDS,
+    delay: float | None = None,
+    stats_type: str | None = None,
+) -> None:
+    """Fetch players and head-coach stats, write both CSVs.
+
+    Args:
+        out_dir: Directory for `players.csv` and `head_coaches.csv`.
+        token: The fantasy API bearer token.
+        rounds: `ALL_ROUNDS` for the one season-wide fetch (`round` column = "all"), or a selection such as
+            `1-4,6` for one fetch per listed round, bounded by the in-progress round.
+        delay: Seconds between requests; None picks the mode default (`REQUEST_DELAY_SECONDS` for the season-wide
+            fetch, `ROUNDS_DELAY_SECONDS` per round).
+        stats_type: `avg` or `tot` for the season-wide fetch (None means `avg`). A per-round fetch is always `tot`.
+
+    Raises:
+        ValueError: If `stats_type` is not `avg`/`tot`, or is `avg` together with a round selection.
+    """
+    if stats_type not in (None, *STATS_TYPES):
+        raise ValueError(f"Unknown stats type {stats_type!r}. Use one of {STATS_TYPES}.")
     config = fetch_config(token)
     competition_id: int = config["current_competition_id"]
     max_round = max_round_to_fetch(config)
-    matchday_by_round = matchday_ids_by_round(config)
+    if rounds == ALL_ROUNDS:
+        # (round label, matchday id): no matchday filter gives the season total in one pass.
+        targets: list[tuple[int | str, int | None]] = [(ALL_ROUNDS, None)]
+        delay = REQUEST_DELAY_SECONDS if delay is None else delay
+        stats_type = stats_type or "avg"
+    else:
+        if stats_type == "avg":
+            raise ValueError(
+                "stats type 'avg' only applies to the all-rounds fetch; a per-round fetch is always 'tot'. "
+                f"Drop --stats-type, or use --rounds {ALL_ROUNDS}."
+            )
+        stats_type = "tot"
+        matchday_by_round = matchday_ids_by_round(config)
+        targets = [(n, matchday_by_round[n]) for n in parse_rounds(rounds, max_round)]
+        delay = ROUNDS_DELAY_SECONDS if delay is None else delay
 
     players_rows: list[dict[str, Any]] = []
     head_coaches_rows: list[dict[str, Any]] = []
-    for round_number in range(1, max_round + 1):
-        matchday_id = matchday_by_round[round_number]
-        players_rows.extend(fetch_round_rows(competition_id, matchday_id, PLAYER_POSITIONS, round_number, token))
+    log = get_logger("fetch_euroleague_fantasy_stats")
+    log.info("fetching %d target(s): rounds %s, stats type %s, delay %ss", len(targets), rounds, stats_type, delay)
+    for i, (round_number, matchday_id) in enumerate(targets, start=1):
+        log.info("round %s (%d/%d): fetching players and head coaches", round_number, i, len(targets))
+        players_rows.extend(
+            fetch_round_rows(
+                competition_id, matchday_id, PLAYER_POSITIONS, round_number, token, delay, stats_type=stats_type
+            )
+        )
         head_coaches_rows.extend(
-            fetch_round_rows(competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token)
+            fetch_round_rows(
+                competition_id, matchday_id, HEAD_COACH_POSITION, round_number, token, delay, stats_type=stats_type
+            )
         )
 
+    players_rows = drop_duplicate_players(players_rows)
+    validate(players_rows, ["round", "player_id"], "fantasy_stats/players")
+    validate(head_coaches_rows, ["round", "player_id"], "fantasy_stats/head_coaches")
     players_path = out_dir / "players.csv"
     head_coaches_path = out_dir / "head_coaches.csv"
     write_csv(players_rows, players_path, PLAYER_CSV_FIELDNAMES)
     write_csv(head_coaches_rows, head_coaches_path, HEAD_COACH_CSV_FIELDNAMES)
 
-    print(
-        f"Wrote {len(players_rows)} player rows to {players_path} and "
-        f"{len(head_coaches_rows)} head-coach rows to {head_coaches_path} "
-        f"(rounds 1-{max_round}, including the in-progress round)"
+    log.info(
+        "Wrote %d player rows to %s and %d head-coach rows to %s (rounds: %s, stats type: %s, delay %ss, "
+        "in-progress round %s)",
+        len(players_rows),
+        players_path,
+        len(head_coaches_rows),
+        head_coaches_path,
+        rounds,
+        stats_type,
+        delay,
+        max_round,
     )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
+    parser.add_argument(
+        "--rounds",
+        default=get_config().acquisition.fantasy_rounds,
+        help=(
+            f"'{ALL_ROUNDS}' for the whole season in one pass, or rounds such as '1-4,6', one fetch each "
+            "(default: config acquisition.fantasy_rounds)"
+        ),
+    )
+    parser.add_argument(
+        "--stats-type",
+        choices=STATS_TYPES,
+        default=get_config().acquisition.fantasy_stats_type,
+        help=(
+            "'avg' per-game mean (default for --rounds all) or 'tot' season sum; a per-round fetch is always 'tot' "
+            "(default: config acquisition.fantasy_stats_type)"
+        ),
+    )
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=None,
+        help=f"Seconds between requests (default: {REQUEST_DELAY_SECONDS} for the total, {ROUNDS_DELAY_SECONDS} per round)",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    run(args.out_dir, get_auth_token())
+    run(args.out_dir, get_auth_token(), args.rounds, args.delay, args.stats_type)
 
 
 if __name__ == "__main__":

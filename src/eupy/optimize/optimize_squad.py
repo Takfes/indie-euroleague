@@ -1,86 +1,125 @@
 #!/usr/bin/env python3
 """Pick the optimal single-round EuroLeague Fantasy (Classic mode) squad with a Pyomo MILP.
 
-Given one tidy table of player candidates for the upcoming round plus three scalars (`cash`,
-`max_trades`, `credit_value`), choose the 10 players (4 G / 4 F / 2 C), the starting five, the 6th
-man, the bench and the captain that maximise expected fantasy points (plus an optional
-capital-growth term), subject to the Classic-mode rules in `docs/rules.md`: budget, trade limit,
-squad composition, max 6 players per club and the five legal starting formations. The head coach
-is not modelled -- coach selection, pricing and trading are the user's own, outside this script.
-Solved with HiGHS (`appsi_highs`, 1 thread, fixed seed, zero relative MIP gap) and must terminate
-`optimal`. Myopic: one round, no look-ahead; option value is not modelled (`exp_pir_adj` is only a
-hook). Spec: `specs/spec-squad-optimizer.md`, `specs/spec-optimizer-config.md`.
+Reads `data/stage_03/optimizer_input.xlsx` (one row per player candidate for the upcoming round),
+chooses the 10 players (4 G / 4 F / 2 C), the starting five, the 6th man, the bench and the captain
+that maximise the objective below, subject to the Classic-mode rules in `docs/rules.md`: budget,
+trade limit, squad composition, max 6 players per club, the five legal starting formations and an
+optional minimum number of squad players per turn. The head coach is not modelled. Myopic: one
+round, no look-ahead. Method and parameters in plain words: `docs/optimizer.md`.
 
-Input contract -- one row per player candidate. `.csv` or `.xlsx`/`.xls`, dispatched on the file
-suffix (Excel needs `openpyxl`; reads the first sheet unless `sheet` is set in the config). UTF-8
-for CSV, header row, no index column. Extra columns are ignored. Column names are exact.
+Objective -- one shared, configurable value per player, then the game's role weights on top:
 
-    column          type               required  meaning
-    name            str                yes       unique key and display name
-    team            str                yes       club code (e.g. PAR, OLY), used for the 6-per-club cap
-    position        G / F / C          yes       playing position
-    turn            int >= 1           yes       turn of the round in which the player's team plays
-    price           float > 0          yes       current quotation in credits (buy and sell price)
-    exp_pir         float              yes       projected fantasy score this round; used for bench
-                                                 (x0.5), price growth, default score
-    exp_pir_adj     float              no        option-adjusted score for starter / 6th man / captain
-                                                 slots; missing column or NaN cell => exp_pir
-    in_prev_roster  0 / 1              yes       1 if currently in the user's team (Round 1: all 0)
+    score_i  = target_i + risk_adjustment_i                  (the risk terms below, summed)
+    growth_i = credit_value * (target_i - 1.1 * price_i) / 25   (expected credit growth, in points)
+    maximise   sum over starters, 6th man, captain bonus of score_i  +  0.5 * sum over bench of score_i
+               + sum over the squad of growth_i
 
-Hard validation (ValueError before any model is built): required columns present, no NaN in them,
-`name` unique and non-empty, known `position`, `price > 0`, integer `turn >= 1`, `in_prev_roster`
-in {0, 1}, enough rows per position to fill the squad, and a previous roster that is either empty
-or a full 4 G / 4 F / 2 C squad.
+    risk_adjustment_i = - robustness_lambda * std_i
+                        + upside_beta * max(0, p90_i - target_i)
+                        - downside_gamma * max(0, target_i - p10_i)
 
-Scalars: `cash` (>= 0, credits in the bank before trading; Round 1: the whole budget, 100.0),
-`max_trades` (int >= 0, or None = unlimited window / Round 1; standard 4), `credit_value` (>= 0,
-credits -> points exchange rate for expected price growth; ~3.0 early season, 0.0 late).
+Each weight defaults to 0 (term off); all three off = plain expected PIR. A term's workbook column is
+used (and required) only when its weight is above 0. The growth formula
+assumes `target` is on the PIR scale; with another target keep `credit_value` at 0.
 
-Output: one row per player in `previous roster U new squad`, columns `name, team, position, turn,
-price, exp_pir, action (keep|buy|sell), role (starter|sixth|bench|none), is_captain (0/1)`, sorted
-by role then `name`. A terse report is printed to stdout.
+All run parameters live in the `[optimization]` section of `config/config.toml` (`target`,
+`robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`,
+`max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`); defaults are in
+`eupy.config.defaults.Optimization`. The only flag is `--scenarios` (below); otherwise edit the config, then run
 
-Config -- CLI flags can be pre-set in a TOML file (stdlib `tomllib`) instead of retyped each run:
-`--config PATH` (default `data/stage_99/optimizer_config.toml` if present, else the built-in
-defaults). Precedence per field is CLI flag > config value > built-in default; an unrecognized
-config key raises `ValueError`. Keys: `input`, `sheet` (Excel only; "" = first sheet), `output`,
-`cash`, `max_trades`, `unlimited_trades`, `credit_value`. Reference / format:
-`tests/data/optimizer_config_sample.toml`.
+    uv run python -m eupy.optimize.optimize_squad        (or: make optimize)
+    uv run python -m eupy.optimize.optimize_squad --scenarios [a,b]   (or: make optimize-scenario)
 
-Usage:
-    python src/eupy/optimize/optimize_squad.py [--config PATH] [--input PATH] [--cash 100.0]
-        [--max-trades N | --unlimited-trades] [--credit-value 0.0] [--out PATH]
+Scenarios (`config/scenarios.toml`, code in `eupy.optimize.scenarios`): one run per table, each with its own roster
+and parameter overrides, written to `optimizer_output_<key>.xlsx`. See `docs/optimizer.md`.
+
+Input contract -- first sheet of the workbook, header row, extra columns ignored. The workbook's
+columns are mapped to what the model needs in ONE place, `COLUMNS` below (plus `target` in the
+config); from `model_frame` on, the script works with the model's own names and never with workbook
+column names:
+
+    model name      type               required  meaning                                  mapped from
+    player          str                yes       unique key and display name              COLUMNS["player"]
+    team            str                yes       club code, used for the 6-per-club cap   COLUMNS["team"]
+    position        G / F / C          yes       playing position                         COLUMNS["position"]
+    turn            int >= 1           yes       turn of the round the team plays in      COLUMNS["turn"]
+    price           float > 0          yes       current quotation in credits             COLUMNS["price"]
+    in_prev_roster  0 / 1              yes       1 if currently in the user's team        COLUMNS["in_prev_roster"]
+    target          float              yes       expected PIR, the value to maximise      config `target`
+    std             float              robustness  standard deviation of the outcome      COLUMNS["std"]
+    p90             float              upside    90th percentile of the outcome           COLUMNS["p90"]
+    p10             float              downside  10th percentile of the outcome           COLUMNS["p10"]
+
+Hard validation (ValueError before any model is built): mapped columns present, no empty cell in any
+column the run uses, no infinities, `player` unique and non-empty, known `position`, `price > 0`,
+integer `turn >= 1`, `in_prev_roster` in {0, 1}, enough rows per position to fill the squad, and a
+previous roster that is either empty or a full 4 G / 4 F / 2 C squad.
+
+Output -- `data/stage_99/optimizer_output.xlsx`, two sheets:
+
+- `selection`: every input row with its original columns plus `selected` (0/1), `role`
+  (starter|sixth|bench|none), `action` (keep|buy|sell, blank when untouched), `is_captain` and the
+  objective components `opt_target`, `opt_risk_adjustment`, `opt_score`, `opt_credit_growth` (credits)
+  and `opt_growth_value` (points). Selected players first, then sold players, then the rest.
+- `summary`: objective value and its split, the benefit (+) over keeping the current squad, the
+  comparison with the vanilla squad, trades, cash, solver status and time, the parameters of the run.
+
+`scripts/optimize.py` is the working copy of this module (same code, `REPO_ROOT` one level up); the two are
+maintained together, like `scripts/dataprep.py` and `eupy.transform.build_eubook`.
 
 Inputs:
-  - optimizer_input: data/raw_data/optimizer/optimizer_input.csv
+  - optimizer_input: data/stage_03/optimizer_input.xlsx
 Sources: none
-Outputs:
-  - squad_solution: data/stage_01/squad_solution.csv
-Final: true
+Outputs: none
+Final: false
 Impure: false
-Notes: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run.
-  Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are
-  not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does
-  not exist yet).
+Notes: Declares no output on purpose: the result is a real file in data/stage_99/ (DVC must never own stage_99 paths),
+  data/stage_99/optimizer_output.xlsx (optimizer_output_<key>.xlsx per scenario), overwritten each run. Run outside DVC (`make optimize`). The input comes from
+  build_eubook; mark the players you own with 1 in its `in_prev_roster` column by hand first. Run parameters are the
+  [optimization] section of config/config.toml, which is not a catalogued dataset.
 """
 
 from __future__ import annotations
 
 import argparse
+import difflib
 import math
 import numbers
+import sys
 import time
-import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, replace
 from pathlib import Path
 
 import pandas as pd
 import pyomo.environ as pyo
 
+from eupy.config import get_config
+from eupy.config.defaults import Optimization
+from eupy.optimize.scenarios import SCENARIOS_PATH, Scenario, apply_scenario, load_scenarios, select_scenarios
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_INPUT = REPO_ROOT / "data" / "raw_data" / "optimizer" / "optimizer_input.csv"
-DEFAULT_OUT = REPO_ROOT / "data" / "stage_01" / "squad_solution.csv"
-DEFAULT_CONFIG = REPO_ROOT / "data" / "stage_99" / "optimizer_config.toml"
+INPUT_PATH = REPO_ROOT / "data" / "stage_03" / "optimizer_input.xlsx"
+OUTPUT_PATH = REPO_ROOT / "data" / "stage_99" / "optimizer_output.xlsx"
+# Model name -> workbook column. The only place that knows the workbook's spelling (besides the
+# config's `target`). `std`, `p90`, `p10` are needed only by the objective mode that uses them.
+COLUMNS = {
+    "player": "player",
+    "team": "team",
+    "position": "position",
+    "turn": "turn",
+    "price": "crd_last",
+    "in_prev_roster": "in_prev_roster",
+}
+RISK_COLUMNS = {"std": "pir_std", "p90": "pir_p90", "p10": "pir_p10"}
+# risk column -> the config weight that switches its term on (weight > 0).
+RISK_WEIGHT = {"std": "robustness_lambda", "p90": "upside_beta", "p10": "downside_gamma"}
+
+
+def active_risk_columns(cfg: Optimization) -> list[str]:
+    """Model names of the risk columns whose weight is above 0 (only these are read and required)."""
+    return [col for col, weight in RISK_WEIGHT.items() if getattr(cfg, weight) > 0]
+
 
 # Squad composition (rules.md "Team composition").
 SQUAD = {"G": 4, "F": 4, "C": 2}
@@ -97,28 +136,22 @@ BENCH_FACTOR = 0.5
 PRICE_BREAKEVEN = 1.1
 PRICE_DIVISOR = 25.0
 
-SOLVER = "appsi_highs"
-# threads=1 + fixed seed => same input and solver version give the same solution (ties included).
-# mip_rel_gap=0: HiGHS stops at a 0.01% gap by default; we want proven optimality.
-SOLVER_OPTIONS = {"threads": 1, "random_seed": 42, "mip_rel_gap": 0.0}
-
-REQUIRED_COLUMNS = ("name", "team", "position", "turn", "price", "exp_pir", "in_prev_roster")
-NUMERIC_COLUMNS = ("turn", "price", "exp_pir", "in_prev_roster")
+REQUIRED_COLUMNS = ("player", "team", "position", "turn", "price", "target", "in_prev_roster")
+NUMERIC_COLUMNS = ("turn", "price", "target", "in_prev_roster", *RISK_COLUMNS)
 # Columns that enter the objective/budget as coefficients: inf would leave the solver at `unknown`.
-FINITE_COLUMNS = ("price", "exp_pir", "exp_pir_adj")
+FINITE_COLUMNS = ("price", "target", *RISK_COLUMNS)
 OUTPUT_COLUMNS = [
-    "name",
+    "player",
     "team",
     "position",
     "turn",
     "price",
-    "exp_pir",
+    "target",
     "action",
     "role",
     "is_captain",
 ]
 ROLE_ORDER = ("starter", "sixth", "bench", "none")
-KNOWN_CONFIG_KEYS = frozenset({"input", "sheet", "output", "cash", "max_trades", "unlimited_trades", "credit_value"})
 
 
 @dataclass(frozen=True)
@@ -146,31 +179,57 @@ class Solution:
     cash_after: float
 
 
-def load_input(path: Path, sheet: str | None = None) -> pd.DataFrame:
-    """Read the optimizer input file (see the input contract in the module docstring).
+def load_input(path: Path) -> pd.DataFrame:
+    """Read the optimizer workbook (first sheet), untouched.
 
     Args:
-        path: CSV or Excel file path; dispatched on suffix.
-        sheet: Excel sheet name; ignored for CSV. None or "" reads the first sheet.
+        path: Excel file path.
 
     Returns:
-        The raw table; validation is left to `validate_input`.
+        The table as in the workbook; `model_frame` maps it, `validate_input` checks it.
 
     Raises:
         FileNotFoundError: If `path` does not exist.
-        ValueError: If `path`'s suffix is not `.csv`, `.xlsx` or `.xls`.
     """
     if not path.is_file():
         raise FileNotFoundError(
-            f"Optimizer input {path} not found. Prepare it per the input contract in "
-            f"src/eupy/optimize/optimize_squad.py (see tests/data/optimizer_input_sample.csv) or pass --input."
+            f"Optimizer input {path} not found. Build the workbook (stage_03/optimizer_input.xlsx) first; "
+            f"see the input contract in scripts/optimize.py."
         )
-    suffix = path.suffix.lower()
-    if suffix == ".csv":
-        return pd.read_csv(path, encoding="utf-8")
-    if suffix in (".xlsx", ".xls"):
-        return pd.read_excel(path, sheet_name=sheet or 0)
-    raise ValueError(f"Unsupported optimizer input suffix {suffix!r} for {path}. Use .csv, .xlsx or .xls.")
+    return pd.read_excel(path, sheet_name=0)
+
+
+def model_frame(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
+    """Map the workbook table to the model's columns (`COLUMNS`, the config's `target`, the active risk columns).
+
+    Args:
+        df: Table as read from the workbook; left unchanged.
+        cfg: Run parameters; `target` names the value column, the risk weights above 0 the risk columns needed.
+
+    Returns:
+        A new table with the model names (`REQUIRED_COLUMNS`, plus `std`/`p90`/`p10` for each risk weight above 0).
+
+    Raises:
+        ValueError: If a mapped workbook column is missing or has empty cells.
+    """
+    mapping = {**COLUMNS, "target": cfg.target}
+    mapping.update({col: RISK_COLUMNS[col] for col in active_risk_columns(cfg)})
+    missing = {role: col for role, col in mapping.items() if col not in df.columns}
+    if missing:
+        raise ValueError(
+            f"Input workbook lacks column(s) {missing} (model name: workbook column). Fix COLUMNS / RISK_COLUMNS "
+            f"in scripts/optimize.py, [optimization] target in config/config.toml, or add the column to the "
+            f"workbook. Columns present: {list(df.columns)}"
+        )
+    empty = {col: df.loc[df[col].isna(), COLUMNS["player"]].astype(str).tolist() for col in mapping.values()}
+    empty = {col: players for col, players in empty.items() if players}
+    if empty:
+        detail = "; ".join(f"{col}: {len(p)} row(s), e.g. {p[:3]}" for col, p in empty.items())
+        raise ValueError(
+            f"Empty cells in workbook column(s) used by this run ({detail}). Every candidate needs a value: fill "
+            f"them in the workbook, or set that column's risk weight to 0 / pick another target."
+        )
+    return pd.DataFrame({role: df[col] for role, col in mapping.items()})
 
 
 def _fail(what: str, why: str, fix: str) -> ValueError:
@@ -190,33 +249,32 @@ def validate_input(df: pd.DataFrame) -> None:  # noqa: C901 -- a flat list of in
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         raise _fail(f"missing required column(s) {missing}", "The model needs all of them", "Add the columns")
-    nan_cols = [c for c in REQUIRED_COLUMNS if df[c].isna().any()]
+    # Every column of the frame is one the run uses (model_frame maps only those), so none may be empty.
+    nan_cols = [c for c in df.columns if df[c].isna().any()]
     if nan_cols:
-        raise _fail(f"NaN/empty cells in required column(s) {nan_cols}", "Every candidate needs them", "Fill them")
-    # exp_pir_adj is optional and may hold NaN cells, but when present it must be numeric.
-    numeric = [*NUMERIC_COLUMNS, *(["exp_pir_adj"] if "exp_pir_adj" in df.columns else [])]
-    non_numeric = [c for c in numeric if not pd.api.types.is_numeric_dtype(df[c])]
+        raise _fail(f"NaN/empty cells in column(s) {nan_cols}", "Every candidate needs them", "Fill them")
+    non_numeric = [c for c in NUMERIC_COLUMNS if c in df.columns and not pd.api.types.is_numeric_dtype(df[c])]
     if non_numeric:
         raise _fail(f"non-numeric column(s) {non_numeric}", "They enter the model as numbers", "Fix the values")
     infinite = [c for c in FINITE_COLUMNS if c in df.columns and df[c].isin([math.inf, -math.inf]).any()]
     if infinite:
         raise _fail(f"infinite values in column(s) {infinite}", "The solver needs finite numbers", "Fix the values")
-    blank = df["name"].astype(str).str.strip() == ""
+    blank = df["player"].astype(str).str.strip() == ""
     if blank.any():
-        raise _fail("empty name(s)", "name is the unique row key", "Give every candidate a non-empty name")
-    dupes = sorted(df.loc[df["name"].duplicated(), "name"].astype(str).unique())
+        raise _fail("empty player(s)", "player is the unique row key", "Give every candidate a non-empty player")
+    dupes = sorted(df.loc[df["player"].duplicated(), "player"].astype(str).unique())
     if dupes:
-        raise _fail(f"duplicate name(s) {dupes}", "name is the row key", "Keep one row per candidate")
+        raise _fail(f"duplicate player(s) {dupes}", "player is the row key", "Keep one row per candidate")
     bad_pos = sorted(set(df["position"].astype(str)) - set(SQUAD))
     if bad_pos:
         raise _fail(f"unknown position(s) {bad_pos}", f"Allowed: {sorted(SQUAD)}", "Map them to G/F/C")
     if (df["price"] <= 0).any():
-        names = df.loc[df["price"] <= 0, "name"].tolist()
-        raise _fail(f"price <= 0 for name(s) {names}", "Prices are positive credits", "Fix the prices")
+        players = df.loc[df["price"] <= 0, "player"].tolist()
+        raise _fail(f"price <= 0 for player(s) {players}", "Prices are positive credits", "Fix the prices")
     bad_turn = (df["turn"] < 1) | (df["turn"] != df["turn"].round())
     if bad_turn.any():
-        names = df.loc[bad_turn, "name"].tolist()
-        raise _fail(f"turn is not an integer >= 1 for name(s) {names}", "Turns are T1, T2, ...", "Fix the turns")
+        players = df.loc[bad_turn, "player"].tolist()
+        raise _fail(f"turn is not an integer >= 1 for player(s) {players}", "Turns are T1, T2, ...", "Fix the turns")
     if not df["in_prev_roster"].isin([0, 1]).all():
         raise _fail("in_prev_roster has values outside {0, 1}", "It is a membership flag", "Use 0 or 1")
     counts = df["position"].value_counts()
@@ -243,52 +301,154 @@ def validate_input(df: pd.DataFrame) -> None:  # noqa: C901 -- a flat list of in
         )
 
 
-def _validate_scalars(cash: float, max_trades: int | None, credit_value: float) -> None:
-    """Reject out-of-range scalars (spec: cash >= 0, max_trades int >= 0 or None, credit_value >= 0)."""
-    if not (math.isfinite(cash) and cash >= 0):
+def max_trades_of(cfg: Optimization) -> int | None:
+    """The trade limit the model uses: None when `unlimited_trades` is set, else `cfg.max_trades`."""
+    return None if cfg.unlimited_trades else cfg.max_trades
+
+
+def _validate_params(cfg: Optimization) -> None:
+    """Reject out-of-range parameters (cash >= 0, max_trades int >= 0, credit_value >= 0, turn minimums)."""
+    if not (math.isfinite(cfg.cash) and cfg.cash >= 0):
         raise ValueError(
-            f"cash must be a finite number >= 0 credits, got {cash}. Pass the bank balance before trading."
+            f"cash must be a finite number >= 0 credits, got {cfg.cash}. Set [optimization] cash to the bank balance."
         )
-    # bool is an Integral too; True/False as a trade limit is almost certainly a caller bug.
-    if max_trades is not None and (
-        isinstance(max_trades, bool) or not isinstance(max_trades, numbers.Integral) or max_trades < 0
-    ):
-        raise ValueError(f"max_trades must be an int >= 0 or None (unlimited), got {max_trades!r}.")
-    if not (math.isfinite(credit_value) and credit_value >= 0):
+    # bool is an Integral too; True/False as a trade limit is almost certainly a config bug.
+    trades = max_trades_of(cfg)
+    if trades is not None and (isinstance(trades, bool) or not isinstance(trades, numbers.Integral) or trades < 0):
+        raise ValueError(f"max_trades must be an int >= 0, got {trades!r}. Fix [optimization] max_trades.")
+    if not (math.isfinite(cfg.credit_value) and cfg.credit_value >= 0):
         raise ValueError(
-            f"credit_value must be a finite number >= 0, got {credit_value}. Use 0.0 to ignore price growth."
+            f"credit_value must be a finite number >= 0, got {cfg.credit_value}. Use 0.0 to ignore price growth."
+        )
+    for name in ("robustness_lambda", "upside_beta", "downside_gamma"):
+        value = getattr(cfg, name)
+        if not (math.isfinite(value) and value >= 0):
+            raise ValueError(f"{name} must be a finite number >= 0, got {value}. Fix [optimization] {name}.")
+    mins = cfg.min_players_per_turn
+    if any(isinstance(k, bool) or not isinstance(k, numbers.Integral) or k < 0 for k in mins):
+        raise ValueError(
+            f"min_players_per_turn must be a list of ints >= 0 (entry n = turn n), got {mins!r}. "
+            f"Fix [optimization] min_players_per_turn."
+        )
+    if sum(mins) > sum(SQUAD.values()):
+        raise ValueError(
+            f"min_players_per_turn {mins} asks for {sum(mins)} players, but a squad has {sum(SQUAD.values())}. "
+            f"Lower the minimums."
         )
 
 
-def _prepare(df: pd.DataFrame) -> pd.DataFrame:
-    """Keep the contract columns, fill `exp_pir_adj` and sort by `name` (row order must not matter)."""
+def _player_list_problems(df: pd.DataFrame, cfg: Optimization) -> list[str]:
+    """Problems with the names in `must_have` / `avoid`: not a list of strings, repeated, unknown or in both."""
+    problems: list[str] = []
+    names = set(df["player"])
+    for key in ("must_have", "avoid"):
+        listed = getattr(cfg, key)
+        if isinstance(listed, str) or not all(isinstance(n, str) for n in listed):
+            raise ValueError(f"{key} must be a list of player names, got {listed!r}. Fix [optimization] {key}.")
+        dupes = sorted({n for n in listed if listed.count(n) > 1})
+        if dupes:
+            problems.append(f"{key} lists {dupes} more than once")
+        for name in sorted(set(listed) - names):
+            close = difflib.get_close_matches(name, names, n=3, cutoff=0.6) or "no close match"
+            problems.append(f"{key}: {name!r} is not in the input, did you mean {close}?")
+    both = sorted(set(cfg.must_have) & set(cfg.avoid))
+    if both:
+        problems.append(f"in both must_have and avoid: {both}")
+    return problems
+
+
+def _validate_players(df: pd.DataFrame, cfg: Optimization) -> None:
+    """Check `must_have` / `avoid`: names exist, no overlap, and the kept players can fit in one squad."""
+    problems = _player_list_problems(df, cfg)
+    kept = df[df["player"].isin(cfg.must_have)]
+    for position, count in kept["position"].value_counts().items():
+        if count > SQUAD[position]:
+            problems.append(f"must_have has {count} {position}, a squad has {SQUAD[position]}")
+    for club, count in kept["team"].value_counts().items():
+        if count > MAX_PER_CLUB:
+            problems.append(f"must_have has {count} players of {club}, the cap is {MAX_PER_CLUB}")
+    trades = max_trades_of(cfg)
+    forced = int((kept["in_prev_roster"] == 0).sum())
+    if trades is not None and forced > trades:
+        problems.append(f"must_have needs {forced} purchases, max_trades is {trades}")
+    if problems:
+        raise ValueError("; ".join(problems) + ". Fix [optimization] must_have / avoid.")
+
+
+def _validate_turn_minimums(df: pd.DataFrame, cfg: Optimization) -> None:
+    """Fail early when a turn has fewer candidates than `min_players_per_turn` asks for."""
+    available = df["turn"].value_counts()
+    short = {
+        t: (int(available.get(t, 0)), k)
+        for t, k in enumerate(cfg.min_players_per_turn, start=1)
+        if available.get(t, 0) < k
+    }
+    if short:
+        raise ValueError(
+            f"min_players_per_turn needs more candidates than the input has per turn (turn: (have, need)) {short}. "
+            f"Add candidates or lower [optimization] min_players_per_turn."
+        )
+
+
+def objective_components(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
+    """Per-player objective components, one row per row of `df` (index kept).
+
+    Args:
+        df: Model frame (`model_frame` output).
+        cfg: Run parameters.
+
+    Returns:
+        Columns `target`, `risk_adjustment`, `score` (= target + risk_adjustment), `credit_growth`
+        (expected credits gained, price formula applied to `target`) and `growth_value`
+        (= credit_value * credit_growth, in objective points). `risk_adjustment` sums the terms with a weight above 0.
+    """
+    target = df["target"].astype(float)
+    risk = pd.Series(0.0, index=df.index)
+    if cfg.robustness_lambda > 0:
+        risk -= cfg.robustness_lambda * df["std"].astype(float)
+    if cfg.upside_beta > 0:
+        risk += cfg.upside_beta * (df["p90"].astype(float) - target).clip(lower=0)
+    if cfg.downside_gamma > 0:
+        risk -= cfg.downside_gamma * (target - df["p10"].astype(float)).clip(lower=0)
+    growth = (target - PRICE_BREAKEVEN * df["price"].astype(float)) / PRICE_DIVISOR
+    return pd.DataFrame({
+        "target": target,
+        "risk_adjustment": risk,
+        "score": target + risk,
+        "credit_growth": growth,
+        "growth_value": cfg.credit_value * growth,
+    })
+
+
+def _prepare(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
+    """Keep the model columns, add `score` and `credit_growth`, sort by `player` (row order must not matter)."""
     out = df[list(REQUIRED_COLUMNS)].copy()
-    adj = df["exp_pir_adj"] if "exp_pir_adj" in df.columns else pd.Series(float("nan"), index=df.index)
-    out["exp_pir_adj"] = adj.fillna(df["exp_pir"]).astype(float)
+    comps = objective_components(df, cfg)
+    out["score"] = comps["score"]
+    out["credit_growth"] = comps["credit_growth"]
     out["turn"] = out["turn"].astype(int)
     out["in_prev_roster"] = out["in_prev_roster"].astype(int)
-    return out.sort_values("name", kind="stable").reset_index(drop=True)
+    return out.sort_values("player", kind="stable").reset_index(drop=True)
 
 
-def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float) -> pyo.ConcreteModel:
+def build_model(df: pd.DataFrame, cfg: Optimization) -> pyo.ConcreteModel:
     """Build the single-round squad MILP. Pure: no I/O, no solving.
 
     Args:
-        df: Validated and prepared candidate table (`_prepare` output); row position = model index.
-        cash: Credits in the bank before trading.
-        max_trades: Max buys, or None for no limit.
-        credit_value: Weight of the expected price-growth term.
+        df: Prepared candidate table (`_prepare` output); row position = model index.
+        cfg: Run parameters (`cash`, trade limit, `credit_value`, `min_players_per_turn`).
 
     Returns:
         The Pyomo model (maximisation).
     """
+    cash, max_trades, credit_value = cfg.cash, max_trades_of(cfg), cfg.credit_value
     m = pyo.ConcreteModel(name="squad_optimizer")
     rows = list(range(len(df)))
     pos = df["position"].tolist()
     price = df["price"].astype(float).tolist()
     prev = df["in_prev_roster"].tolist()
-    exp = df["exp_pir"].astype(float).tolist()
-    adj = df["exp_pir_adj"].tolist()
+    score = df["score"].astype(float).tolist()
+    growth = df["credit_growth"].astype(float).tolist()
     team = df["team"].tolist()
     turn = df["turn"].tolist()
 
@@ -297,16 +457,9 @@ def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, credit_va
     m.G = pyo.Set(initialize=[i for i in rows if pos[i] == "G"], ordered=True)
     m.F = pyo.Set(initialize=[i for i in rows if pos[i] == "F"], ordered=True)
     m.C = pyo.Set(initialize=[i for i in rows if pos[i] == "C"], ordered=True)
-    # Turn subsets (T3+ is in neither). No constraint uses them since the doc's "T1 starters >= 3"
-    # rule was dropped (spec deviation 6); kept for inspection.
-    m.TURN1 = pyo.Set(initialize=[i for i in m.I if turn[i] == 1], ordered=True)
-    m.TURN2 = pyo.Set(initialize=[i for i in m.I if turn[i] == 2], ordered=True)
     teams = sorted({team[i] for i in m.I})
     m.TEAMS = pyo.Set(initialize=teams, ordered=True)
     by_pos = {"G": m.G, "F": m.F, "C": m.C}
-
-    # Expected price change per player (community formula).
-    delta = {i: (exp[i] - PRICE_BREAKEVEN * price[i]) / PRICE_DIVISOR for i in m.I}
 
     # ---- Variables
     m.x = pyo.Var(m.I, domain=pyo.Binary)  # in the squad after trading
@@ -332,6 +485,10 @@ def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, credit_va
     m.composition = pyo.Constraint(list(SQUAD), rule=lambda m, p: sum(m.x[i] for i in by_pos[p]) == SQUAD[p])
     # 6. Club cap: at most 6 players from one EuroLeague club.
     m.club_cap = pyo.Constraint(m.TEAMS, rule=lambda m, t: sum(m.x[i] for i in m.I if team[i] == t) <= MAX_PER_CLUB)
+    # 6b. Turn distribution: at least min_players_per_turn[t - 1] squad players whose team plays in turn t.
+    turn_mins = {t: k for t, k in enumerate(cfg.min_players_per_turn, start=1) if k > 0}
+    m.TURNS = pyo.Set(initialize=sorted(turn_mins), ordered=True)
+    m.turn_min = pyo.Constraint(m.TURNS, rule=lambda m, t: sum(m.x[i] for i in m.I if turn[i] == t) >= turn_mins[t])
     # 7. Roles: every squad player gets exactly one of starter / 6th man / bench; non-members none.
     m.one_role = pyo.Constraint(m.I, rule=lambda m, i: m.x[i] == m.y_start[i] + m.y_6th[i] + m.y_bench[i])
     m.n_start = pyo.Constraint(expr=sum(m.y_start[i] for i in m.I) == N_STARTERS)
@@ -348,37 +505,49 @@ def build_model(df: pd.DataFrame, cash: float, max_trades: int | None, credit_va
     m.one_captain = pyo.Constraint(expr=sum(m.c[i] for i in m.I) == 1)
     m.captain_starts = pyo.Constraint(m.I, rule=lambda m, i: m.c[i] <= m.y_start[i])
 
+    # ---- Pinned and banned players (by name); a banned owned player is sold, a pinned one not owned is bought
+    names = df["player"].tolist()
+    for key, value in (("must_have", 1), ("avoid", 0)):
+        listed = set(getattr(cfg, key))
+        fixed = [i for i in rows if names[i] in listed]
+        setattr(m, f"{key}_fix", pyo.Constraint(fixed, rule=lambda m, i, v=value: m.x[i] == v))
+
     # ---- Objective pieces (kept as expressions so the report can split the optimum).
-    # Active points: starters and 6th man count 100% (option-adjusted score), the captain counts a
-    # second time, bench players count 50% of their mean projection.
+    # Active points: starters and 6th man count 100% of their score, the captain counts a second
+    # time, bench players count 50%.
     m.active_points = pyo.Expression(
-        expr=sum(adj[i] * (m.y_start[i] + m.y_6th[i] + m.c[i]) + BENCH_FACTOR * exp[i] * m.y_bench[i] for i in m.I)
+        expr=sum(score[i] * (m.y_start[i] + m.y_6th[i] + m.c[i]) + BENCH_FACTOR * score[i] * m.y_bench[i] for i in m.I)
     )
     # Expected capital growth of the whole squad, in credits -- raw, independent of credit_value.
-    m.growth_credits = pyo.Expression(expr=sum(delta[i] * m.x[i] for i in m.I))
+    m.growth_credits = pyo.Expression(expr=sum(growth[i] * m.x[i] for i in m.I))
     # Same, in points via the credit_value rate.
     m.growth_term = pyo.Expression(expr=credit_value * m.growth_credits)
     m.objective = pyo.Objective(expr=m.active_points + m.growth_term, sense=pyo.maximize)
     return m
 
 
-def solve(m: pyo.ConcreteModel) -> None:
+def solve(m: pyo.ConcreteModel, cfg: Optimization) -> None:
     """Solve `m` in place with HiGHS and load the optimal values into its variables.
 
     Args:
         m: Model from `build_model`.
+        cfg: Run parameters; `solver` and `solver_options` are used here.
 
     Raises:
         RuntimeError: If the solver does not prove optimality (e.g. infeasible budget/trade limit).
     """
-    opt = pyo.SolverFactory(SOLVER)
-    opt.highs_options = dict(SOLVER_OPTIONS)
+    opt = pyo.SolverFactory(cfg.solver)
+    # appsi_highs takes its options as `highs_options`; other Pyomo solvers use the generic `options`.
+    if cfg.solver == "appsi_highs":
+        opt.highs_options = dict(cfg.solver_options)
+    else:
+        opt.options.update(cfg.solver_options)
     results = opt.solve(m, load_solutions=False)
     tc = results.solver.termination_condition
     if tc != pyo.TerminationCondition.optimal:
         hint = (
-            " No legal squad fits cash + trade limit (e.g. a fresh team with max_trades < 10 or too little "
-            "cash); check --cash / --max-trades / --unlimited-trades."
+            " No legal squad fits the constraints (e.g. a fresh team with max_trades < 10, too little cash, "
+            "or too few candidates in a turn for min_players_per_turn); check [optimization] in config/config.toml."
             if tc == pyo.TerminationCondition.infeasible
             else ""
         )
@@ -413,7 +582,7 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
 
     table = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)
     table["_role_rank"] = table["role"].map(ROLE_ORDER.index)
-    table = table.sort_values(["_role_rank", "name"], kind="stable").drop(columns="_role_rank")
+    table = table.sort_values(["_role_rank", "player"], kind="stable").drop(columns="_role_rank")
     table = table.reset_index(drop=True)
 
     bought = table.loc[table["action"] == "buy", "price"].sum()
@@ -430,28 +599,41 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
     )
 
 
-def optimize_squad(df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float = 0.0) -> Solution:
+def check_run(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
+    """Everything that can be checked before solving: the model frame, the input rules, the parameters and the player lists.
+
+    Returns:
+        The model frame (`model_frame` output).
+
+    Raises:
+        ValueError: If the table or a parameter violates the contract.
+    """
+    frame = model_frame(df, cfg)
+    validate_input(frame)
+    _validate_params(cfg)
+    _validate_turn_minimums(frame, cfg)
+    _validate_players(frame, cfg)
+    return frame
+
+
+def optimize_squad(df: pd.DataFrame, cfg: Optimization) -> Solution:
     """Validate, build, solve and extract in one call.
 
     Args:
-        df: Candidate table obeying the input contract.
-        cash: Credits in the bank before trading (>= 0).
-        max_trades: Max buys (int >= 0) or None for unlimited.
-        credit_value: Capital-growth weight (>= 0).
+        df: Candidate table as read from the workbook (input contract above).
+        cfg: Run parameters.
 
     Returns:
         The optimal `Solution`.
 
     Raises:
-        ValueError: If the table or a scalar violates the contract.
+        ValueError: If the table or a parameter violates the contract.
         RuntimeError: If the solver does not prove optimality.
     """
-    validate_input(df)
-    _validate_scalars(cash, max_trades, credit_value)
-    prepared = _prepare(df)
-    m = build_model(prepared, cash, max_trades, credit_value)
-    solve(m)
-    return extract_solution(prepared, m, cash)
+    prepared = _prepare(check_run(df, cfg), cfg)
+    m = build_model(prepared, cfg)
+    solve(m, cfg)
+    return extract_solution(prepared, m, cfg.cash)
 
 
 @dataclass(frozen=True)
@@ -471,24 +653,20 @@ class CreditValueReport:
     baseline_growth_credits: float
 
 
-def explain_credit_value(
-    df: pd.DataFrame, cash: float, max_trades: int | None, credit_value: float, actual: Solution
-) -> CreditValueReport:
+def explain_credit_value(df: pd.DataFrame, cfg: Optimization, actual: Solution) -> CreditValueReport:
     """Measure what `credit_value` is buying: a shadow price and a pure-PIR baseline, via re-solves.
 
     Args:
         df: Candidate table obeying the input contract (the same one `actual` was solved from).
-        cash: Credits in the bank before trading, as used for `actual`.
-        max_trades: Max buys, as used for `actual`.
-        credit_value: The rate `actual` was solved with.
+        cfg: The parameters `actual` was solved with.
         actual: The already-solved squad to compare against.
 
     Returns:
         The `CreditValueReport`. When `credit_value == 0`, `actual` already *is* the pure-PIR
         baseline, so the baseline re-solve is skipped (one fewer solve than the general case).
     """
-    baseline = actual if credit_value == 0 else optimize_squad(df, cash, max_trades, credit_value=0.0)
-    shadow = optimize_squad(df, cash=cash + 1, max_trades=max_trades, credit_value=0.0)
+    baseline = actual if cfg.credit_value == 0 else optimize_squad(df, replace(cfg, credit_value=0.0))
+    shadow = optimize_squad(df, replace(cfg, cash=cfg.cash + 1, credit_value=0.0))
     return CreditValueReport(
         lambda_shadow=shadow.active_points - baseline.active_points,
         baseline_active=baseline.active_points,
@@ -496,12 +674,32 @@ def explain_credit_value(
     )
 
 
-def format_report(sol: Solution, max_trades: int | None) -> str:
+def current_squad_objective(df: pd.DataFrame, cfg: Optimization) -> float | None:
+    """Objective of the best line-up that keeps the current squad (no trades), or None if there is none.
+
+    Args:
+        df: Candidate table obeying the input contract.
+        cfg: Run parameters; the trade limit is forced to 0.
+
+    Returns:
+        The no-trade optimum, or None when no squad is marked `in_prev_roster` (fresh team) or the
+        current squad cannot satisfy the constraints (e.g. `min_players_per_turn`).
+    """
+    if not (df[COLUMNS["in_prev_roster"]] == 1).any():
+        return None
+    try:
+        return optimize_squad(df, replace(cfg, max_trades=0, unlimited_trades=False)).objective
+    except (RuntimeError, ValueError):  # infeasible, or a must_have that needs a purchase at 0 trades
+        return None
+
+
+def format_report(sol: Solution, max_trades: int | None, benefit: float | None = None) -> str:
     """Render the terse stdout report.
 
     Args:
         sol: Solved squad.
         max_trades: The trade limit used (None = unlimited).
+        benefit: Objective gain over keeping the current squad, or None when not available.
 
     Returns:
         Multi-line report text.
@@ -510,20 +708,24 @@ def format_report(sol: Solution, max_trades: int | None) -> str:
 
     def line(r: pd.Series) -> str:
         cap = " (C)" if r["is_captain"] else ""
-        return f"  {r['position']:<2} {r['name']}{cap} [{r['team']}, T{r['turn']}] {r['price']:.1f}cr exp {r['exp_pir']:.1f}"
+        return f"  {r['position']:<2} {r['player']}{cap} [{r['team']}, T{r['turn']}] {r['price']:.1f}cr target {r['target']:.1f}"
 
     limit = "unlimited" if max_trades is None else str(max_trades)
     out = [
         f"Objective {sol.objective:.2f} = active {sol.active_points:.2f} + growth {sol.growth_term:.2f}",
         f"Trades {sol.trades} / {limit}; cash {sol.cash_before:.2f} -> {sol.cash_after:.2f}",
     ]
+    if benefit is not None:
+        out.append(f"Benefit over the current squad: {benefit:+.2f}")
     for title, role in (("Starting five:", "starter"), ("6th man:", "sixth"), ("Bench:", "bench")):
         out.append(title)
         out.extend(line(r) for _, r in t[t["role"] == role].iterrows())
     moves = t[t["action"] != "keep"]
     if len(moves):
         out.append("Trades:")
-        out.extend(f"  {r['action']:<4} {r['name']} ({r['position']}, {r['price']:.1f}cr)" for _, r in moves.iterrows())
+        out.extend(
+            f"  {r['action']:<4} {r['player']} ({r['position']}, {r['price']:.1f}cr)" for _, r in moves.iterrows()
+        )
     return "\n".join(out)
 
 
@@ -548,149 +750,261 @@ def format_credit_value_report(report: CreditValueReport, actual: Solution) -> s
     return "\n".join(lines)
 
 
-@dataclass(frozen=True)
-class Settings:
-    """Resolved run settings after merging CLI flags with the config file.
-
-    Attributes:
-        input: Input file path (CSV or Excel).
-        sheet: Excel sheet name, or None for the first sheet; ignored for CSV.
-        output: Output CSV path.
-        cash: Credits in the bank before trading.
-        max_trades: Max buys this round, or None for unlimited.
-        credit_value: Capital-growth weight.
-    """
-
-    input: Path
-    sheet: str | None
-    output: Path
-    cash: float
-    max_trades: int | None
-    credit_value: float
+ROLE_RANK = {role: n for n, role in enumerate(ROLE_ORDER)}
 
 
-def load_config(path: Path | None) -> dict:
-    """Load and validate the optimizer TOML config.
+COMPONENT_COLUMNS = {
+    "target": "opt_target",
+    "risk_adjustment": "opt_risk_adjustment",
+    "score": "opt_score",
+    "credit_growth": "opt_credit_growth",
+    "growth_value": "opt_growth_value",
+}
+
+
+def selection_sheet(raw: pd.DataFrame, sol: Solution, cfg: Optimization) -> pd.DataFrame:
+    """The input table plus the solution and each player's objective components.
 
     Args:
-        path: Explicit `--config` path, or None to use `DEFAULT_CONFIG` if it exists.
+        raw: The input as read (all original columns).
+        sol: The solved squad.
+        cfg: Run parameters (for the components).
 
     Returns:
-        The parsed config (only `KNOWN_CONFIG_KEYS` may be present); {} if no config file applies
-        (no explicit path and `DEFAULT_CONFIG` does not exist).
+        One row per input row: the original columns, `selected`, `role`, `action`, `is_captain`, then
+        the `opt_*` components. Order: starters, 6th man, bench, sold players, everyone else; `player`
+        within a group.
+    """
+    chosen = sol.table[["player", "action", "role", "is_captain"]]
+    player = COLUMNS["player"]
+    out = raw.merge(chosen.rename(columns={"player": player}), on=player, how="left")
+    out["role"] = out["role"].fillna("none")
+    out["action"] = out["action"].fillna("")
+    out["is_captain"] = out["is_captain"].fillna(0).astype(int)
+    out["selected"] = out["role"].isin(["starter", "sixth", "bench"]).astype(int)
+    comps = objective_components(model_frame(raw, cfg), cfg).rename(columns=COMPONENT_COLUMNS)
+    out = out.join(comps)  # same row order as raw: merge(how=left) keeps the left index
+    # Sold players carry role "none" and action "sell": keep them right under the squad.
+    out["_rank"] = out["role"].map(ROLE_RANK) - (out["action"] == "sell") * 0.5
+    out = out.sort_values(["_rank", player], kind="stable").drop(columns="_rank").reset_index(drop=True)
+    return out[[*raw.columns, "selected", "role", "action", "is_captain", *COMPONENT_COLUMNS.values()]]
+
+
+def lineup_sum(sheet: pd.DataFrame, column: str) -> float:
+    """Sum of a `selection` column over the line-up with the game's weights (captain x2, bench x0.5)."""
+    weight = sheet["role"].map({"starter": 1.0, "sixth": 1.0, "bench": BENCH_FACTOR}).fillna(0.0) + sheet["is_captain"]
+    return float((weight * sheet[column]).sum())
+
+
+def vanilla_config(cfg: Optimization) -> Optimization | None:
+    """The same run with the plain expected-PIR objective, or None when `cfg` already is that."""
+    if not active_risk_columns(cfg) and cfg.credit_value == 0:
+        return None
+    return replace(cfg, robustness_lambda=0.0, upside_beta=0.0, downside_gamma=0.0, credit_value=0.0)
+
+
+def _cell(value: object) -> object:
+    """A parameter value as one spreadsheet cell (lists and dicts as text)."""
+    if isinstance(value, list | tuple):
+        return str(list(value))
+    if isinstance(value, dict):
+        return str(dict(value))
+    return value
+
+
+def _lineup_reference_rows(sheet: pd.DataFrame) -> list[tuple[str, str, float]]:
+    """Summary rows for the workbook's own PIR columns, whichever of them the input has.
+
+    `exp_pir` and `pir_mean` are weighted like the line-up (captain x2, bench x0.5); `pir_per_crd` is a ratio,
+    so it is the plain average over the 10 squad players.
+    """
+    squad = sheet[sheet["selected"] == 1]
+    rows: list[tuple[str, str, float]] = []
+    for column, label in (("exp_pir", "expected PIR"), ("pir_mean", "mean PIR")):
+        if column in sheet.columns:
+            rows.append(("line-up", f"{label} of the line-up (weighted)", lineup_sum(sheet, column)))
+    if "pir_per_crd" in sheet.columns:
+        rows.append(("line-up", "PIR per credit, average of the squad", float(squad["pir_per_crd"].mean())))
+    return rows
+
+
+def summary_sheet(
+    sol: Solution,
+    sheet: pd.DataFrame,
+    cfg: Optimization,
+    n_candidates: int,
+    solve_seconds: float,
+    baseline: float | None,
+    cv_report: CreditValueReport,
+    vanilla: pd.DataFrame | None,
+    scenario: Scenario | None = None,
+) -> pd.DataFrame:
+    """High-level optimizer output as `section | metric | value` rows.
+
+    Args:
+        sol: The solved squad.
+        sheet: Its `selection_sheet`.
+        cfg: Parameters of the run.
+        n_candidates: Number of input rows.
+        solve_seconds: Wall time of the main solve.
+        baseline: Objective of keeping the current squad (`current_squad_objective`), or None.
+        cv_report: Output of `explain_credit_value`.
+        vanilla: `selection_sheet` of the vanilla-objective squad (`vanilla_config`), or None when the
+            run is already vanilla.
+        scenario: The scenario this run belongs to, or None for the plain run.
+
+    Returns:
+        The summary table.
+    """
+    limit = max_trades_of(cfg)
+    rows = [
+        ("scenario", "scenario", "none" if scenario is None else scenario.key),
+        ("scenario", "roster source", "scenario" if scenario and scenario.roster is not None else "workbook"),
+        ("scenario", "parameters overridden", str(sorted(scenario.overrides)) if scenario else "[]"),
+        ("objective", "objective value", sol.objective),
+        ("objective", "active points (starters, 6th man, captain bonus, bench)", sol.active_points),
+        ("objective", "growth term (credit_value x expected credit growth)", sol.growth_term),
+        ("objective", "expected credit growth of the squad", sol.growth_credits),
+        ("objective", "objective keeping the current squad (no trades)", baseline if baseline is not None else "n/a"),
+        (
+            "objective",
+            "benefit (+) over the current squad",
+            sol.objective - baseline if baseline is not None else "n/a",
+        ),
+        ("objective", "PIR per extra credit of cash (shadow price)", cv_report.lambda_shadow),
+        ("line-up", "expected target of the line-up (weighted)", lineup_sum(sheet, "opt_target")),
+        ("line-up", "risk adjustment of the line-up (weighted)", lineup_sum(sheet, "opt_risk_adjustment")),
+    ]
+    rows += _lineup_reference_rows(sheet)
+    if vanilla is not None:
+        rows += [
+            ("vs vanilla", "expected target of the vanilla line-up", lineup_sum(vanilla, "opt_target")),
+            (
+                "vs vanilla",
+                "expected credit growth of the vanilla squad",
+                float(vanilla.loc[vanilla["selected"] == 1, "opt_credit_growth"].sum()),
+            ),
+            (
+                "vs vanilla",
+                "players different from the vanilla squad",
+                len(
+                    set(sheet.loc[sheet["selected"] == 1, COLUMNS["player"]])
+                    - set(vanilla.loc[vanilla["selected"] == 1, COLUMNS["player"]])
+                ),
+            ),
+        ]
+    rows += [
+        ("squad", "trades used", sol.trades),
+        ("squad", "trade limit", "unlimited" if limit is None else limit),
+        ("squad", "cash before", sol.cash_before),
+        ("squad", "cash after", sol.cash_after),
+        ("solver", "candidates", n_candidates),
+        ("solver", "solver", cfg.solver),
+        ("solver", "status", "optimal"),  # anything else raises before we get here
+        ("solver", "solve time (s)", round(solve_seconds, 3)),
+    ]
+    # every parameter of the run, whether it is a default, from config.toml or from the scenario
+    rows += [("parameters", f.name, _cell(getattr(cfg, f.name))) for f in fields(cfg)]
+    return pd.DataFrame(rows, columns=["section", "metric", "value"])
+
+
+def write_output(selection: pd.DataFrame, summary: pd.DataFrame, path: Path) -> None:
+    """Write the two-sheet output workbook, creating the parent directory."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with pd.ExcelWriter(path) as writer:
+        selection.to_excel(writer, sheet_name="selection", index=False)
+        summary.to_excel(writer, sheet_name="summary", index=False)
+
+
+def output_path(key: str | None = None) -> Path:
+    """`OUTPUT_PATH`, or with a scenario key appended to the file name (`optimizer_output_<key>.xlsx`)."""
+    return OUTPUT_PATH if key is None else OUTPUT_PATH.with_name(f"{OUTPUT_PATH.stem}_{key}{OUTPUT_PATH.suffix}")
+
+
+def run(df: pd.DataFrame, cfg: Optimization, path: Path, scenario: Scenario | None = None) -> None:
+    """Solve, print the report and write the output workbook for one table and one set of parameters.
 
     Raises:
-        FileNotFoundError: If an explicit `path` does not exist.
-        ValueError: If the file contains an unrecognized key.
+        ValueError: If the table or a parameter violates the contract.
+        RuntimeError: If the solver does not prove optimality.
     """
-    explicit = path is not None
-    if path is None:
-        path = DEFAULT_CONFIG
-    if not path.is_file():
-        if explicit:
-            raise FileNotFoundError(
-                f"Config file {path} not found. Pass an existing TOML file to --config, or omit it to fall back "
-                f"to {DEFAULT_CONFIG} (if present) or the built-in defaults."
-            )
-        return {}
-    with path.open("rb") as f:
-        config = tomllib.load(f)
-    unknown = sorted(set(config) - KNOWN_CONFIG_KEYS)
-    if unknown:
-        raise ValueError(
-            f"Unrecognized config key(s) {unknown} in {path}. Allowed keys: {sorted(KNOWN_CONFIG_KEYS)}. "
-            f"Remove them or fix the typo."
-        )
-    return config
+    started = time.perf_counter()
+    sol = optimize_squad(df, cfg)
+    elapsed = time.perf_counter() - started
+    baseline = current_squad_objective(df, cfg)
+    benefit = None if baseline is None else sol.objective - baseline
+    print(format_report(sol, max_trades_of(cfg), benefit))
+    cv_report = explain_credit_value(df, cfg, sol)
+    print(format_credit_value_report(cv_report, sol))
+    sheet = selection_sheet(df, sol, cfg)
+    plain = vanilla_config(cfg)
+    vanilla = None if plain is None else selection_sheet(df, optimize_squad(df, plain), plain)
+    summary = summary_sheet(sol, sheet, cfg, len(df), elapsed, baseline, cv_report, vanilla, scenario)
+    write_output(sheet, summary, path)
+    print(f"Solved {len(df)} candidates in {elapsed:.2f}s; wrote {path}")
 
 
-def _resolve_max_trades(args: argparse.Namespace, config: dict) -> int | None:
-    """Resolve `max_trades`: CLI flag > config value > built-in default (4); None = unlimited."""
-    if args.unlimited_trades:
-        return None
-    if args.max_trades is not None:
-        return args.max_trades
-    if config.get("unlimited_trades", False):
-        return None
-    return config.get("max_trades", 4)
+def run_scenarios(df: pd.DataFrame, cfg: Optimization, scenarios: dict[str, Scenario]) -> None:
+    """Run each scenario into its own output file: validate all first, then solve one by one.
 
-
-def resolve_settings(args: argparse.Namespace, config: dict) -> Settings:
-    """Merge CLI flags with the config file: CLI flag > config value > built-in default, per field.
-
-    Args:
-        args: Parsed CLI namespace (`parse_args`); an unset flag is None.
-        config: Parsed config dict (`load_config`); may be {}.
-
-    Returns:
-        The resolved run settings.
+    Raises:
+        ValueError: If any scenario is invalid (all problems are listed; nothing is solved).
+        RuntimeError: If a solve fails; the other scenarios still run and the failures are listed at the end.
     """
-    return Settings(
-        input=args.input if args.input is not None else Path(config.get("input", DEFAULT_INPUT)),
-        sheet=config.get("sheet") or None,
-        output=args.out if args.out is not None else Path(config.get("output", DEFAULT_OUT)),
-        cash=args.cash if args.cash is not None else config.get("cash", 100.0),
-        max_trades=_resolve_max_trades(args, config),
-        credit_value=args.credit_value if args.credit_value is not None else config.get("credit_value", 0.0),
-    )
+    prepared, problems = {}, []
+    for key, scenario in scenarios.items():
+        try:
+            scenario_df, scenario_cfg = apply_scenario(df, cfg, scenario, COLUMNS["player"], COLUMNS["in_prev_roster"])
+            check_run(scenario_df, scenario_cfg)
+            prepared[key] = (scenario_df, scenario_cfg)
+        except ValueError as err:
+            problems.append(f"[{key}] {err}" if not str(err).startswith(f"[{key}]") else str(err))
+    if problems:
+        raise ValueError("Invalid scenario(s), nothing was solved:\n" + "\n".join(problems))
+    failures = []
+    for key, (scenario_df, scenario_cfg) in prepared.items():
+        print(f"\n=== scenario {key} ===")
+        try:
+            run(scenario_df, scenario_cfg, output_path(key), scenarios[key])
+        except (RuntimeError, ValueError) as err:
+            failures.append(f"[{key}] {err}")
+    if failures:
+        raise RuntimeError("Scenario(s) failed:\n" + "\n".join(failures))
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse the CLI flags.
-
-    Args:
-        argv: Argument list; None reads `sys.argv`.
-
-    Returns:
-        Parsed namespace (`config`, `input`, `cash`, `max_trades`, `unlimited_trades`, `credit_value`,
-        `out`); a flag not passed on the CLI is None, so the config/default fallback can tell it
-        apart from an explicit value.
-    """
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--config", type=Path, default=None, help=f"Config TOML (default: {DEFAULT_CONFIG} if present)")
+    parser = argparse.ArgumentParser(description="Pick the optimal squad (see the module docstring).")
     parser.add_argument(
-        "--input", type=Path, default=None, help=f"Input CSV/Excel (default: config, else {DEFAULT_INPUT})"
+        "--scenarios",
+        nargs="?",
+        const="all",
+        default=None,
+        metavar="KEYS",
+        help=f"run the scenarios of {SCENARIOS_PATH.name} instead of the plain run: all (default when the flag is "
+        f"given) or a comma-separated list of keys",
     )
-    parser.add_argument(
-        "--cash", type=float, default=None, help="Credits in the bank before trading (default: config, else 100.0)"
-    )
-    trades = parser.add_mutually_exclusive_group()
-    trades.add_argument("--max-trades", type=int, default=None, help="Max buys this round (default: config, else 4)")
-    trades.add_argument(
-        "--unlimited-trades", action="store_true", default=None, help="No trade limit (Round 1 / free windows)"
-    )
-    parser.add_argument(
-        "--credit-value", type=float, default=None, help="Capital-growth weight (default: config, else 0.0)"
-    )
-    parser.add_argument("--out", type=Path, default=None, help=f"Output CSV (default: config, else {DEFAULT_OUT})")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> None:
-    """CLI entry point: merge config + flags, load the input, solve, write the squad CSV and print the report.
+    """Read the config and the input workbook, solve, write the output workbook(s) and print the report.
 
-    Args:
-        argv: Argument list; None reads `sys.argv`.
+    Without `--scenarios`: one run with the config as is, written to `OUTPUT_PATH`. With it: one run per scenario of
+    `config/scenarios.toml`, each written to `optimizer_output_<key>.xlsx`.
 
     Raises:
-        FileNotFoundError: If the input file or an explicit --config file is missing.
-        ValueError: If the config, the input or a scalar violates its contract.
+        FileNotFoundError: If the input workbook or the scenarios file is missing.
+        ValueError: If the config, a scenario or the input violates its contract.
         RuntimeError: If the solver does not prove optimality.
     """
-    args = parse_args(argv)
-    config = load_config(args.config)
-    settings = resolve_settings(args, config)
-    df = load_input(settings.input, settings.sheet)
-    started = time.perf_counter()
-    sol = optimize_squad(df, cash=settings.cash, max_trades=settings.max_trades, credit_value=settings.credit_value)
-    elapsed = time.perf_counter() - started
-    settings.output.parent.mkdir(parents=True, exist_ok=True)
-    sol.table.to_csv(settings.output, index=False, encoding="utf-8", lineterminator="\n")
-    print(format_report(sol, settings.max_trades))
-    cv_report = explain_credit_value(df, settings.cash, settings.max_trades, settings.credit_value, sol)
-    print(format_credit_value_report(cv_report, sol))
-    print(f"Solved {len(df)} candidates in {elapsed:.2f}s; wrote {len(sol.table)} rows to {settings.output}")
+    args = parse_args([] if argv is None else argv)
+    cfg = get_config().optimization
+    df = load_input(INPUT_PATH)
+    if args.scenarios is None:
+        run(df, cfg, OUTPUT_PATH)
+        return
+    run_scenarios(df, cfg, select_scenarios(load_scenarios(SCENARIOS_PATH), args.scenarios))
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

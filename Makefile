@@ -18,6 +18,14 @@ test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@uv run python -m pytest --doctest-modules
 
+.PHONY: optimize
+optimize: ## Run the squad optimizer (config/config.toml [optimization]) -> data/stage_99/optimizer_output.xlsx
+	@uv run python -m eupy.optimize.optimize_squad
+
+.PHONY: optimize-scenario
+optimize-scenario: ## Run the scenarios of config/scenarios.toml -> data/stage_99/optimizer_output_<key>.xlsx (SCENARIO=a,b: only those)
+	@uv run python -m eupy.optimize.optimize_squad --scenarios $(SCENARIO)
+
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"
@@ -35,6 +43,33 @@ clean-cache: ## Remove rebuildable caches (__pycache__, .ruff_cache, .pytest_cac
 		\( -type d \( -name __pycache__ -o -name .ruff_cache -o -name .pytest_cache -o -name .mypy_cache \
 			-o -name .hypothesis -o -name .ipynb_checkpoints -o -name htmlcov \) -exec rm -rf {} + \) -o \
 		\( -type f \( -name .coverage -o -name .DS_Store \) -exec rm -f {} + \)
+
+.PHONY: clean-data-raw
+clean-data-raw: ## Delete every data file under data/raw_data, keeping the folders and .gitkeep files (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		find data/raw_data -type f ! -name .gitkeep -print; \
+	else \
+		echo "🚀 Removing raw data files (keeping folders and .gitkeep)"; \
+		find data/raw_data -type f ! -name .gitkeep -print -delete; \
+	fi
+
+.PHONY: clean-data-stages
+clean-data-stages: ## Delete every git-ignored file under data/stage_* (all stages + stage_99), keeping raw_data and tracked files (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		git clean -ndX data/stage_*; \
+	else \
+		echo "🚀 Removing git-ignored stage data (raw_data and tracked files stay)"; \
+		git clean -fdX data/stage_*; \
+	fi
+
+.PHONY: clean-data
+clean-data: ## Delete every git-ignored file under data/ (raw + all stages); keeps tracked files (.gitkeep, curated) (ARGS=--dry-run: only list)
+	@if [ "$(ARGS)" = "--dry-run" ]; then \
+		git clean -ndX data; \
+	else \
+		echo "🚀 Removing git-ignored data (raw + stage_XX); tracked files stay"; \
+		git clean -fdX data; \
+	fi
 
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors

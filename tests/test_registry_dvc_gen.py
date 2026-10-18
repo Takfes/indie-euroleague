@@ -53,10 +53,10 @@ def _pipelines(c_dvc: bool = False) -> dict[str, Pipeline]:
 
 
 def test_step_has_script_and_input_deps_and_uncached_outs() -> None:
-    assert render_dvc(_registry(), _pipelines()).splitlines()[1:] == [
-        "stages:",
+    lines = render_dvc(_registry(), _pipelines()).splitlines()
+    assert lines[lines.index("  make_a:") :] == [
         "  make_a:",
-        "    cmd: uv run python src/eupy/transform/make_a.py",
+        "    cmd: uv run python -m eupy.transform.make_a",
         "    deps:",
         "    - src/eupy/transform/make_a.py",
         "    - data/raw_data/manual/raw.csv",
@@ -69,9 +69,45 @@ def test_step_has_script_and_input_deps_and_uncached_outs() -> None:
     ]
 
 
-def test_impure_script_and_dvc_false_pipeline_are_not_steps() -> None:
-    assert [s.name for s in dvc_steps(_registry(), _pipelines())] == ["make_a"]  # fetch_x impure, make_c dvc=false
-    assert [s.name for s in dvc_steps(_registry(), _pipelines(c_dvc=True))] == ["make_a", "make_c"]
+def test_fetcher_step_always_reruns_and_persists_its_outs() -> None:
+    lines = render_dvc(_registry(), _pipelines()).splitlines()
+    assert lines[lines.index("  fetch_x:") : lines.index("  make_a:")] == [
+        "  fetch_x:",
+        "    cmd: uv run python -m eupy.fetchers.fetch_x",
+        "    deps:",
+        "    - src/eupy/fetchers/fetch_x.py",
+        "    outs:",
+        "    - data/raw_data/x:",
+        "        cache: false",
+        "        persist: true",
+        "    always_changed: true",
+    ]
+
+
+def test_pipeline_of_only_fetchers_gets_an_aggregate_step_without_outs() -> None:
+    pipes = {"fetch": Pipeline("fetch", True, ("fetch_x",)), "rest": Pipeline("rest", False, ("make_a", "make_c"))}
+    steps = {s.name: s for s in dvc_steps(_registry(), pipes)}
+    assert sorted(steps) == ["fetch", "fetch_x"]
+    assert steps["fetch"].deps == ("data/raw_data/x",) and steps["fetch"].outs == ()
+    assert render_dvc(_registry(), pipes).splitlines().count("    outs:") == 1  # only fetch_x has outs
+
+
+def test_step_depends_on_config_file_when_its_closure_loads_the_config(tmp_path: Path) -> None:
+    _pkg(
+        tmp_path,
+        {
+            "transform/make_a.py": "from eupy.config import get_config\n",
+            "config/__init__.py": "from eupy.config.loader import x\n",
+            "config/loader.py": "x = 1\n",
+        },
+    )
+    step = next(s for s in dvc_steps(_registry(), _pipelines(), tmp_path) if s.name == "make_a")
+    assert "config/config.toml" in step.deps
+
+
+def test_ingest_scripts_and_dvc_false_pipelines_are_not_steps() -> None:
+    assert [s.name for s in dvc_steps(_registry(), _pipelines())] == ["fetch_x", "make_a"]  # make_c dvc=false
+    assert [s.name for s in dvc_steps(_registry(), _pipelines(c_dvc=True))] == ["fetch_x", "make_a", "make_c"]
 
 
 def test_render_is_idempotent_and_bannered() -> None:
@@ -128,7 +164,8 @@ def test_cli_dvc_writes_and_check_lints_membership(tmp_path: Path, capsys: pytes
 def test_committed_dvc_yaml_is_current() -> None:
     # Guards against a header or pipelines.toml change landing without regenerating dvc.yaml.
     registry = Registry.from_repo()
-    expected = render_dvc(registry, load_pipelines(REPO_ROOT / "pipelines.toml"), REPO_ROOT)
+    toml = REPO_ROOT / "pipelines.toml"
+    expected = render_dvc(registry, load_pipelines(toml), REPO_ROOT, load_wrappers(toml))
     assert (REPO_ROOT / "dvc.yaml").read_text(encoding="utf-8") == expected
 
 
@@ -209,7 +246,7 @@ def test_import_closure_of_missing_or_unparsable_script_is_empty(tmp_path: Path)
 
 def test_step_deps_include_import_closure_between_script_and_inputs(tmp_path: Path) -> None:
     _pkg(tmp_path, {"transform/make_a.py": "from eupy.lib import helper\n", "lib/helper.py": ""})
-    (step,) = dvc_steps(_registry(), _pipelines(), tmp_path)
+    step = next(s for s in dvc_steps(_registry(), _pipelines(), tmp_path) if s.name == "make_a")
     assert step.deps == (
         "src/eupy/transform/make_a.py",
         "src/eupy/lib/helper.py",
@@ -263,3 +300,18 @@ def test_library_importing_a_script_is_rejected(tmp_path: Path) -> None:
 
 def test_real_repo_has_no_script_importing_a_script() -> None:
     assert lint_script_imports(Registry.from_repo(REPO_ROOT)) == []
+
+
+def test_wrapper_becomes_an_aggregate_step_over_its_pipelines_outputs() -> None:
+    pipes = _pipelines()
+    steps = {s.name: s for s in dvc_steps(_registry(), pipes, wrappers={"flow": tuple(pipes)})}
+    flow = steps["flow"]
+    assert flow.cmd == "echo flow done" and flow.outs == ()
+    assert set(flow.deps) == {o for n, s in steps.items() if n != "flow" for o in s.outs}
+
+
+def test_wrapper_over_a_non_dvc_pipeline_or_with_a_step_name_is_rejected() -> None:
+    pipes = {**_pipelines(), "off": Pipeline("off", False, ())}
+    assert any("dvc = false" in p for p in lint_wrappers(pipes, {"flow": ("off",)}))
+    with pytest.raises(RegistryError, match="same name as a DVC step"):
+        dvc_steps(_registry(), _pipelines(), wrappers={"make_a": tuple(_pipelines())})

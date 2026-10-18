@@ -100,7 +100,7 @@ def test_discovery_rule(tmp_path: Path) -> None:
     _write_module(pkg / "transform" / "good.py", MINIMAL)
     _write_module(pkg / "transform" / "__init__.py", "Package.")
     _write_module(pkg / "entity" / "matching.py", "Library module, no block.")
-    _write_module(pkg / "devtools" / "tidy.py", "Dev tool, no block.")
+    _write_module(pkg / "scratch" / "tidy.py", "Non-pipeline dir, no block.")
     _write_module(pkg / "registry" / "model.py", "Registry, no block.")
     _write_module(pkg / "optimize" / "forgot.py", "Pipeline script that forgot its block.")
     _write_module(pkg / "fetchers" / "broken.py", MINIMAL.replace("Final: false", "Final: maybe"))

@@ -1,7 +1,7 @@
 """Read pipeline-script I/O headers: the key-value block at the end of each module docstring.
 
 The docstring is read with `ast` -- scripts are never imported, so a script with heavy or broken
-imports still parses. Grammar (see `specs/spec-header-format.md` and `docs/quickstart.md`), keys in
+imports still parses. Grammar (see `specs/spec-header-format.md` and `docs/run-guide.md`), keys in
 this exact order, the last two optional:
 
     Inputs:            list of `- <dataset-name>: <path>` entries, or `none`
@@ -20,7 +20,7 @@ inside the block, templated or space-containing paths, duplicate names -- is a `
 Discovery rule (`discover_headers`): every `*.py` under `src/eupy/` except `__init__.py` is read.
 A module with a block is a pipeline script wherever it lives. A module without a block is an error
 only inside the pipeline dirs (`PIPELINE_DIRS`), unless it is one of the known library modules
-(`LIBRARY_MODULES`); everywhere else (`devtools/`, this `registry/` package, ...) it is skipped.
+(`LIBRARY_MODULES`); everywhere else (this `registry/` package, ...) it is skipped.
 """
 
 from __future__ import annotations
@@ -33,12 +33,12 @@ from pathlib import Path
 PIPELINE_DIRS = frozenset({"fetchers", "transform", "entity", "optimize"})
 LIBRARY_MODULES = frozenset({
     "entity/matching.py",
-    "entity/player_sources.py",
-    "entity/player_crosswalk.py",
-    "entity/team_crosswalk.py",
-    "entity/verdict_batches.py",
+    "entity/name_audit.py",
+    "entity/player_names.py",
+    "entity/team_names.py",
     "fetchers/live_euroleague.py",
-    "transform/live_append.py",
+    "optimize/scenarios.py",
+    "transform/merge_common.py",
 })
 
 LIST_KEYS = ("Inputs", "Sources", "Outputs")

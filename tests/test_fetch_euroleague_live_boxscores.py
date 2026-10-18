@@ -166,8 +166,8 @@ def test_build_game_rows_maps_player_fields() -> None:
     rows = build_game_rows(HEADER, BOXSCORE, season="E2026", gamecode=1)
 
     red_row = rows[0]
-    assert red_row["game_player_id"] == "E2026_1_P011157"
-    assert red_row["game_id"] == "E2026_1"
+    assert red_row["game_player_id"] == "E2026_001_P011157"
+    assert red_row["game_id"] == "E2026_001"
     assert red_row["game"] == "RED-ZAL"
     assert red_row["round"] == "1"
     assert red_row["phase"] == "REGULAR SEASON"
@@ -198,7 +198,7 @@ def test_build_game_rows_synthesizes_team_total_row_per_team() -> None:
     assert red_total["player"] == "CRVENA ZVEZDA MERIDIANBET BELGRADE"
     assert red_total["player_id"] == "RED"
     assert red_total["team_id"] == "RED"
-    assert red_total["game_player_id"] == "E2026_1_RED"
+    assert red_total["game_player_id"] == "E2026_001_RED"
     assert red_total["is_starter"] == 0
     assert red_total["is_playing"] == 1
     assert red_total["plus_minus"] == 0
@@ -287,3 +287,29 @@ def test_build_game_rows_raises_on_mismatched_stats_boxscore_shape() -> None:
     lopsided_boxscore = {**BOXSCORE, "Stats": [BOXSCORE["Stats"][0]]}
     with pytest.raises(ValueError, match="zip"):
         build_game_rows(HEADER, lopsided_boxscore, season="E2026", gamecode=1)
+
+
+def test_run_keeps_state_beside_box_score_deltas(tmp_path: Path) -> None:
+    from eupy.fetchers import fetch_euroleague_live_boxscores as fb
+
+    rows = [{"game_player_id": "E2026_1_a"}, {"game_player_id": "E2026_1_b"}]
+    headers = {1: {"Live": False}}
+    with (
+        patch.object(fb, "fetch_header", side_effect=lambda _s, gc: headers.get(gc)),
+        patch.object(fb, "fetch_boxscore", return_value={}),
+        patch.object(fb, "is_game_complete", return_value=True),
+        patch.object(fb, "_assert_season_matches"),
+        patch.object(fb, "build_game_rows", return_value=rows),
+        patch.object(fb.time, "sleep"),
+    ):
+        fb.run("E2026", tmp_path)
+
+    assert '"last_ingested_gamecode": 1' in (tmp_path / "box_score" / "_state.json").read_text()
+    assert not (tmp_path / "_state.json").exists()  # no state at the source root anymore
+
+    from eupy.config import get_config
+    from eupy.logging_setup import REPO_ROOT  # conftest points this at tmp_path
+
+    log_text = (REPO_ROOT / get_config().logging.path).read_text()
+    assert "gamecode 1: complete, 2 rows" in log_text
+    assert "gamecode 2: no game yet, stopping" in log_text

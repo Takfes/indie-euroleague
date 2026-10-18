@@ -12,6 +12,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
+
 HEADER_URL = "https://live.euroleague.net/api/Header"
 BOXSCORE_URL = "https://live.euroleague.net/api/BoxScore"
 
@@ -20,7 +22,7 @@ BOXSCORE_URL = "https://live.euroleague.net/api/BoxScore"
 USER_AGENT = "Mozilla/5.0 (compatible; euroleague-live-fetcher/1.0)"
 
 # Polite-client delay between sequential requests.
-REQUEST_DELAY_SECONDS = 0.3
+REQUEST_DELAY_SECONDS = get_config().acquisition.request_delay
 
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "raw_data" / "euroleague_net"
 
@@ -47,6 +49,11 @@ def fetch_header(season: str, gamecode: int) -> dict[str, Any] | None:
 def fetch_boxscore(season: str, gamecode: int) -> dict[str, Any] | None:
     """Fetch the BoxScore endpoint for one game."""
     return fetch_json(f"{BOXSCORE_URL}?gamecode={gamecode}&seasoncode={season}")
+
+
+def state_path(source_dir: Path) -> Path:
+    """The ingestion state file of one live source: `<source_dir>/_state.json` (one per source subdir)."""
+    return source_dir / "_state.json"
 
 
 def load_state(state_path: Path) -> dict[str, dict[str, Any]]:

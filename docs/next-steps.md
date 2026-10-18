@@ -2,21 +2,16 @@
 
 Deferred work, off the critical path.
 
-- **No `data/stage_XX` dataset-path registry yet.** `resolve_player_names.py` and
-  `apply_player_name_verdicts.py` hardcode their `data/stage_01/player_name_crosswalk.csv` path,
-  same as the existing fetchers hardcode their `raw_data` paths. Expected until a registry is
-  built (tracked as a standing gap alongside the catalogue/graph generator, not a one-off here).
 - **`euroleague_box_score.csv` has at least 2 known cases of one real player under two different
   `player_id`s across seasons** (e.g. Lucas Mari: `P011974`/E2022 vs `P010754`/E2023, same club —
-  likely an accent-spelling-driven re-mint upstream; also Marko Simonovic, not in the current price
-  snapshot). Not fixable by the name-resolution pipeline; worth knowing about for any future
+  likely an accent-spelling-driven re-mint upstream; also Marko Simonovic). Not fixable by the name maps; worth knowing about for any future
   box-score analysis that assumes one `player_id` per player.
 
-## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`, `spec-html-viewer.md`, `spec-entity-verdicts.md`)
+## DVC pipeline initiative (specs: `spec-header-format.md`, `spec-registry.md`, `spec-catalogue-renderer.md`, `spec-graph-renderer.md`, `spec-dvc-core.md`, `spec-dvc-wrapper.md`)
 
 - **Control panel.** Local server (`uv run eupy panel`, 127.0.0.1 only) serving the HTML data map
   with run buttons per pipeline (`dvc repro <pipeline>`, log streaming, fresh/stale colouring from
-  `dvc status`). Human-gated steps would show "waiting for verdicts" instead of a button. Deferred
+  `dvc status`). Human-gated steps would show "waiting for the agent" instead of a button. Deferred
   until the static viewer proves useful; a terminal `eupy run <pipeline>` covers most of the value.
 - **Recoverability of untracked data.** `data/` is structure-only in git (derived outputs are
   fingerprinted in `dvc.lock`, no remote). Live-fetched raw data is not reproducible from a clone
@@ -25,15 +20,10 @@ Deferred work, off the critical path.
 - **Registry lint: every dataset directory carries a `.gitkeep`** (so a fresh clone has the
   skeleton the scripts write into).
 - **Short canonical source labels in headers** (graph/HTML source nodes currently carry long
-  free-text `Sources:` lines, with near-duplicates such as the two `--verdicts` variants and two
-  live.euroleague.net variants).
+  free-text `Sources:` lines, with near-duplicates such as the two live.euroleague.net variants).
 - **Structured `Notes:`** (multi-paragraph / lists) — the column notes read as dense paragraphs.
 - **Pipeline boxes in the HTML map**, a generic hue when stages exceed the palette, clearer routing
   for long edges.
-- **Verdict batches: ingest edge cases.** Two concurrent ingests can pick the same sequence number
-  (order stays deterministic by file name); file names assume < 10000 batches (4-digit prefix); a
-  typo'd key is accepted at ingest and only shows up as a skipped-verdict count; pruning stale
-  verdicts is undecided.
 - **Rebuild tests need the git-ignored raw snapshot** and skip without it, so CI would not run them.
   Decide whether CI gets a (small, synthetic) raw fixture or stays local-only.
 - **Scripts resolve paths through the registry.** Scripts keep hardcoding their `data/...` paths;

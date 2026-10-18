@@ -35,7 +35,7 @@ Final: false
 Impure: true
 Refresh: incremental: one delta file per run with new games
 Notes: Delta files are named {season}_delta_{utc_timestamp}.csv. State file
-  data/raw_data/euroleague_net/_state.json tracks progress and is updated every run.
+  data/raw_data/euroleague_net/box_score/_state.json tracks progress and is updated every run.
 """
 
 from __future__ import annotations
@@ -47,6 +47,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
 from eupy.fetchers.live_euroleague import (
     DEFAULT_OUT_DIR,
     REQUEST_DELAY_SECONDS,
@@ -54,7 +55,10 @@ from eupy.fetchers.live_euroleague import (
     fetch_header,
     load_state,
     save_state,
+    state_path,
 )
+from eupy.logging_setup import get_logger
+from eupy.quality import validate
 
 CSV_FIELDNAMES = [
     "game_player_id",
@@ -206,7 +210,7 @@ def build_game_rows(
     team B's players, team B's TOTAL. `Stats` is assumed to be in the same
     order as Header's TeamA/TeamB (a documented invariant of the live API).
     """
-    game_id = f"{season}_{gamecode}"
+    game_id = f"{season}_{gamecode:03d}"
     game = f"{header['CodeTeamA']}-{header['CodeTeamB']}"
     team_codes = (header["CodeTeamA"], header["CodeTeamB"])
 
@@ -228,26 +232,35 @@ def write_delta_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
 
 def run(season: str, out_dir: Path) -> None:
     """Poll new gamecodes for `season`, write a delta CSV if any completed, update state."""
-    state_path = out_dir / "_state.json"
-    state = load_state(state_path)
+    box_score_dir = out_dir / "box_score"
+    path = state_path(box_score_dir)
+    state = load_state(path)
     season_state = state.get(season, {})
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
 
+    log = get_logger("fetch_euroleague_live_boxscores")
+    log.info("%s: polling from gamecode %d", season, start_gamecode)
     rows: list[dict[str, Any]] = []
     gamecode = start_gamecode
     while True:
+        log.info("gamecode %d: fetching header", gamecode)
         header = fetch_header(season, gamecode)
         time.sleep(REQUEST_DELAY_SECONDS)
         if header is None:
+            log.info("gamecode %d: no game yet, stopping", gamecode)
             break
+        log.info("gamecode %d: fetching box score", gamecode)
         boxscore = fetch_boxscore(season, gamecode)
         time.sleep(REQUEST_DELAY_SECONDS)
         if not is_game_complete(header, boxscore):
+            log.info("gamecode %d: not complete (live or unplayed), stopping", gamecode)
             break
         _assert_season_matches(header, season, gamecode)
         assert boxscore is not None  # noqa: S101 -- is_game_complete already checked this
-        rows.extend(build_game_rows(header, boxscore, season, gamecode))
+        game_rows = build_game_rows(header, boxscore, season, gamecode)
+        rows.extend(game_rows)
+        log.info("gamecode %d: complete, %d rows", gamecode, len(game_rows))
         last_ingested = gamecode
         gamecode += 1
 
@@ -255,20 +268,23 @@ def run(season: str, out_dir: Path) -> None:
     if rows:
         season_state["last_ingested_gamecode"] = last_ingested
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        delta_path = out_dir / "box_score" / f"{season}_delta_{timestamp}.csv"
+        delta_path = box_score_dir / f"{season}_delta_{timestamp}.csv"
+        validate(rows, "game_player_id", "euroleague_net/box_score")
         write_delta_csv(rows, delta_path)
         num_games = gamecode - start_gamecode
-        print(f"Wrote {len(rows)} rows from {num_games} new game(s) to {delta_path}")
+        log.info("Wrote %d rows from %d new game(s) to %s", len(rows), num_games, delta_path)
     else:
-        print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
+        log.info("No new completed games for %s (checked from gamecode %d)", season, start_gamecode)
 
     state[season] = season_state
-    save_state(state, state_path)
+    save_state(state, path)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--season", default="E2026", help="Season code, e.g. E2026 (default: %(default)s)")
+    parser.add_argument(
+        "--season", default=get_config().acquisition.season, help="Season code, e.g. E2026 (default: %(default)s)"
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
     return parser.parse_args()
 

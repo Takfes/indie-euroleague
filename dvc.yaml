@@ -1,80 +1,196 @@
 # GENERATED — do not edit. Regenerate with `uv run python -m eupy.registry dvc` (from pipelines.toml).
 stages:
-  append_live_boxscores:
-    cmd: uv run python src/eupy/transform/append_live_boxscores.py
+  build_eubook:
+    cmd: uv run python -m eupy.transform.build_eubook
     deps:
-    - src/eupy/transform/append_live_boxscores.py
-    - src/eupy/transform/live_append.py
+    - src/eupy/transform/build_eubook.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/player_names.py
+    - src/eupy/entity/team_names.py
+    - config/config.toml
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_02/player_name_map.csv
+    outs:
+    - data/stage_03/eubook.xlsx:
+        cache: false
+    - data/stage_03/optimizer_input.xlsx:
+        cache: false
+  build_player_name_map:
+    cmd: uv run python -m eupy.entity.build_player_name_map
+    deps:
+    - src/eupy/entity/build_player_name_map.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/entity/matching.py
+    - src/eupy/entity/name_audit.py
+    - src/eupy/entity/player_names.py
+    - src/eupy/entity/team_names.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - src/eupy/entity/maps/player_name_decisions.json
+    outs:
+    - data/stage_02/player_name_map.csv:
+        cache: false
+  fetch_euroleague_fantasy_stats:
+    cmd: uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats
+    deps:
+    - src/eupy/fetchers/fetch_euroleague_fantasy_stats.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    outs:
+    - data/raw_data/fantasy_stats/head_coaches.csv:
+        cache: false
+        persist: true
+    - data/raw_data/fantasy_stats/players.csv:
+        cache: false
+        persist: true
+    always_changed: true
+  fetch_euroleague_live_boxscores:
+    cmd: uv run python -m eupy.fetchers.fetch_euroleague_live_boxscores
+    deps:
+    - src/eupy/fetchers/fetch_euroleague_live_boxscores.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/fetchers/live_euroleague.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    outs:
+    - data/raw_data/euroleague_net/box_score:
+        cache: false
+        persist: true
+    always_changed: true
+  fetch_euroleague_live_headers:
+    cmd: uv run python -m eupy.fetchers.fetch_euroleague_live_headers
+    deps:
+    - src/eupy/fetchers/fetch_euroleague_live_headers.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/fetchers/live_euroleague.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    outs:
+    - data/raw_data/euroleague_net/headers:
+        cache: false
+        persist: true
+    always_changed: true
+  fetch_game_schedule:
+    cmd: uv run python -m eupy.fetchers.fetch_game_schedule
+    deps:
+    - src/eupy/fetchers/fetch_game_schedule.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    outs:
+    - data/raw_data/game_schedule:
+        cache: false
+        persist: true
+    always_changed: true
+  fetch_kaggle:
+    cmd: echo fetch_kaggle fetched
+    deps:
+    - data/raw_data/kaggle_data/euroleague_box_score.csv
+    - data/raw_data/kaggle_data/euroleague_header.csv
+  fetch_kaggle_euroleague:
+    cmd: uv run python -m eupy.fetchers.fetch_kaggle_euroleague
+    deps:
+    - src/eupy/fetchers/fetch_kaggle_euroleague.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - config/config.toml
+    outs:
+    - data/raw_data/kaggle_data/euroleague_box_score.csv:
+        cache: false
+        persist: true
+    - data/raw_data/kaggle_data/euroleague_header.csv:
+        cache: false
+        persist: true
+    always_changed: true
+  fetch_update:
+    cmd: echo fetch_update fetched
+    deps:
     - data/raw_data/euroleague_net/box_score
-    - data/raw_data/kaggle_data/euroleague_box_score.csv
-    outs:
-    - data/stage_01/box_score_current.csv:
-        cache: false
-  append_live_headers:
-    cmd: uv run python src/eupy/transform/append_live_headers.py
+    - data/raw_data/fantasy_stats/head_coaches.csv
+    - data/raw_data/fantasy_stats/players.csv
+    - data/raw_data/game_schedule
+  merge_boxscore:
+    cmd: uv run python -m eupy.transform.merge_boxscore
     deps:
-    - src/eupy/transform/append_live_headers.py
-    - src/eupy/transform/live_append.py
+    - src/eupy/transform/merge_boxscore.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - src/eupy/transform/merge_common.py
+    - config/config.toml
+    - data/raw_data/euroleague_net/box_score
+    outs:
+    - data/stage_01/euroleague_box_score_merged.csv:
+        cache: false
+  merge_headers:
+    cmd: uv run python -m eupy.transform.merge_headers
+    deps:
+    - src/eupy/transform/merge_headers.py
+    - src/eupy/config/__init__.py
+    - src/eupy/config/defaults.py
+    - src/eupy/config/loader.py
+    - src/eupy/logging_setup.py
+    - src/eupy/quality/__init__.py
+    - src/eupy/quality/checks.py
+    - src/eupy/transform/merge_common.py
+    - config/config.toml
     - data/raw_data/euroleague_net/headers
-    - data/raw_data/kaggle_data/euroleague_header.csv
     outs:
-    - data/stage_01/header_current.csv:
+    - data/stage_01/euroleague_header_merged.csv:
         cache: false
-  build_schedule_turns:
-    cmd: uv run python src/eupy/transform/build_schedule_turns.py
+  refresh_and_build_eubook:
+    cmd: echo refresh_and_build_eubook done
     deps:
-    - src/eupy/transform/build_schedule_turns.py
-    - data/raw_data/euroleague_schedule
-    outs:
-    - data/stage_01/schedule.csv:
-        cache: false
-    - data/stage_01/team_round_turn.csv:
-        cache: false
-  normalize_fantasy_stats:
-    cmd: uv run python src/eupy/transform/normalize_fantasy_stats.py
-    deps:
-    - src/eupy/transform/normalize_fantasy_stats.py
+    - data/raw_data/euroleague_net/box_score
+    - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
-    - data/stage_01/fantasy_stats_player_name_crosswalk.csv
-    outs:
-    - data/stage_02/fantasy_stats_players_normalized.csv:
-        cache: false
-  resolve_fantasy_stats_player_names:
-    cmd: uv run python src/eupy/entity/resolve_fantasy_stats_player_names.py
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_02/player_name_map.csv
+    - data/stage_03/eubook.xlsx
+    - data/stage_03/optimizer_input.xlsx
+  refresh_data:
+    cmd: echo refresh_data done
     deps:
-    - src/eupy/entity/resolve_fantasy_stats_player_names.py
-    - src/eupy/entity/matching.py
-    - src/eupy/entity/player_sources.py
-    - src/eupy/entity/verdict_batches.py
-    - data/curated/fantasy_stats_player_name_verdicts
-    - data/raw_data/fantasy_prices/basketballsphere_prices.csv
+    - data/raw_data/euroleague_net/box_score
+    - data/raw_data/fantasy_stats/head_coaches.csv
     - data/raw_data/fantasy_stats/players.csv
-    - data/raw_data/kaggle_data/euroleague_box_score.csv
-    outs:
-    - data/stage_01/fantasy_stats_player_name_crosswalk.csv:
-        cache: false
-  resolve_player_names:
-    cmd: uv run python src/eupy/entity/resolve_player_names.py
-    deps:
-    - src/eupy/entity/resolve_player_names.py
-    - src/eupy/entity/matching.py
-    - src/eupy/entity/player_sources.py
-    - src/eupy/entity/verdict_batches.py
-    - data/curated/player_name_verdicts
-    - data/raw_data/fantasy_prices/basketballsphere_prices.csv
-    - data/raw_data/kaggle_data/euroleague_box_score.csv
-    outs:
-    - data/stage_01/player_name_crosswalk.csv:
-        cache: false
-  resolve_team_names:
-    cmd: uv run python src/eupy/entity/resolve_team_names.py
-    deps:
-    - src/eupy/entity/resolve_team_names.py
-    - src/eupy/entity/matching.py
-    - src/eupy/entity/verdict_batches.py
-    - data/curated/team_name_verdicts
-    - data/raw_data/fantasy_prices/basketballsphere_prices.csv
-    - data/raw_data/kaggle_data/euroleague_header.csv
-    outs:
-    - data/stage_01/team_name_crosswalk.csv:
-        cache: false
+    - data/raw_data/game_schedule
+    - data/stage_01/euroleague_box_score_merged.csv
+    - data/stage_02/player_name_map.csv

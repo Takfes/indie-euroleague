@@ -9,17 +9,16 @@
 
 - Add `dvc` as a dev dependency; `dvc init`; no remote; hash-only (no data versioning).
 - `pipelines.toml` (repo root) — the one place pipeline membership lives:
-  - `schedule`: `fetch_euroleague_schedule`, `build_schedule_turns`
-  - `net`: `fetch_euroleague_live_boxscores`, `fetch_euroleague_live_headers`, `append_live_boxscores`, `append_live_headers`
-  - `entity` and `optimize`: listed with `dvc = false` (complete membership, not yet runnable under DVC)
-  - fetchers of other sources sit in `acquire` (`dvc = false`, impure).
+  - `fetch_raw`: every raw-data fetcher (steps with `always_changed` + `persist`)
+  - `merge_history_live`: `merge_boxscore`, `merge_headers`
+  - `schedule`, `entity` and `optimize`: listed with `dvc = false` (complete membership, not yet runnable under DVC)
   - Lint: every pipeline script is in exactly one pipeline.
 - `src/eupy/registry/dvc_gen.py` + subcommand `python -m eupy.registry dvc` → `dvc.yaml` with a "GENERATED — do not edit" comment.
 - Commit `dvc.lock`.
 
 ## Decisions
 
-- Only pure scripts (`Impure: false`) in pipelines with `dvc = true` become DVC stages. Impure fetchers are **not** stages; their raw outputs are plain deps of downstream stages (changed raw file → downstream reruns).
+- Pure scripts (`Impure: false`) and fetchers (impure scripts under `src/eupy/fetchers/`) in pipelines with `dvc = true` become DVC stages; other impure scripts (entity ingest) never do. A fetcher stage has `always_changed: true` and `persist: true` outs, so it always reruns but downstream stages rerun only if the fetched files' hashes changed. A pipeline made only of fetchers also gets an aggregate stage named after it (`dvc repro fetch_raw`).
 - Stage per script: `cmd: uv run python <script path>` (must run with no arguments), `deps:` = script file + input paths, `outs:` = output paths with `cache: false` (fingerprints go in `dvc.lock`, no file copies, no remote).
 - `data/stage_99/` symlinks are never DVC outs (ticket 6 creates them).
 - Directory inputs (e.g. the live delta folders) are hashed as directories. Whether DVC keeps a tiny directory manifest in `.dvc/cache` is verified here; acceptable if so.

@@ -1,43 +1,49 @@
 # Pipeline membership -- the one place it lives. Every script with an I/O header sits in exactly one
 # pipeline (linted by `uv run python -m eupy.registry check`).
 # dvc = true: the pipeline's pure scripts (`Impure: false`) become DVC steps in the generated dvc.yaml
-# (`uv run python -m eupy.registry dvc`); impure scripts (fetchers, entity ingest) are never steps -- their
-# outputs (raw data, verdict batch dirs) are plain deps.
+# (`uv run python -m eupy.registry dvc`); impure scripts (fetchers) are never steps -- their
+# outputs (raw data) are plain deps.
 
-[acquire]
-dvc = false
-scripts = ["fetch_basketballsphere_prices", "fetch_euroleague_fantasy_stats"]
-
-[schedule]
-dvc = true
-scripts = ["fetch_euroleague_schedule", "build_schedule_turns"]
-
-[net]
+# The update flow's fetchers: euroleague.net box score + headers, fantasy stats (mode from config) and the schedule.
+[fetch_update]
 dvc = true
 scripts = [
     "fetch_euroleague_live_boxscores",
-    "fetch_euroleague_live_headers",
-    "append_live_boxscores",
-    "append_live_headers",
+    "fetch_euroleague_fantasy_stats",
+    "fetch_game_schedule",
 ]
+
+# The Kaggle history, a separate flow: not part of the update (see [transformation] include_kaggle).
+[fetch_kaggle]
+dvc = true
+scripts = ["fetch_kaggle_euroleague"]
+
+[merge_history_live]
+dvc = true
+scripts = ["merge_boxscore"]
+
+# The game headers: kept and runnable on their own (`dvc repro live_headers`), but not part of the update flows
+# because nothing downstream reads them yet.
+[live_headers]
+dvc = true
+scripts = ["fetch_euroleague_live_headers", "merge_headers"]
 
 [entity]
 dvc = true
-scripts = [
-    "resolve_player_names",
-    "apply_player_name_verdicts",
-    "resolve_team_names",
-    "apply_team_name_verdicts",
-    "resolve_fantasy_stats_player_names",
-    "apply_fantasy_stats_player_name_verdicts",
-    "normalize_fantasy_stats",
-]
+scripts = ["build_player_name_map"]
+
+[workbook]
+dvc = true
+scripts = ["build_eubook"]
 
 [optimize]
 dvc = false
 scripts = ["optimize_squad"]
 
-# Wrappers: `uv run eupy run <wrapper>` runs these pipelines together. Order between them comes from the
-# DVC dependencies, not from the list.
+# Wrappers: named lists of pipelines. Each is a DVC step (`dvc repro <wrapper>` runs every step of its pipelines,
+# fetchers included).
 [wrappers]
-all = ["schedule", "net", "entity"]
+# steps 1-3: fetch, merge the deltas, resolve player names (stops while stats players are unmatched)
+refresh_data = ["fetch_update", "merge_history_live", "entity"]
+# steps 1-4: the above, then the eubook workbook
+refresh_and_build_eubook = ["fetch_update", "merge_history_live", "entity", "workbook"]

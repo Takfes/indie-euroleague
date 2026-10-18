@@ -5,7 +5,7 @@ The live API's `Header` endpoint (`live.euroleague.net/api/Header?gamecode=N&sea
 returns one JSON object per game. This script polls gamecodes upward from where the last
 run left off (per season) and writes each newly *completed* game as one row in the schema of
 `data/raw_data/kaggle_data/euroleague_header.csv` -- so live deltas and the Kaggle history
-can be stacked (see `append_live_headers.py`).
+can be stacked (see `merge_headers.py`).
 
 Mapping notes (verified against Kaggle rows for E2022 / E2025):
 - `game_id` is `{season}_{gamecode:03d}` (zero-padded, as in Kaggle).
@@ -47,15 +47,19 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from eupy.config import get_config
 from eupy.fetchers.live_euroleague import (
     DEFAULT_OUT_DIR,
     REQUEST_DELAY_SECONDS,
     fetch_header,
     load_state,
     save_state,
+    state_path,
 )
+from eupy.logging_setup import get_logger
+from eupy.quality import validate
 
-DEFAULT_MAX_GAP = 5
+DEFAULT_MAX_GAP = get_config().acquisition.max_gap
 
 CSV_FIELDNAMES = [
     "game_id",
@@ -172,12 +176,14 @@ def write_delta_csv(rows: list[dict[str, Any]], out_path: Path) -> None:
 def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
     """Poll new gamecodes for `season`, write a delta CSV if any completed, update state."""
     headers_dir = out_dir / "headers"
-    state_path = headers_dir / "_state.json"
-    state = load_state(state_path)
+    path = state_path(headers_dir)
+    state = load_state(path)
     season_state = state.get(season, {})
     last_ingested: int | None = season_state.get("last_ingested_gamecode")
     start_gamecode = (last_ingested or 0) + 1
 
+    log = get_logger("fetch_euroleague_live_headers")
+    log.info("%s: polling from gamecode %d (stops after %d misses)", season, start_gamecode, max_gap)
     rows: list[dict[str, Any]] = []
     gamecode = start_gamecode
     misses = 0
@@ -186,14 +192,18 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         time.sleep(REQUEST_DELAY_SECONDS)
         if header is None:
             misses += 1
+            log.info("gamecode %d: no game (miss %d/%d)", gamecode, misses, max_gap)
         elif header.get("Live"):
+            log.info("gamecode %d: live, stopping", gamecode)
             break  # in progress: pick it up, complete, next run
         elif is_header_complete(header):
             rows.append(build_header_row(header, season, gamecode))
             last_ingested = gamecode
             misses = 0
+            log.info("gamecode %d: complete", gamecode)
         else:
             misses += 1  # scheduled but unplayed
+            log.info("gamecode %d: scheduled, not played (miss %d/%d)", gamecode, misses, max_gap)
         gamecode += 1
 
     season_state["last_checked_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -201,18 +211,21 @@ def run(season: str, out_dir: Path, max_gap: int = DEFAULT_MAX_GAP) -> None:
         season_state["last_ingested_gamecode"] = last_ingested
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         delta_path = headers_dir / f"{season}_delta_{timestamp}.csv"
+        validate(rows, "game_id", "euroleague_net/headers")
         write_delta_csv(rows, delta_path)
-        print(f"Wrote {len(rows)} header row(s) to {delta_path}")
+        log.info("Wrote %d header row(s) to %s", len(rows), delta_path)
     else:
-        print(f"No new completed games for {season} (checked from gamecode {start_gamecode})")
+        log.info("No new completed games for %s (checked from gamecode %d)", season, start_gamecode)
 
     state[season] = season_state
-    save_state(state, state_path)
+    save_state(state, path)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--season", default="E2026", help="Season code, e.g. E2026 (default: %(default)s)")
+    parser.add_argument(
+        "--season", default=get_config().acquisition.season, help="Season code, e.g. E2026 (default: %(default)s)"
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR, help="Raw output directory")
     parser.add_argument(
         "--max-gap",

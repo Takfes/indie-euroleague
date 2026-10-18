@@ -1,0 +1,129 @@
+# Spec: player and team name maps (entity module rebuild)
+
+## Goal
+
+The pipeline reads the same players and teams from several sources, each spelling them differently:
+
+- Fantasy stats (`fantasy_stats/players`): abbreviated names (`C. Jones`) and the fantasy app's club codes (`PAO`).
+- Box scores (Kaggle history and the live delta): `JONES, CARLIK` and the box-score `team_id` codes (`PAN`).
+- Schedule: full team names plus two code schemes per team.
+
+Give downstream code two small, self-contained classes that turn any of these spellings into one normalized form:
+
+- `PlayerNames.normalize("JONES, CARLIK")` and `PlayerNames.normalize("C. Jones", team="PAO")` both return `Carlik Jones`.
+- `TeamNames.normalize("PAN")` and `TeamNames.normalize("PAO")` return the same team name (the schedule's `hometeam`).
+
+The fantasy stats data is the trusted set. Players that do not appear in it are out of scope: they never get an entry.
+
+## Scope
+
+In scope: the `src/eupy/entity/` module rebuild, as below.
+
+Out of scope, handled in follow-up reviews:
+
+- Season history for teams: the team map covers whatever the schedule dataset covers (today the current season).
+
+## Design
+
+Two classes, one derived player CSV, one committed decisions file, one builder script, one skill that drives the
+decisions.
+
+```
+src/eupy/entity/
+  team_names.py                    class TeamNames: derived from the schedule on load, no map file
+  player_names.py                  class PlayerNames (reads the player map CSV)
+  name_audit.py                    library: the audit that closes build_player_name_map (see spec-update-flow.md)
+  build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (CSV); holds the engine
+  matching.py                      library: normalize_name, match_key, exact candidate finder, lookup errors
+  maps/player_name_decisions.json  committed, written only by the build-name-maps skill, read by build_player_name_map.py
+data/stage_02/player_name_map.csv  the player map: derived, git-ignored, read by PlayerNames
+```
+
+The only judgements that cannot be re-derived from raw data are the agent decisions, so they are the one committed
+player file (`maps/player_name_decisions.json`, shipped with the package). The player map is a pure function of the
+fantasy stats, the box score, the schedule (which gives the team lookup) and the decisions, rebuilt by `dvc repro`;
+`PlayerNames.load()` reads it from `data/stage_02/`. The decisions file is a declared stage-0 input of the builder
+(`raw_sources.toml`; the registry accepts `src/eupy/entity/maps/` as a committed reference location), so DVC reruns
+the builder when a decision is recorded. Stage numbers are computed from the headers (the player map depends on the
+merged box score, a stage-1 dataset), not chosen. A rerun on the same inputs and decisions rewrites
+the same bytes.
+
+### Lookup behaviour (both classes)
+
+- Lookup is case, accent and punctuation insensitive: spellings are reduced with `matching.normalize_name`.
+- `normalize(x)` returns the normalized form, or raises `UnknownNameError` (never guesses, never passes the input through).
+- A spelling shared by two entries raises `AmbiguousNameError`; `PlayerNames.normalize(name, team=...)` resolves it with
+  the player's club. `team` is a raw club code or name; it is normalized through `TeamNames` inside.
+- The normalized form of an entry is itself a variant, so `normalize` is idempotent.
+- Both classes load their map once (`load()`), keep it in memory and carry no other state.
+
+### Team lookup
+
+- Derived in memory by `TeamNames.load()` from `data/raw_data/game_schedule/schedule_*.csv`: distinct
+  `(hometeam, homecode, hometv)`. There is no team map file or builder; scripts using it declare the schedule as input.
+- Entry: `{"name": <hometeam>, "variants": [<hometeam>, <homecode>, <hometv>]}`, sorted by name.
+- The normalized name is the schedule's `hometeam` verbatim. On the real 2026 schedule these are long upper-case
+  names (`PANATHINAIKOS AKTOR ATHENS`, `FC BARCELONA`); a shorter display name would be a later, separate change.
+- Fails loudly if one code points to two teams or one team has two code pairs, and on an empty schedule.
+- Whether the box-score `team_id` equals `homecode` or `hometv`, and whether the fantasy codes all appear, is checked
+  against real data after the first fetch. A code missing from the map is reported by the player builder, never guessed.
+
+### Player map and matching engine
+
+One unit of work is a distinct `(name, team)` pair of the stats players, `team` being the fantasy club code. The unit's key
+is `"<team>|<name>"`. Player ids are not used in the output, and not as a key.
+
+Normalized form: the box-score spelling reordered to `First Last` and title-cased (`JONES, CARLIK` becomes `Carlik Jones`).
+
+Stages, in order:
+
+1. Exact, club-scoped. Pool: box-score players who played for the stats player's club in the most recent seasons
+   (default: the latest two season codes in the merged box score). The club is compared after `TeamNames`
+   normalization on both sides. Pool spellings are abbreviated like the stats names; equality of `matching.match_key`
+   (the normalized name without a trailing `Jr`/`Sr`/`II`/`III`/`IV`, since the stats and the box score disagree on
+   suffixes) with exactly one pool player is `exact` and the only automatic accept. Two players of one club that
+   differ only by suffix are `needs_review`.
+2. Exact, unscoped. Everything else is looked up across every box-score spelling in history. A hit is `needs_review`
+   (`matched_by` `exact_other_club`), never auto-accepted, because it may be an older namesake or the player at a
+   previous club. No hit is `no_candidate`. There is no approximate (fuzzy) matching: it produced mostly wrong
+   suggestions, and the agent stage covers every remaining case.
+3. Agent decisions. For the players the first two stages leave open, the agent records a decision in
+   `maps/player_name_decisions.json`: `confirmed` (with the full name in `name`, which need not exist in the box
+   score), `rejected` or `no_match`, plus a short `notes` rationale. The builder applies the decisions on every
+   rebuild and validates them (`notes` required, `confirmed` needs a `name`). A decision never replaces an `exact`
+   match, and one for a player who left the stats data is ignored. The agent typically handles players who just
+   moved clubs (no games for the new club yet) and rookies with no box-score history.
+
+Map entry: `{"name", "variants", "team", "stats_name", "stats_team", "match_status", "matched_by", "notes"}`;
+the CSV has the same columns, `variants` joined with ` | `.
+
+- `name`: the normalized full name; `variants`: the stats spelling, the box-score spelling(s) as written and the normalized name.
+- `team`: the normalized club of the stats player. It is metadata used to disambiguate, not part of the lookup key.
+- Entries with `exact` or `confirmed` carry the full name. `rejected` and `no_match` keep the abbreviated stats name as `name`,
+  so a lookup still answers, and are marked as such.
+- Open entries (`needs_review`, `no_candidate`) are written with their candidates in `notes` but excluded from lookup;
+  `PlayerNames.unresolved()` lists them. A fully resolved map has none.
+
+### Skill
+
+One skill in `.claude/skills/build-name-maps/` refreshes both maps:
+
+1. Check the prerequisite files exist (schedule CSV, merged box score, stats players) and name the fetch/merge step if not.
+2. Run `build_player_name_map.py`.
+3. For each open entry the builder reports, research it (box-score history, the web), record the decision in the
+   decisions file, and rebuild; repeat until nothing is open.
+4. Report the counts per status.
+
+The skill adds no logic of its own: it only calls the scripts. `docs/run-guide.md` documents it.
+
+## Pass criteria
+
+- `TeamNames` and `PlayerNames` return the normalized form for every variant, are idempotent, and raise on unknown or
+  ambiguous input; `team=` disambiguates.
+- Builders are deterministic, validate their input (empty or conflicting data fails loudly) and write unchanged bytes
+  on a rerun.
+- Engine tests cover: club-scoped exact accept, same-abbreviation collision, out-of-club hit going to review,
+  near-miss spelling left without candidate, agent decision carried across a rebuild, never overriding an exact match, dropped when the player leaves the stats.
+- `src/eupy/entity/` holds only the files in the layout above; the old resolvers, crosswalk accessors, `player_sources.py`
+  and their tests are gone, and no spec, doc or header mentions them.
+- `ruff check`, `ruff format --check` and the entity tests pass.

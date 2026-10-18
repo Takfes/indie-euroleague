@@ -16,10 +16,10 @@ classifiers = [
 ]
 dependencies = [
     "highspy>=1.15.1",
+    "kaggle>=2.2.4",
     "openpyxl>=3.1.5",
     "pandas>=3.0.6",
     "pyomo>=6.10.1",
-    "rapidfuzz>=3.14.6",
 ]
 
 [project.urls]
@@ -35,13 +35,12 @@ dev = [
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
-
     "mypy>=0.991",
-
     "ruff>=0.6.9",
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "dvc>=3.67.1",
+    "ipykernel>=7.4.0",
 ]
 
 [build-system]

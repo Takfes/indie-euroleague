@@ -7,6 +7,7 @@ The header fixture is a trimmed real response for gamecode=1, seasoncode=E2022
 from __future__ import annotations
 
 import csv
+import sys
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -14,7 +15,8 @@ from unittest.mock import patch
 import pytest
 
 from eupy.fetchers import fetch_euroleague_live_headers as fh
-from eupy.transform.append_live_headers import append_rows
+from eupy.quality import DataQualityError
+from eupy.transform import merge_headers
 
 HEADER: dict[str, Any] = {
     "Live": False,
@@ -116,17 +118,42 @@ def test_run_resumes_from_state_and_writes_nothing_when_no_news(tmp_path: Path) 
     assert len(list((tmp_path / "headers").glob("E2022_delta_*.csv"))) == 1
 
 
-def _hdr_row(game_id: str, score: str = "1") -> dict[str, str]:
-    return {"game_id": game_id, "score_a": score}
+def _write_headers(path: Path, game_ids: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("game_id,season_code\n" + "".join(f"{g},{g[:5]}\n" for g in game_ids), encoding="utf-8")
 
 
-def test_append_keys_on_game_id_last_wins_and_keeps_first_seen_position() -> None:
-    base = [_hdr_row("E2025_002"), _hdr_row("E2025_001")]
-    deltas = [_hdr_row("E2026_001"), _hdr_row("E2025_002", "live"), _hdr_row("E2026_001", "refetched")]
-    rows, dropped = append_rows(base, deltas)
-    assert [(r["game_id"], r["score_a"]) for r in rows] == [
-        ("E2025_002", "live"),
-        ("E2025_001", "1"),
-        ("E2026_001", "refetched"),
-    ]
-    assert dropped == 2
+def test_merge_headers_include_kaggle_concatenates_full_history_and_deltas(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    kaggle, live, out = tmp_path / "k.csv", tmp_path / "live", tmp_path / "out.csv"
+    _write_headers(kaggle, ["E2024_001", "E2025_001"])
+    _write_headers(live / "E2026_delta_1.csv", ["E2026_001"])
+    monkeypatch.setattr(
+        sys, "argv", ["p", "--include-kaggle", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)]
+    )
+    merge_headers.main()
+    assert out.read_text().splitlines()[1:] == ["E2024_001,E2024", "E2025_001,E2025", "E2026_001,E2026"]
+
+
+def test_merge_headers_game_in_two_deltas_fails_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    kaggle, live, out = tmp_path / "k.csv", tmp_path / "live", tmp_path / "out.csv"
+    _write_headers(kaggle, ["E2025_001"])
+    _write_headers(live / "E2026_delta_1.csv", ["E2026_001"])
+    _write_headers(live / "E2026_delta_2.csv", ["E2026_001"])  # re-fetched game: no silent replace
+    monkeypatch.setattr(
+        sys, "argv", ["p", "--include-kaggle", "--kaggle", str(kaggle), "--live-dir", str(live), "--out", str(out)]
+    )
+    with pytest.raises(DataQualityError, match="duplicate"):
+        merge_headers.main()
+    assert not out.exists()
+
+
+def test_run_logs_one_progress_line_per_gamecode(tmp_path: Path) -> None:
+    from eupy.config import get_config
+    from eupy.logging_setup import REPO_ROOT  # conftest points this at tmp_path
+
+    _run_with({1: HEADER, 2: {**HEADER, "Live": True}}, tmp_path)
+    text = (REPO_ROOT / get_config().logging.path).read_text()
+    assert "gamecode 1: complete" in text
+    assert "gamecode 2: live, stopping" in text

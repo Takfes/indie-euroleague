@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+"""Build the player name map: one entry per fantasy-stats player, resolved to a full, normalized name, then audit it.
+
+The stats data is the trusted set: one unit of work is a distinct `(team, name)` pair of
+`fantasy_stats/players` (`C. Jones`, club code `PAO`); players not in the stats data never get an entry. The
+box score is only the source of full names. Stages, in order (see specs/spec-name-maps.md):
+
+1. Exact, club-scoped -- pool = box-score players who played for the player's club in the most recent seasons
+   (club compared after `TeamNames` normalization on both sides), spelled in the stats' abbreviated form. Names
+   are compared without a trailing `Jr` / `Sr` / `II` / `III` / `IV` (`matching.match_key`), because the stats and
+   the box score disagree on suffixes. Exactly one match is `exact`, the only automatic accept.
+2. Exact, unscoped -- everything else is looked up across every box-score spelling in history. A hit is
+   `needs_review`, never accepted: it may be an older namesake or the player at a previous club. No hit is
+   `no_candidate`. There is no approximate matching.
+3. Agent decisions -- for the players the first two stages leave open (a player who just moved club has no games
+   for it yet; a rookie has no box-score history), the agent records `match_status` `confirmed` (with the full
+   name in `name`), `rejected` or `no_match` in `maps/player_name_decisions.json`, with a short `notes` rationale.
+   The builder applies those decisions on every rebuild, so the agent only ever decides new players. A player
+   that has since become `exact` keeps the exact match (its decision is then dead and can be removed).
+
+Row key: `"<team>|<name>"`. Normalized form: the box-score spelling reordered to `First Last`, title-cased.
+
+The map is one derived file, the CSV `data/stage_02/player_name_map.csv`, which `PlayerNames`
+(`player_names.py`) loads. Entries still open (`needs_review`, `no_candidate`) are written with their candidates
+in `notes`; resolving the ones that matter is the `build-name-maps` skill's job.
+
+Right after writing the map the script audits it against the box score (`name_audit.py`) and prints three cases:
+players in both datasets, players only in the stats (information: most have not played yet) and players who played
+but are not linked (a warning with the likely stats entry and the full name to decide it as). Open entries never
+fail the run; only `names_mode = "pause"` (`[transformation]` in `config/config.toml`, or `--mode pause`) exits 1
+for a played, unlinked box-score player, which stops a DVC flow before the workbook.
+
+Usage:
+    python -m eupy.entity.build_player_name_map [--mode continue|pause] [--stats PATH] [--boxscore PATH]
+        [--recent-seasons N] [--decisions PATH] [--out PATH]
+
+Inputs:
+  - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
+  - euroleague_box_score_merged: data/stage_01/euroleague_box_score_merged.csv
+  - game_schedule/schedule: data/raw_data/game_schedule/
+  - player_name_decisions: src/eupy/entity/maps/player_name_decisions.json
+Sources: none
+Outputs:
+  - player_name_map: data/stage_02/player_name_map.csv
+Final: false
+Impure: false
+Notes: The schedule feeds TeamNames (club scoping); the decisions file is committed with the package and written
+  by the build-name-maps skill, so DVC reruns this stage when a decision is recorded. Everything else is recomputed
+  from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes. The audit prints only;
+  the exit code is 1 solely in pause mode with a played, unlinked box-score player (the map is written first).
+  CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined
+  with " | "), match_status, matched_by, notes.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import sys
+from collections import Counter, defaultdict
+from dataclasses import dataclass
+from pathlib import Path
+
+from eupy.config import get_config
+from eupy.entity.matching import (
+    OPEN_STATUSES,
+    StatsPlayer,
+    UnknownNameError,
+    build_normalized_index,
+    find_candidates,
+    load_stats_players,
+    match_key,
+    normalize_name,
+)
+from eupy.entity.name_audit import MODES, audit
+from eupy.entity.team_names import TeamNames
+from eupy.quality import validate
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+STATS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
+BOXSCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.csv"
+DECISIONS_PATH = Path(__file__).resolve().parent / "maps" / "player_name_decisions.json"
+CSV_PATH = REPO_ROOT / "data" / "stage_02" / "player_name_map.csv"
+CSV_FIELDS = [
+    "stats_team",
+    "stats_name",
+    "team",
+    "name",
+    "variants",
+    "match_status",
+    "matched_by",
+    "notes",
+]
+
+RECENT_SEASONS = 2
+AGENT_STATUSES = frozenset({"confirmed", "rejected", "no_match"})
+
+# {spelling: {owner, ...}} -- the shape `matching.find_candidates` works on
+Pool = dict[str, set[str]]
+
+
+@dataclass
+class BoxscorePools:
+    """Box-score spellings, reordered to `First LAST`, with the player ids behind each and the raw spellings.
+
+    `by_club` is restricted to the recent seasons and keyed by normalized club name. `raw` maps the normalized
+    form of a reordered spelling (accents and punctuation dropped) to the spellings as written in the box score
+    (`JONES, CARLIK`), so accent variants of one name share their raw spellings.
+    """
+
+    all: Pool
+    by_club: dict[str, Pool]
+    raw: dict[str, set[str]]
+
+
+def reorder_boxscore_name(name: str) -> str:
+    """`"LAST, First"` -> `"First LAST"`; names without a comma pass through."""
+    if "," not in name:
+        return name
+    last, first = name.split(",", 1)
+    return f"{first.strip()} {last.strip()}"
+
+
+def abbreviate_name(name: str) -> str:
+    """`"First Last"` -> `"F. Last"`; splits on whitespace so `"Marc-Owen Fodzo Dada"` -> `"M. Fodzo Dada"`."""
+    first, _, rest = name.strip().partition(" ")
+    return f"{first[0]}. {rest.strip()}" if rest else name.strip()
+
+
+def abbreviated_pool(full_names: list[str]) -> Pool:
+    """Matching pool `{abbreviated spelling: {full names}}`."""
+    pool: Pool = defaultdict(set)
+    for full in full_names:
+        pool[abbreviate_name(full)].add(full)
+    return dict(pool)
+
+
+def load_boxscore_pools(path: Path, teams: TeamNames, recent_seasons: int = RECENT_SEASONS) -> BoxscorePools:
+    """Read the merged box score into matching pools; TOTAL rows are skipped.
+
+    A club whose `team_id` is not in the team map (a club absent from the current schedule) is left out of
+    `by_club`; its players still appear in `all`.
+    """
+    with path.open(newline="", encoding="utf-8") as f:
+        rows = [r for r in csv.DictReader(f) if r["dorsal"] != "TOTAL"]
+    recent = set(sorted({r["season_code"] for r in rows})[-recent_seasons:])
+    pools = BoxscorePools(all=defaultdict(set), by_club=defaultdict(lambda: defaultdict(set)), raw=defaultdict(set))
+    for row in rows:
+        spelling = reorder_boxscore_name(row["player"])
+        pools.all[spelling].add(row["player_id"])
+        pools.raw[normalize_name(spelling)].add(row["player"])
+        if row["season_code"] in recent:
+            try:
+                club = teams.normalize(row["team_id"])
+            except UnknownNameError:
+                continue
+            pools.by_club[club][spelling].add(row["player_id"])
+    return BoxscorePools(
+        all=dict(pools.all), by_club={c: dict(p) for c, p in pools.by_club.items()}, raw=dict(pools.raw)
+    )
+
+
+def _match(name: str, pool: Pool) -> tuple[str, list[str], str]:
+    """Exact match over a box-score pool, with candidates expanded from abbreviations to full names."""
+    abbreviated = abbreviated_pool(list(pool))
+    status, candidates, matched_by = find_candidates(
+        match_key(name), abbreviated, build_normalized_index(abbreviated, key=match_key)
+    )
+    return status, [full for abbrev in candidates for full in sorted(abbreviated[abbrev])], matched_by
+
+
+def build_row(player: StatsPlayer, club: str, pools: BoxscorePools) -> dict[str, str]:
+    """Build one fresh row (no agent decision applied) for a stats player whose club normalizes to `club` (`""` if unknown)."""
+    status, candidates, matched_by = _match(player["name"], pools.by_club.get(club, {}))
+    if status == "no_candidate":
+        status, candidates, matched_by = _match(player["name"], pools.all)
+        if status == "exact":
+            status, matched_by = "needs_review", "exact_other_club"  # outside the club: never auto-accept
+    candidates = [full.title() for full in candidates]
+
+    row = {
+        "team": player["team"],
+        "name": player["name"],
+        "club": club,
+        "resolved_name": "",
+        "match_status": status,
+        "matched_by": matched_by,
+        "notes": "" if club else f"team code {player['team']!r} is not in the team map",
+    }
+    if candidates:
+        row["resolved_name"] = candidates[0]
+        if status == "needs_review":
+            note = f"candidates: {'; '.join(candidates)}"
+            row["notes"] = f"{row['notes']}; {note}" if row["notes"] else note
+    return row
+
+
+def load_agent_decisions(path: Path) -> dict[str, dict[str, str]]:
+    """Agent decisions from the decisions file, keyed `"<team>|<name>"`; `{}` if there is no file yet.
+
+    The file is `{"decisions": [{"stats_team", "stats_name", "match_status", "name", "notes"}, ...]}`; `name` is
+    only read for `confirmed`.
+
+    Raises:
+        ValueError: If a decision has an unknown status, no `notes` rationale, or is `confirmed` without a full `name`.
+    """
+    if not path.exists():
+        return {}
+    decisions = {}
+    for entry in json.loads(path.read_text(encoding="utf-8"))["decisions"]:
+        status = entry["match_status"]
+        key = f"{entry['stats_team']}|{entry['stats_name']}"
+        if status not in AGENT_STATUSES:
+            raise ValueError(f"{key}: decision status must be one of {sorted(AGENT_STATUSES)}, got {status!r}")
+        if not str(entry.get("notes", "")).strip():
+            raise ValueError(f"{key}: an agent decision needs a short `notes` rationale (in {path})")
+        if status == "confirmed" and not str(entry.get("name", "")).strip():
+            raise ValueError(f"{key}: a `confirmed` decision needs the full player `name` (in {path})")
+        decisions[key] = {
+            "match_status": status,
+            "resolved_name": str(entry["name"]).strip() if status == "confirmed" else "",
+            "notes": str(entry["notes"]).strip(),
+        }
+    return decisions
+
+
+def build_rows(
+    players: list[StatsPlayer], pools: BoxscorePools, teams: TeamNames, decisions: dict[str, dict[str, str]]
+) -> list[dict[str, str]]:
+    """Rows for every stats player, then the agent `decisions` (keyed `"<team>|<name>"`) applied on top.
+
+    A decision never replaces an `exact` match, and one for a player no longer in `players` is dropped.
+    """
+    rows = []
+    for player in players:
+        try:
+            club = teams.normalize(player["team"])
+        except UnknownNameError:
+            club = ""
+        row = build_row(player, club, pools)
+        decision = decisions.get(f"{row['team']}|{row['name']}")
+        if decision and row["match_status"] != "exact":
+            row |= decision | {"matched_by": "agent"}
+        rows.append(row)
+    return rows
+
+
+def build_entries(rows: list[dict[str, str]], pools: BoxscorePools) -> list[dict[str, object]]:
+    """Turn rows into player map entries (see `PlayerNames`), sorted by team then stats name.
+
+    `exact` / `confirmed` rows carry the full name and every spelling known for it; `rejected` / `no_match`
+    keep the stats spelling as their name; open rows keep their candidates in `notes` and are not looked up.
+    """
+    entries = []
+    for row in sorted(rows, key=lambda r: (r["team"], r["name"])):
+        resolved = row["match_status"] in {"exact", "confirmed"}
+        name = row["resolved_name"] if resolved else row["name"]
+        variants = {row["name"], name}
+        if resolved:
+            variants |= pools.raw.get(normalize_name(name), set())
+        entries.append({
+            "name": name,
+            "variants": sorted(variants),
+            "team": row["club"],
+            "stats_name": row["name"],
+            "stats_team": row["team"],
+            "match_status": row["match_status"],
+            "matched_by": row["matched_by"],
+            "notes": row["notes"],
+        })
+    return entries
+
+
+def write_csv(entries: list[dict[str, object]], path: Path) -> None:
+    """Write the entries as a flat CSV (`variants` joined with ` | `)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, lineterminator="\n")
+        writer.writeheader()
+        for entry in entries:
+            writer.writerow({k: " | ".join(entry[k]) if k == "variants" else entry[k] for k in CSV_FIELDS})  # type: ignore[arg-type]
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Build and write the map, audit it; return the exit code (1 only in pause mode with an unlinked played player)."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--mode",
+        choices=MODES,
+        default=get_config().transformation.names_mode,
+        help="continue: report and exit 0; pause: exit 1 for a played box-score player missing from the stats "
+        "(default: config transformation.names_mode)",
+    )
+    parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
+    parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
+    parser.add_argument("--recent-seasons", type=int, default=RECENT_SEASONS, help="Seasons that scope the club pools")
+    parser.add_argument("--decisions", type=Path, default=DECISIONS_PATH, help="Agent decisions JSON path")
+    parser.add_argument("--out", type=Path, default=CSV_PATH, help="Player map CSV output path")
+    args = parser.parse_args(argv)
+
+    teams = TeamNames.load()
+    players = load_stats_players(args.stats)
+    if not players:
+        raise ValueError(f"No players in {args.stats}; refetch with `uv run dvc repro fetch_euroleague_fantasy_stats`")
+    pools = load_boxscore_pools(args.boxscore, teams, args.recent_seasons)
+    decisions = load_agent_decisions(args.decisions)
+
+    entries = build_entries(build_rows(players, pools, teams, decisions), pools)
+    validate(entries, ["stats_team", "stats_name"], "player_name_map")
+    write_csv(entries, args.out)
+    summary = ", ".join(f"{s}={n}" for s, n in sorted(Counter(str(e["match_status"]) for e in entries).items()))
+    print(f"Wrote {len(entries)} players to {args.out}: {summary}")
+    return audit(players, entries, args.boxscore, teams, args.mode)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
