@@ -1,7 +1,6 @@
 # Reference [optimization] section: every key, non-default values. Same format as config/config.toml.
 [optimization]
 target = "pir_mean"
-objective_mode = "robustness"
 robustness_lambda = 0.5
 upside_beta = 0.25
 downside_gamma = 0.1

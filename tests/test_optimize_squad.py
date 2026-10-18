@@ -56,7 +56,6 @@ def cfg_of(
     cash: float = 100.0,
     max_trades: int | None = None,
     w: float = 0.0,
-    mode: str = "vanilla",
     **risk: float,
 ) -> Optimization:
     """Run parameters; `max_trades=None` = unlimited, `w` = credit_value, `risk` = lambda/beta/gamma weights."""
@@ -65,7 +64,6 @@ def cfg_of(
         max_trades=max_trades or 0,
         unlimited_trades=max_trades is None,
         credit_value=w,
-        objective_mode=mode,
         **risk,
     )
 
@@ -80,7 +78,7 @@ class BruteForce:
         cfg = cfg or cfg_of()
         self.u = u.reset_index(drop=True)
         frame = model_frame(self.u, cfg)
-        # Score = target + the mode's risk adjustment; the formulas are checked on their own in
+        # Score = target + the risk adjustment; the formulas are checked on their own in
         # test_components_follow_the_documented_formulas, so reusing them here keeps this class about the rules.
         self.score = objective_components(frame, cfg)["score"].tolist()
         self.pos = self.u["position"].tolist()
@@ -244,7 +242,7 @@ def test_model_matches_brute_force_and_each_feature_matters() -> None:
     """Model optimum == enumeration optimum in every config; each feature changes the answer somewhere."""
     matters = {"budget": False, "trade_limit": False, "credit_value": False, "robustness": False}
     for seed, u, cash in _instances():
-        robust = cfg_of(cash, 2, W, "robustness", robustness_lambda=LAMBDA)
+        robust = cfg_of(cash, 2, W, robustness_lambda=LAMBDA)
         bf_plain, bf_robust = BruteForce(u), BruteForce(u, robust)
         configs = {
             "base": (bf_plain, cfg_of(cash, 2, W)),
@@ -451,7 +449,7 @@ def synthetic_league(seed: int = 7) -> pd.DataFrame:
 def test_realistic_size_solves_fast_and_is_identical_across_runs() -> None:
     u = synthetic_league()
     assert len(u) == 680
-    cfg = cfg_of(1.5, 4, 3.0, "vanilla")
+    cfg = cfg_of(1.5, 4, 3.0)
     tables = []
     for _ in range(2):
         started = time.perf_counter()
@@ -779,18 +777,24 @@ def test_components_follow_the_documented_formulas() -> None:
         "p90": [30.0, 5.0],
         "p10": [8.0, 9.0],
     })
-    base = replace(CFG_S, credit_value=3.0, robustness_lambda=0.5, upside_beta=0.25, downside_gamma=0.1)
+    base = replace(CFG_S, credit_value=3.0)
     growth = [(20.0 - 11.0) / 25, (6.0 - 5.5) / 25]
+    off = {"robustness_lambda": 0.0, "upside_beta": 0.0, "downside_gamma": 0.0}
     cases = {
-        "vanilla": [0.0, 0.0],
-        "robustness": [-2.0, -1.0],  # -lambda * std
-        "upside": [0.25 * 10.0, 0.0],  # positive part: p90 below target adds nothing
-        "downside": [-0.1 * 12.0, 0.0],  # positive part: target below p10 costs nothing
+        "none": ({}, [0.0, 0.0]),
+        "robustness": ({"robustness_lambda": 0.5}, [-2.0, -1.0]),  # -lambda * std
+        "upside": ({"upside_beta": 0.25}, [0.25 * 10.0, 0.0]),  # positive part: p90 below target adds nothing
+        "downside": ({"downside_gamma": 0.1}, [-0.1 * 12.0, 0.0]),  # positive part: target below p10 costs nothing
+        "upside+downside": ({"upside_beta": 0.25, "downside_gamma": 0.1}, [2.5 - 1.2, 0.0]),  # terms add
+        "all three": (
+            {"robustness_lambda": 0.5, "upside_beta": 0.25, "downside_gamma": 0.1},
+            [-2.0 + 2.5 - 1.2, -1.0],
+        ),
     }
-    for mode, risk in cases.items():
-        comps = opt.objective_components(frame, replace(base, objective_mode=mode))
-        assert comps["risk_adjustment"].tolist() == pytest.approx(risk), mode
-        assert comps["score"].tolist() == pytest.approx([20.0 + risk[0], 6.0 + risk[1]]), mode
+    for name, (weights, risk) in cases.items():
+        comps = opt.objective_components(frame, replace(base, **{**off, **weights}))
+        assert comps["risk_adjustment"].tolist() == pytest.approx(risk), name
+        assert comps["score"].tolist() == pytest.approx([20.0 + risk[0], 6.0 + risk[1]]), name
         assert comps["credit_growth"].tolist() == pytest.approx(growth)
         assert comps["growth_value"].tolist() == pytest.approx([3.0 * g for g in growth])
 
@@ -798,7 +802,7 @@ def test_components_follow_the_documented_formulas() -> None:
 def test_robustness_trades_expected_value_for_lower_volatility() -> None:
     df = league()
     vanilla = opt.optimize_squad(df, CFG_S)
-    robust_cfg = replace(CFG_S, objective_mode="robustness", robustness_lambda=3.0)
+    robust_cfg = replace(CFG_S, robustness_lambda=3.0)
     robust = opt.optimize_squad(df, robust_cfg)
     std = df.set_index("player")["pir_std"]
 
@@ -809,28 +813,30 @@ def test_robustness_trades_expected_value_for_lower_volatility() -> None:
     assert robust.objective < vanilla.objective  # the penalty is paid
 
 
-def test_mode_only_needs_its_own_risk_column() -> None:
+def test_only_terms_with_a_weight_need_their_risk_column() -> None:
     no_risk = league().drop(columns=["pir_std", "pir_p90", "pir_p10"])
-    opt.optimize_squad(no_risk, CFG_S)  # vanilla: fine
+    opt.optimize_squad(no_risk, CFG_S)  # all weights 0: fine
     with pytest.raises(ValueError, match="pir_std"):
-        opt.optimize_squad(no_risk, replace(CFG_S, objective_mode="robustness"))
+        opt.optimize_squad(no_risk, replace(CFG_S, robustness_lambda=1.0))
     with pytest.raises(ValueError, match="pir_p10"):
-        opt.optimize_squad(league().drop(columns="pir_p10"), replace(CFG_S, objective_mode="downside"))
+        opt.optimize_squad(league().drop(columns="pir_p10"), replace(CFG_S, upside_beta=1.0, downside_gamma=2.0))
+    # upside alone does not need p10
+    opt.optimize_squad(league().drop(columns="pir_p10"), replace(CFG_S, upside_beta=1.0))
 
 
-def test_empty_risk_cell_is_an_error_only_in_the_mode_that_uses_it() -> None:
+def test_empty_risk_cell_is_an_error_only_for_a_term_that_is_on() -> None:
     df = league()
     df.loc[2, "pir_std"] = None
-    opt.optimize_squad(df, CFG_S)  # vanilla ignores pir_std
+    opt.optimize_squad(df, CFG_S)  # weight 0 ignores pir_std
     with pytest.raises(ValueError, match="Empty cells"):
-        opt.optimize_squad(df, replace(CFG_S, objective_mode="robustness", robustness_lambda=1.0))
+        opt.optimize_squad(df, replace(CFG_S, robustness_lambda=1.0))
 
 
 @pytest.mark.parametrize(
-    "bad", [{"objective_mode": "bold"}, {"robustness_lambda": -1.0}, {"upside_beta": float("nan")}]
+    "bad", [{"robustness_lambda": -1.0}, {"upside_beta": float("nan")}, {"downside_gamma": float("inf")}]
 )
 def test_bad_objective_parameters_are_rejected(bad: dict) -> None:
-    with pytest.raises(ValueError, match="objective_mode|robustness_lambda|upside_beta"):
+    with pytest.raises(ValueError, match="robustness_lambda|upside_beta|downside_gamma"):
         opt.optimize_squad(league(), replace(CFG_S, **bad))
 
 
@@ -849,7 +855,7 @@ def test_credit_value_adds_growth_and_selection_sheet_shows_components() -> None
 def test_summary_compares_with_vanilla_only_when_the_run_is_not_vanilla() -> None:
     raw = league()
     assert opt.vanilla_config(CFG_S) is None
-    cfg = replace(CFG_S, objective_mode="robustness", robustness_lambda=3.0)
+    cfg = replace(CFG_S, robustness_lambda=3.0)
     sol = opt.optimize_squad(raw, cfg)
     metrics = summarize(raw, sol, cfg, None)["metric"].tolist()
     assert "players different from the vanilla squad" in metrics

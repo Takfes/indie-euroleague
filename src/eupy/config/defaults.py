@@ -43,10 +43,9 @@ class Optimization:
     """Squad-optimizer (hyper)parameters, read by `scripts/optimize.py`."""
 
     target: str = "exp_pir"  # workbook column the squad is optimised for (e.g. "exp_pir", "pir_mean")
-    objective_mode: str = "vanilla"  # "vanilla" | "robustness" | "upside" | "downside": which risk adjustment applies
-    robustness_lambda: float = 0.0  # robustness: penalty per unit of the outcome's standard deviation
-    upside_beta: float = 0.0  # upside: reward per unit of (p90 - target), positive part
-    downside_gamma: float = 0.0  # downside: penalty per unit of (target - p10), positive part
+    robustness_lambda: float = 0.0  # penalty per unit of the outcome's standard deviation (0 = off)
+    upside_beta: float = 0.0  # reward per unit of (p90 - target), positive part (0 = off)
+    downside_gamma: float = 0.0  # penalty per unit of (target - p10), positive part (0 = off)
     cash: float = 100.0  # credits in the bank before trading (round 1: the whole budget)
     max_trades: int = 4  # max buys this round; ignored when unlimited_trades is true
     unlimited_trades: bool = False  # true = no trade limit (round 1 / free windows)

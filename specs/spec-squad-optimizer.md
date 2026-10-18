@@ -31,7 +31,7 @@ Binary `x` (in squad), `s` (sold), `b` (bought), `y_start`, `y_6th`, `y_bench`, 
    admit exactly the five legal formations 2-2-1, 1-2-2, 2-1-2, 1-3-1, 3-1-1; one captain, who starts.
 5. Objective: `score` for starters, 6th man and captain bonus, 0.5 x `score` for the bench, plus
    `credit_value * sum (target - 1.1*price)/25` over the squad. `score = target + risk adjustment` by
-   `objective_mode` (vanilla, robustness, upside, downside); see `docs/optimizer.md`.
+   risk weights `robustness_lambda`, `upside_beta`, `downside_gamma` (0 = off, terms combine); see `docs/optimizer.md`.
 
 Solver `appsi_highs` (configurable), 1 thread, fixed seed, `mip_rel_gap = 0`; anything but `optimal` raises. Output is
 sorted deterministically, so reruns on the same input are identical.

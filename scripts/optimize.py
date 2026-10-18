@@ -10,22 +10,21 @@ round, no look-ahead. Method and parameters in plain words: `docs/optimizer.md`.
 
 Objective -- one shared, configurable value per player, then the game's role weights on top:
 
-    score_i  = target_i + risk_adjustment_i                  (one of the modes below)
+    score_i  = target_i + risk_adjustment_i                  (the risk terms below, summed)
     growth_i = credit_value * (target_i - 1.1 * price_i) / 25   (expected credit growth, in points)
     maximise   sum over starters, 6th man, captain bonus of score_i  +  0.5 * sum over bench of score_i
                + sum over the squad of growth_i
 
-    objective_mode   risk_adjustment_i
-    vanilla          0
-    robustness       - robustness_lambda * std_i
-    upside           + upside_beta * max(0, p90_i - target_i)
-    downside         - downside_gamma * max(0, target_i - p10_i)
+    risk_adjustment_i = - robustness_lambda * std_i
+                        + upside_beta * max(0, p90_i - target_i)
+                        - downside_gamma * max(0, target_i - p10_i)
 
-Only the selected mode's parameter and workbook column are used (and required). The growth formula
+Each weight defaults to 0 (term off); all three off = plain expected PIR. A term's workbook column is
+used (and required) only when its weight is above 0. The growth formula
 assumes `target` is on the PIR scale; with another target keep `credit_value` at 0.
 
 All run parameters live in the `[optimization]` section of `config/config.toml` (`target`,
-`objective_mode`, `robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`,
+`robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`,
 `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`); defaults are in
 `eupy.config.defaults.Optimization`. There are no CLI flags: edit the config, then run
 
@@ -92,8 +91,14 @@ COLUMNS = {
     "in_prev_roster": "in_prev_roster",
 }
 RISK_COLUMNS = {"std": "pir_std", "p90": "pir_p90", "p10": "pir_p10"}
-# objective_mode -> the risk column it needs (vanilla needs none).
-MODE_COLUMN = {"vanilla": None, "robustness": "std", "upside": "p90", "downside": "p10"}
+# risk column -> the config weight that switches its term on (weight > 0).
+RISK_WEIGHT = {"std": "robustness_lambda", "p90": "upside_beta", "p10": "downside_gamma"}
+
+
+def active_risk_columns(cfg: Optimization) -> list[str]:
+    """Model names of the risk columns whose weight is above 0 (only these are read and required)."""
+    return [col for col, weight in RISK_WEIGHT.items() if getattr(cfg, weight) > 0]
+
 
 # Squad composition (rules.md "Team composition").
 SQUAD = {"G": 4, "F": 4, "C": 2}
@@ -174,27 +179,20 @@ def load_input(path: Path) -> pd.DataFrame:
 
 
 def model_frame(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
-    """Map the workbook table to the model's columns (`COLUMNS`, the config's `target`, the mode's risk column).
+    """Map the workbook table to the model's columns (`COLUMNS`, the config's `target`, the active risk columns).
 
     Args:
         df: Table as read from the workbook; left unchanged.
-        cfg: Run parameters; `target` names the value column, `objective_mode` the risk column needed.
+        cfg: Run parameters; `target` names the value column, the risk weights above 0 the risk columns needed.
 
     Returns:
-        A new table with the model names (`REQUIRED_COLUMNS`, plus `std`/`p90`/`p10` if the mode uses one).
+        A new table with the model names (`REQUIRED_COLUMNS`, plus `std`/`p90`/`p10` for each risk weight above 0).
 
     Raises:
-        ValueError: If the mode is unknown or a mapped workbook column is missing.
+        ValueError: If a mapped workbook column is missing or has empty cells.
     """
-    if cfg.objective_mode not in MODE_COLUMN:
-        raise ValueError(
-            f"objective_mode must be one of {sorted(MODE_COLUMN)}, got {cfg.objective_mode!r}. "
-            f"Fix [optimization] objective_mode in config/config.toml."
-        )
     mapping = {**COLUMNS, "target": cfg.target}
-    risk = MODE_COLUMN[cfg.objective_mode]
-    if risk:
-        mapping[risk] = RISK_COLUMNS[risk]
+    mapping.update({col: RISK_COLUMNS[col] for col in active_risk_columns(cfg)})
     missing = {role: col for role, col in mapping.items() if col not in df.columns}
     if missing:
         raise ValueError(
@@ -208,7 +206,7 @@ def model_frame(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
         detail = "; ".join(f"{col}: {len(p)} row(s), e.g. {p[:3]}" for col, p in empty.items())
         raise ValueError(
             f"Empty cells in workbook column(s) used by this run ({detail}). Every candidate needs a value: fill "
-            f"them in the workbook, or pick an objective_mode / target that does not use the column."
+            f"them in the workbook, or set that column's risk weight to 0 / pick another target."
         )
     return pd.DataFrame({role: df[col] for role, col in mapping.items()})
 
@@ -343,16 +341,16 @@ def objective_components(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
     Returns:
         Columns `target`, `risk_adjustment`, `score` (= target + risk_adjustment), `credit_growth`
         (expected credits gained, price formula applied to `target`) and `growth_value`
-        (= credit_value * credit_growth, in objective points). Only the selected mode's risk term is non-zero.
+        (= credit_value * credit_growth, in objective points). `risk_adjustment` sums the terms with a weight above 0.
     """
     target = df["target"].astype(float)
     risk = pd.Series(0.0, index=df.index)
-    if cfg.objective_mode == "robustness":
-        risk = -cfg.robustness_lambda * df["std"].astype(float)
-    elif cfg.objective_mode == "upside":
-        risk = cfg.upside_beta * (df["p90"].astype(float) - target).clip(lower=0)
-    elif cfg.objective_mode == "downside":
-        risk = -cfg.downside_gamma * (target - df["p10"].astype(float)).clip(lower=0)
+    if cfg.robustness_lambda > 0:
+        risk -= cfg.robustness_lambda * df["std"].astype(float)
+    if cfg.upside_beta > 0:
+        risk += cfg.upside_beta * (df["p90"].astype(float) - target).clip(lower=0)
+    if cfg.downside_gamma > 0:
+        risk -= cfg.downside_gamma * (target - df["p10"].astype(float)).clip(lower=0)
     growth = (target - PRICE_BREAKEVEN * df["price"].astype(float)) / PRICE_DIVISOR
     return pd.DataFrame({
         "target": target,
@@ -721,9 +719,9 @@ def lineup_sum(sheet: pd.DataFrame, column: str) -> float:
 
 def vanilla_config(cfg: Optimization) -> Optimization | None:
     """The same run with the plain expected-PIR objective, or None when `cfg` already is that."""
-    if cfg.objective_mode == "vanilla" and cfg.credit_value == 0:
+    if not active_risk_columns(cfg) and cfg.credit_value == 0:
         return None
-    return replace(cfg, objective_mode="vanilla", credit_value=0.0)
+    return replace(cfg, robustness_lambda=0.0, upside_beta=0.0, downside_gamma=0.0, credit_value=0.0)
 
 
 def summary_sheet(
@@ -795,7 +793,6 @@ def summary_sheet(
         ("solver", "status", "optimal"),  # anything else raises before we get here
         ("solver", "solve time (s)", round(solve_seconds, 3)),
         ("parameters", "target", cfg.target),
-        ("parameters", "objective_mode", cfg.objective_mode),
         ("parameters", "robustness_lambda", cfg.robustness_lambda),
         ("parameters", "upside_beta", cfg.upside_beta),
         ("parameters", "downside_gamma", cfg.downside_gamma),

@@ -20,18 +20,17 @@ maximise   starters + 6th man + captain bonus (score)  +  0.5 * bench (score)  +
 - The role weights (captain counts twice, bench counts 50%) are game rules and stay as they are.
 - `growth_i` is the verified community price formula. It needs a target on the PIR scale; with another target keep `credit_value` at 0.
 
-### Objective modes
+### Risk terms
 
-`objective_mode` selects one risk adjustment. Only that mode's parameter and workbook column are used (and required).
+Three optional risk terms are added to the target. Each has a weight (default `0.0` = off), and the terms combine: set several weights above 0 and all of them apply. All weights at 0 gives the plain expected-PIR objective.
 
-| Mode | `risk_adjustment_i` | Parameter | Workbook column |
+| Term | `risk_adjustment_i` contribution | Weight | Workbook column (read only when the weight is above 0) |
 | --- | --- | --- | --- |
-| `vanilla` (default) | 0 | none | none |
-| `robustness` | `- robustness_lambda * std_i` | `robustness_lambda` | `pir_std` |
-| `upside` | `+ upside_beta * max(0, p90_i - target_i)` | `upside_beta` | `pir_p90` |
-| `downside` | `- downside_gamma * max(0, target_i - p10_i)` | `downside_gamma` | `pir_p10` |
+| robustness | `- robustness_lambda * std_i` | `robustness_lambda` | `pir_std` |
+| upside | `+ upside_beta * max(0, p90_i - target_i)` | `upside_beta` | `pir_p90` |
+| downside | `- downside_gamma * max(0, target_i - p10_i)` | `downside_gamma` | `pir_p10` |
 
-`pir_std`, `pir_p10` and `pir_p90` come from the eubook's player analytical record, where empty cells are filled with defaults (a one-game player gets `pir_std` 0), so the optimizer never sees them empty if the input is rebuilt from it. These are alternative preferences, not better strategies. Robustness penalises upside and downside volatility alike; downside penalises only the gap between the expected value and the 10th percentile. The risk parameters are tuning choices with no empirical default: start at 0, then compare against the vanilla baseline. The workbook column names are set in `COLUMNS` / `RISK_COLUMNS` at the top of the script.
+`pir_std`, `pir_p10` and `pir_p90` come from the eubook's player analytical record, where empty cells are filled with defaults (a one-game player gets `pir_std` 0), so the optimizer never sees them empty if the input is rebuilt from it. These are preferences, not better strategies. Robustness penalises upside and downside volatility alike, so stacking it with the percentile terms counts spread twice. Downside penalises only the gap between the expected value and the 10th percentile. The weights are tuning choices with no empirical default: start at 0, then compare against the plain baseline (the summary sheet does this for you). The workbook column names are set in `COLUMNS` / `RISK_COLUMNS` at the top of the script.
 
 ### `credit_value`
 
@@ -41,15 +40,14 @@ The exchange rate from expected credit growth to objective points. With `credit_
 - `1.0`: one expected credit is worth one point. `3.0`: worth three points. Higher values favour future purchasing power over this round.
 - It means points in the objective, not three real future PIR. Its strategic value should be calibrated later against how extra credits improve future squads.
 
-`credit_value` is independent of the mode and can be combined with any of them.
+`credit_value` is independent of the risk terms and combines with any of them.
 
 ## Parameters
 
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `target` | `exp_pir` | workbook column to maximise |
-| `objective_mode` | `vanilla` | `vanilla`, `robustness`, `upside`, `downside` |
-| `robustness_lambda`, `upside_beta`, `downside_gamma` | `0.0` | risk weights, each used by its own mode, >= 0 |
+| `robustness_lambda`, `upside_beta`, `downside_gamma` | `0.0` | risk weights, >= 0; 0 = term off, terms combine |
 | `credit_value` | `0.0` | points per expected credit of growth, >= 0 |
 | `cash` | `100.0` | credits in the bank before trading |
 | `max_trades`, `unlimited_trades` | `4`, `false` | buys allowed this round |
