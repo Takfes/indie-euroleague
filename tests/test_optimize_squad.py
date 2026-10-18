@@ -1026,3 +1026,71 @@ def test_plain_run_is_unchanged_and_summary_lists_every_parameter(
     assert summary.loc[summary["metric"] == "scenario", "value"].tolist() == ["none"]
     listed = summary.loc[summary["section"] == "parameters", "metric"].tolist()
     assert listed == [f.name for f in fields(Optimization)]  # defaults included, nothing silently left out
+
+
+# --------------------------------------------------------------------------- must_have / avoid
+
+
+def _squad(sol) -> set[str]:
+    return set(sol.table.loc[sol.table["role"] != "none", "player"])
+
+
+def test_must_have_forces_a_player_in_and_avoid_forces_an_owned_player_out() -> None:
+    df = league(prev=True)
+    free = optimize_squad(df, cfg_of())
+    owned_kept = sorted(_squad(free) & set(_prev_names(df)))
+    others = sorted(set(df["player"]) - _squad(free))
+    worst = df[df["player"].isin(others)].sort_values("exp_pir").iloc[0]["player"]  # a player the optimum skips
+    banned = owned_kept[0]
+    sol = optimize_squad(df, cfg_of(must_have=[worst], avoid=[banned]))
+    squad = _squad(sol)
+    assert worst in squad and banned not in squad
+    assert sol.table.set_index("player").loc[banned, "action"] == "sell"
+    assert sol.objective < free.objective  # the rules bind: they cost something
+
+
+def test_must_have_an_owned_player_means_no_trade_for_them_and_empty_lists_change_nothing() -> None:
+    df = league(prev=True)
+    owned = _prev_names(df)[0]
+    sol = optimize_squad(df, cfg_of(must_have=[owned]))
+    assert owned in _squad(sol) and sol.table.set_index("player").loc[owned, "action"] != "sell"
+    assert optimize_squad(df, cfg_of()).objective == optimize_squad(df, cfg_of(must_have=[], avoid=[])).objective
+
+
+def test_player_lists_report_every_problem_at_once() -> None:
+    df = league(prev=True)
+    guards = df.loc[df["position"] == "G", "player"].tolist()
+    cfg = cfg_of(must_have=[*guards[:5], "P0O", "P01"], avoid=["P01", "Nobody"], max_trades=1)
+    with pytest.raises(ValueError) as err:
+        optimize_squad(df, cfg)
+    msg = str(err.value)
+    assert "'P0O' is not in the input, did you mean" in msg and "'Nobody' is not in the input" in msg
+    assert "in both must_have and avoid: ['P01']" in msg
+    assert "must_have has 5 G, a squad has 4" in msg
+
+
+def test_player_lists_reject_repeats_a_bare_string_and_too_many_from_one_club() -> None:
+    df = league(prev=True)
+    with pytest.raises(ValueError, match="lists \\['P01'\\] more than once"):
+        optimize_squad(df, cfg_of(avoid=["P01", "P01"]))
+    with pytest.raises(ValueError, match="must be a list of player names"):
+        optimize_squad(df, cfg_of(must_have="P01"))
+
+
+def test_must_have_checks_the_club_cap_and_the_trade_limit() -> None:
+    df = league()
+    df.loc[:6, "team"] = "T0"  # seven players of one club
+    with pytest.raises(ValueError, match="the cap is"):
+        optimize_squad(df, cfg_of(must_have=df["player"].head(7).tolist()))
+    fresh = league()
+    with pytest.raises(ValueError, match="needs 2 purchases, max_trades is 1"):
+        optimize_squad(fresh, cfg_of(must_have=fresh["player"].head(2).tolist(), max_trades=1))
+
+
+def test_a_scenario_can_set_must_have_and_avoid_and_the_summary_lists_them() -> None:
+    df = league(prev=True)
+    cfg = replace(cfg_of(), unlimited_trades=True)
+    scenario = Scenario("pin", None, {"must_have": ["P02"], "avoid": ["P01"]})
+    _, applied = apply_scenario(df, cfg, scenario)
+    assert applied.must_have == ["P02"] and applied.avoid == ["P01"]
+    assert cfg.must_have == []  # base config untouched

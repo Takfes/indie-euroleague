@@ -7,7 +7,7 @@ and the CSV input of the first version are gone.
 
 - Parameters live in `[optimization]` of `config/config.toml`, typed in `eupy.config.defaults.Optimization`; a typo'd
   key or section raises (`eupy.config.loader`). Keys: `target`, `robustness_lambda`, `upside_beta`,
-  `downside_gamma`, `credit_value`, `cash`, `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`,
+  `downside_gamma`, `credit_value`, `cash`, `max_trades`, `unlimited_trades`, `min_players_per_turn`, `must_have`, `avoid`, `solver`,
   `solver_options`. Reference: the commented block in `config/config.toml` and `docs/optimizer.md`.
 - Input is the first sheet of `data/stage_03/optimizer_input.xlsx`; columns are mapped in `COLUMNS` / `RISK_COLUMNS`.
 - The head coach and `player_id` are dropped: `player` is the unique row key and the squad is 4 G / 4 F / 2 C.

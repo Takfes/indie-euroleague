@@ -9,5 +9,7 @@ cash = 2.5
 max_trades = 4
 unlimited_trades = false
 min_players_per_turn = [3, 3]
+must_have = ["Player One"]
+avoid = ["Player Two", "Player Three"]
 solver = "appsi_highs"
 solver_options = { threads = 1, random_seed = 7, mip_rel_gap = 0.01 }

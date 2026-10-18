@@ -99,6 +99,8 @@ The exchange rate from expected credit growth to objective points. With `credit_
 | `cash` | `100.0` | credits in the bank before trading |
 | `max_trades`, `unlimited_trades` | `4`, `false` | buys allowed this round |
 | `min_players_per_turn` | `[]` | `[3, 3]` = at least 3 turn-1 and 3 turn-2 players in the 10-man squad; `[]` or `[0, 0]` = off |
+| `must_have` | `[]` | Players that must be in the squad, names as in the workbook. One you do not own is bought (it counts against `max_trades` and the cash) |
+| `avoid` | `[]` | Players that must not be in the squad. One you own is sold |
 | `solver`, `solver_options` | `appsi_highs`, 1 thread, seed 42, gap 0 | `solver_options` replaces the default dict as a whole |
 
 ## Input and empty values

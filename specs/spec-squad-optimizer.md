@@ -26,7 +26,7 @@ Binary `x` (in squad), `s` (sold), `b` (bought), `y_start`, `y_6th`, `y_bench`, 
 
 1. Transition `x = prev - s + b`; valid actions `s <= prev`, `b <= 1 - prev`.
 2. Trade limit `sum b <= max_trades` (absent when unlimited); budget `sum price*b <= cash + sum price*s`.
-3. Composition 4 G / 4 F / 2 C; at most 6 players per club; optional `min_players_per_turn`.
+3. Composition 4 G / 4 F / 2 C; at most 6 players per club; optional `min_players_per_turn`; optional `must_have` / `avoid` player lists fix `x[i]` to 1 / 0.
 4. Roles: each squad player has exactly one of starter / 6th man / bench (5 / 1 / 4); starter bounds per position that
    admit exactly the five legal formations 2-2-1, 1-2-2, 2-1-2, 1-3-1, 3-1-1; one captain, who starts.
 5. Objective: `score` for starters, 6th man and captain bonus, 0.5 x `score` for the bench, plus

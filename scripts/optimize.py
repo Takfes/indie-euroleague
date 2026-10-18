@@ -69,6 +69,7 @@ Output -- `data/stage_99/optimizer_output.xlsx`, two sheets:
 from __future__ import annotations
 
 import argparse
+import difflib
 import math
 import numbers
 import sys
@@ -322,6 +323,44 @@ def _validate_params(cfg: Optimization) -> None:
         )
 
 
+def _player_list_problems(df: pd.DataFrame, cfg: Optimization) -> list[str]:
+    """Problems with the names in `must_have` / `avoid`: not a list of strings, repeated, unknown or in both."""
+    problems: list[str] = []
+    names = set(df["player"])
+    for key in ("must_have", "avoid"):
+        listed = getattr(cfg, key)
+        if isinstance(listed, str) or not all(isinstance(n, str) for n in listed):
+            raise ValueError(f"{key} must be a list of player names, got {listed!r}. Fix [optimization] {key}.")
+        dupes = sorted({n for n in listed if listed.count(n) > 1})
+        if dupes:
+            problems.append(f"{key} lists {dupes} more than once")
+        for name in sorted(set(listed) - names):
+            close = difflib.get_close_matches(name, names, n=3, cutoff=0.6) or "no close match"
+            problems.append(f"{key}: {name!r} is not in the input, did you mean {close}?")
+    both = sorted(set(cfg.must_have) & set(cfg.avoid))
+    if both:
+        problems.append(f"in both must_have and avoid: {both}")
+    return problems
+
+
+def _validate_players(df: pd.DataFrame, cfg: Optimization) -> None:
+    """Check `must_have` / `avoid`: names exist, no overlap, and the kept players can fit in one squad."""
+    problems = _player_list_problems(df, cfg)
+    kept = df[df["player"].isin(cfg.must_have)]
+    for position, count in kept["position"].value_counts().items():
+        if count > SQUAD[position]:
+            problems.append(f"must_have has {count} {position}, a squad has {SQUAD[position]}")
+    for club, count in kept["team"].value_counts().items():
+        if count > MAX_PER_CLUB:
+            problems.append(f"must_have has {count} players of {club}, the cap is {MAX_PER_CLUB}")
+    trades = max_trades_of(cfg)
+    forced = int((kept["in_prev_roster"] == 0).sum())
+    if trades is not None and forced > trades:
+        problems.append(f"must_have needs {forced} purchases, max_trades is {trades}")
+    if problems:
+        raise ValueError("; ".join(problems) + ". Fix [optimization] must_have / avoid.")
+
+
 def _validate_turn_minimums(df: pd.DataFrame, cfg: Optimization) -> None:
     """Fail early when a turn has fewer candidates than `min_players_per_turn` asks for."""
     available = df["turn"].value_counts()
@@ -452,6 +491,13 @@ def build_model(df: pd.DataFrame, cfg: Optimization) -> pyo.ConcreteModel:
     m.one_captain = pyo.Constraint(expr=sum(m.c[i] for i in m.I) == 1)
     m.captain_starts = pyo.Constraint(m.I, rule=lambda m, i: m.c[i] <= m.y_start[i])
 
+    # ---- Pinned and banned players (by name); a banned owned player is sold, a pinned one not owned is bought
+    names = df["player"].tolist()
+    for key, value in (("must_have", 1), ("avoid", 0)):
+        listed = set(getattr(cfg, key))
+        fixed = [i for i in rows if names[i] in listed]
+        setattr(m, f"{key}_fix", pyo.Constraint(fixed, rule=lambda m, i, v=value: m.x[i] == v))
+
     # ---- Objective pieces (kept as expressions so the report can split the optimum).
     # Active points: starters and 6th man count 100% of their score, the captain counts a second
     # time, bench players count 50%.
@@ -540,7 +586,7 @@ def extract_solution(df: pd.DataFrame, m: pyo.ConcreteModel, cash: float) -> Sol
 
 
 def check_run(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
-    """Everything that can be checked before solving: the model frame, the input rules and the parameters.
+    """Everything that can be checked before solving: the model frame, the input rules, the parameters and the player lists.
 
     Returns:
         The model frame (`model_frame` output).
@@ -552,6 +598,7 @@ def check_run(df: pd.DataFrame, cfg: Optimization) -> pd.DataFrame:
     validate_input(frame)
     _validate_params(cfg)
     _validate_turn_minimums(frame, cfg)
+    _validate_players(frame, cfg)
     return frame
 
 

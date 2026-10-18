@@ -53,6 +53,8 @@ class Optimization:
     min_players_per_turn: list[int] = field(
         default_factory=list
     )  # [3, 3] = squad has >= 3 turn-1 and >= 3 turn-2 players
+    must_have: list[str] = field(default_factory=list)  # players that must be in the squad (names as in the workbook)
+    avoid: list[str] = field(default_factory=list)  # players that must not be in the squad (owned ones get sold)
     solver: str = "appsi_highs"  # Pyomo solver name
     # Passed to the solver as is; a [optimization.solver_options] table replaces this dict, it is not merged.
     # threads=1 + fixed seed = reproducible; mip_rel_gap=0 = proven optimality (HiGHS defaults to 0.01%).
