@@ -71,24 +71,23 @@ uv run dvc repro refresh_and_build_eubook      # 1-4: the same, then the eubook 
 
 1. `fetch_update`: euroleague.net box score, fantasy stats (mode from the config), schedule.
 2. `merge_boxscore`: the consolidated box score.
-3. `build_player_name_map`, `check_player_names`: names. The check is a normal stage of the flow, run after the map is rebuilt. It compares the two datasets (the fantasy stats are the core, the left side of every join):
+3. `build_player_name_map`: the player map, then an audit of it (the fantasy stats are the core, the left side of every join):
    - in both: fine;
    - in the stats, not in the box score (not played yet, injured, closed as `no_match`): listed for information;
    - in the box score with minutes played, not in the stats (case 3): listed with where he was found (club, games, rounds), where not, and the likely stats entry. He drops out of the joins (the workbook counts the dropped rows).
-4. `build_eubook`: the workbook. It lists the check's report as an input, so it never runs ahead of the check.
+4. `build_eubook`: the workbook.
 
-The check has two modes, `[transformation] names_mode` in `config/config.toml` (or `--mode` on a direct run):
+The audit has two modes, `[transformation] names_mode` in `config/config.toml` (or `--mode` on a direct run):
 
 | Mode | Case 3 | Exit code |
 |---|---|---|
 | `continue` (default) | warning, the flow goes on | 0 |
-| `pause` | the flow stops until it is fixed or the mode is `continue` | 1 |
+| `pause` | the map stage fails after writing the map, so the flow stops before the workbook until it is fixed or the mode is `continue` | 1 |
 
 Case 2 never pauses. Both modes print the fix. DVC cannot call an agent, so fixing is manual:
 
 1. `/build-name-maps` (the skill) records the decision for the likely stats entry, using the box-score spelling reordered as its full name.
-2. `uv run dvc repro -s build_player_name_map`, then the flow command again.
-3. `uv run python -m eupy.entity.check_player_names` shows the list again at any time (report: `data/stage_03/player_name_check.csv`).
+2. `uv run dvc repro -s build_player_name_map` (it audits again), then the flow command again.
 
 A box-score player no stats entry resembles is missing from the fantasy data; nothing can be decided for him, he stays out of the joins.
 
@@ -101,7 +100,7 @@ uv run dvc repro -s build_eubook                  # offline
 uv run python -m eupy.transform.build_eubook      # the same script, untracked
 ```
 
-Writes `data/stage_04/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) and a copy `eubook_<next round>.xlsx` beside it, not tracked by DVC. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
+Writes `data/stage_03/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) and a copy `eubook_<next round>.xlsx` beside it, not tracked by DVC. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
 
 ## Schedule turns
 
@@ -125,19 +124,13 @@ Five datasets spell a player differently; `PlayerNames` (`src/eupy/entity/player
 
 Who does what, in flow order:
 
-1. `build_player_name_map` (script, a flow stage): matches each fantasy-stats player to a box-score player of the same club by name, ignoring `Jr`/`Sr`/`II`/`III`/`IV`. An exact match is accepted; anything else stays open (`needs_review` or `no_candidate`). Then it applies the agent decisions and writes the derived map `data/stage_02/player_name_map.csv` (never edited by hand). Instant: plain string matching, no agent involved.
-2. `/build-name-maps` (skill, manual, in a Claude session; DVC cannot call it): researches the open players and records a decision (`confirmed` with the full name, `no_match`, `rejected`) in `src/eupy/entity/maps/player_name_decisions.json`, the one committed player file. It is a declared input of the builder, so `uv run dvc repro -s build_player_name_map` rebuilds the map after a decision.
-3. `check_player_names` (script, read-only, a flow stage): matches nothing and fixes nothing. It audits the result and writes `data/stage_03/player_name_check.csv`, which the workbook step depends on.
-4. `build_eubook` and `build_boxscore_kpis` call `PlayerNames` to join the stats and the box score on the normalized name.
+1. `build_player_name_map` (script, a flow stage): matches each fantasy-stats player to a box-score player of the same club by name, ignoring `Jr`/`Sr`/`II`/`III`/`IV`. An exact match is accepted; anything else stays open (`needs_review` or `no_candidate`). Then it applies the agent decisions and writes the derived map `data/stage_02/player_name_map.csv` (never edited by hand). Finally it audits the map (`name_audit.py`, the cases above) and prints the players who played but are not linked. Instant: plain string matching, no agent involved.
+2. `/build-name-maps` (skill, manual, in a Claude session; DVC cannot call it): only when step 1 lists such players. It researches them and records a decision (`confirmed` with the full name, `no_match`, `rejected`) in `src/eupy/entity/maps/player_name_decisions.json`, the one committed player file. It is a declared input of the builder, so `uv run dvc repro -s build_player_name_map` rebuilds and re-audits after a decision.
+3. `build_eubook` and `build_boxscore_kpis` call `PlayerNames` to join the stats and the box score on the normalized name.
 
-By hand:
+By hand: `uv run python -m eupy.entity.build_player_name_map` (stats + merged box score + schedule + decisions -> player map CSV, then the audit; `--mode pause` exits 1 for a played box-score player missing from the stats, default `continue`).
 
-```bash
-uv run python -m eupy.entity.build_player_name_map   # stats + merged box score + schedule + decisions -> player map CSV
-uv run python -m eupy.entity.check_player_names      # the audit (--mode pause exits 1 for a played box-score player missing from the stats; default continue)
-```
-
-Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Players still open after step 1 need a decision (new transfers, rookies); the builder prints how many. A suffix the stats and the box score disagree on needs none. Open entries do not stop a flow; `check_player_names` decides what needs attention. After `make clean-data` run the whole flow once (`refresh_data`) before single `-s` stages: they need the upstream files to exist. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
+Prerequisites: the schedule, the fantasy stats players and the merged box score (`merge_boxscore`). Open entries never stop a flow; only the audit's case 3 needs attention. A suffix the stats and the box score disagree on needs no decision. After `make clean-data` run the whole flow once (`refresh_data`) before single `-s` stages: they need the upstream files to exist. The `entity` pipeline is `dvc = true`; `build_boxscore_kpis` (pipeline `kpis`) is `dvc = false` for now.
 
 ## Config, checks, log
 

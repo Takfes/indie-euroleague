@@ -4,7 +4,7 @@ description: |
   Decide the open players of indie-euroleague's player name map. The map (`data/stage_02/player_name_map.csv`) is
   built from the fantasy stats and the box score; players it cannot match on its own (new transfers, rookies, odd
   spellings) get a decision recorded in `src/eupy/entity/maps/player_name_decisions.json`. Use after a fetch brings
-  new stats players, or when `check_player_names` reports a box-score player missing from the stats.
+  new stats players, or when `build_player_name_map` reports a played box-score player missing from the stats.
 ---
 
 # Build Name Maps
@@ -65,15 +65,16 @@ uv run dvc repro -s build_player_name_map
 ```
 
 (the decisions file is a declared DVC input of that stage; `uv run python -m eupy.entity.build_player_name_map`
-does the same without DVC.) Repeat until `check_player_names` no longer lists a box-score player who played but is
+does the same without DVC.) Repeat until the audit at the end of `build_player_name_map` no longer lists a box-score player who played but is
 not in the stats; other open entries may stay (players who have not played yet). Open entries do not stop a flow.
 
-`uv run python -m eupy.entity.check_player_names` lists the box-score players who played but are not in the stats (it
+The audit that closes `build_player_name_map` lists the box-score players who played but are not in the stats (it
 stops a flow only with `[transformation] names_mode = "pause"`). It names the likely stats entry and the full name to
 decide it as (the box-score spelling reordered); record that as a `confirmed` decision for that entry, replacing an
 earlier decision whose name differs from the box-score spelling. A player no stats entry resembles is missing from
 the fantasy data: nothing to decide here. A decision never overrides an `exact` match; remove decisions that became
-`exact` (the builder says nothing about them, the CSV shows `exact` for the row).
+`exact` (the CSV shows `exact` for the row). Decide only what the audit lists: open stats-only players are players
+who have not played yet.
 
 ## 4. Report
 

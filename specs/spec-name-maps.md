@@ -32,7 +32,7 @@ decisions.
 src/eupy/entity/
   team_names.py                    class TeamNames: derived from the schedule on load, no map file
   player_names.py                  class PlayerNames (reads the player map CSV)
-  check_player_names.py            script: audit of the two datasets (see spec-update-flow.md)
+  name_audit.py                    library: the audit that closes build_player_name_map (see spec-update-flow.md)
   build_player_name_map.py         script: stats + box score + agent decisions -> player_name_map (CSV); holds the engine
   matching.py                      library: normalize_name, match_key, exact candidate finder, lookup errors
   maps/player_name_decisions.json  committed, written only by the build-name-maps skill, read by build_player_name_map.py

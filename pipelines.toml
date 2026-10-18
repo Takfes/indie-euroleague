@@ -34,7 +34,7 @@ scripts = ["fetch_euroleague_live_headers", "merge_headers"]
 
 [entity]
 dvc = true
-scripts = ["build_player_name_map", "check_player_names"]
+scripts = ["build_player_name_map"]
 
 [kpis]
 dvc = false

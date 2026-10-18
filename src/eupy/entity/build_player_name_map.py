@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the player name map: one entry per fantasy-stats player, resolved to a full, normalized name.
+"""Build the player name map: one entry per fantasy-stats player, resolved to a full, normalized name, then audit it.
 
 The stats data is the trusted set: one unit of work is a distinct `(team, name)` pair of
 `fantasy_stats/players` (`C. Jones`, club code `PAO`); players not in the stats data never get an entry. The
@@ -22,14 +22,17 @@ Row key: `"<team>|<name>"`. Normalized form: the box-score spelling reordered to
 
 The map is one derived file, the CSV `data/stage_02/player_name_map.csv`, which `PlayerNames`
 (`player_names.py`) loads. Entries still open (`needs_review`, `no_candidate`) are written with their candidates
-in `notes` and listed in the summary; resolving them is the `build-name-maps` skill's job.
+in `notes`; resolving the ones that matter is the `build-name-maps` skill's job.
 
-Open entries do not fail the run: a stats player who has not played yet is expected to stay open. The check
-`check_player_names.py` decides what needs attention.
+Right after writing the map the script audits it against the box score (`name_audit.py`) and prints three cases:
+players in both datasets, players only in the stats (information: most have not played yet) and players who played
+but are not linked (a warning with the likely stats entry and the full name to decide it as). Open entries never
+fail the run; only `names_mode = "pause"` (`[transformation]` in `config/config.toml`, or `--mode pause`) exits 1
+for a played, unlinked box-score player, which stops a DVC flow before the workbook.
 
 Usage:
-    python -m eupy.entity.build_player_name_map [--stats PATH] [--boxscore PATH] [--recent-seasons N]
-        [--decisions PATH] [--out PATH]
+    python -m eupy.entity.build_player_name_map [--mode continue|pause] [--stats PATH] [--boxscore PATH]
+        [--recent-seasons N] [--decisions PATH] [--out PATH]
 
 Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
@@ -43,7 +46,8 @@ Final: false
 Impure: false
 Notes: The schedule feeds TeamNames (club scoping); the decisions file is committed with the package and written
   by the build-name-maps skill, so DVC reruns this stage when a decision is recorded. Everything else is recomputed
-  from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes.
+  from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes. The audit prints only;
+  the exit code is 1 solely in pause mode with a played, unlinked box-score player (the map is written first).
   CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined
   with " | "), match_status, matched_by, notes.
 """
@@ -53,10 +57,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from eupy.config import get_config
 from eupy.entity.matching import (
     OPEN_STATUSES,
     StatsPlayer,
@@ -67,6 +73,7 @@ from eupy.entity.matching import (
     match_key,
     normalize_name,
 )
+from eupy.entity.name_audit import MODES, audit
 from eupy.entity.team_names import TeamNames
 from eupy.quality import validate
 
@@ -276,8 +283,15 @@ def write_csv(entries: list[dict[str, object]], path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Build and write the map; return the number of entries still open (needing an agent decision)."""
+    """Build and write the map, audit it; return the exit code (1 only in pause mode with an unlinked played player)."""
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--mode",
+        choices=MODES,
+        default=get_config().transformation.names_mode,
+        help="continue: report and exit 0; pause: exit 1 for a played box-score player missing from the stats "
+        "(default: config transformation.names_mode)",
+    )
     parser.add_argument("--stats", type=Path, default=STATS_PATH, help="fantasy_stats/players.csv path")
     parser.add_argument("--boxscore", type=Path, default=BOXSCORE_PATH, help="merged box-score CSV path")
     parser.add_argument("--recent-seasons", type=int, default=RECENT_SEASONS, help="Seasons that scope the club pools")
@@ -297,11 +311,8 @@ def main(argv: list[str] | None = None) -> int:
     write_csv(entries, args.out)
     summary = ", ".join(f"{s}={n}" for s, n in sorted(Counter(str(e["match_status"]) for e in entries).items()))
     print(f"Wrote {len(entries)} players to {args.out}: {summary}")
-    open_count = sum(1 for e in entries if e["match_status"] in OPEN_STATUSES)
-    if open_count:
-        print(f"{open_count} open entries need an agent decision (see `notes` in the map).")
-    return open_count
+    return audit(players, entries, args.boxscore, teams, args.mode)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -6,7 +6,7 @@ The pipeline version of the analysis in `apps/dataprep.py` (same sheets, same KP
 1. Box score: rows of the config season on, without the `TOTAL` team rows; adds `year`, `minutes_num` (`DNP` = 0),
    `opponent` and `homeaway` (read from `game`, home team first) and `player_normalized` (`PlayerNames`, scoped
    by `team_id`). Rows whose player the name map does not know are dropped and counted (box-score-only players
-   are expected; stats players are guarded by the `player_name_check` input).
+   are expected; `build_player_name_map` lists them when it audits the map).
 2. Stats join: `position` (`G`/`F`/`C`) and `quotation` (price) from the fantasy stats players. With per-round
    stats the join key is `(round, player)`; with the season-wide stats (`round` = "all") it is the player alone,
    so `quotation` is the current price in every row. Rows without a match are dropped and counted.
@@ -28,17 +28,15 @@ Inputs:
   - fantasy_stats/players: data/raw_data/fantasy_stats/players.csv
   - game_schedule/schedule: data/raw_data/game_schedule/
   - player_name_map: data/stage_02/player_name_map.csv
-  - player_name_check: data/stage_03/player_name_check.csv
 Sources: none
 Outputs:
-  - eubook: data/stage_04/eubook.xlsx
+  - eubook: data/stage_03/eubook.xlsx
 Final: true
 Impure: false
 Notes: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content,
   not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season.
-  Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames, from the schedule
-  input). The
-  player_name_check input is there so a flow stops at unmatched names before this step.
+  Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames,
+  from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
 """
 
 from __future__ import annotations
@@ -56,7 +54,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 BOX_SCORE_PATH = REPO_ROOT / "data" / "stage_01" / "euroleague_box_score_merged.csv"
 PLAYERS_PATH = REPO_ROOT / "data" / "raw_data" / "fantasy_stats" / "players.csv"
 SCHEDULE_DIR = REPO_ROOT / "data" / "raw_data" / "game_schedule"
-OUT_PATH = REPO_ROOT / "data" / "stage_04" / "eubook.xlsx"
+OUT_PATH = REPO_ROOT / "data" / "stage_03" / "eubook.xlsx"
 
 SLOW_WINDOW = 5
 FAST_WINDOW = 3

@@ -15,9 +15,8 @@ stages:
     - data/raw_data/game_schedule
     - data/stage_01/euroleague_box_score_merged.csv
     - data/stage_02/player_name_map.csv
-    - data/stage_03/player_name_check.csv
     outs:
-    - data/stage_04/eubook.xlsx:
+    - data/stage_03/eubook.xlsx:
         cache: false
   build_player_name_map:
     cmd: uv run python -m eupy.entity.build_player_name_map
@@ -27,6 +26,8 @@ stages:
     - src/eupy/config/defaults.py
     - src/eupy/config/loader.py
     - src/eupy/entity/matching.py
+    - src/eupy/entity/name_audit.py
+    - src/eupy/entity/player_names.py
     - src/eupy/entity/team_names.py
     - src/eupy/logging_setup.py
     - src/eupy/quality/__init__.py
@@ -38,24 +39,6 @@ stages:
     - src/eupy/entity/maps/player_name_decisions.json
     outs:
     - data/stage_02/player_name_map.csv:
-        cache: false
-  check_player_names:
-    cmd: uv run python -m eupy.entity.check_player_names
-    deps:
-    - src/eupy/entity/check_player_names.py
-    - src/eupy/config/__init__.py
-    - src/eupy/config/defaults.py
-    - src/eupy/config/loader.py
-    - src/eupy/entity/matching.py
-    - src/eupy/entity/player_names.py
-    - src/eupy/entity/team_names.py
-    - config/config.toml
-    - data/raw_data/fantasy_stats/players.csv
-    - data/raw_data/game_schedule
-    - data/stage_01/euroleague_box_score_merged.csv
-    - data/stage_02/player_name_map.csv
-    outs:
-    - data/stage_03/player_name_check.csv:
         cache: false
   fetch_euroleague_fantasy_stats:
     cmd: uv run python -m eupy.fetchers.fetch_euroleague_fantasy_stats
@@ -198,8 +181,7 @@ stages:
     - data/raw_data/game_schedule
     - data/stage_01/euroleague_box_score_merged.csv
     - data/stage_02/player_name_map.csv
-    - data/stage_03/player_name_check.csv
-    - data/stage_04/eubook.xlsx
+    - data/stage_03/eubook.xlsx
   refresh_data:
     cmd: echo refresh_data done
     deps:
@@ -209,4 +191,3 @@ stages:
     - data/raw_data/game_schedule
     - data/stage_01/euroleague_box_score_merged.csv
     - data/stage_02/player_name_map.csv
-    - data/stage_03/player_name_check.csv

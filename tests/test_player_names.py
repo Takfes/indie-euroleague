@@ -44,8 +44,8 @@ BOX_ROWS = [
 def _box_csv(path: Path) -> Path:
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(BOX_HEADER)
-        writer.writerows(BOX_ROWS)
+        writer.writerow([*BOX_HEADER, "game_id", "minutes", "round"])
+        writer.writerows([*row, "G1", "20:00", 1] for row in BOX_ROWS)
     return path
 
 
@@ -290,12 +290,21 @@ def test_load_missing_map_points_at_the_builder(tmp_path: Path) -> None:
         PlayerNames.load(tmp_path / "nope.csv", TEAMS)
 
 
-def test_builder_returns_the_number_of_open_entries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_builder_exit_code_is_one_only_in_pause_mode_with_an_unlinked_played_player(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
     args = _setup_builder(tmp_path, monkeypatch, [("PAO", "C. Jones")])
-    assert build_player_name_map.main(args) == 0
-    stats = _stats_csv(tmp_path / "new.csv", [("PAO", "C. Jones"), ("PAO", "Z. Nobody")])
-    args[args.index("--stats") + 1] = str(stats)
-    assert build_player_name_map.main(args) == 1
+    box = tmp_path / "box.csv"
+    with box.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([*BOX_HEADER, "game_id", "minutes", "round"])
+        writer.writerow(["E2025", "PAN", "P1", "JONES, CARLIK", "1", "G1", "20:00", 1])
+        writer.writerow(["E2025", "PAN", "P9", "SANZ, LORENZ", "5", "G1", "5:00", 1])  # played, in no stats entry
+    assert build_player_name_map.main(args) == 0  # continue is the default
+    assert "WARNING" in capsys.readouterr().out
+    assert build_player_name_map.main([*args, "--mode", "pause"]) == 1
+    assert "PAUSED" in capsys.readouterr().out
+    assert (tmp_path / "players.csv").exists()  # the map is written before the audit
 
 
 def test_suffix_differences_between_stats_and_box_score_still_match(tmp_path: Path) -> None:

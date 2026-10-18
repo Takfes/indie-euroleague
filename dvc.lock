@@ -377,63 +377,6 @@ stages:
       md5: b64f70e4dec417208633546983ea16d8.dir
       size: 62695
       nfiles: 1
-  check_player_names:
-    cmd: uv run python -m eupy.entity.check_player_names
-    deps:
-    - path: config/config.toml
-      hash: md5
-      md5: 3d9bfd3d4b177babf2664ead38863477
-      size: 801
-    - path: data/raw_data/fantasy_stats/players.csv
-      hash: md5
-      md5: f44ff63fcf10b793802f3ef832c2ffe4
-      size: 28701
-    - path: data/raw_data/game_schedule
-      hash: md5
-      md5: b64f70e4dec417208633546983ea16d8.dir
-      size: 62695
-      nfiles: 1
-    - path: data/stage_01/euroleague_box_score_merged.csv
-      hash: md5
-      md5: f01780415d19e0990e244e1010b9f470
-      size: 221137
-    - path: data/stage_02/player_name_map.csv
-      hash: md5
-      md5: 3349d9c602da11127a5a374c0601cda2
-      size: 39784
-    - path: src/eupy/config/__init__.py
-      hash: md5
-      md5: 3cc62ba0d808a00550f3a0bf9e32a167
-      size: 239
-    - path: src/eupy/config/defaults.py
-      hash: md5
-      md5: aec6190070de9f15729c4d23c80ee063
-      size: 1832
-    - path: src/eupy/config/loader.py
-      hash: md5
-      md5: f4571e8c472136aed6b3b80ea548f517
-      size: 1787
-    - path: src/eupy/entity/check_player_names.py
-      hash: md5
-      md5: cbb8424b649039649c41eb19346be4a4
-      size: 12116
-    - path: src/eupy/entity/matching.py
-      hash: md5
-      md5: 50faa90773066a67ce3b846e6d003497
-      size: 4976
-    - path: src/eupy/entity/player_names.py
-      hash: md5
-      md5: 2355a4d4b90a0e853c5aa9f50bbfb7e9
-      size: 3822
-    - path: src/eupy/entity/team_names.py
-      hash: md5
-      md5: da0fdcb387f0751f8513537fb0e6684e
-      size: 3818
-    outs:
-    - path: data/stage_03/player_name_check.csv
-      hash: md5
-      md5: 89f42fdce9f6bab2d531abb2144b4d98
-      size: 2398
   build_player_name_map:
     cmd: uv run python -m eupy.entity.build_player_name_map
     deps:
