@@ -39,9 +39,34 @@ class Logging:
 
 
 @dataclass(frozen=True)
+class Optimization:
+    """Squad-optimizer (hyper)parameters, read by `scripts/optimize.py`."""
+
+    target: str = "exp_pir"  # workbook column the squad is optimised for (e.g. "exp_pir", "pir_mean")
+    objective_mode: str = "vanilla"  # "vanilla" | "robustness" | "upside" | "downside": which risk adjustment applies
+    robustness_lambda: float = 0.0  # robustness: penalty per unit of the outcome's standard deviation
+    upside_beta: float = 0.0  # upside: reward per unit of (p90 - target), positive part
+    downside_gamma: float = 0.0  # downside: penalty per unit of (target - p10), positive part
+    cash: float = 100.0  # credits in the bank before trading (round 1: the whole budget)
+    max_trades: int = 4  # max buys this round; ignored when unlimited_trades is true
+    unlimited_trades: bool = False  # true = no trade limit (round 1 / free windows)
+    credit_value: float = 0.0  # points per credit of expected price growth (~3.0 early season, 0.0 late)
+    min_players_per_turn: list[int] = field(
+        default_factory=list
+    )  # [3, 3] = squad has >= 3 turn-1 and >= 3 turn-2 players
+    solver: str = "appsi_highs"  # Pyomo solver name
+    # Passed to the solver as is; a [optimization.solver_options] table replaces this dict, it is not merged.
+    # threads=1 + fixed seed = reproducible; mip_rel_gap=0 = proven optimality (HiGHS defaults to 0.01%).
+    solver_options: dict[str, float | int | str] = field(
+        default_factory=lambda: {"threads": 1, "random_seed": 42, "mip_rel_gap": 0.0}
+    )
+
+
+@dataclass(frozen=True)
 class Config:
     """Root of the config tree."""
 
     acquisition: Acquisition = field(default_factory=Acquisition)
     transformation: Transformation = field(default_factory=Transformation)
     logging: Logging = field(default_factory=Logging)
+    optimization: Optimization = field(default_factory=Optimization)

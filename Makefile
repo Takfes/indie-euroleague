@@ -18,6 +18,10 @@ test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@uv run python -m pytest --doctest-modules
 
+.PHONY: optimize
+optimize: ## Run the squad optimizer (config/config.toml [optimization]) -> data/stage_99/optimizer_output.xlsx
+	@uv run python scripts/optimize.py
+
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"

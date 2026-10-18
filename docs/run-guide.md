@@ -100,7 +100,17 @@ uv run dvc repro -s build_eubook                  # offline
 uv run python -m eupy.transform.build_eubook      # the same script, untracked
 ```
 
-Writes `data/stage_03/eubook.xlsx` (always the latest, tracked by DVC) and a real-file copy `data/stage_99/eubook_<next round>.xlsx` (e.g. `eubook_007.xlsx`, one per round, not tracked by DVC), so stage_99 collects the delivered workbooks. `eubook` is not `Final`, so `link-final` adds no link for it. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
+Writes `data/stage_03/eubook.xlsx` (always the latest, tracked by DVC) and a real-file copy `data/stage_99/eubook_<next round>.xlsx` (e.g. `eubook_007.xlsx`, one per round, not tracked by DVC), so stage_99 collects the delivered workbooks. `eubook` is not `Final`, so `link-final` adds no link for it. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). The player analytical record carries the PIR percentiles `pir_p10`, `pir_p50`, `pir_p75`, `pir_p90` (over the slow window = the player's latest 5 games; `pir_fast`/`mins_fast` use the latest 3) after `pir_std`, and its empty KPI cells are filled with defaults (`fill_empty`: `pir_std`, `mins_std`, `pir_per_min` = 0, `pir_trend`, `mins_trend` = 1, `pir_lag1`/`pir_lag2` = the player's `pir_mean`; the run prints how many cells per column). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
+
+## Squad optimizer
+
+`uv run python scripts/optimize.py` (outside DVC: it writes to `data/stage_99/`, which DVC must not own) reads `data/stage_04/optimizer_input.xlsx` (first sheet) and writes `data/stage_99/optimizer_output.xlsx`: sheet `selection` (the input rows plus `selected`, `role`, `action`, `is_captain`) and sheet `summary` (objective and its split, benefit over keeping the current squad, trades, cash, solver status and time, run parameters).
+
+- **Also:** `make optimize`. Method, objective modes and parameters: [optimizer.md](optimizer.md).
+- **Column mapping:** the `COLUMNS` / `RISK_COLUMNS` dicts at the top of the script map the model's names (`player`, `team`, `position`, `turn`, `price`, `in_prev_roster`, `std`, `p90`, `p10`) to workbook columns (`price` = `crd_last`, `std` = `pir_std`, `p90` = `pir_p90`, `p10` = `pir_p10`); the input is never renamed. The value to maximise is `[optimization] target` (default `exp_pir`; any numeric column).
+- **Empty cells:** any empty cell in a column the run uses (the mapped columns, `target`, and the risk column of the selected mode) stops the run with an error; other columns are ignored.
+- **Parameters:** all in `[optimization]` of `config/config.toml`, no CLI flags: `target`, `objective_mode`, `robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`, `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`. `min_players_per_turn = [3, 3]` requires at least 3 turn-1 and 3 turn-2 players in the 10-player squad (not only the starting five); `[]` or `[0, 0]` = no constraint. `[optimization.solver_options]` replaces the default solver options as a whole.
+- `scripts/optimize.py` is a standalone copy of `src/eupy/optimize/optimize_squad.py`, which keeps its own CSV/CLI interface and tests.
 
 ## Player names
 
@@ -118,7 +128,7 @@ Prerequisites: the schedule, the fantasy stats players and the merged box score 
 
 ## Config, checks, log
 
-- `config/config.toml` (optional) overrides the defaults in `src/eupy/config/defaults.py`: `[acquisition]` season, request_delay, max_gap, kaggle_dataset, fantasy_rounds, fantasy_stats_type; `[transformation]` names_mode, include_kaggle, base_season; `[logging]` path, level. Unknown keys raise an error. Steps that load the config depend on the file in `dvc.yaml`.
+- `config/config.toml` (optional) overrides the defaults in `src/eupy/config/defaults.py`: `[acquisition]` season, request_delay, max_gap, kaggle_dataset, fantasy_rounds, fantasy_stats_type; `[transformation]` names_mode, include_kaggle, base_season; `[logging]` path, level; `[optimization]` cash, max_trades, unlimited_trades, credit_value, min_players_per_turn, solver, solver_options (see Squad optimizer). Unknown keys raise an error. Steps that load the config depend on the file in `dvc.yaml`.
 - The live box-score, live header and fantasy-stats fetchers log one progress line per request or step (`gamecode 41: complete, 22 rows`, `round 3 (3/6): fetching ...`, `page 2/4 fetched`) to the console and `logs/log.log`, so a slow run can be told from a stuck one (`tail -f logs/log.log`). Each request times out after 30 s.
 - Every fetcher and merge script calls `eupy.quality.validate(rows, key, name)` before writing: empty rows or duplicate keys are logged to `logs/log.log` (git-ignored) and fail the run, leaving the previous output and state untouched.
 
