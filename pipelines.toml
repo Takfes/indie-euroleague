@@ -36,10 +36,6 @@ scripts = ["fetch_euroleague_live_headers", "merge_headers"]
 dvc = true
 scripts = ["build_player_name_map"]
 
-[kpis]
-dvc = false
-scripts = ["build_boxscore_kpis"]
-
 [workbook]
 dvc = true
 scripts = ["build_eubook"]

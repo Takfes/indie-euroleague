@@ -27,9 +27,6 @@ flowchart LR
         s_fetch_euroleague_live_boxscores["fetch_euroleague_live_boxscores"]
         s_fetch_game_schedule["fetch_game_schedule"]
     end
-    subgraph p_kpis["kpis"]
-        s_build_boxscore_kpis["build_boxscore_kpis"]
-    end
     subgraph p_live_headers["live_headers"]
         s_fetch_euroleague_live_headers["fetch_euroleague_live_headers"]
         s_merge_headers["merge_headers"]
@@ -64,26 +61,20 @@ flowchart LR
     d_team_round_turn[("team_round_turn ★<br/>(stage 1)")]
     d_player_name_map[("player_name_map<br/>(stage 2)")]
     d_eubook[("eubook ★<br/>(stage 3)")]
-    d_euroleague_box_score_positions[("euroleague_box_score_positions<br/>(stage 3)")]
 
     %% edges
-    d_euroleague_box_score_merged --> s_build_boxscore_kpis
     d_euroleague_box_score_merged --> s_build_eubook
     d_euroleague_box_score_merged --> s_build_player_name_map
     d_euroleague_net_box_score --> s_merge_boxscore
     d_euroleague_net_headers --> s_merge_headers
-    d_fantasy_stats_players --> s_build_boxscore_kpis
     d_fantasy_stats_players --> s_build_eubook
     d_fantasy_stats_players --> s_build_player_name_map
-    d_game_schedule_schedule --> s_build_boxscore_kpis
     d_game_schedule_schedule --> s_build_eubook
     d_game_schedule_schedule --> s_build_player_name_map
     d_game_schedule_schedule --> s_build_schedule_turns
     d_optimizer_input --> s_optimize_squad
     d_player_name_decisions --> s_build_player_name_map
-    d_player_name_map --> s_build_boxscore_kpis
     d_player_name_map --> s_build_eubook
-    s_build_boxscore_kpis --> d_euroleague_box_score_positions
     s_build_eubook --> d_eubook
     s_build_player_name_map --> d_player_name_map
     s_build_schedule_turns --> d_schedule
@@ -116,17 +107,15 @@ flowchart LR
     classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
     classDef stage1_final fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e,stroke-width:4px
     classDef stage2 fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c
-    classDef stage3 fill:#ece0f5,stroke:#8a62a8,color:#2f1a40
     classDef stage3_final fill:#ece0f5,stroke:#8a62a8,color:#2f1a40,stroke-width:4px
     class s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule,s_fetch_kaggle_euroleague script_stage0
     class s_build_schedule_turns,s_merge_boxscore,s_merge_headers,s_optimize_squad script_stage1
     class s_build_player_name_map script_stage2
-    class s_build_boxscore_kpis,s_build_eubook script_stage3
+    class s_build_eubook script_stage3
     class x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_,x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ source
     class d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_optimizer_input,d_player_name_decisions stage0
     class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
     class d_schedule,d_squad_solution,d_team_round_turn stage1_final
     class d_player_name_map stage2
-    class d_euroleague_box_score_positions stage3
     class d_eubook stage3_final
 ```
