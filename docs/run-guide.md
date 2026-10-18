@@ -100,7 +100,7 @@ uv run dvc repro -s build_eubook                  # offline
 uv run python -m eupy.transform.build_eubook      # the same script, untracked
 ```
 
-Writes `data/stage_03/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) and a copy `eubook_<next round>.xlsx` beside it, not tracked by DVC. Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
+Writes `data/stage_03/eubook.xlsx` (linked in `data/stage_99/` by `uv run eupy link-final`) (one file, overwritten each run). Sheets: schedule, teams, boxscore, history of PIR per position (long and wide), the next round's team grades, the player analytical record. It is the pipeline version of `apps/dataprep.py` (same output on the same data; the app is untouched). One difference: with season-wide fantasy stats (`round` = "all") positions and prices are joined on the player alone, so `quotation` is the current price in every row.
 
 ## Player names
 

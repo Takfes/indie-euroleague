@@ -33,8 +33,7 @@ Outputs:
   - eubook: data/stage_03/eubook.xlsx
 Final: true
 Impure: false
-Notes: Overwritten each run. Also writes eubook_<next round, 3 digits>.xlsx next to the output (same content,
-  not tracked by DVC) so earlier rounds' workbooks are kept. Reads schedule_<season>.csv for the config season.
+Notes: Overwritten each run. Reads schedule_<season>.csv for the config season.
   Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames,
   from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
 """
@@ -390,9 +389,7 @@ def main() -> None:
         PlayerNames.load(),
     )
     write_workbook(sheets, args.out)
-    stamped = args.out.with_name(f"{args.out.stem}_{next_round:03d}{args.out.suffix}")
-    write_workbook(sheets, stamped)
-    print(f"Wrote {len(sheets)} sheets for round {next_round} to {args.out} and {stamped.name}")
+    print(f"Wrote {len(sheets)} sheets for round {next_round} to {args.out}")
 
 
 if __name__ == "__main__":
