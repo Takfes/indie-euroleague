@@ -133,7 +133,7 @@ roster = []                                 # a fresh squad (use unlimited_trade
 `data/stage_99/optimizer_output.xlsx`:
 
 - `selection`: every input row, plus `selected`, `role`, `action`, `is_captain`, and the components of its objective value: `opt_target`, `opt_risk_adjustment`, `opt_score`, `opt_credit_growth` (credits), `opt_growth_value` (points).
-- `summary`: the scenario (if any), objective value and its split, benefit (+) over keeping the current squad, the weighted target and risk adjustment of the line-up, the comparison with the vanilla squad (when the run is not already vanilla), trades, cash, solver status and time, and the parameters used.
+- `summary`: the scenario (if any), objective value and its split, benefit (+) over keeping the current squad, the weighted target and risk adjustment of the line-up, its expected and mean PIR and the squad's average PIR per credit (those input columns, when present), the comparison with the vanilla squad (when the run is not already vanilla), trades, cash, solver status and time, and the parameters used.
 
 ## Not implemented yet
 

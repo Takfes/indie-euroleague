@@ -798,6 +798,22 @@ def _cell(value: object) -> object:
     return value
 
 
+def _lineup_reference_rows(sheet: pd.DataFrame) -> list[tuple[str, str, float]]:
+    """Summary rows for the workbook's own PIR columns, whichever of them the input has.
+
+    `exp_pir` and `pir_mean` are weighted like the line-up (captain x2, bench x0.5); `pir_per_crd` is a ratio,
+    so it is the plain average over the 10 squad players.
+    """
+    squad = sheet[sheet["selected"] == 1]
+    rows: list[tuple[str, str, float]] = []
+    for column, label in (("exp_pir", "expected PIR"), ("pir_mean", "mean PIR")):
+        if column in sheet.columns:
+            rows.append(("line-up", f"{label} of the line-up (weighted)", lineup_sum(sheet, column)))
+    if "pir_per_crd" in sheet.columns:
+        rows.append(("line-up", "PIR per credit, average of the squad", float(squad["pir_per_crd"].mean())))
+    return rows
+
+
 def summary_sheet(
     sol: Solution,
     sheet: pd.DataFrame,
@@ -845,6 +861,7 @@ def summary_sheet(
         ("line-up", "expected target of the line-up (weighted)", lineup_sum(sheet, "opt_target")),
         ("line-up", "risk adjustment of the line-up (weighted)", lineup_sum(sheet, "opt_risk_adjustment")),
     ]
+    rows += _lineup_reference_rows(sheet)
     if vanilla is not None:
         rows += [
             ("vs vanilla", "expected target of the vanilla line-up", lineup_sum(vanilla, "opt_target")),

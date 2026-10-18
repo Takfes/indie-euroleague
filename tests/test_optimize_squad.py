@@ -35,11 +35,14 @@ from eupy.optimize.optimize_squad import (
     _prepare,
     build_model,
     explain_credit_value,
+    lineup_sum,
     main,
     model_frame,
     objective_components,
     optimize_squad,
+    selection_sheet,
     solve,
+    summary_sheet,
     validate_input,
 )
 from eupy.optimize.scenarios import Scenario, apply_scenario, load_scenarios, select_scenarios
@@ -1094,3 +1097,22 @@ def test_a_scenario_can_set_must_have_and_avoid_and_the_summary_lists_them() -> 
     _, applied = apply_scenario(df, cfg, scenario)
     assert applied.must_have == ["P02"] and applied.avoid == ["P01"]
     assert cfg.must_have == []  # base config untouched
+
+
+def test_summary_lists_expected_mean_pir_and_pir_per_credit_when_the_input_has_them() -> None:
+    df = league(prev=True).assign(pir_mean=lambda d: d["exp_pir"] + 1.0, pir_per_crd=lambda d: d["exp_pir"] / 5.0)
+    cfg = cfg_of()
+    sol = optimize_squad(df, cfg)
+    sheet = selection_sheet(df, sol, cfg)
+    summary = summary_sheet(sol, sheet, cfg, len(df), 0.0, None, explain_credit_value(df, cfg, sol), None)
+    values = summary.set_index("metric")["value"]
+    assert values["expected PIR of the line-up (weighted)"] == pytest.approx(lineup_sum(sheet, "exp_pir"))
+    assert values["mean PIR of the line-up (weighted)"] == pytest.approx(
+        lineup_sum(sheet, "exp_pir") + 9.0
+    )  # +1 on each of the weights summing to 9
+    squad = sheet[sheet["selected"] == 1]
+    assert values["PIR per credit, average of the squad"] == pytest.approx((squad["exp_pir"] / 5.0).mean())
+    bare = summary_sheet(
+        sol, selection_sheet(league(prev=True), sol, cfg), cfg, 30, 0.0, None, explain_credit_value(df, cfg, sol), None
+    )
+    assert not any("PIR per credit" in m for m in bare["metric"])  # columns absent: rows absent
