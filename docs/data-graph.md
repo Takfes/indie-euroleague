@@ -8,12 +8,12 @@
 flowchart LR
     %% external sources
     x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package(["agent decisions recorded by the build-name-maps skill, committed with the package"])
+    x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued(["data/stage_04/optimizer_input.xlsx: prepared by hand from the eubook (scripts/dataprep.py), not catalogued"])
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_(["fantaking-api.dunkest.com (live; auth via EUROLEAGUE_FANTASY_AUTH_TOKEN env var or repo-root .env)"])
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_(["https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live)"])
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_(["kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API)"])
     x_live_euroleague_net_api_Header__live_(["live.euroleague.net/api/Header (live)"])
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_(["live.euroleague.net/api/Header and live.euroleague.net/api/BoxScore (live)"])
-    x_prepared_manually__upstream_feature_prediction_script_not_built_yet_(["prepared manually (upstream feature/prediction script not built yet)"])
 
     %% scripts
     subgraph p_entity["entity"]
@@ -49,11 +49,9 @@ flowchart LR
     d_game_schedule_schedule[("game_schedule/schedule<br/>(stage 0)")]
     d_kaggle_data_euroleague_box_score[("kaggle_data/euroleague_box_score<br/>(stage 0)")]
     d_kaggle_data_euroleague_header[("kaggle_data/euroleague_header<br/>(stage 0)")]
-    d_optimizer_input[("optimizer_input<br/>(stage 0)")]
     d_player_name_decisions[("player_name_decisions<br/>(stage 0)")]
     d_euroleague_box_score_merged[("euroleague_box_score_merged<br/>(stage 1)")]
     d_euroleague_header_merged[("euroleague_header_merged<br/>(stage 1)")]
-    d_squad_solution[("squad_solution ★<br/>(stage 1)")]
     d_player_name_map[("player_name_map<br/>(stage 2)")]
     d_eubook[("eubook<br/>(stage 3)")]
 
@@ -66,7 +64,6 @@ flowchart LR
     d_fantasy_stats_players --> s_build_player_name_map
     d_game_schedule_schedule --> s_build_eubook
     d_game_schedule_schedule --> s_build_player_name_map
-    d_optimizer_input --> s_optimize_squad
     d_player_name_decisions --> s_build_player_name_map
     d_player_name_map --> s_build_eubook
     s_build_eubook --> d_eubook
@@ -80,14 +77,13 @@ flowchart LR
     s_fetch_kaggle_euroleague --> d_kaggle_data_euroleague_header
     s_merge_boxscore --> d_euroleague_box_score_merged
     s_merge_headers --> d_euroleague_header_merged
-    s_optimize_squad --> d_squad_solution
     x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package --> d_player_name_decisions
+    x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued --> s_optimize_squad
     x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_ --> s_fetch_euroleague_fantasy_stats
     x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_ --> s_fetch_game_schedule
     x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_ --> s_fetch_kaggle_euroleague
     x_live_euroleague_net_api_Header__live_ --> s_fetch_euroleague_live_headers
     x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ --> s_fetch_euroleague_live_boxscores
-    x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ --> d_optimizer_input
 
     %% colors by stage
     classDef script_stage0 fill:#f7f7f7,stroke:#c97f3a,color:#222222
@@ -97,17 +93,15 @@ flowchart LR
     classDef source fill:#e8e8e8,stroke:#888888,color:#333333
     classDef stage0 fill:#fde9d9,stroke:#c97f3a,color:#4a2c0a
     classDef stage1 fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e
-    classDef stage1_final fill:#dcecdc,stroke:#5a9c5a,color:#1e3a1e,stroke-width:4px
     classDef stage2 fill:#dbe9f6,stroke:#5b84a3,color:#1a2b3c
     classDef stage3 fill:#ece0f5,stroke:#8a62a8,color:#2f1a40
-    class s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule,s_fetch_kaggle_euroleague script_stage0
-    class s_merge_boxscore,s_merge_headers,s_optimize_squad script_stage1
+    class s_fetch_euroleague_fantasy_stats,s_fetch_euroleague_live_boxscores,s_fetch_euroleague_live_headers,s_fetch_game_schedule,s_fetch_kaggle_euroleague,s_optimize_squad script_stage0
+    class s_merge_boxscore,s_merge_headers script_stage1
     class s_build_player_name_map script_stage2
     class s_build_eubook script_stage3
-    class x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_,x_prepared_manually__upstream_feature_prediction_script_not_built_yet_ source
-    class d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_optimizer_input,d_player_name_decisions stage0
+    class x_agent_decisions_recorded_by_the_build_name_maps_skill__committed_with_the_package,x_data_stage_04_optimizer_input_xlsx__prepared_by_hand_from_the_eubook__scripts_dataprep_py___not_catalogued,x_fantaking_api_dunkest_com__live__auth_via_EUROLEAGUE_FANTASY_AUTH_TOKEN_env_var_or_repo_root__env_,x_https___euroleague_advanced_api_eu_Euroleague_schedule_season__year___live_,x_kaggle_com_datasets_babissamothrakis_euroleague_datasets__Kaggle_API_,x_live_euroleague_net_api_Header__live_,x_live_euroleague_net_api_Header_and_live_euroleague_net_api_BoxScore__live_ source
+    class d_euroleague_net_box_score,d_euroleague_net_headers,d_fantasy_stats_head_coaches,d_fantasy_stats_players,d_game_schedule_schedule,d_kaggle_data_euroleague_box_score,d_kaggle_data_euroleague_header,d_player_name_decisions stage0
     class d_euroleague_box_score_merged,d_euroleague_header_merged stage1
-    class d_squad_solution stage1_final
     class d_player_name_map stage2
     class d_eubook stage3
 ```

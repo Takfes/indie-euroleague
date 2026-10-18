@@ -3,10 +3,6 @@
 # `python -m eupy.registry check` fails if an unproduced raw dataset is missing here, or if an entry
 # here is not an unproduced raw dataset in some header.
 
-[datasets.optimizer_input]
-origin = "prepared manually (upstream feature/prediction script not built yet)"
-refresh = "manual"
-
 [datasets.player_name_decisions]
 origin = "agent decisions recorded by the build-name-maps skill, committed with the package"
 refresh = "manual (the skill)"

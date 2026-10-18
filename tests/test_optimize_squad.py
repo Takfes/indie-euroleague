@@ -1,10 +1,12 @@
-"""Tests for the single-round squad optimizer (Pyomo MILP, HiGHS).
+"""Tests for the single-round squad optimizer (Pyomo MILP, HiGHS; `eupy.optimize.optimize_squad`).
 
 The central check is brute-force equivalence: on small random universes the MILP's optimum must
 equal an independent enumeration of every legal squad x role assignment x captain, written here
 from `docs/rules.md` (explicit list of legal formations, no bounds, no solver). Every solution the
 model returns is also re-scored by that independent evaluator, so extraction bugs (wrong roles,
 captain off the court) surface too. The solver is never mocked.
+
+Universes use the workbook's column names (`crd_last` is the price); the module maps them itself.
 """
 
 from __future__ import annotations
@@ -13,13 +15,17 @@ import itertools
 import math
 import random
 import time
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
 import eupy.optimize.optimize_squad as opt_mod
+from eupy.config import load_config
+from eupy.config.defaults import Optimization
 from eupy.optimize.optimize_squad import (
     FORMATION_BOUNDS,
     MAX_PER_CLUB,
@@ -29,20 +35,38 @@ from eupy.optimize.optimize_squad import (
     _prepare,
     build_model,
     explain_credit_value,
-    load_config,
     main,
+    model_frame,
+    objective_components,
     optimize_squad,
     solve,
     validate_input,
 )
 
 SAMPLE = Path(__file__).parent / "data" / "optimizer_input_sample.csv"
-CONFIG_SAMPLE = Path(__file__).parent / "data" / "optimizer_config_sample.toml"
 
 # Written from rules.md, deliberately not derived from FORMATION_BOUNDS.
 LEGAL_FORMATIONS = {(2, 2, 1), (1, 2, 2), (2, 1, 2), (1, 3, 1), (3, 1, 1)}
 NEED = {"G": 4, "F": 4, "C": 2}
 EPS = 1e-6
+
+
+def cfg_of(
+    cash: float = 100.0,
+    max_trades: int | None = None,
+    w: float = 0.0,
+    mode: str = "vanilla",
+    **risk: float,
+) -> Optimization:
+    """Run parameters; `max_trades=None` = unlimited, `w` = credit_value, `risk` = lambda/beta/gamma weights."""
+    return Optimization(
+        cash=cash,
+        max_trades=max_trades or 0,
+        unlimited_trades=max_trades is None,
+        credit_value=w,
+        objective_mode=mode,
+        **risk,
+    )
 
 
 # --------------------------------------------------------------------------- independent reference
@@ -51,13 +75,16 @@ EPS = 1e-6
 class BruteForce:
     """Exhaustive optimum over squads x roles x captain for one universe (no MILP involved)."""
 
-    def __init__(self, u: pd.DataFrame, use_adj: bool = True) -> None:
+    def __init__(self, u: pd.DataFrame, cfg: Optimization | None = None) -> None:
+        cfg = cfg or cfg_of()
         self.u = u.reset_index(drop=True)
+        frame = model_frame(self.u, cfg)
+        # Score = target + the mode's risk adjustment; the formulas are checked on their own in
+        # test_components_follow_the_documented_formulas, so reusing them here keeps this class about the rules.
+        self.score = objective_components(frame, cfg)["score"].tolist()
         self.pos = self.u["position"].tolist()
-        self.price = self.u["price"].tolist()
+        self.price = self.u["crd_last"].tolist()
         self.exp = self.u["exp_pir"].tolist()
-        adj = self.u["exp_pir_adj"] if use_adj and "exp_pir_adj" in self.u else self.u["exp_pir"]
-        self.adj = adj.fillna(self.u["exp_pir"]).tolist()
         self.team = self.u["team"].tolist()
         self.prev = frozenset(i for i, p in enumerate(self.u["in_prev_roster"]) if p == 1)
         self._roles: dict[tuple[int, ...], tuple[float, tuple]] = {}
@@ -65,8 +92,8 @@ class BruteForce:
     def lineup_value(self, starters, sixth, captain, squad_players) -> float:
         """Points of one role assignment, straight from the rules.md scoring table."""
         bench = [i for i in squad_players if i not in starters and i != sixth]
-        pts = sum(self.adj[i] for i in starters) + self.adj[sixth] + self.adj[captain]  # captain scores x2
-        return pts + sum(0.5 * self.exp[i] for i in bench)
+        pts = sum(self.score[i] for i in starters) + self.score[sixth] + self.score[captain]  # captain scores x2
+        return pts + sum(0.5 * self.score[i] for i in bench)
 
     def best_roles(self, players: tuple[int, ...]) -> tuple[float, tuple]:
         """Enumerate every starting five (legal formation only), 6th man and captain."""
@@ -119,22 +146,22 @@ class BruteForce:
 def rescore(bf: BruteForce, sol: Solution, cash: float, max_trades: int | None, w: float) -> float:
     """Check a model output's squad/lineup/growth split are legal and return its value under the rules."""
     table = sol.table
-    idx = {name: i for i, name in enumerate(bf.u["name"])}
+    idx = {name: i for i, name in enumerate(bf.u["player"])}
     squad_rows = table[table["action"] != "sell"]
-    squad = frozenset(idx[n] for n in squad_rows["name"])
+    squad = frozenset(idx[n] for n in squad_rows["player"])
     assert len(squad) == 10
     assert sorted(bf.pos[i] for i in squad) == sorted(p for p, n in NEED.items() for _ in range(n))
     assert bf.legal_squad(squad, cash, max_trades)
     # Actions are consistent with the previous roster (no player both sold and bought).
-    for name, action in zip(table["name"], table["action"], strict=True):
+    for name, action in zip(table["player"], table["action"], strict=True):
         was_owned = idx[name] in bf.prev
         assert action in (("keep", "sell") if was_owned else ("buy",)), (name, action)
-    starters = tuple(idx[n] for n in table.loc[table["role"] == "starter", "name"])
-    (sixth,) = (idx[n] for n in table.loc[table["role"] == "sixth", "name"])
-    (captain,) = (idx[n] for n in table.loc[table["is_captain"] == 1, "name"])
+    starters = tuple(idx[n] for n in table.loc[table["role"] == "starter", "player"])
+    (sixth,) = (idx[n] for n in table.loc[table["role"] == "sixth", "player"])
+    (captain,) = (idx[n] for n in table.loc[table["is_captain"] == 1, "player"])
     assert len(starters) == 5 and captain in starters
     assert tuple(sum(bf.pos[i] == p for i in starters) for p in ("G", "F", "C")) in LEGAL_FORMATIONS
-    assert bf.adj[captain] == max(bf.adj[i] for i in starters)
+    assert bf.score[captain] == max(bf.score[i] for i in starters)
     assert (table.loc[table["action"] == "sell", "role"] == "none").all()
     # growth_credits/growth_term split: raw growth must match independently, and growth_term = w * it.
     growth_credits = bf.squad_growth_credits(squad)
@@ -159,15 +186,16 @@ def random_universe(seed: int) -> pd.DataFrame:
             price = round(rng.uniform(3, 20), 1)
             # Loosely price-correlated, so cheap over-performers exist and the growth term has a real trade-off.
             exp = round(0.5 * price + rng.uniform(0, 12), 1)
-            adj = round(exp + rng.gauss(0, 5), 1) if rng.random() < 0.5 else float("nan")
             rows.append({
-                "name": f"{pos} player {k}",
+                "player": f"{pos} player {k}",
                 "team": clubs[len(rows)],
                 "position": pos,
                 "turn": rng.choice([1, 2, 3]),
-                "price": price,
+                "crd_last": price,
                 "exp_pir": exp,
-                "exp_pir_adj": adj,
+                "pir_std": round(rng.uniform(0, 9), 1),
+                "pir_p90": round(exp + rng.uniform(0, 15), 1),
+                "pir_p10": round(exp - rng.uniform(0, 15), 1),
                 "in_prev_roster": 0,
             })
     u = pd.DataFrame(rows)
@@ -180,20 +208,15 @@ def random_universe(seed: int) -> pd.DataFrame:
     return u
 
 
-def model_table(u: pd.DataFrame, cash: float, max_trades: int | None, w: float, use_adj: bool = True):
-    df = u if use_adj else u.drop(columns="exp_pir_adj")
-    return optimize_squad(df, cash=cash, max_trades=max_trades, credit_value=w)
-
-
 def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFrame:
     """Rows from (position, team, price, exp_pir, in_prev_roster) tuples."""
     return pd.DataFrame([
         {
-            "name": f"p{k}",
+            "player": f"p{k}",
             "team": team,
             "position": pos,
             "turn": 1,
-            "price": price,
+            "crd_last": price,
             "exp_pir": exp,
             "in_prev_roster": prev,
         }
@@ -203,8 +226,10 @@ def make_universe(spec: list[tuple[str, str, float, float, int]]) -> pd.DataFram
 
 # --------------------------------------------------------------------------- 1. brute-force equivalence
 
-SEEDS = range(14)  # seed 13 is the one where credit_value changes the decision
+SEEDS = range(14)  # seed 6 is the one where credit_value changes the decision
+CREDIT_SEED = 6
 W = 3.0  # early-season capital-growth weight per the spec
+LAMBDA = 1.5  # robustness weight used where the risk adjustment should bite
 
 
 def _instances():
@@ -216,23 +241,28 @@ def _instances():
 
 def test_model_matches_brute_force_and_each_feature_matters() -> None:
     """Model optimum == enumeration optimum in every config; each feature changes the answer somewhere."""
-    matters = {"budget": False, "trade_limit": False, "credit_value": False, "exp_pir_adj": False}
+    matters = {"budget": False, "trade_limit": False, "credit_value": False, "robustness": False}
     for seed, u, cash in _instances():
-        bf_adj, bf_exp = BruteForce(u, use_adj=True), BruteForce(u, use_adj=False)
+        robust = cfg_of(cash, 2, W, "robustness", robustness_lambda=LAMBDA)
+        bf_plain, bf_robust = BruteForce(u), BruteForce(u, robust)
         configs = {
-            "base": (bf_adj, True, cash, 2, W),
-            "no_budget": (bf_adj, True, 1e6, 2, W),
-            "no_trade_limit": (bf_adj, True, cash, None, W),
-            "w0": (bf_adj, True, cash, 2, 0.0),
-            "no_adj": (bf_exp, False, cash, 2, W),
+            "base": (bf_plain, cfg_of(cash, 2, W)),
+            "no_budget": (bf_plain, cfg_of(1e6, 2, W)),
+            "no_trade_limit": (bf_plain, cfg_of(cash, None, W)),
+            "w0": (bf_plain, cfg_of(cash, 2, 0.0)),
+            "robust": (bf_robust, robust),
         }
         results = {}
-        for name, (bf, use_adj, c, k, w) in configs.items():
-            ref_value, ref_squad, ref_roles = bf.solve(c, k, w)
+        for name, (bf, cfg) in configs.items():
+            cap = None if cfg.unlimited_trades else cfg.max_trades
+            ref_value, ref_squad, ref_roles = bf.solve(cfg.cash, cap, cfg.credit_value)
             assert ref_value > -math.inf, (seed, name, "instance infeasible")
-            sol = model_table(u, c, k, w, use_adj)
+            sol = optimize_squad(u, cfg)
             assert sol.objective == pytest.approx(ref_value, abs=EPS), (seed, name)
-            assert rescore(bf, sol, c, k, w) == pytest.approx(sol.objective, abs=EPS), (seed, name)
+            assert rescore(bf, sol, cfg.cash, cap, cfg.credit_value) == pytest.approx(sol.objective, abs=EPS), (
+                seed,
+                name,
+            )
             results[name] = (ref_value, ref_squad, ref_roles)
 
         base_value, base_squad, (starters, sixth, captain) = results["base"]
@@ -240,11 +270,13 @@ def test_model_matches_brute_force_and_each_feature_matters() -> None:
         # Constraints matter if relaxing them strictly improves the optimum.
         matters["budget"] |= results["no_budget"][0] > base_value + EPS
         matters["trade_limit"] |= results["no_trade_limit"][0] > base_value + EPS
-        # w / adj matter if the base decision is strictly suboptimal when judged without them.
-        base_at_w0 = bf_adj.best_roles(players)[0] + bf_adj.squad_extra(base_squad, 0.0)
+        # w / risk matter if the base decision is strictly suboptimal when judged without them.
+        base_at_w0 = bf_plain.best_roles(players)[0] + bf_plain.squad_extra(base_squad, 0.0)
         matters["credit_value"] |= base_at_w0 < results["w0"][0] - EPS
-        base_at_exp = bf_exp.lineup_value(starters, sixth, captain, players) + bf_exp.squad_extra(base_squad, W)
-        matters["exp_pir_adj"] |= base_at_exp < results["no_adj"][0] - EPS
+        base_at_robust = bf_robust.lineup_value(starters, sixth, captain, players) + bf_robust.squad_extra(
+            base_squad, W
+        )
+        matters["robustness"] |= base_at_robust < results["robust"][0] - EPS
     assert all(matters.values()), matters
 
 
@@ -257,12 +289,13 @@ def test_player_cannot_be_both_sold_and_bought(var: str, owned: int) -> None:
     else can make the model infeasible.
     """
     _, u, _ = next(_instances())
-    df = _prepare(u)
-    m = build_model(df, cash=100.0, max_trades=None, credit_value=0.0)
+    cfg = cfg_of(100.0, None, 0.0)
+    df = _prepare(model_frame(u, cfg), cfg)
+    m = build_model(df, cfg)
     i = int(df.index[df["in_prev_roster"] == owned][0])
     getattr(m, var)[i].fix(1)
     with pytest.raises(RuntimeError, match="termination condition infeasible"):
-        solve(m)
+        solve(m, cfg)
 
 
 # --------------------------------------------------------------------------- 2. rule scenarios
@@ -283,7 +316,7 @@ def test_club_cap_binds_when_one_club_dominates() -> None:
     stars = [("G", "AAA", 1.0, 30.0, 0)] * 4 + [("F", "AAA", 1.0, 30.0, 0)] * 4 + [("C", "AAA", 1.0, 30.0, 0)] * 2
     filler = [("G", "BBB", 1.0, 1.0, 0)] * 4 + [("F", "CCC", 1.0, 1.0, 0)] * 4 + [("C", "BBB", 1.0, 1.0, 0)] * 2
     u = make_universe([*stars, *filler])
-    sol = optimize_squad(u, cash=100.0, max_trades=None)
+    sol = optimize_squad(u, cfg_of(100.0, None))
     squad = sol.table[sol.table["action"] != "sell"]
     assert (squad["team"] == "AAA").sum() == 6  # rules.md; literal on purpose, not the module constant
 
@@ -298,30 +331,31 @@ def _upgrade_universe() -> pd.DataFrame:
 def test_unlimited_trades_lifts_the_limit() -> None:
     """Ten strictly better same-price replacements exist: K=4 buys 4, None buys all 10."""
     u = _upgrade_universe()
-    assert optimize_squad(u, cash=0.0, max_trades=np.int64(4)).trades == 4  # numpy ints are valid limits
-    assert optimize_squad(u, cash=0.0, max_trades=None).trades == 10
+    assert optimize_squad(u, replace(cfg_of(0.0, 4), max_trades=np.int64(4))).trades == 4  # numpy ints are valid limits
+    assert optimize_squad(u, cfg_of(0.0, None)).trades == 10
 
 
 def test_row_order_does_not_change_the_solution() -> None:
     """Many interchangeable candidates (ties everywhere): a shuffled input must give the same squad."""
     spec = [(pos, f"T{k % 4}", 5.0, 10.0, 0) for pos, n in (("G", 8), ("F", 8), ("C", 4)) for k in range(n)]
     u = make_universe(spec)
-    a = optimize_squad(u, cash=100.0, max_trades=None).table
-    b = optimize_squad(u.sample(frac=1, random_state=0), cash=100.0, max_trades=None).table
+    a = optimize_squad(u, cfg_of(100.0, None)).table
+    b = optimize_squad(u.sample(frac=1, random_state=0), cfg_of(100.0, None)).table
     pd.testing.assert_frame_equal(a, b)
 
 
 def test_fresh_team_with_trade_limit_is_infeasible_and_says_so() -> None:
     """Round 1 needs 10 buys; a standard 4-trade limit must fail loudly, not return a partial squad."""
     with pytest.raises(RuntimeError, match="termination condition infeasible"):
-        optimize_squad(pd.read_csv(SAMPLE), cash=100.0, max_trades=4)
+        optimize_squad(_sample(), cfg_of(100.0, 4))
 
 
 # --------------------------------------------------------------------------- 3. validation
 
 
 def _sample() -> pd.DataFrame:
-    return pd.read_csv(SAMPLE)
+    """The Round-1 sample as a workbook table (`crd_last` = price)."""
+    return pd.read_csv(SAMPLE).rename(columns={"name": "player", "price": "crd_last"}).drop(columns="exp_pir_adj")
 
 
 def _set(df: pd.DataFrame, row: int, col: str, value) -> pd.DataFrame:
@@ -341,22 +375,20 @@ def _prev_roster(df: pd.DataFrame, n: int, composition: dict[str, int] | None = 
 
 
 INVALID = {
-    "missing column": (lambda d: d.drop(columns="team"), "missing required column"),
-    "NaN required": (lambda d: _set(d, 0, "exp_pir", float("nan")), "NaN"),
-    "non-numeric price": (lambda d: _set(d, 0, "price", "cheap"), "non-numeric"),
-    "empty name": (lambda d: _set(d, 0, "name", ""), "empty name"),
-    "duplicate name": (lambda d: _set(d, 1, "name", d.loc[0, "name"]), "duplicate name"),
+    "missing column": (lambda d: d.drop(columns="team"), "lacks column"),
+    "NaN required": (lambda d: _set(d, 0, "exp_pir", float("nan")), "Empty cells"),
+    "non-numeric price": (lambda d: _set(d, 0, "crd_last", "cheap"), "non-numeric"),
+    "empty player": (lambda d: _set(d, 0, "player", ""), "empty player"),
+    "duplicate player": (lambda d: _set(d, 1, "player", d.loc[0, "player"]), "duplicate player"),
     "bad position": (lambda d: _set(d, 0, "position", "PG"), "unknown position"),
-    "price zero": (lambda d: _set(d, 0, "price", 0.0), "price <= 0"),
+    "price zero": (lambda d: _set(d, 0, "crd_last", 0.0), "price <= 0"),
     "turn zero": (lambda d: _set(d, 0, "turn", 0), r"turn is not an integer >= 1"),
     "turn fractional": (lambda d: _set(d, 0, "turn", 1.5), r"turn is not an integer >= 1"),
     "prev flag 2": (lambda d: _set(d, 0, "in_prev_roster", 2), r"outside \{0, 1\}"),
-    "non-numeric adj": (lambda d: _set(d, 0, "exp_pir_adj", "n/a"), r"non-numeric column\(s\) \['exp_pir_adj'\]"),
-    "inf price": (lambda d: _set(d, 0, "price", math.inf), r"infinite values in column\(s\) \['price'\]"),
-    "-inf exp_pir": (lambda d: _set(d, 0, "exp_pir", -math.inf), r"infinite values in column\(s\) \['exp_pir'\]"),
-    "inf adj": (lambda d: _set(d, 0, "exp_pir_adj", math.inf), r"infinite values in column\(s\) \['exp_pir_adj'\]"),
+    "inf price": (lambda d: _set(d, 0, "crd_last", math.inf), r"infinite values in column\(s\) \['price'\]"),
+    "-inf target": (lambda d: _set(d, 0, "exp_pir", -math.inf), r"infinite values in column\(s\) \['target'\]"),
     "too few centers": (
-        lambda d: d[~d["name"].isin(["Center Two", "Center Three", "Center Four"])],
+        lambda d: d[~d["player"].isin(["Center Two", "Center Three", "Center Four"])],
         "too few candidates",
     ),
     "partial prev roster": (lambda d: _prev_roster(d, 5), "marks 5 rows"),
@@ -371,30 +403,28 @@ INVALID = {
 def test_invalid_input_raises_readable_error(case: str) -> None:
     mutate, match = INVALID[case]
     with pytest.raises(ValueError, match=match):
-        validate_input(mutate(_sample()))
+        optimize_squad(mutate(_sample()), cfg_of(100.0, None))
 
 
-@pytest.mark.parametrize(
-    "df", [_sample(), _sample().drop(columns="exp_pir_adj"), _prev_roster(_sample(), 10)], ids=["r1", "no_adj", "prev"]
-)
+@pytest.mark.parametrize("df", [_sample(), _prev_roster(_sample(), 10)], ids=["r1", "prev"])
 def test_valid_input_passes(df: pd.DataFrame) -> None:
-    validate_input(df)
+    validate_input(model_frame(df, cfg_of()))
 
 
 @pytest.mark.parametrize(
     "kwargs", [{"cash": -1.0}, {"max_trades": -1}, {"max_trades": 2.5}, {"credit_value": -0.1}], ids=str
 )
 def test_invalid_scalars_raise(kwargs: dict) -> None:
-    args = {"cash": 100.0, "max_trades": None, "credit_value": 0.0, **kwargs}
+    base = {"cash": 100.0, "max_trades": 0, "unlimited_trades": False, "credit_value": 0.0, **kwargs}
     with pytest.raises(ValueError):
-        optimize_squad(_sample(), **args)
+        optimize_squad(_sample(), Optimization(**base))
 
 
-# --------------------------------------------------------------------------- 4-5. size, determinism, CLI
+# --------------------------------------------------------------------------- 4-5. size, determinism, run
 
 
 def synthetic_league(seed: int = 7) -> pd.DataFrame:
-    """~540 candidates over 20 clubs (13 G / 13 F / 8 C each) with a legal previous roster."""
+    """~680 candidates over 20 clubs (13 G / 13 F / 8 C each) with a legal previous roster."""
     rng = random.Random(seed)  # noqa: S311 -- seeded test data, not crypto
     rows = []
     for club in range(20):
@@ -403,13 +433,12 @@ def synthetic_league(seed: int = 7) -> pd.DataFrame:
                 price = round(rng.uniform(1, 25), 1)
                 exp = 1.1 * price + rng.gauss(0, 5)
                 rows.append({
-                    "name": f"{pos}-{club}-{len(rows)}",
+                    "player": f"{pos}-{club}-{len(rows)}",
                     "team": f"T{club:02d}",
                     "position": pos,
                     "turn": rng.choice([1, 2]),
-                    "price": price,
+                    "crd_last": price,
                     "exp_pir": round(exp, 1),
-                    "exp_pir_adj": round(exp + rng.gauss(0, 3), 1) if rng.random() < 0.3 else None,
                     "in_prev_roster": 0,
                 })
     u = pd.DataFrame(rows)
@@ -418,80 +447,58 @@ def synthetic_league(seed: int = 7) -> pd.DataFrame:
     return u
 
 
-def test_realistic_size_solves_fast_and_is_byte_identical(tmp_path: Path) -> None:
+def test_realistic_size_solves_fast_and_is_identical_across_runs() -> None:
     u = synthetic_league()
     assert len(u) == 680
-    inp = tmp_path / "league.csv"
-    u.to_csv(inp, index=False)
-    outs = []
-    for k in range(2):
-        out = tmp_path / f"out{k}.csv"
+    cfg = cfg_of(1.5, 4, 3.0, "vanilla")
+    tables = []
+    for _ in range(2):
         started = time.perf_counter()
-        main(["--input", str(inp), "--cash", "1.5", "--max-trades", "4", "--credit-value", "3.0", "--out", str(out)])
+        tables.append(optimize_squad(u, cfg).table)
         assert time.perf_counter() - started < 30
-        outs.append(out.read_bytes())
-    assert outs[0] == outs[1]
+    pd.testing.assert_frame_equal(tables[0], tables[1])
 
 
-def test_cli_on_sample_writes_sorted_csv_and_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    out = tmp_path / "squad.csv"
-    main(["--input", str(SAMPLE), "--unlimited-trades", "--out", str(out)])
-    table = pd.read_csv(out)
-    assert list(table.columns) == OUTPUT_COLUMNS
-    ranks = table["role"].map(ROLE_ORDER.index)
-    assert list(zip(ranks, table["name"], strict=True)) == sorted(zip(ranks, table["name"], strict=True))
-    assert table["role"].value_counts().to_dict() == {"starter": 5, "bench": 4, "sixth": 1}
+def _run_main(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, workbook: pd.DataFrame, cfg: Optimization) -> Path:
+    """Run `main()` against a workbook in tmp_path with the given [optimization] section; returns the output path."""
+    inp, out = tmp_path / "in.xlsx", tmp_path / "out" / "optimizer_output.xlsx"
+    workbook.to_excel(inp, index=False)
+    monkeypatch.setattr(opt_mod, "INPUT_PATH", inp)
+    monkeypatch.setattr(opt_mod, "OUTPUT_PATH", out)
+    monkeypatch.setattr(opt_mod, "get_config", lambda: SimpleNamespace(optimization=cfg))
+    main()
+    return out
+
+
+def test_main_on_sample_writes_both_sheets_and_the_report(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = _run_main(monkeypatch, tmp_path, _sample(), cfg_of(100.0, None))
+    sheets = pd.read_excel(out, sheet_name=None)
+    assert list(sheets) == ["selection", "summary"]
+    selection = sheets["selection"]
+    assert len(selection) == len(_sample())
+    assert selection["role"].value_counts().to_dict() == {
+        "none": len(selection) - 10,
+        "starter": 5,
+        "bench": 4,
+        "sixth": 1,
+    }
+    assert selection["is_captain"].sum() == 1
     report = capsys.readouterr().out
     for fragment in ("Objective", "Trades 10 / unlimited", "cash 100.00 ->", "Starting five:", "(C)", "6th man:"):
         assert fragment in report
 
 
-# --------------------------------------------------------------------------- 6. config file
+def test_load_input_reads_the_first_sheet_untouched(tmp_path: Path) -> None:
+    path = tmp_path / "in.xlsx"
+    _sample().to_excel(path, index=False)
+    pd.testing.assert_frame_equal(opt_mod.load_input(path), _sample())
+    with pytest.raises(FileNotFoundError, match="optimizer_input"):
+        opt_mod.load_input(tmp_path / "nope.xlsx")
 
 
-def test_config_values_used_unless_a_cli_flag_overrides(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    """A config's `cash` is used when `--cash` is not passed; `--cash` overrides it when it is."""
-    config = tmp_path / "config.toml"
-    config.write_text(f'input = "{SAMPLE}"\ncash = 90.0\nunlimited_trades = true\n', encoding="utf-8")
-    out = tmp_path / "out.csv"
-
-    main(["--config", str(config), "--out", str(out)])
-    assert "cash 90.00 ->" in capsys.readouterr().out
-
-    main(["--config", str(config), "--cash", "65.0", "--out", str(out)])
-    assert "cash 65.00 ->" in capsys.readouterr().out
-
-
-def test_unrecognized_config_key_raises(tmp_path: Path) -> None:
-    """A typo'd config key (`max_trade` instead of `max_trades`) must not be silently ignored."""
-    config = tmp_path / "config.toml"
-    config.write_text("cash = 100.0\nmax_trade = 4\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="Unrecognized config key"):
-        load_config(config)
-
-
-def test_config_sample_round_trips_through_cli(tmp_path: Path) -> None:
-    """The documented sample config loads cleanly; --input/--unlimited-trades override its Round-1 mismatch."""
-    out = tmp_path / "out.csv"
-    main(["--config", str(CONFIG_SAMPLE), "--input", str(SAMPLE), "--unlimited-trades", "--out", str(out)])
-    assert out.is_file()
-
-
-# --------------------------------------------------------------------------- 7. Excel input
-
-
-def test_excel_input_matches_csv(tmp_path: Path) -> None:
-    """The same content as an .xlsx file gives a byte-identical output to the .csv sample."""
-    xlsx = tmp_path / "sample.xlsx"
-    pd.read_csv(SAMPLE).to_excel(xlsx, index=False)
-    out_csv = tmp_path / "out_csv.csv"
-    out_xlsx = tmp_path / "out_xlsx.csv"
-    main(["--input", str(SAMPLE), "--unlimited-trades", "--out", str(out_csv)])
-    main(["--input", str(xlsx), "--unlimited-trades", "--out", str(out_xlsx)])
-    assert out_csv.read_bytes() == out_xlsx.read_bytes()
-
-
-# --------------------------------------------------------------------------- 8. credit_value
+# --------------------------------------------------------------------------- 6. credit_value
 
 
 def test_growth_credits_is_independent_of_credit_value_when_squad_is_unchanged() -> None:
@@ -505,9 +512,9 @@ def test_growth_credits_is_independent_of_credit_value_when_squad_is_unchanged()
     good_c = [("C", "CC", 10.0, 20.0, 0)] * 2
     bad_c = [("C", "CC", 10.0, 1.0, 0)]
     u = make_universe([*good_g, *bad_g, *good_f, *bad_f, *good_c, *bad_c])
-    low = optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
-    high = optimize_squad(u, cash=100.0, max_trades=None, credit_value=5.0)
-    assert set(low.table["name"]) == set(high.table["name"])  # same squad chosen
+    low = optimize_squad(u, cfg_of(100.0, None, 0.0))
+    high = optimize_squad(u, cfg_of(100.0, None, 5.0))
+    assert set(low.table["player"]) == set(high.table["player"])  # same squad chosen
     assert low.growth_credits == pytest.approx(high.growth_credits)
 
 
@@ -520,19 +527,20 @@ def test_relaxing_cash_by_one_credit_cannot_lower_the_pure_pir_optimum() -> None
     base_f = [("F", "FF", 10.0, 10.0, 0)] * 4
     base_c = [("C", "CC", 10.0, 10.0, 0)] * 2
     u = make_universe([*base_g, *premium_g, *base_f, *base_c])
-    actual = optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
-    report = explain_credit_value(u, cash=100.0, max_trades=None, credit_value=0.0, actual=actual)
+    cfg = cfg_of(100.0, None, 0.0)
+    report = explain_credit_value(u, cfg, optimize_squad(u, cfg))
     assert report.lambda_shadow >= 0  # invariant: relaxing cash cannot lower the PIR optimum
     assert report.lambda_shadow > EPS  # strictly greater here (the premium G becomes affordable)
 
 
 def test_credit_value_can_strictly_cost_active_points() -> None:
-    """Seed 13's instance (see SEEDS) is where credit_value=W changes the chosen squad: the
+    """Seed 6's instance (see SEEDS) is where credit_value=W changes the chosen squad: the
     credit_value=0 baseline strictly beats the actual credit_value=W squad on pure active_points.
     """
-    seed, u, cash = next(inst for inst in _instances() if inst[0] == 13)
-    actual = optimize_squad(u, cash=cash, max_trades=2, credit_value=W)
-    report = explain_credit_value(u, cash=cash, max_trades=2, credit_value=W, actual=actual)
+    _, u, cash = next(inst for inst in _instances() if inst[0] == CREDIT_SEED)
+    cfg = cfg_of(cash, 2, W)
+    actual = optimize_squad(u, cfg)
+    report = explain_credit_value(u, cfg, actual)
     assert report.baseline_active >= actual.active_points  # invariant: credit_value=0 is the PIR max
     assert report.baseline_active > actual.active_points + EPS  # strictly costs PIR here
 
@@ -553,33 +561,314 @@ def test_explain_credit_value_skips_the_baseline_resolve_at_credit_value_zero(
 
     monkeypatch.setattr(opt_mod, "optimize_squad", counting)
 
-    actual_zero = real_optimize_squad(u, cash=100.0, max_trades=None, credit_value=0.0)
+    cfg_zero = cfg_of(100.0, None, 0.0)
+    actual_zero = real_optimize_squad(u, cfg_zero)
     calls.clear()
-    explain_credit_value(u, cash=100.0, max_trades=None, credit_value=0.0, actual=actual_zero)
+    explain_credit_value(u, cfg_zero, actual_zero)
     assert len(calls) == 1  # only the shadow (cash+1, credit_value=0) solve
 
-    actual_nonzero = real_optimize_squad(u, cash=100.0, max_trades=None, credit_value=W)
+    cfg_w = cfg_of(100.0, None, W)
+    actual_nonzero = real_optimize_squad(u, cfg_w)
     calls.clear()
-    explain_credit_value(u, cash=100.0, max_trades=None, credit_value=W, actual=actual_nonzero)
+    explain_credit_value(u, cfg_w, actual_nonzero)
     assert len(calls) == 2  # baseline (credit_value=0) + shadow (cash+1, credit_value=0)
 
 
-def test_cli_prints_credit_value_report_both_when_unchanged_and_when_it_costs_pir(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+def test_main_prints_credit_value_report_both_when_unchanged_and_when_it_costs_pir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """format_credit_value_report's output appears in main()'s stdout: at credit_value=0 (squad
-    unchanged, trivially) and at seed 13's credit_value=W (squad changes, see SEEDS)."""
-    seed, u, cash = next(inst for inst in _instances() if inst[0] == 13)
-    inp = tmp_path / "u13.csv"
-    u.to_csv(inp, index=False)
-    out = tmp_path / "out.csv"
+    unchanged, trivially) and at seed 6's credit_value=W (squad changes, see SEEDS)."""
+    _, u, cash = next(inst for inst in _instances() if inst[0] == CREDIT_SEED)
 
-    main(["--input", str(inp), "--cash", str(cash), "--max-trades", "2", "--credit-value", "0.0", "--out", str(out)])
+    _run_main(monkeypatch, tmp_path, u, cfg_of(cash, 2, 0.0))
     report = capsys.readouterr().out
     assert "Credit value:" in report
     assert "did not change the squad" in report
 
-    main(["--input", str(inp), "--cash", str(cash), "--max-trades", "2", "--credit-value", str(W), "--out", str(out)])
+    _run_main(monkeypatch, tmp_path, u, cfg_of(cash, 2, W))
     report = capsys.readouterr().out
     assert "Credit value:" in report
     assert "Growth trade-off:" in report
+
+
+# --------------------------------------------------------------------------- 7. objective modes, turn minimums, output sheets
+
+opt = opt_mod
+CFG_S = cfg_of(100.0, 10)
+
+
+def league(*, prev: bool = False) -> pd.DataFrame:
+    """30 candidates, 10 per position, 8 clubs. Turn-1 players project far better than turn-2 players."""
+    rows = []
+    for n in range(30):
+        pos = "GFC"[n % 3]
+        turn = 1 if n % 5 else 2  # every fifth player is a turn-2 player
+        rows.append({
+            "player": f"P{n:02d}",
+            "team": f"T{n % 8}",
+            "position": pos,
+            "turn": turn,
+            "crd_last": 5.0,
+            "exp_pir": 10.0 + (n % 7) + (8.0 if turn == 1 else 0.0),
+            "pir_std": 1.0 + 3.0 * (n % 4),
+            "pir_p90": 22.0 + 2.0 * (n % 5),
+            "pir_p10": 4.0 + (n % 3),
+            "in_prev_roster": 0,
+        })
+    df = pd.DataFrame(rows)
+    if prev:  # 4 G / 4 F / 2 C, all turn 1
+        picks = [
+            *df[(df.position == "G") & (df.turn == 1)].index[:4],
+            *df[(df.position == "F") & (df.turn == 1)].index[:4],
+            *df[(df.position == "C") & (df.turn == 1)].index[:2],
+        ]
+        df.loc[picks, "in_prev_roster"] = 1
+    return df
+
+
+def summarize(raw: pd.DataFrame, sol, cfg: Optimization, baseline: float | None) -> pd.DataFrame:
+    sheet = opt.selection_sheet(raw, sol, cfg)
+    plain = opt.vanilla_config(cfg)
+    vanilla = None if plain is None else opt.selection_sheet(raw, opt.optimize_squad(raw, plain), plain)
+    return opt.summary_sheet(sol, sheet, cfg, len(raw), 0.1, baseline, opt.explain_credit_value(raw, cfg, sol), vanilla)
+
+
+def squad_turns(sol) -> list[int]:
+    return sol.table.loc[sol.table["role"] != "none", "turn"].tolist()
+
+
+def test_model_frame_maps_workbook_columns_without_touching_the_input() -> None:
+    df = league()
+    frame = opt.model_frame(df, CFG_S)
+    assert "crd_last" in df.columns and "price" not in df.columns
+    assert list(frame.columns) == ["player", "team", "position", "turn", "price", "in_prev_roster", "target"]
+    assert (frame["price"] == df["crd_last"]).all() and (frame["target"] == df["exp_pir"]).all()
+
+
+def test_turn_minimum_binds_and_costs_objective() -> None:
+    df = league()
+    free = opt.optimize_squad(df, CFG_S)
+    forced = opt.optimize_squad(df, replace(CFG_S, min_players_per_turn=[0, 4]))
+    assert squad_turns(free).count(2) < 4  # the constraint is not vacuous
+    assert squad_turns(forced).count(2) >= 4
+    assert forced.objective < free.objective
+
+
+def test_turn_minimum_for_both_turns() -> None:
+    df = league()
+    sol = opt.optimize_squad(df, replace(CFG_S, min_players_per_turn=[3, 3]))
+    turns = squad_turns(sol)
+    assert turns.count(1) >= 3 and turns.count(2) >= 3
+
+
+def test_turn_minimum_fails_early_when_a_turn_has_too_few_candidates() -> None:
+    df = league()
+    df.loc[df.turn == 2, "turn"] = 1  # no turn-2 player left
+    with pytest.raises(ValueError, match="min_players_per_turn needs more candidates"):
+        opt.optimize_squad(df, replace(CFG_S, min_players_per_turn=[0, 1]))
+
+
+@pytest.mark.parametrize("mins", [[6, 5], [-1], [True], [1.5]])
+def test_bad_turn_minimums_are_rejected(mins: list) -> None:
+    df = league()
+    with pytest.raises(ValueError, match="min_players_per_turn"):
+        opt.optimize_squad(df, replace(CFG_S, min_players_per_turn=mins))
+
+
+def test_selection_sheet_keeps_every_input_row_and_column() -> None:
+    raw = league(prev=True)
+    sol = opt.optimize_squad(raw, replace(CFG_S, max_trades=2))
+    sheet = opt.selection_sheet(raw, sol, CFG_S)
+    assert list(sheet.columns) == [
+        *raw.columns,
+        "selected",
+        "role",
+        "action",
+        "is_captain",
+        *opt.COMPONENT_COLUMNS.values(),
+    ]
+    assert sorted(sheet["player"]) == sorted(raw["player"])
+    assert sheet["selected"].sum() == 10
+    assert sheet["is_captain"].sum() == 1
+    assert (sheet["action"] == "buy").sum() == (sheet["action"] == "sell").sum() <= 2
+    assert (sheet.head(10)["selected"] == 1).all()  # squad first
+    assert (sheet.iloc[10:12]["action"] == "sell").sum() == (sheet["action"] == "sell").sum()  # sold right below it
+
+
+def test_benefit_is_gain_over_keeping_the_current_squad() -> None:
+    raw = league(prev=True)
+    sol = opt.optimize_squad(raw, CFG_S)
+    baseline = opt.current_squad_objective(raw, CFG_S)
+    assert baseline is not None and sol.objective >= baseline
+    summary = summarize(raw, sol, CFG_S, baseline)
+    benefit = summary.loc[summary["metric"].str.startswith("benefit"), "value"].item()
+    assert benefit == pytest.approx(sol.objective - baseline)
+
+
+def test_no_baseline_for_a_fresh_team_or_an_infeasible_current_squad() -> None:
+    fresh = league()
+    assert opt.current_squad_objective(fresh, replace(CFG_S, unlimited_trades=True)) is None
+    prev = league(prev=True)  # current squad is all turn 1
+    assert opt.current_squad_objective(prev, replace(CFG_S, min_players_per_turn=[0, 2])) is None
+
+
+def test_write_output_makes_two_sheets(tmp_path: Path) -> None:
+    raw = league(prev=True)
+    sol = opt.optimize_squad(raw, CFG_S)
+    summary = summarize(raw, sol, CFG_S, None)
+    out = tmp_path / "deep" / "optimizer_output.xlsx"
+    opt.write_output(opt.selection_sheet(raw, sol, CFG_S), summary, out)
+    sheets = pd.read_excel(out, sheet_name=None)
+    assert list(sheets) == ["selection", "summary"]
+    assert len(sheets["selection"]) == len(raw)
+    assert sheets["summary"].loc[sheets["summary"]["metric"] == "objective value", "value"].item() == pytest.approx(
+        sol.objective
+    )
+
+
+def test_optimization_config_section_overrides_defaults(tmp_path: Path) -> None:
+    p = tmp_path / "c.toml"
+    p.write_text(
+        "[optimization]\nmin_players_per_turn = [3, 3]\nunlimited_trades = true\n[optimization.solver_options]\nthreads = 2\n"
+    )
+    cfg = load_config(p).optimization
+    assert cfg.min_players_per_turn == [3, 3] and cfg.unlimited_trades is True
+    assert cfg.solver_options == {"threads": 2}  # replaces the default dict, documented
+    assert cfg.cash == Optimization().cash
+
+
+def test_target_column_from_config_drives_the_selection() -> None:
+    df = league()
+    df["inverse"] = -df["exp_pir"]  # the best players by exp_pir are the worst by "inverse"
+    by_pir = opt.optimize_squad(df, CFG_S)
+    by_inverse = opt.optimize_squad(df, replace(CFG_S, target="inverse"))
+    chosen = lambda sol: set(sol.table.loc[sol.table["role"] != "none", "player"])
+    assert chosen(by_pir) != chosen(by_inverse)
+    assert by_pir.objective > 0 > by_inverse.objective
+
+
+def test_missing_mapped_column_names_the_fix() -> None:
+    with pytest.raises(ValueError, match="no_such_column"):
+        opt.optimize_squad(league(), replace(CFG_S, target="no_such_column"))
+    with pytest.raises(ValueError, match="crd_last"):
+        opt.optimize_squad(league().drop(columns="crd_last"), CFG_S)
+
+
+@pytest.mark.parametrize("column", ["exp_pir", "crd_last", "team"])
+def test_empty_cells_in_a_required_column_are_rejected(column: str) -> None:
+    df = league()
+    df.loc[3, column] = None
+    with pytest.raises(ValueError, match="Empty cells"):
+        opt.optimize_squad(df, CFG_S)
+
+
+def test_zero_turn_minimums_are_the_same_as_none() -> None:
+    df = league()
+    assert opt.optimize_squad(df, replace(CFG_S, min_players_per_turn=[0, 0])).objective == pytest.approx(
+        opt.optimize_squad(df, CFG_S).objective
+    )
+
+
+def test_components_follow_the_documented_formulas() -> None:
+    frame = pd.DataFrame({
+        "price": [10.0, 5.0],
+        "target": [20.0, 6.0],
+        "std": [4.0, 2.0],
+        "p90": [30.0, 5.0],
+        "p10": [8.0, 9.0],
+    })
+    base = replace(CFG_S, credit_value=3.0, robustness_lambda=0.5, upside_beta=0.25, downside_gamma=0.1)
+    growth = [(20.0 - 11.0) / 25, (6.0 - 5.5) / 25]
+    cases = {
+        "vanilla": [0.0, 0.0],
+        "robustness": [-2.0, -1.0],  # -lambda * std
+        "upside": [0.25 * 10.0, 0.0],  # positive part: p90 below target adds nothing
+        "downside": [-0.1 * 12.0, 0.0],  # positive part: target below p10 costs nothing
+    }
+    for mode, risk in cases.items():
+        comps = opt.objective_components(frame, replace(base, objective_mode=mode))
+        assert comps["risk_adjustment"].tolist() == pytest.approx(risk), mode
+        assert comps["score"].tolist() == pytest.approx([20.0 + risk[0], 6.0 + risk[1]]), mode
+        assert comps["credit_growth"].tolist() == pytest.approx(growth)
+        assert comps["growth_value"].tolist() == pytest.approx([3.0 * g for g in growth])
+
+
+def test_robustness_trades_expected_value_for_lower_volatility() -> None:
+    df = league()
+    vanilla = opt.optimize_squad(df, CFG_S)
+    robust_cfg = replace(CFG_S, objective_mode="robustness", robustness_lambda=3.0)
+    robust = opt.optimize_squad(df, robust_cfg)
+    std = df.set_index("player")["pir_std"]
+
+    def lineup_std(sol) -> float:
+        return float(std[sol.table.loc[sol.table["role"] != "none", "player"]].sum())
+
+    assert lineup_std(robust) < lineup_std(vanilla)
+    assert robust.objective < vanilla.objective  # the penalty is paid
+
+
+def test_mode_only_needs_its_own_risk_column() -> None:
+    no_risk = league().drop(columns=["pir_std", "pir_p90", "pir_p10"])
+    opt.optimize_squad(no_risk, CFG_S)  # vanilla: fine
+    with pytest.raises(ValueError, match="pir_std"):
+        opt.optimize_squad(no_risk, replace(CFG_S, objective_mode="robustness"))
+    with pytest.raises(ValueError, match="pir_p10"):
+        opt.optimize_squad(league().drop(columns="pir_p10"), replace(CFG_S, objective_mode="downside"))
+
+
+def test_empty_risk_cell_is_an_error_only_in_the_mode_that_uses_it() -> None:
+    df = league()
+    df.loc[2, "pir_std"] = None
+    opt.optimize_squad(df, CFG_S)  # vanilla ignores pir_std
+    with pytest.raises(ValueError, match="Empty cells"):
+        opt.optimize_squad(df, replace(CFG_S, objective_mode="robustness", robustness_lambda=1.0))
+
+
+@pytest.mark.parametrize(
+    "bad", [{"objective_mode": "bold"}, {"robustness_lambda": -1.0}, {"upside_beta": float("nan")}]
+)
+def test_bad_objective_parameters_are_rejected(bad: dict) -> None:
+    with pytest.raises(ValueError, match="objective_mode|robustness_lambda|upside_beta"):
+        opt.optimize_squad(league(), replace(CFG_S, **bad))
+
+
+def test_credit_value_adds_growth_and_selection_sheet_shows_components() -> None:
+    df = league()
+    cfg = replace(CFG_S, credit_value=3.0)
+    sol = opt.optimize_squad(df, cfg)
+    assert sol.growth_term == pytest.approx(3.0 * sol.growth_credits)
+    assert sol.objective == pytest.approx(sol.active_points + sol.growth_term)
+    sheet = opt.selection_sheet(df, sol, cfg)
+    squad = sheet[sheet["selected"] == 1]
+    assert squad["opt_growth_value"].sum() == pytest.approx(sol.growth_term)
+    assert (sheet["opt_score"] == sheet["opt_target"] + sheet["opt_risk_adjustment"]).all()
+
+
+def test_summary_compares_with_vanilla_only_when_the_run_is_not_vanilla() -> None:
+    raw = league()
+    assert opt.vanilla_config(CFG_S) is None
+    cfg = replace(CFG_S, objective_mode="robustness", robustness_lambda=3.0)
+    sol = opt.optimize_squad(raw, cfg)
+    metrics = summarize(raw, sol, cfg, None)["metric"].tolist()
+    assert "players different from the vanilla squad" in metrics
+    assert (
+        "players different from the vanilla squad"
+        not in summarize(raw, opt.optimize_squad(raw, CFG_S), CFG_S, None)["metric"].tolist()
+    )
+
+
+# --------------------------------------------------------------------------- 8. the script twin
+
+
+def _code_after_docstring(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    return text[text.index('"""', text.index('"""') + 3) + 3 :]
+
+
+def test_scripts_optimize_is_a_copy_of_the_package_module() -> None:
+    """`scripts/optimize.py` and `eupy.optimize.optimize_squad` are maintained together: same code, bar the repo root."""
+    root = Path(__file__).resolve().parents[1]
+    script = _code_after_docstring(root / "scripts" / "optimize.py")
+    package = _code_after_docstring(root / "src" / "eupy" / "optimize" / "optimize_squad.py")
+    assert script.replace("parents[1]", "parents[3]") == package

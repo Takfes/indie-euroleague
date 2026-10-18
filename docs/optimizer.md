@@ -1,6 +1,6 @@
 # Squad optimizer
 
-How `scripts/optimize.py` chooses the squad. Run it with `make optimize` or `uv run python scripts/optimize.py`; every parameter is in `[optimization]` of `config/config.toml` (defaults in `src/eupy/config/defaults.py`). Commands and file layout: [run-guide.md](run-guide.md); game rules: [rules.md](rules.md).
+How `scripts/optimize.py` chooses the squad. Run it with `make optimize` (or `uv run python scripts/optimize.py`; the package twin is `uv run python -m eupy.optimize.optimize_squad`, kept identical by a test); every parameter is in `[optimization]` of `config/config.toml` (defaults in `src/eupy/config/defaults.py`). Commands and file layout: [run-guide.md](run-guide.md); game rules: [rules.md](rules.md).
 
 ## What it does
 

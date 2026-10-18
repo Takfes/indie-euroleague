@@ -15,7 +15,6 @@
 | `game_schedule/schedule` | `data/raw_data/game_schedule/` | `fetch_game_schedule.py` | `build_eubook.py`, `build_player_name_map.py` | full overwrite per run (per season) |
 | `kaggle_data/euroleague_box_score` | `data/raw_data/kaggle_data/euroleague_box_score.csv` | `fetch_kaggle_euroleague.py` | — | manual: the dataset is a static dump through E2025 |
 | `kaggle_data/euroleague_header` | `data/raw_data/kaggle_data/euroleague_header.csv` | `fetch_kaggle_euroleague.py` | — | manual: the dataset is a static dump through E2025 |
-| `optimizer_input` | `data/raw_data/optimizer/optimizer_input.csv` | external: prepared manually (upstream feature/prediction script not built yet) | `optimize_squad.py` | manual |
 | `player_name_decisions` | `src/eupy/entity/maps/player_name_decisions.json` | external: agent decisions recorded by the build-name-maps skill, committed with the package | `build_player_name_map.py` | manual (the skill) |
 
 Notes:
@@ -31,14 +30,13 @@ Notes:
 | --- | --- | --- | --- | --- | --- | --- |
 | `euroleague_box_score_merged` | 01 | `data/stage_01/euroleague_box_score_merged.csv` | `merge_boxscore.py` | `euroleague_net/box_score` | false | — |
 | `euroleague_header_merged` | 01 | `data/stage_01/euroleague_header_merged.csv` | `merge_headers.py` | `euroleague_net/headers` | false | — |
-| `squad_solution` | 01 | `data/stage_01/squad_solution.csv` | `optimize_squad.py` | `optimizer_input` | true | `data/stage_99/squad_solution.csv` |
 | `player_name_map` | 02 | `data/stage_02/player_name_map.csv` | `build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `game_schedule/schedule`, `player_name_decisions` | false | — |
 | `eubook` | 03 | `data/stage_03/eubook.xlsx` | `build_eubook.py` | `euroleague_box_score_merged`, `fantasy_stats/players`, `game_schedule/schedule`, `player_name_map` | false | — |
 
 Notes:
 
 - `build_player_name_map.py`: The schedule feeds TeamNames (club scoping); the decisions file is committed with the package and written by the build-name-maps skill, so DVC reruns this stage when a decision is recorded. Everything else is recomputed from the inputs. Rerunning on the same inputs and decisions rewrites identical bytes. The audit prints only; the exit code is 1 solely in pause mode with a played, unlinked box-score player (the map is written first). CSV columns: stats_team, stats_name, team (normalized club), name (normalized full name), variants (joined with " | "), match_status, matched_by, notes.
-- `optimize_squad.py`: optimizer_input is raw, prepared manually for now (--input overrides). Overwritten each run. Scalars --cash, --max-trades, --credit-value and the optional --config (TOML run parameters) are not catalogued datasets. The stage_99 symlink is created after the first run (the stage file does not exist yet).
+- `optimize_squad.py`: Reads and writes outside the registry on purpose. The input is a manual preparation step with no producing script, and the output is a real file in data/stage_99/ (DVC must never own stage_99 paths), written to data/stage_99/optimizer_output.xlsx and overwritten each run. Run parameters are the [optimization] section of config/config.toml, which is not a catalogued dataset.
 - `build_eubook.py`: Overwritten each run (the latest workbook). Also writes data/stage_99/eubook_<next round, 3 digits>.xlsx (same content, a real file not tracked by DVC, one per round) so stage_99 collects the delivered workbooks. Reads schedule_<season>.csv for the config season. Names are looked up through PlayerNames (the player map CSV listed as input; the team lookup through TeamNames, from the schedule input). In `pause` mode the map stage fails first, so a flow stops before this step.
 - `merge_boxscore.py`: Live deltas only by default. With include_kaggle the Kaggle file data/raw_data/kaggle_data/euroleague_box_score.csv is merged under them; it is deliberately not a declared input, so a merge never pulls the Kaggle fetch into the graph (after refreshing Kaggle with include_kaggle on, rerun with `dvc repro -f merge_boxscore`).
 - `merge_headers.py`: Live deltas only by default. With include_kaggle the Kaggle file data/raw_data/kaggle_data/euroleague_header.csv is merged under them; it is deliberately not a declared input, so a merge never pulls the Kaggle fetch into the graph (after refreshing Kaggle with include_kaggle on, rerun with `dvc repro -f merge_headers`).
@@ -52,7 +50,7 @@ Notes:
 | `src/eupy/fetchers/fetch_euroleague_live_headers.py` | live.euroleague.net/api/Header (live) | `euroleague_net/headers` | false | true |
 | `src/eupy/fetchers/fetch_game_schedule.py` | https://euroleague-advanced-api.eu/Euroleague/schedule?season={year} (live) | `game_schedule/schedule` | false | true |
 | `src/eupy/fetchers/fetch_kaggle_euroleague.py` | kaggle.com/datasets/babissamothrakis/euroleague-datasets (Kaggle API) | `kaggle_data/euroleague_box_score`, `kaggle_data/euroleague_header` | false | true |
-| `src/eupy/optimize/optimize_squad.py` | `optimizer_input` | `squad_solution` | true | false |
+| `src/eupy/optimize/optimize_squad.py` | data/stage_04/optimizer_input.xlsx: prepared by hand from the eubook (scripts/dataprep.py), not catalogued | none | false | false |
 | `src/eupy/transform/merge_boxscore.py` | `euroleague_net/box_score` | `euroleague_box_score_merged` | false | false |
 | `src/eupy/transform/merge_headers.py` | `euroleague_net/headers` | `euroleague_header_merged` | false | false |
 | `src/eupy/entity/build_player_name_map.py` | `fantasy_stats/players`, `euroleague_box_score_merged`, `game_schedule/schedule`, `player_name_decisions` | `player_name_map` | false | false |

@@ -106,11 +106,10 @@ Writes `data/stage_03/eubook.xlsx` (always the latest, tracked by DVC) and a rea
 
 `uv run python scripts/optimize.py` (outside DVC: it writes to `data/stage_99/`, which DVC must not own) reads `data/stage_04/optimizer_input.xlsx` (first sheet) and writes `data/stage_99/optimizer_output.xlsx`: sheet `selection` (the input rows plus `selected`, `role`, `action`, `is_captain`) and sheet `summary` (objective and its split, benefit over keeping the current squad, trades, cash, solver status and time, run parameters).
 
-- **Also:** `make optimize`. Method, objective modes and parameters: [optimizer.md](optimizer.md).
+- **Also:** `make optimize`, or the package twin `uv run python -m eupy.optimize.optimize_squad` (same code, registry header; a test fails if the two drift apart, so change both). Method, objective modes and parameters: [optimizer.md](optimizer.md).
 - **Column mapping:** the `COLUMNS` / `RISK_COLUMNS` dicts at the top of the script map the model's names (`player`, `team`, `position`, `turn`, `price`, `in_prev_roster`, `std`, `p90`, `p10`) to workbook columns (`price` = `crd_last`, `std` = `pir_std`, `p90` = `pir_p90`, `p10` = `pir_p10`); the input is never renamed. The value to maximise is `[optimization] target` (default `exp_pir`; any numeric column).
 - **Empty cells:** any empty cell in a column the run uses (the mapped columns, `target`, and the risk column of the selected mode) stops the run with an error; other columns are ignored.
 - **Parameters:** all in `[optimization]` of `config/config.toml`, no CLI flags: `target`, `objective_mode`, `robustness_lambda`, `upside_beta`, `downside_gamma`, `credit_value`, `cash`, `max_trades`, `unlimited_trades`, `min_players_per_turn`, `solver`, `solver_options`. `min_players_per_turn = [3, 3]` requires at least 3 turn-1 and 3 turn-2 players in the 10-player squad (not only the starting five); `[]` or `[0, 0]` = no constraint. `[optimization.solver_options]` replaces the default solver options as a whole.
-- `scripts/optimize.py` is a standalone copy of `src/eupy/optimize/optimize_squad.py`, which keeps its own CSV/CLI interface and tests.
 
 ## Player names
 
